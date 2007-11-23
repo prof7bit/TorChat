@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: UTF-8 -*-
 
 ##############################################################################
 #                                                                            #
@@ -360,7 +361,7 @@ class GuiPopupMenu(wx.Menu):
         pass
 
     def onAbout(self, evt):
-        pass
+        wx.MessageBox(about_text, "About TorChat")
 
 class GuiBuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
@@ -594,6 +595,30 @@ def main():
     app.mw = MainWindow()
     app.SetTopWindow(app.mw)
     app.MainLoop()
+
+about_text = """Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
+    
+*
+
+TorChat is free software: you can redistribute it and/or \
+modify it under the terms of the GNU General Public \
+License as published by the Free Software Foundation, \
+either version 3 of the License, or (at your option) \
+any later version.
+
+TorChat is distributed in the hope that it will be useful, \
+but WITHOUT ANY WARRANTY; without even the implied \
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. \
+See the GNU General Public License for more details.
+
+*
+
+And now for something completely different:
+
+If you happen to run a software company in germany and are in \
+need of a new coder, feel free to regard this little program \
+as my application documents and drop me a mail with your answer.
+"""
 
 if __name__ == "__main__":
     main()
