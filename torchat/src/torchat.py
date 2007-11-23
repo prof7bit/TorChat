@@ -41,6 +41,9 @@ DIR = os.path.dirname(sys.argv[0])
 os.chdir(DIR)
 log_window = None
 
+def isWindows():
+    return "win" in sys.platform
+
 def log(text):
     global log_window
     text += "\n"
@@ -315,11 +318,57 @@ class Listener(threading.Thread):
 
 #--- ######## GUI #########
 
+class GuiPopupMenu(wx.Menu):
+    def __init__(self, main_window, type):
+        wx.Menu.__init__(self)
+        self.mw = main_window
+        
+        if type == "contact": 
+            item = wx.MenuItem(self, wx.NewId(), "Chat")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.mw.gui_bl.onDClick, item)
+        
+            item = wx.MenuItem(self, wx.NewId(), "Edit contact")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onEdit, item)
+
+            item = wx.MenuItem(self, wx.NewId(), "Delete contact")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onDelete, item)
+    
+        if type == "empty": 
+            item = wx.MenuItem(self, wx.NewId(), "Add contact")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onAdd, item)
+    
+        self.AppendSeparator()
+        
+        item = wx.MenuItem(self, wx.NewId(), "About TorChat")
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onAbout, item)
+
+    def onChat(self, evt):
+        pass
+
+    def onEdit(self, evt):
+        pass
+
+    def onDelete(self, evt):
+        pass
+
+    def onAdd(self, evt):
+        pass
+
+    def onAbout(self, evt):
+        pass
+
 class GuiBuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_LIST)
         self.mw = main_window
         self.bl = self.mw.buddy_list
+        
+        self.r_down = False
         
         self.il = wx.ImageList(16, 16)
         self.icon_offline = self.il.Add(wx.Bitmap("icons/offline.png", wx.BITMAP_TYPE_PNG))
@@ -335,6 +384,8 @@ class GuiBuddyList(wx.ListCtrl):
         self.timer.Start(milliseconds=1000, oneShot=False)
         
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDClick)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRClick)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
         
     def onTimer(self, evt):
         for buddy in self.bl.list:
@@ -364,6 +415,18 @@ class GuiBuddyList(wx.ListCtrl):
                 buddy.chat_window.txt_out.SetFocus()
                 break
         evt.Skip()
+        
+    def onRClick(self, evt):
+        index, flags = self.HitTest(evt.GetPosition())
+        if index != -1:
+            self.mw.PopupMenu(GuiPopupMenu(self.mw, "contact"))
+        
+    def onRDown(self, evt):
+        index, flags = self.HitTest(evt.GetPosition())
+        if index == -1:
+            self.mw.PopupMenu(GuiPopupMenu(self.mw, "empty"))
+        else:
+            evt.Skip()
 
 class ChatWindow(wx.Frame):
     def __init__(self, main_window, buddy):
@@ -464,7 +527,7 @@ class MainWindow(wx.Frame):
         # sys.exit() would spew lots of tracebacks *sometimes*,
         # so let's do it the easy way and just kill ourself:
         pid = os.getpid()
-        if "win" in sys.platform:
+        if isWindows():
             os.popen2("taskkill /f /t /pid %i" % pid)
         else:
             try:
