@@ -502,6 +502,9 @@ class MainWindow(wx.Frame):
         self.main_panel.SetSizer(sizer)
         sizer.FitInside(self)
         
+        icon = wx.Icon(name="icons/torchat.ico", type=wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon)
+        
         self.Show()
     
     def newIncomingChatWindow(self, buddy, text):
