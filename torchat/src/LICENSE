@@ -2,6 +2,8 @@
 # License for TorChat (see below for licenses of other included files)      #
 #############################################################################
     
+    Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
+    
     TorChat is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -12,6 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
     
+                             ~~~*~~~
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

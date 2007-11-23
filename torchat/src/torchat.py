@@ -4,7 +4,7 @@
 #                                                                            #
 # (c) 2007 Bernd Kreuss <prof7bit@gmail.com>                                 #
 #                                                                            #
-# This program is licensed under the GNU General Public License,             #
+# This program is licensed under the GNU General Public License V3,             #
 # the full source code is included in the binary distribution.               #
 #                                                                            #
 # Included in the distribution are files from other open source projects:    #
