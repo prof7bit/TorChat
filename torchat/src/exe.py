@@ -13,7 +13,7 @@ app_company = "Bernd Kreuﬂ"
 app_copyright = "© 2007 Bernd Kreuﬂ"
 
 script_name = "torchat.py"
-icon_name = "torchat.ico"
+icon_name = "icons/torchat.ico"
 
 # If run without args, build executables, in quiet mode.
 if len(sys.argv) == 1:
@@ -79,7 +79,6 @@ setup(
 os.system("upx dist\\*.*")
 
 os.system("copy dist\\*.* ..\\bin")
-os.system("copy buddy-list.txt ..\\bin")
-#os.system("rmdir /S /Q dist build")
+os.system("rmdir /S /Q dist build")
 
 time.sleep(2)
