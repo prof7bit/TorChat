@@ -8,7 +8,7 @@
 # the full source code is included in the binary distribution.               #
 #                                                                            #
 # Included in the distribution are files from other open source projects:    #
-# - TOR Onion Router (unmodyfied w32 binary) (c) The Tor Project, GNU GPL    #
+# - TOR Onion Router (c) The Tor Project, 3-clause-BSD                       #
 # - SocksiPy (c) Dan Haim, BSD Style License                                 #
 # - Gajim buddy status icons (c) The Gajim Team, GNU GPL                     #
 #                                                                            #
