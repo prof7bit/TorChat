@@ -2,7 +2,7 @@
 
 ##############################################################################
 #                                                                            #
-# (c) 2007 Bernd Kreuss <prof7bit@gmail.com>                                 #
+# Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>                       #
 #                                                                            #
 # This program is licensed under the GNU General Public License V3,             #
 # the full source code is included in the binary distribution.               #
@@ -85,11 +85,10 @@ class Buddy(object):
             self.connect()
         self.conn_out.send(text + "\n")
         
-    def find(self):
+    def ping(self):
         if self.conn_out == None:
             self.connect()
-        else:
-            self.send("find %s %s" % (OWN_HOSTNAME, self.random1))
+        self.send("ping %s %s" % (OWN_HOSTNAME, self.random1))
 
 class BuddyList(object):
     def __init__(self, main_window):
@@ -138,29 +137,29 @@ class BuddyList(object):
 
     def test(self):
         for buddy in self.list:
-            buddy.find()
+            buddy.ping()
             
         self.timer = threading.Timer(15, self.test)
         self.timer.start()
         
     def process(self, connection, line):
         cmd, text = splitLine(line)
-        if cmd == "find":
+        if cmd == "ping":
             address, random = splitLine(text)
             found = False
             for buddy in self.list:
                 if buddy.address == address:
-                    buddy.send("find-reply " + random)
+                    buddy.send("pong " + random)
                     found = True
                     break
             if not found:
                 buddy = Buddy(address, self)
                 self.list.append(buddy)
                 buddy.connect()
-                buddy.send("find-reply " + random)
+                buddy.send("pong " + random)
                 self.save()
                 
-        if cmd == "find-reply":
+        if cmd == "pong":
             for buddy in self.list:
                 if buddy.random1 == text:
                     if buddy.conn_in == None:
