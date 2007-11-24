@@ -348,11 +348,9 @@ class GuiPopupMenu(wx.Menu):
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAbout, item)
 
-    def onChat(self, evt):
-        pass
-
     def onEdit(self, evt):
-        pass
+        dialog = GuiEditContact(self.mw)
+        dialog.ShowModal()
 
     def onDelete(self, evt):
         pass
@@ -362,6 +360,36 @@ class GuiPopupMenu(wx.Menu):
 
     def onAbout(self, evt):
         wx.MessageBox(about_text, "About TorChat")
+
+
+class GuiEditContact(wx.Dialog):
+    def __init__(self, main_window, buddy=None): #no buddy -> Add new
+        wx.Dialog.__init__(self, main_window, -1, "Edit contact")
+        self.mw = main_window
+        self.bl = self.mw.buddy_list
+        self.buddy = buddy
+
+        self.panel = wx.Panel(self)
+        
+        sizer = wx.GridBagSizer(vgap = 5, hgap = 5)
+        box_sizer = wx.BoxSizer()
+        box_sizer.Add(sizer, 1, wx.EXPAND | wx.ALL, 5)
+        
+        lbl = wx.StaticText(self.panel, -1, "Address")
+        sizer.Add(lbl, (0, 0), (1, 1))
+        
+        lbl = wx.StaticText(self.panel, -1, "Name")
+        sizer.Add(lbl, (1, 0), (1, 1))
+        
+        self.txt_address = wx.TextCtrl(self.panel, -1, "")
+        sizer.Add(self.txt_address, (0, 1), (1, 1))
+        
+        self.txt_name = wx.TextCtrl(self.panel, -1, "")
+        sizer.Add(self.txt_name, (1, 1), (1, 1))
+        
+        self.panel.SetSizer(box_sizer)
+        box_sizer.Fit(self)#self.SetSizer(box_sizer)
+
 
 class GuiBuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
