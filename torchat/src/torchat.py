@@ -84,6 +84,15 @@ class Buddy(object):
     def connect(self):
         self.conn_out = OutConnection(self.address + ".onion", self.bl)
         
+    def disconnect(self):
+        if self.conn_out != None:
+            self.conn_out.close()
+            self.conn_out = None
+        if self.conn_in != None:
+            self.conn_in.close()
+            self.conn_in = None
+        self.status = STATUS_OFFLINE
+        
     def send(self, text):
         if self.conn_out == None:
             self.connect()
@@ -93,6 +102,13 @@ class Buddy(object):
         if self.conn_out == None:
             self.connect()
         self.send("ping %s %s" % (OWN_HOSTNAME, self.random1))
+        
+    def getDisplayName(self):
+        if self.name != "":
+            line = "%s (%s)" % (self.address, self.name)
+        else:
+            line = self.address
+        return line
 
 class BuddyList(object):
     def __init__(self, main_window):
@@ -127,8 +143,7 @@ class BuddyList(object):
         
         if not found:
             log("adding own hostname %s to buddy list" % OWN_HOSTNAME)
-            self.list.append(Buddy(OWN_HOSTNAME, self, "myself"))
-            self.save() 
+            self.addBuddy(Buddy(OWN_HOSTNAME, self, "myself"))
         
         self.test()
 
@@ -145,6 +160,29 @@ class BuddyList(object):
             
         self.timer = threading.Timer(15, self.test)
         self.timer.start()
+        
+    def addBuddy(self, buddy):
+        self.list.append(buddy)
+        self.save()
+        
+    def removeBuddy(self, buddy_to_remove):
+        try:
+            self.list.remove(buddy_to_remove)
+            self.save()
+            return True
+        except:
+            return False
+        
+    def removeBuddyWithAddress(self, address):
+        buddy = self.getBuddyFromAddress(address)
+        if buddy != None:
+            self.removeBuddy(buddy)
+        
+    def getBuddyFromAddress(self, address):
+        for buddy in self.list:
+            if buddy.address == address:
+                return buddy
+        return None
         
     def process(self, connection, line):
         cmd, text = splitLine(line)
@@ -176,22 +214,13 @@ class BuddyList(object):
         if cmd == "error-in":
             for buddy in self.list:
                 if buddy.conn_in == connection:
-                    buddy.conn_in.close()
-                    buddy.conn_in = None
-                    buddy.conn_out.close()
-                    buddy.conn_out = None
-                    buddy.status = STATUS_OFFLINE
+                    buddy.disconnect()
                     break
                 
         if cmd == "error-out":
             for buddy in self.list:
                 if buddy.conn_out == connection:
-                    buddy.conn_out.close()
-                    buddy.conn_out = None
-                    if buddy.conn_in != None:
-                        buddy.conn_in.close()
-                        buddy.conn_in = None
-                    buddy.status = STATUS_OFFLINE
+                    buddy.disconnect()
                     break
         
         if cmd == "connected":
@@ -349,14 +378,22 @@ class GuiPopupMenu(wx.Menu):
         self.Bind(wx.EVT_MENU, self.onAbout, item)
 
     def onEdit(self, evt):
-        dialog = GuiEditContact(self.mw)
+        buddy = self.mw.gui_bl.getSelectedBuddy()
+        dialog = GuiEditContact(self.mw, buddy)
         dialog.ShowModal()
 
     def onDelete(self, evt):
-        pass
+        buddy = self.mw.gui_bl.getSelectedBuddy()
+        answer = wx.MessageBox("Really delete this contact?\n%s\n%s" 
+                               % (buddy.address, buddy.name), 
+                               "Confirm deletion", 
+                               wx.YES_NO|wx.NO_DEFAULT)
+        if answer == wx.YES:
+            self.mw.buddy_list.removeBuddy(buddy)
 
     def onAdd(self, evt):
-        pass
+        dialog = GuiEditContact(self.mw, None)
+        dialog.ShowModal()
 
     def onAbout(self, evt):
         wx.MessageBox(about_text, "About TorChat")
@@ -364,10 +401,18 @@ class GuiPopupMenu(wx.Menu):
 
 class GuiEditContact(wx.Dialog):
     def __init__(self, main_window, buddy=None): #no buddy -> Add new
-        wx.Dialog.__init__(self, main_window, -1, "Edit contact")
+        wx.Dialog.__init__(self, main_window, -1)
         self.mw = main_window
         self.bl = self.mw.buddy_list
         self.buddy = buddy
+        if buddy == None:
+            self.SetTitle("Add new contact")
+            address = ""
+            name = ""
+        else:
+            self.SetTitle("Edit contact")
+            address = buddy.address
+            name = buddy.name
 
         self.panel = wx.Panel(self)
         
@@ -376,20 +421,61 @@ class GuiEditContact(wx.Dialog):
         box_sizer.Add(sizer, 1, wx.EXPAND | wx.ALL, 5)
         
         lbl = wx.StaticText(self.panel, -1, "Address")
-        sizer.Add(lbl, (0, 0), (1, 1))
+        sizer.Add(lbl, (0, 0))
         
         lbl = wx.StaticText(self.panel, -1, "Name")
-        sizer.Add(lbl, (1, 0), (1, 1))
+        sizer.Add(lbl, (1, 0))
         
-        self.txt_address = wx.TextCtrl(self.panel, -1, "")
-        sizer.Add(self.txt_address, (0, 1), (1, 1))
+        self.txt_address = wx.TextCtrl(self.panel, -1, address)
+        self.txt_address.SetMinSize((250, -1))
+        sizer.Add(self.txt_address, (0, 1), (1, 2))
         
-        self.txt_name = wx.TextCtrl(self.panel, -1, "")
-        sizer.Add(self.txt_name, (1, 1), (1, 1))
+        self.txt_name = wx.TextCtrl(self.panel, -1, name)
+        self.txt_name.SetMinSize((250, -1))
+        sizer.Add(self.txt_name, (1, 1), (1, 2))
+        
+        self.btn_cancel = wx.Button(self.panel, -1, "Cancel")
+        sizer.Add(self.btn_cancel, (2, 1), flag=wx.EXPAND)
+        
+        self.btn_ok = wx.Button(self.panel, -1, "Ok")
+        self.btn_ok.SetDefault()
+        sizer.Add(self.btn_ok, (2, 2), flag=wx.EXPAND)
         
         self.panel.SetSizer(box_sizer)
-        box_sizer.Fit(self)#self.SetSizer(box_sizer)
+        box_sizer.Fit(self)
 
+        self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
+        self.btn_ok.Bind(wx.EVT_BUTTON, self.onOk)
+
+    def onOk(self, evt):
+        address = self.txt_address.GetValue()
+        if len(address) != 16:
+            l = len(address)
+            wx.MessageBox("The address must be 16 characters long, not %i." % l)
+            return
+        
+        for c in address:
+            if c not in "0123456789abcdefghijklmnopqrstuvwxyz":
+                wx.MessageBox("The address must only contain numbers and lowercase letters")
+                return
+            
+        if self.buddy == None:
+            buddy = Buddy(address, 
+                          self.bl, 
+                          self.txt_name.GetValue())
+            self.bl.addBuddy(buddy)
+        else:
+            address_old = self.buddy.address
+            self.buddy.address = address
+            self.buddy.name = self.txt_name.GetValue()
+            self.bl.save()
+            if address != address_old:
+                self.buddy.disconnect()
+            
+        self.Close()
+        
+    def onCancel(self,evt):
+        self.Close()
 
 class GuiBuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
@@ -417,11 +503,20 @@ class GuiBuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
         
     def onTimer(self, evt):
+        #remove items which are not in list anymore
+        for index in xrange(0, self.GetItemCount()):
+            found = False
+            for buddy in self.bl.list:
+                if buddy.getDisplayName() == self.GetItemText(index):
+                    found = True
+                    break
+            if not found:
+                self.DeleteItem(index)
+                break
+        
+        #add new items to the list or change status icons
         for buddy in self.bl.list:
-            if buddy.name != "":
-                line = "%s (%s)" % (buddy.address, buddy.name)
-            else:
-                line = buddy.address
+            line = buddy.getDisplayName()
             index = self.FindItem(0, line)
             if index == -1:
                 index = self.InsertImageStringItem(sys.maxint, line, self.icon_offline)
@@ -431,8 +526,9 @@ class GuiBuddyList(wx.ListCtrl):
             if buddy.status == STATUS_ONLINE:
                 self.SetItemImage(index, self.icon_online)    
             if buddy.status == STATUS_HANDSHAKE:
-                self.SetItemImage(index, self.icon_handshake)    
-            self.Refresh()    
+                self.SetItemImage(index, self.icon_handshake)
+        
+        self.Refresh()    
     
     def onDClick(self, evt):
         i = self.GetFirstSelected()
@@ -456,6 +552,12 @@ class GuiBuddyList(wx.ListCtrl):
             self.mw.PopupMenu(GuiPopupMenu(self.mw, "empty"))
         else:
             evt.Skip()
+
+    def getSelectedBuddy(self):
+        index = self.GetFirstSelected()
+        addr = self.GetItemText(index)[0:16]
+        return self.bl.getBuddyFromAddress(addr)
+        
 
 class ChatWindow(wx.Frame):
     def __init__(self, main_window, buddy):
