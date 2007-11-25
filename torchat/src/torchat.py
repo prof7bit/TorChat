@@ -17,10 +17,19 @@
 
 
 #change OWN_HOSTNAME to yours, or it will NOT work
-# you find it in your hidden service dir in the file
-# hostname. Leave the tld (.onion) away.
-# (On windows in portable mode this is done automatically.)
+#you find it in your hidden service dir in the file
+#hostname. Leave the tld (.onion) away.
+#(On windows in portable mode this is done automatically.)
 OWN_HOSTNAME = "utvrla6mjdypbyw6" #.onion
+
+#configure the following if your Tor is running on a separate machine
+TOR_SERVER = "127.0.0.1"
+TOR_SERVER_SOCKS_PORT = 9050
+TOR_SERVER_CONTROL_PORT = 9051
+
+#configure where to listen for connections *from* the Tor server
+LISTEN_INTERFACE = "127.0.0.1"
+LISTEN_PORT = 11009
 
 LOG_TO_WINDOW = False
 LOG_TO_FILE = False
@@ -34,7 +43,7 @@ import time
 import sys
 import os
 
-PORT = 11009
+TORCHAT_PORT = 11009 #do NOT change this.
 STATUS_OFFLINE = 0
 STATUS_HANDSHAKE = 1
 STATUS_ONLINE = 2
@@ -288,8 +297,10 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.conn = socks.socksocket()
-            self.conn.setproxy(socks.PROXY_TYPE_SOCKS4, "127.0.0.1", 9050)
-            self.conn.connect((self.address, PORT))
+            self.conn.setproxy(socks.PROXY_TYPE_SOCKS4, 
+                               TOR_SERVER, 
+                               TOR_SERVER_SOCKS_PORT)
+            self.conn.connect((self.address, TORCHAT_PORT))
             self.bl.process(self, "connected")
             while self.running:
                 if len(self.send_buffer) > 0:
@@ -320,12 +331,11 @@ class Listener(threading.Thread):
         
     def run(self):
         self.running = True
-        HOST = '127.0.0.1'
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((HOST, PORT))
+        self.socket.bind((LISTEN_INTERFACE, LISTEN_PORT))
         self.socket.listen(1)
-        log("listening on port %i" % PORT)
+        log("listening on interface %s port %i" % (LISTEN_INTERFACE, LISTEN_PORT))
         try:
             while self.running:
                 try:
