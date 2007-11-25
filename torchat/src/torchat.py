@@ -293,7 +293,7 @@ class OutConnection(threading.Thread):
             self.bl.process(self, "connected")
             while self.running:
                 if len(self.send_buffer) > 0:
-                    text = self.send_buffer.pop()
+                    text = self.send_buffer.pop(0)
                     self.conn.send(text)
                 time.sleep(0.1)
                 
@@ -593,13 +593,24 @@ class ChatWindow(wx.Frame):
         
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.txt_out.Bind(wx.EVT_TEXT_ENTER, self.onSend)
+    
+    def writeColored(self, color, name, text):    
+        self.txt_in.SetForegroundColour(wx.Color(color[0], color[1], color[2]))
+        self.txt_in.write("%s: " % name)
+        self.txt_in.SetForegroundColour(wx.Color(0,0,0))
+        self.txt_in.write("%s\n" % text)
         
+        # workaround scroll bug on windows 
+        # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
+        self.txt_in.ScrollLines(-1)
+        self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
+    
     def process(self, text):
         if self.buddy.name != "":
             name = self.buddy.name
         else:
             name = self.buddy.address
-        self.txt_in.write("%s: %s\n" % (name, text.decode("UTF-8")))
+        self.writeColored((192,0,0), name, text.decode("utf-8"))
         
     def onClose(self, evt):
         self.buddy.chat_window = None
@@ -610,7 +621,7 @@ class ChatWindow(wx.Frame):
             text = self.txt_out.GetValue()
             self.txt_out.SetValue("")
             self.buddy.send("message %s" % text.encode("UTF-8"))
-            self.txt_in.write("%s: %s\n" % ("myself", text))
+            self.writeColored((0,0,192), "myself", text)
         else:
             wx.MessageBox("We have no connection to this contact. \nPlease wait.")
         evt.Skip()
