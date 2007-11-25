@@ -8,7 +8,7 @@ import time
 
 app_name = "TorChat" 
 app_descr = "Messenger on top of the TOR-network" 
-app_version = "0.9.9.33"
+app_version = "0.9.9.34"
 app_company = "Bernd Kreuﬂ"
 app_copyright = "© 2007 Bernd Kreuﬂ"
 

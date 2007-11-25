@@ -587,14 +587,21 @@ class ChatWindow(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         self.txt_in = wx.TextCtrl(self.panel,
-                               -1,
-                               style=wx.TE_MULTILINE)
+                                   -1,
+                                   style=wx.TE_READONLY |
+                                   wx.TE_MULTILINE |
+                                   wx.TE_AUTO_URL |
+                                   wx.TE_AUTO_SCROLL |
+                                   wx.TE_RICH2)
+        
         sizer.Add(self.txt_in, 1, wx.EXPAND)
         
         self.txt_out = wx.TextCtrl(self.panel,
                                    -1,
-                                   style=wx.TE_PROCESS_ENTER)
+                                   style=wx.TE_MULTILINE |
+                                   wx.TE_PROCESS_ENTER)
         sizer.Add(self.txt_out, 0, wx.EXPAND)
+        
         sizer.SetItemMinSize(self.txt_out, (-1,20))
         
         self.panel.SetSizer(sizer)
@@ -604,10 +611,11 @@ class ChatWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.txt_out.Bind(wx.EVT_TEXT_ENTER, self.onSend)
     
-    def writeColored(self, color, name, text):    
-        self.txt_in.SetForegroundColour(wx.Color(color[0], color[1], color[2]))
+    def writeColored(self, color, name, text):
+        red, green, blue = color
+        self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(red, green, blue)))    
         self.txt_in.write("%s: " % name)
-        self.txt_in.SetForegroundColour(wx.Color(0,0,0))
+        self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(0, 0, 0)))
         self.txt_in.write("%s\n" % text)
         
         # workaround scroll bug on windows 
