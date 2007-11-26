@@ -733,7 +733,7 @@ class ChatWindow(wx.Frame):
         evt.Skip()
         
     def onSend(self, evt):
-        if self.buddy.status == STATUS_ONLINE:
+        if self.buddy.status != STATUS_OFFLINE:
             text = self.txt_out.GetValue().rstrip()
             self.txt_out.SetValue("")
             self.buddy.send("message %s" % text.encode("UTF-8"))
