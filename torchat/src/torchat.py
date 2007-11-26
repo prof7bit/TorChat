@@ -47,6 +47,8 @@ TORCHAT_PORT = 11009 #do NOT change this.
 STATUS_OFFLINE = 0
 STATUS_HANDSHAKE = 1
 STATUS_ONLINE = 2
+STATUS_AWAY = 3
+STATUS_XA = 4
 DIR = os.path.dirname(sys.argv[0])
 os.chdir(DIR)
 log_window = None
@@ -92,6 +94,8 @@ class Buddy(object):
     
     def connect(self):
         self.conn_out = OutConnection(self.address + ".onion", self.bl)
+        self.conn_out.buddy = self
+        self.ping()
         
     def disconnect(self):
         if self.conn_out != None:
@@ -110,7 +114,21 @@ class Buddy(object):
     def ping(self):
         if self.conn_out == None:
             self.connect()
-        self.send("ping %s %s" % (OWN_HOSTNAME, self.random1))
+        else:
+            self.send("ping %s %s" % (OWN_HOSTNAME, self.random1))
+            self.sendStatus()
+                
+    def sendStatus(self):
+        if self.conn_out != None:
+            status = ""
+            if self.bl.own_status == STATUS_ONLINE:
+                status = "available"
+            if self.bl.own_status == STATUS_AWAY:
+                status = "away"
+            if self.bl.own_status == STATUS_XA:
+                status = "xa"
+            if status != "":
+                self.send("status %s" % status)
         
     def getDisplayName(self):
         if self.name != "":
@@ -122,6 +140,8 @@ class Buddy(object):
 class BuddyList(object):
     def __init__(self, main_window):
         self.mw = main_window
+        
+        self.own_status = STATUS_ONLINE
         
         #create it if it does not already exist
         f = open("buddy-list.txt", "a")
@@ -171,8 +191,13 @@ class BuddyList(object):
         self.timer.start()
         
     def addBuddy(self, buddy):
-        self.list.append(buddy)
-        self.save()
+        if self.getBuddyFromAddress(buddy.address) == None:
+            self.list.append(buddy)
+            self.save()
+            buddy.connect()
+            return buddy
+        else:
+            return False
         
     def removeBuddy(self, buddy_to_remove):
         try:
@@ -193,22 +218,20 @@ class BuddyList(object):
                 return buddy
         return None
         
+    def setStatus(self, status):
+        self.own_status = status
+        for buddy in self.list:
+            buddy.sendStatus()
+    
     def process(self, connection, line):
         cmd, text = splitLine(line)
         if cmd == "ping":
             address, random = splitLine(text)
-            found = False
-            for buddy in self.list:
-                if buddy.address == address:
-                    buddy.send("pong " + random)
-                    found = True
-                    break
-            if not found:
-                buddy = Buddy(address, self)
-                self.list.append(buddy)
-                buddy.connect()
+            buddy = self.getBuddyFromAddress(address)
+            if buddy:
                 buddy.send("pong " + random)
-                self.save()
+            else:
+                buddy = self.addBuddy(Buddy(address, self))
                 
         if cmd == "pong":
             for buddy in self.list:
@@ -227,15 +250,11 @@ class BuddyList(object):
                     break
                 
         if cmd == "error-out":
-            for buddy in self.list:
-                if buddy.conn_out == connection:
-                    buddy.disconnect()
-                    break
+            buddy = connection.buddy
+            buddy.disconnect()
         
         if cmd == "connected":
-            for buddy in self.list:
-                if buddy.conn_out == connection:
-                    buddy.status = STATUS_HANDSHAKE
+            connection.buddy.status = STATUS_HANDSHAKE
                     
         if cmd == "message":
             if connection.buddy != None:
@@ -244,6 +263,15 @@ class BuddyList(object):
                     wx.CallAfter(self.mw.newIncomingChatWindow, buddy, text)
                 else:
                     wx.CallAfter(buddy.chat_window.process, text)
+                    
+        if cmd == "status":
+            if connection.buddy != None:
+                if text == "available":
+                    connection.buddy.status = STATUS_ONLINE
+                if text == "away":
+                    connection.buddy.status = STATUS_AWAY
+                if text == "xa":
+                    connection.buddy.status = STATUS_XA
 
 
 class InConnection(threading.Thread):
@@ -256,26 +284,21 @@ class InConnection(threading.Thread):
         
     def run(self):
         self.running = True
-        try:
-            readbuffer = ""
-            while self.running:
-                recv = self.conn.recv(1024)
-                if recv != "":
-                    readbuffer = readbuffer + recv
-                    temp = readbuffer.split("\n")
-                    readbuffer = temp.pop( )
-                
-                    for line in temp:
-                        line = line.rstrip()
-                        if self.running:
-                            self.bl.process(self, line)
-                else:
-                    self.close()  
-                    self.bl.process(self, "error-in")
-        
-        except:
-            self.close()  
-            self.bl.process(self, "error-in")
+        readbuffer = ""
+        while self.running:
+            recv = self.conn.recv(1024)
+            if recv != "":
+                readbuffer = readbuffer + recv
+                temp = readbuffer.split("\n")
+                readbuffer = temp.pop( )
+            
+                for line in temp:
+                    line = line.rstrip()
+                    if self.running:
+                        self.bl.process(self, line)
+            else:
+                self.close()  
+                self.bl.process(self, "error-in")
 
     def close(self):
         self.running = False
@@ -387,6 +410,12 @@ class GuiPopupMenu(wx.Menu):
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAbout, item)
 
+        if type == "empty": 
+            self.AppendSeparator()
+            item = wx.MenuItem(self, wx.NewId(), "Ask Bernd")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onAskBernd, item)
+
     def onEdit(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
         dialog = GuiEditContact(self.mw, buddy)
@@ -408,6 +437,12 @@ class GuiPopupMenu(wx.Menu):
     def onAbout(self, evt):
         wx.MessageBox(about_text, "About TorChat")
 
+    def onAskBernd(self, evt):
+        res = self.mw.buddy_list.addBuddy(Buddy("utvrla6mjdypbyw6", 
+                                    self.mw.buddy_list,
+                                    "Bernd"))
+        if res == False:
+            wx.MessageBox("Bernd is already on your list")
 
 class GuiEditContact(wx.Dialog):
     def __init__(self, main_window, buddy=None): #no buddy -> Add new
@@ -473,7 +508,9 @@ class GuiEditContact(wx.Dialog):
             buddy = Buddy(address, 
                           self.bl, 
                           self.txt_name.GetValue())
-            self.bl.addBuddy(buddy)
+            res = self.bl.addBuddy(buddy)
+            if res == False:
+                wx.MessageBox("This contact is already on your list")
         else:
             address_old = self.buddy.address
             self.buddy.address = address
@@ -498,6 +535,8 @@ class GuiBuddyList(wx.ListCtrl):
         self.il = wx.ImageList(16, 16)
         self.icon_offline = self.il.Add(wx.Bitmap("icons/offline.png", wx.BITMAP_TYPE_PNG))
         self.icon_online = self.il.Add(wx.Bitmap("icons/online.png", wx.BITMAP_TYPE_PNG))
+        self.icon_away = self.il.Add(wx.Bitmap("icons/away.png", wx.BITMAP_TYPE_PNG))
+        self.icon_xa = self.il.Add(wx.Bitmap("icons/xa.png", wx.BITMAP_TYPE_PNG))
         self.icon_handshake = self.il.Add(wx.Bitmap("icons/connecting.png", wx.BITMAP_TYPE_PNG))
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
         
@@ -535,6 +574,10 @@ class GuiBuddyList(wx.ListCtrl):
                 self.SetItemImage(index, self.icon_offline)    
             if buddy.status == STATUS_ONLINE:
                 self.SetItemImage(index, self.icon_online)    
+            if buddy.status == STATUS_AWAY:
+                self.SetItemImage(index, self.icon_away)    
+            if buddy.status == STATUS_XA:
+                self.SetItemImage(index, self.icon_xa)    
             if buddy.status == STATUS_HANDSHAKE:
                 self.SetItemImage(index, self.icon_handshake)
         
@@ -569,6 +612,61 @@ class GuiBuddyList(wx.ListCtrl):
         return self.bl.getBuddyFromAddress(addr)
         
 
+class GuiStatusSwitchList(wx.Menu):
+    def __init__(self, status_switch):
+        wx.Menu.__init__(self)
+        self.status_switch = status_switch
+
+        item = wx.MenuItem(self, wx.NewId(), "Available")
+        item.SetBitmap(wx.Bitmap("icons/online.png"))
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.status_switch.onAvailable, item)
+
+        item = wx.MenuItem(self, wx.NewId(), "Away")
+        item.SetBitmap(wx.Bitmap("icons/away.png"))
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.status_switch.onAway, item)
+
+        item = wx.MenuItem(self, wx.NewId(), "Extended Away")
+        item.SetBitmap(wx.Bitmap("icons/xa.png"))
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.status_switch.onXA, item)
+
+class GuiStatusSwitch(wx.Button):
+    def __init__(self, parent, main_window):
+        wx.Button.__init__(self, parent)
+        self.parent = parent
+        self.main_window = main_window
+        self.status = self.main_window.buddy_list.own_status
+        self.Bind(wx.EVT_BUTTON, self.onClick)
+        self.setStatus(self.main_window.buddy_list.own_status)
+        
+    def onClick(self, evt):
+        self.PopupMenu(GuiStatusSwitchList(self))
+
+    def onAvailable(self, evt):
+        self.setStatus(STATUS_ONLINE)
+    
+    def onAway(self, evt):
+        self.setStatus(STATUS_AWAY)
+    
+    def onXA(self, evt):
+        self.setStatus(STATUS_XA)
+    
+    def setStatus(self, status):
+        self.status = status
+        self.main_window.buddy_list.setStatus(status)
+        if status == STATUS_AWAY:
+            status_text = "Away"
+        if status == STATUS_XA:
+            status_text = "Extended Away"
+        if status == STATUS_ONLINE:
+            status_text = "Available"
+        if status == STATUS_OFFLINE:
+            status_text = "Offline"
+        self.SetLabel(status_text)
+
+    
 class ChatWindow(wx.Frame):
     def __init__(self, main_window, buddy):
         wx.Frame.__init__(self, 
@@ -602,7 +700,7 @@ class ChatWindow(wx.Frame):
                                    wx.TE_PROCESS_ENTER)
         sizer.Add(self.txt_out, 0, wx.EXPAND)
         
-        sizer.SetItemMinSize(self.txt_out, (-1,20))
+        sizer.SetItemMinSize(self.txt_out, (-1,50))
         
         self.panel.SetSizer(sizer)
         sizer.FitInside(self)
@@ -636,13 +734,12 @@ class ChatWindow(wx.Frame):
         
     def onSend(self, evt):
         if self.buddy.status == STATUS_ONLINE:
-            text = self.txt_out.GetValue()
+            text = self.txt_out.GetValue().rstrip()
             self.txt_out.SetValue("")
             self.buddy.send("message %s" % text.encode("UTF-8"))
             self.writeColored((0,0,192), "myself", text)
         else:
             wx.MessageBox("We have no connection to this contact. \nPlease wait.")
-        evt.Skip()
 
 class MainWindow(wx.Frame):
     def __init__(self):
@@ -659,6 +756,10 @@ class MainWindow(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.gui_bl = GuiBuddyList(self.main_panel, self)
         sizer.Add(self.gui_bl, 1, wx.EXPAND)
+        
+        self.status_switch = GuiStatusSwitch(self.main_panel, self)
+        sizer.Add(self.status_switch, 0, wx.EXPAND)
+        
         self.main_panel.SetSizer(sizer)
         sizer.FitInside(self)
         
@@ -757,8 +858,6 @@ def main():
 
 about_text = """Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
     
-*
-
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
 License as published by the Free Software Foundation, \
