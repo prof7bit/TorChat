@@ -733,9 +733,10 @@ class ChatWindow(wx.Frame):
         evt.Skip()
         
     def onSend(self, evt):
-        if self.buddy.status != STATUS_OFFLINE:
-            text = self.txt_out.GetValue().rstrip()
-            self.txt_out.SetValue("")
+        evt.Skip()
+        if self.buddy.status not in  [STATUS_OFFLINE, STATUS_HANDSHAKE]:
+            text = self.txt_out.GetValue().rstrip().lstrip()
+            wx.CallAfter(self.txt_out.SetValue, "")
             self.buddy.send("message %s" % text.encode("UTF-8"))
             self.writeColored((0,0,192), "myself", text)
         else:
