@@ -201,6 +201,7 @@ class BuddyList(object):
         
     def removeBuddy(self, buddy_to_remove):
         try:
+            buddy_to_remove.disconnect()
             self.list.remove(buddy_to_remove)
             self.save()
             return True
