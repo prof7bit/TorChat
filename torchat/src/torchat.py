@@ -15,7 +15,6 @@
 #                                                                            #
 ##############################################################################
 
-
 #change OWN_HOSTNAME to yours, or it will NOT work
 #you find it in your hidden service dir in the file
 #hostname. Leave the tld (.onion) away.
@@ -49,6 +48,11 @@ STATUS_HANDSHAKE = 1
 STATUS_ONLINE = 2
 STATUS_AWAY = 3
 STATUS_XA = 4
+ICON_NAMES = {STATUS_OFFLINE : "offline.png",
+                     STATUS_ONLINE : "online.png",
+                     STATUS_HANDSHAKE : "connecting.png",
+                     STATUS_AWAY : "away.png",
+                     STATUS_XA : "xa.png"}
 DIR = os.path.dirname(sys.argv[0])
 os.chdir(DIR)
 log_window = None
@@ -77,8 +81,9 @@ def splitLine(text):
         b = ""
     return a, b
 
-def dummy_excepthook(cls, inst, tb):
-    pass
+def getStatusBitmap(status):
+    return wx.Bitmap("icons/%s" % ICON_NAMES[status], wx.BITMAP_TYPE_PNG)
+
 
 class Buddy(object):
     def __init__(self, address, buddy_list, name=""):
@@ -136,6 +141,7 @@ class Buddy(object):
         else:
             line = self.address
         return line
+    
 
 class BuddyList(object):
     def __init__(self, main_window):
@@ -300,14 +306,14 @@ class InConnection(threading.Thread):
             else:
                 self.close()  
                 self.bl.process(self, "error-in")
-
+    
     def close(self):
         self.running = False
         try:
             self.conn.close()
         except:
             pass
-        
+    
         
 class OutConnection(threading.Thread):
     def __init__(self, address, buddy_list):
@@ -380,7 +386,22 @@ class Listener(threading.Thread):
             pass
         
 
-#--- ######## GUI #########
+#--- ******** GUI ********
+
+class GuiTaskbarIcon(wx.TaskBarIcon):
+    def __init__(self, main_window):
+        wx.TaskBarIcon.__init__(self)
+        self.mw = main_window
+        self.showStatus(self.mw.buddy_list.own_status)
+        
+    def showStatus(self, status):
+        icon_name = ICON_NAMES[status]
+        img = wx.Image("icons/%s" % icon_name)
+        img.ConvertAlphaToMask()
+        bmp = img.ConvertToBitmap()
+        icon = wx.IconFromBitmap(bmp)
+        self.SetIcon(icon, 'TorChat')
+
 
 class GuiPopupMenu(wx.Menu):
     def __init__(self, main_window, type):
@@ -444,6 +465,7 @@ class GuiPopupMenu(wx.Menu):
                                     "Bernd"))
         if res == False:
             wx.MessageBox("Bernd is already on your list")
+
 
 class GuiEditContact(wx.Dialog):
     def __init__(self, main_window, buddy=None): #no buddy -> Add new
@@ -525,6 +547,7 @@ class GuiEditContact(wx.Dialog):
     def onCancel(self,evt):
         self.Close()
 
+
 class GuiBuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_LIST)
@@ -534,11 +557,13 @@ class GuiBuddyList(wx.ListCtrl):
         self.r_down = False
         
         self.il = wx.ImageList(16, 16)
-        self.icon_offline = self.il.Add(wx.Bitmap("icons/offline.png", wx.BITMAP_TYPE_PNG))
-        self.icon_online = self.il.Add(wx.Bitmap("icons/online.png", wx.BITMAP_TYPE_PNG))
-        self.icon_away = self.il.Add(wx.Bitmap("icons/away.png", wx.BITMAP_TYPE_PNG))
-        self.icon_xa = self.il.Add(wx.Bitmap("icons/xa.png", wx.BITMAP_TYPE_PNG))
-        self.icon_handshake = self.il.Add(wx.Bitmap("icons/connecting.png", wx.BITMAP_TYPE_PNG))
+        self.il_idx = {}
+        for status in [STATUS_OFFLINE, 
+                       STATUS_HANDSHAKE, 
+                       STATUS_ONLINE,
+                       STATUS_AWAY,
+                       STATUS_XA]:
+            self.il_idx[status] = self.il.Add(getStatusBitmap(status))
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
         
         self.InsertColumn(0, "Buddy")
@@ -569,20 +594,9 @@ class GuiBuddyList(wx.ListCtrl):
             line = buddy.getDisplayName()
             index = self.FindItem(0, line)
             if index == -1:
-                index = self.InsertImageStringItem(sys.maxint, line, self.icon_offline)
-            
-            if buddy.status == STATUS_OFFLINE:
-                self.SetItemImage(index, self.icon_offline)    
-            if buddy.status == STATUS_ONLINE:
-                self.SetItemImage(index, self.icon_online)    
-            if buddy.status == STATUS_AWAY:
-                self.SetItemImage(index, self.icon_away)    
-            if buddy.status == STATUS_XA:
-                self.SetItemImage(index, self.icon_xa)    
-            if buddy.status == STATUS_HANDSHAKE:
-                self.SetItemImage(index, self.icon_handshake)
-        
-        self.Refresh()    
+                index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[STATUS_OFFLINE])
+            self.SetItemImage(index, self.il_idx[buddy.status])  
+        self.Refresh()
     
     def onDClick(self, evt):
         i = self.GetFirstSelected()
@@ -619,17 +633,17 @@ class GuiStatusSwitchList(wx.Menu):
         self.status_switch = status_switch
 
         item = wx.MenuItem(self, wx.NewId(), "Available")
-        item.SetBitmap(wx.Bitmap("icons/online.png"))
+        item.SetBitmap(getStatusBitmap(STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAvailable, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Away")
-        item.SetBitmap(wx.Bitmap("icons/away.png"))
+        item.SetBitmap(getStatusBitmap(STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAway, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Extended Away")
-        item.SetBitmap(wx.Bitmap("icons/xa.png"))
+        item.SetBitmap(getStatusBitmap(STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onXA, item)
 
@@ -656,7 +670,7 @@ class GuiStatusSwitch(wx.Button):
     
     def setStatus(self, status):
         self.status = status
-        self.main_window.buddy_list.setStatus(status)
+        self.main_window.setStatus(status)
         if status == STATUS_AWAY:
             status_text = "Away"
         if status == STATUS_XA:
@@ -743,6 +757,7 @@ class ChatWindow(wx.Frame):
         else:
             wx.MessageBox("We have no connection to this contact. \nPlease wait.")
 
+
 class MainWindow(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "TorChat", size=(250,350))
@@ -754,6 +769,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
         # setup gui elements
+        self.taskbar_icon = GuiTaskbarIcon(self)
         self.main_panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.gui_bl = GuiBuddyList(self.main_panel, self)
@@ -770,6 +786,10 @@ class MainWindow(wx.Frame):
         
         self.Show()
     
+    def setStatus(self, status):
+        self.buddy_list.setStatus(status)
+        self.taskbar_icon.showStatus(status)
+
     def newIncomingChatWindow(self, buddy, text):
         #this will be called via wx.CallAfter() 
         #from the connection thread
@@ -816,7 +836,8 @@ class LogWindow(wx.Frame):
         self.txt.write(text)
     
     def onClose(self, evt):
-        pass #will not close.    
+        pass #do nothing. I don't want to be closed.    
+        
         
 def main():
     global OWN_HOSTNAME
