@@ -393,6 +393,7 @@ class GuiTaskbarIcon(wx.TaskBarIcon):
         wx.TaskBarIcon.__init__(self)
         self.mw = main_window
         self.showStatus(self.mw.buddy_list.own_status)
+        self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.onLeftClick)
         
     def showStatus(self, status):
         icon_name = ICON_NAMES[status]
@@ -401,6 +402,60 @@ class GuiTaskbarIcon(wx.TaskBarIcon):
         bmp = img.ConvertToBitmap()
         icon = wx.IconFromBitmap(bmp)
         self.SetIcon(icon, 'TorChat')
+
+    def onLeftClick(self, evt):
+        self.mw.Show(not self.mw.IsShown())
+
+    def CreatePopupMenu(self):
+        return GuiTaskbarMenu(self.mw)
+
+
+class GuiTaskbarMenu(wx.Menu):
+    def __init__(self, main_window):
+        wx.Menu.__init__(self)
+        self.mw = main_window
+
+        item = wx.MenuItem(self, wx.NewId(), "Show/Hide TorChat")
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onShowHide, item)
+
+        self.AppendSeparator()
+
+        item = wx.MenuItem(self, wx.NewId(), "Available")
+        item.SetBitmap(getStatusBitmap(STATUS_ONLINE))
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onAvailable, item)
+
+        item = wx.MenuItem(self, wx.NewId(), "Away")
+        item.SetBitmap(getStatusBitmap(STATUS_AWAY))
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onAway, item)
+
+        item = wx.MenuItem(self, wx.NewId(), "Extended Away")
+        item.SetBitmap(getStatusBitmap(STATUS_XA))
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onXA, item)
+        
+        self.AppendSeparator()
+        
+        item = wx.MenuItem(self, wx.NewId(), "Quit")
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onExit, item)
+        
+    def onShowHide(self, evt):
+        self.mw.Show(not self.mw.IsShown())
+
+    def onExit(self, evt):
+        self.mw.exitProgram()
+
+    def onAvailable(self, evt):
+        self.mw.status_switch.setStatus(STATUS_ONLINE)
+
+    def onAway(self, evt):
+        self.mw.status_switch.setStatus(STATUS_AWAY)
+
+    def onXA(self, evt):
+        self.mw.status_switch.setStatus(STATUS_XA)
 
 
 class GuiPopupMenu(wx.Menu):
@@ -802,6 +857,9 @@ class MainWindow(wx.Frame):
         self.log_window.log(text)    
     
     def onClose(self, evt):
+        self.Show(False)
+        
+    def exitProgram(self):
         for buddy in self.buddy_list.list:
             if buddy.conn_out != None:
                 buddy.conn_out.close()
