@@ -866,6 +866,8 @@ class MainWindow(wx.Frame):
                 
         for conn in self.conns:
             conn.close()
+            
+        self.taskbar_icon.RemoveIcon()
         
         # All my threads wouldn't join properly. Don't know why.
         # sys.exit() would spew lots of tracebacks *sometimes*,
