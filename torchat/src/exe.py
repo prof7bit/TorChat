@@ -5,10 +5,11 @@ import py2exe
 import sys
 import os
 import time
+import version
 
 app_name = "TorChat" 
 app_descr = "Messenger on top of the TOR-network" 
-app_version = "0.9.9.43"
+app_version = version.VERSION
 app_company = "Bernd Kreuﬂ"
 app_copyright = "© 2007 Bernd Kreuﬂ"
 

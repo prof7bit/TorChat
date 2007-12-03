@@ -41,6 +41,7 @@ import random
 import time
 import sys
 import os
+import version
 
 TORCHAT_PORT = 11009 #do NOT change this.
 STATUS_OFFLINE = 0
@@ -939,7 +940,8 @@ def main():
     app.SetTopWindow(app.mw)
     app.MainLoop()
 
-about_text = """Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
+about_text = """TorChat %s
+Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
     
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
@@ -959,7 +961,7 @@ And now for something completely different:
 If you happen to run a software company in germany and are in \
 need of a new coder, feel free to regard this little program \
 as my application documents and drop me a mail with your answer.
-"""
+""" % version.VERSION
 
 if __name__ == "__main__":
     main()
