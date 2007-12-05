@@ -5,7 +5,7 @@
 #                                                                            #
 # Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>                       #
 #                                                                            #
-# This program is licensed under the GNU General Public License V3,             #
+# This program is licensed under the GNU General Public License V3,          #
 # the full source code is included in the binary distribution.               #
 #                                                                            #
 # Included in the distribution are files from other open source projects:    #
@@ -21,373 +21,26 @@
 #(On windows in portable mode this is done automatically.)
 OWN_HOSTNAME = "utvrla6mjdypbyw6" #.onion
 
-#configure the following if your Tor is running on a separate machine
-TOR_SERVER = "127.0.0.1"
-TOR_SERVER_SOCKS_PORT = 9050
-TOR_SERVER_CONTROL_PORT = 9051
-
-#configure where to listen for connections *from* the Tor server
-LISTEN_INTERFACE = "127.0.0.1"
-LISTEN_PORT = 11009
-
-LOG_TO_WINDOW = False
-LOG_TO_FILE = False
-
 import wx
-import SocksiPy.socks as socks
-import socket
-import threading
-import random
-import time
+import TorIM
 import sys
 import os
 import version
 
-TORCHAT_PORT = 11009 #do NOT change this.
-STATUS_OFFLINE = 0
-STATUS_HANDSHAKE = 1
-STATUS_ONLINE = 2
-STATUS_AWAY = 3
-STATUS_XA = 4
-ICON_NAMES = {STATUS_OFFLINE : "offline.png",
-                     STATUS_ONLINE : "online.png",
-                     STATUS_HANDSHAKE : "connecting.png",
-                     STATUS_AWAY : "away.png",
-                     STATUS_XA : "xa.png"}
+ICON_NAMES = {TorIM.STATUS_OFFLINE : "offline.png",
+              TorIM.STATUS_ONLINE : "online.png",
+              TorIM.STATUS_HANDSHAKE : "connecting.png",
+              TorIM.STATUS_AWAY : "away.png",
+              TorIM.STATUS_XA : "xa.png"}
 DIR = os.path.dirname(sys.argv[0])
 os.chdir(DIR)
-log_window = None
 
 def isWindows():
     return "win" in sys.platform
 
-def log(text):
-    global log_window
-    text += "\n"
-    if LOG_TO_FILE:
-        f = open(DIR + "/logfile.txt", "a")
-        f.write(text)
-        f.close()
-    if LOG_TO_WINDOW:
-        if log_window:
-            wx.CallAfter(log_window.log, text)
-
-def splitLine(text):
-    sp = text.split(" ")
-    try:
-        a = sp[0]
-        b = " ".join(sp[1:])
-    except:
-        a = text
-        b = ""
-    return a, b
-
 def getStatusBitmap(status):
     return wx.Bitmap("icons/%s" % ICON_NAMES[status], wx.BITMAP_TYPE_PNG)
 
-
-class Buddy(object):
-    def __init__(self, address, buddy_list, name=""):
-        self.bl = buddy_list
-        self.address = address
-        self.name = name
-        self.random1 = str(random.getrandbits(256))
-        self.random2 = str(random.getrandbits(256))
-        self.conn_out = None
-        self.conn_in = None
-        self.status = STATUS_OFFLINE
-        self.chat_window = None
-    
-    def connect(self):
-        self.conn_out = OutConnection(self.address + ".onion", self.bl)
-        self.conn_out.buddy = self
-        self.ping()
-        
-    def disconnect(self):
-        if self.conn_out != None:
-            self.conn_out.close()
-            self.conn_out = None
-        if self.conn_in != None:
-            self.conn_in.close()
-            self.conn_in = None
-        self.status = STATUS_OFFLINE
-        
-    def send(self, text):
-        if self.conn_out == None:
-            self.connect()
-        self.conn_out.send(text + "\n")
-        
-    def ping(self):
-        if self.conn_out == None:
-            self.connect()
-        else:
-            self.send("ping %s %s" % (OWN_HOSTNAME, self.random1))
-            self.sendStatus()
-                
-    def sendStatus(self):
-        if self.conn_out != None:
-            status = ""
-            if self.bl.own_status == STATUS_ONLINE:
-                status = "available"
-            if self.bl.own_status == STATUS_AWAY:
-                status = "away"
-            if self.bl.own_status == STATUS_XA:
-                status = "xa"
-            if status != "":
-                self.send("status %s" % status)
-        
-    def getDisplayName(self):
-        if self.name != "":
-            line = "%s (%s)" % (self.address, self.name)
-        else:
-            line = self.address
-        return line
-    
-
-class BuddyList(object):
-    def __init__(self, main_window):
-        self.mw = main_window
-        
-        self.own_status = STATUS_ONLINE
-        
-        #create it if it does not already exist
-        f = open("buddy-list.txt", "a")
-        f.close()
-        
-        f = open("buddy-list.txt", "r")
-        l = f.read().split("\n")
-        f.close
-        self.list = []
-        for line in l:
-            line = line.rstrip()
-            if len(line) > 15:
-                address = line[0:16]
-                if len(line) > 17:
-                    name = line[17:]
-                else:
-                    name = ""
-                buddy = Buddy(address, self, name)
-                buddy.connect()
-                self.list.append(buddy)
-        
-        found = False
-        log("searching for own hostname in buddy list")
-        for buddy in self.list:
-            if buddy.address == OWN_HOSTNAME:
-                found = True
-                log("found own hostname %s in buddy list" % OWN_HOSTNAME)
-        
-        if not found:
-            log("adding own hostname %s to buddy list" % OWN_HOSTNAME)
-            self.addBuddy(Buddy(OWN_HOSTNAME, self, "myself"))
-        
-        self.test()
-
-    def save(self):
-        f = open("buddy-list.txt", "w")
-        for buddy in self.list:
-            line = "%s %s" % (buddy.address, buddy.name)
-            f.write("%s\r\n" % line.rstrip())
-        f.close()
-
-    def test(self):
-        for buddy in self.list:
-            buddy.ping()
-            
-        self.timer = threading.Timer(15, self.test)
-        self.timer.start()
-        
-    def addBuddy(self, buddy):
-        if self.getBuddyFromAddress(buddy.address) == None:
-            self.list.append(buddy)
-            self.save()
-            buddy.connect()
-            return buddy
-        else:
-            return False
-        
-    def removeBuddy(self, buddy_to_remove):
-        try:
-            buddy_to_remove.disconnect()
-            self.list.remove(buddy_to_remove)
-            self.save()
-            return True
-        except:
-            return False
-        
-    def removeBuddyWithAddress(self, address):
-        buddy = self.getBuddyFromAddress(address)
-        if buddy != None:
-            self.removeBuddy(buddy)
-        
-    def getBuddyFromAddress(self, address):
-        for buddy in self.list:
-            if buddy.address == address:
-                return buddy
-        return None
-        
-    def setStatus(self, status):
-        self.own_status = status
-        for buddy in self.list:
-            buddy.sendStatus()
-    
-    def process(self, connection, line):
-        cmd, text = splitLine(line)
-        if cmd == "ping":
-            address, random = splitLine(text)
-            buddy = self.getBuddyFromAddress(address)
-            if buddy:
-                buddy.send("pong " + random)
-            else:
-                buddy = self.addBuddy(Buddy(address, self))
-                
-        if cmd == "pong":
-            for buddy in self.list:
-                if buddy.random1 == text:
-                    if buddy.conn_in == None:
-                        log("identified incoming connection as %s" % buddy.address)
-                        buddy.conn_in = connection
-                        buddy.status = STATUS_ONLINE
-                        connection.buddy = buddy
-                    break
-                
-        if cmd == "error-in":
-            for buddy in self.list:
-                if buddy.conn_in == connection:
-                    buddy.disconnect()
-                    break
-                
-        if cmd == "error-out":
-            buddy = connection.buddy
-            buddy.disconnect()
-        
-        if cmd == "connected":
-            connection.buddy.status = STATUS_HANDSHAKE
-                    
-        if cmd == "message":
-            if connection.buddy != None:
-                buddy = connection.buddy
-                if buddy.chat_window == None:
-                    wx.CallAfter(self.mw.newIncomingChatWindow, buddy, text)
-                else:
-                    wx.CallAfter(buddy.chat_window.process, text)
-                    
-        if cmd == "status":
-            if connection.buddy != None:
-                if text == "available":
-                    connection.buddy.status = STATUS_ONLINE
-                if text == "away":
-                    connection.buddy.status = STATUS_AWAY
-                if text == "xa":
-                    connection.buddy.status = STATUS_XA
-
-
-class InConnection(threading.Thread):
-    def __init__(self, conn, buddy_list):
-        threading.Thread.__init__(self)
-        self.buddy = None
-        self.bl = buddy_list
-        self.conn = conn
-        self.start()
-        
-    def run(self):
-        self.running = True
-        readbuffer = ""
-        while self.running:
-            recv = self.conn.recv(1024)
-            if recv != "":
-                readbuffer = readbuffer + recv
-                temp = readbuffer.split("\n")
-                readbuffer = temp.pop( )
-            
-                for line in temp:
-                    line = line.rstrip()
-                    if self.running:
-                        self.bl.process(self, line)
-            else:
-                self.close()  
-                self.bl.process(self, "error-in")
-    
-    def close(self):
-        self.running = False
-        try:
-            self.conn.close()
-        except:
-            pass
-    
-        
-class OutConnection(threading.Thread):
-    def __init__(self, address, buddy_list):
-        threading.Thread.__init__(self)
-        self.bl = buddy_list
-        self.address = address
-        self.send_buffer = []
-        self.start()
-        
-    def run(self):
-        self.running = True
-        try:
-            self.conn = socks.socksocket()
-            self.conn.setproxy(socks.PROXY_TYPE_SOCKS4, 
-                               TOR_SERVER, 
-                               TOR_SERVER_SOCKS_PORT)
-            self.conn.connect((self.address, TORCHAT_PORT))
-            self.bl.process(self, "connected")
-            while self.running:
-                if len(self.send_buffer) > 0:
-                    text = self.send_buffer.pop(0)
-                    self.conn.send(text)
-                time.sleep(0.1)
-                
-        except:
-            self.bl.process(self, "error-out")
-            self.close()
-            
-    def send(self, text):
-        self.send_buffer.append(text)
-        
-    def close(self):
-        self.running = False
-        try:
-            self.conn.close()
-        except:
-            pass
-        
-        
-class Listener(threading.Thread):
-    def __init__(self, main_window):
-        threading.Thread.__init__(self)
-        self.mw = main_window
-        self.start()
-        
-    def run(self):
-        self.running = True
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((LISTEN_INTERFACE, LISTEN_PORT))
-        self.socket.listen(1)
-        log("listening on interface %s port %i" % (LISTEN_INTERFACE, LISTEN_PORT))
-        try:
-            while self.running:
-                try:
-                    conn, address = self.socket.accept()
-                    log("incoming connection")
-                    self.mw.conns.append(InConnection(conn, self.mw.buddy_list))
-                except:
-                    self.running = False
-                    
-        except TypeError:
-            pass
-
-    def close(self):
-        self.running = False
-        try:
-            self.socket.close()
-        except:
-            pass
-        
-
-#--- ******** GUI ********
 
 class GuiTaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
@@ -423,17 +76,17 @@ class GuiTaskbarMenu(wx.Menu):
         self.AppendSeparator()
 
         item = wx.MenuItem(self, wx.NewId(), "Available")
-        item.SetBitmap(getStatusBitmap(STATUS_ONLINE))
+        item.SetBitmap(getStatusBitmap(TorIM.STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAvailable, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Away")
-        item.SetBitmap(getStatusBitmap(STATUS_AWAY))
+        item.SetBitmap(getStatusBitmap(TorIM.STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAway, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Extended Away")
-        item.SetBitmap(getStatusBitmap(STATUS_XA))
+        item.SetBitmap(getStatusBitmap(TorIM.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onXA, item)
         
@@ -450,13 +103,13 @@ class GuiTaskbarMenu(wx.Menu):
         self.mw.exitProgram()
 
     def onAvailable(self, evt):
-        self.mw.status_switch.setStatus(STATUS_ONLINE)
+        self.mw.status_switch.setStatus(TorIM.STATUS_ONLINE)
 
     def onAway(self, evt):
-        self.mw.status_switch.setStatus(STATUS_AWAY)
+        self.mw.status_switch.setStatus(TorIM.STATUS_AWAY)
 
     def onXA(self, evt):
-        self.mw.status_switch.setStatus(STATUS_XA)
+        self.mw.status_switch.setStatus(TorIM.STATUS_XA)
 
 
 class GuiPopupMenu(wx.Menu):
@@ -516,7 +169,7 @@ class GuiPopupMenu(wx.Menu):
         wx.MessageBox(about_text, "About TorChat")
 
     def onAskBernd(self, evt):
-        res = self.mw.buddy_list.addBuddy(Buddy("utvrla6mjdypbyw6", 
+        res = self.mw.buddy_list.addBuddy(TorIM.Buddy("utvrla6mjdypbyw6", 
                                     self.mw.buddy_list,
                                     "Bernd"))
         if res == False:
@@ -614,11 +267,11 @@ class GuiBuddyList(wx.ListCtrl):
         
         self.il = wx.ImageList(16, 16)
         self.il_idx = {}
-        for status in [STATUS_OFFLINE, 
-                       STATUS_HANDSHAKE, 
-                       STATUS_ONLINE,
-                       STATUS_AWAY,
-                       STATUS_XA]:
+        for status in [TorIM.STATUS_OFFLINE, 
+                       TorIM.STATUS_HANDSHAKE, 
+                       TorIM.STATUS_ONLINE,
+                       TorIM.STATUS_AWAY,
+                       TorIM.STATUS_XA]:
             self.il_idx[status] = self.il.Add(getStatusBitmap(status))
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
         
@@ -650,7 +303,7 @@ class GuiBuddyList(wx.ListCtrl):
             line = buddy.getDisplayName()
             index = self.FindItem(0, line)
             if index == -1:
-                index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[STATUS_OFFLINE])
+                index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[TorIM.STATUS_OFFLINE])
             self.SetItemImage(index, self.il_idx[buddy.status])  
         self.Refresh()
     
@@ -659,10 +312,18 @@ class GuiBuddyList(wx.ListCtrl):
         address = self.GetItemText(i)[0:16]
         for buddy in self.bl.list:
             if buddy.address == address:
-                if buddy.chat_window == None:
-                    buddy.chat_window = ChatWindow(self.mw, buddy)
-                buddy.chat_window.txt_out.SetFocus()
+                found_window = False
+                for window in self.mw.chat_windows:
+                    if window.buddy == buddy:
+                        found_window = True
+                        break
+                
+                if not found_window:
+                    window = ChatWindow(self.mw, buddy)
+                
+                window.txt_out.SetFocus()
                 break
+
         evt.Skip()
         
     def onRClick(self, evt):
@@ -689,19 +350,20 @@ class GuiStatusSwitchList(wx.Menu):
         self.status_switch = status_switch
 
         item = wx.MenuItem(self, wx.NewId(), "Available")
-        item.SetBitmap(getStatusBitmap(STATUS_ONLINE))
+        item.SetBitmap(getStatusBitmap(TorIM.STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAvailable, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Away")
-        item.SetBitmap(getStatusBitmap(STATUS_AWAY))
+        item.SetBitmap(getStatusBitmap(TorIM.STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAway, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Extended Away")
-        item.SetBitmap(getStatusBitmap(STATUS_XA))
+        item.SetBitmap(getStatusBitmap(TorIM.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onXA, item)
+
 
 class GuiStatusSwitch(wx.Button):
     def __init__(self, parent, main_window):
@@ -716,37 +378,38 @@ class GuiStatusSwitch(wx.Button):
         self.PopupMenu(GuiStatusSwitchList(self))
 
     def onAvailable(self, evt):
-        self.setStatus(STATUS_ONLINE)
+        self.setStatus(TorIM.STATUS_ONLINE)
     
     def onAway(self, evt):
-        self.setStatus(STATUS_AWAY)
+        self.setStatus(TorIM.STATUS_AWAY)
     
     def onXA(self, evt):
-        self.setStatus(STATUS_XA)
+        self.setStatus(TorIM.STATUS_XA)
     
     def setStatus(self, status):
         self.status = status
         self.main_window.setStatus(status)
-        if status == STATUS_AWAY:
+        if status == TorIM.STATUS_AWAY:
             status_text = "Away"
-        if status == STATUS_XA:
+        if status == TorIM.STATUS_XA:
             status_text = "Extended Away"
-        if status == STATUS_ONLINE:
+        if status == TorIM.STATUS_ONLINE:
             status_text = "Available"
-        if status == STATUS_OFFLINE:
+        if status == TorIM.STATUS_OFFLINE:
             status_text = "Offline"
         self.SetLabel(status_text)
 
-    
+
 class ChatWindow(wx.Frame):
-    def __init__(self, main_window, buddy):
+    def __init__(self, main_window, buddy, message=""):
         wx.Frame.__init__(self, 
                           main_window, 
                           -1, 
                           size=(400,400))
         
+        self.mw = main_window
+        self.mw.chat_windows.append(self)
         self.buddy = buddy
-        self.buddy.chat_window = self
         title = self.buddy.address
         if self.buddy.name != "":
             title += " (%s)" % self.buddy.name
@@ -777,6 +440,9 @@ class ChatWindow(wx.Frame):
         sizer.FitInside(self)
         self.Show()
         
+        if message != "":
+            self.process(message)
+        
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.txt_out.Bind(wx.EVT_TEXT_ENTER, self.onSend)
     
@@ -792,20 +458,20 @@ class ChatWindow(wx.Frame):
         self.txt_in.ScrollLines(-1)
         self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
     
-    def process(self, text):
+    def process(self, message):
         if self.buddy.name != "":
             name = self.buddy.name
         else:
             name = self.buddy.address
-        self.writeColored((192,0,0), name, text.decode("utf-8"))
+        self.writeColored((192,0,0), name, message.decode("utf-8"))
         
     def onClose(self, evt):
-        self.buddy.chat_window = None
+        self.mw.chat_windows.remove(self)
         evt.Skip()
         
     def onSend(self, evt):
         evt.Skip()
-        if self.buddy.status not in  [STATUS_OFFLINE, STATUS_HANDSHAKE]:
+        if self.buddy.status not in  [TorIM.STATUS_OFFLINE, TorIM.STATUS_HANDSHAKE]:
             text = self.txt_out.GetValue().rstrip().lstrip()
             wx.CallAfter(self.txt_out.SetValue, "")
             self.buddy.send("message %s" % text.encode("UTF-8"))
@@ -818,9 +484,8 @@ class MainWindow(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "TorChat", size=(250,350))
         self.conns = []
-        self.buddy_list = BuddyList(self)
-        self.listener = Listener(self)
-        self.log_window = None
+        self.chat_windows = []
+        self.buddy_list = TorIM.BuddyList(self.callbackMessage)
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
@@ -846,16 +511,18 @@ class MainWindow(wx.Frame):
         self.buddy_list.setStatus(status)
         self.taskbar_icon.showStatus(status)
 
-    def newIncomingChatWindow(self, buddy, text):
-        #this will be called via wx.CallAfter() 
-        #from the connection thread
-        buddy.chat_window = ChatWindow(self, buddy)
-        buddy.chat_window.process(text)
+ 
+    def callbackMessage(self, buddy, message):
+        #we must always use wx.CallAfter() to interact with
+        #the GUI-Thread because this method will be called
+        #in the context of one of the connection threads 
+        for window in self.chat_windows:
+            if window.buddy == buddy:
+                wx.CallAfter(window.process, message)
+                return
         
-    def log(self, text):
-        if self.log_window == None:
-            self.log_window = LogWindow(self)
-        self.log_window.log(text)    
+        #no window found, so we create a new one
+        wx.CallAfter(ChatWindow, self, buddy, message)
     
     def onClose(self, evt):
         self.Show(False)
@@ -865,9 +532,6 @@ class MainWindow(wx.Frame):
             if buddy.conn_out != None:
                 buddy.conn_out.close()
                 
-        for conn in self.conns:
-            conn.close()
-            
         self.taskbar_icon.RemoveIcon()
         
         # All my threads wouldn't join properly. Don't know why.
@@ -885,57 +549,10 @@ class MainWindow(wx.Frame):
         # still alive? obscure new windows version?
         sys.exit() # take that...
         
-
-class LogWindow(wx.Frame):
-    def __init__(self):
-        wx.Frame.__init__(self, None, -1, "Log", size=(500,300))
-        self.txt = wx.TextCtrl(self, -1, style=wx.TE_MULTILINE)
-        self.Show()
-        self.Bind(wx.EVT_CLOSE, self.onClose)
-        
-    def log(self, text):
-        self.txt.write(text)
-    
-    def onClose(self, evt):
-        pass #do nothing. I don't want to be closed.    
-        
         
 def main():
     global OWN_HOSTNAME
-    global log_window
-    
     app = wx.App(redirect=False)
-    if LOG_TO_WINDOW:
-        log_window = LogWindow()
-
-    #first we try to start tor (windows portable mode only)
-    try:
-        log("trying to start tor (portable mode)")
-        os.chdir("tor")
-        tor_in, tor_out = os.popen2("tor -f torrc.txt")
-        log("tor started")
-        # we now assume the existence of our hostname file
-        # it WILL be created after the first start
-        # if not, something must be totally wrong.
-        cnt = 0
-        while cnt < 20:
-            try:
-                f = open("hidden_service\\hostname", "r")
-                OWN_HOSTNAME = f.read().rstrip()[:-6]
-                f.close()
-                log("own hostname: %s" % OWN_HOSTNAME)
-                break
-            except:
-                log("cold not open hostname file, trying again.")
-                # we wait 20 seconds for the file to appear
-                time.sleep(1)
-                cnt += 1
-
-        os.chdir(DIR)
-    except:
-        log("not running in portable mode. assuming already configured tor.")
-        os.chdir(DIR)
-        
     app.mw = MainWindow()
     app.SetTopWindow(app.mw)
     app.MainLoop()
