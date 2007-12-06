@@ -15,12 +15,6 @@
 #                                                                            #
 ##############################################################################
 
-#change OWN_HOSTNAME to yours, or it will NOT work
-#you find it in your hidden service dir in the file
-#hostname. Leave the tld (.onion) away.
-#(On windows in portable mode this is done automatically.)
-OWN_HOSTNAME = "utvrla6mjdypbyw6" #.onion
-
 import wx
 import TorIM
 import sys
@@ -32,6 +26,7 @@ ICON_NAMES = {TorIM.STATUS_OFFLINE : "offline.png",
               TorIM.STATUS_HANDSHAKE : "connecting.png",
               TorIM.STATUS_AWAY : "away.png",
               TorIM.STATUS_XA : "xa.png"}
+
 DIR = os.path.dirname(sys.argv[0])
 os.chdir(DIR)
 
@@ -551,7 +546,6 @@ class MainWindow(wx.Frame):
         
         
 def main():
-    global OWN_HOSTNAME
     app = wx.App(redirect=False)
     app.mw = MainWindow()
     app.SetTopWindow(app.mw)
