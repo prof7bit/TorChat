@@ -9,7 +9,7 @@ def zipSource(zip_filename, zip_options):
     os.system("zip %s %s src/SocksiPy/* -x *.pyc" % (zip_options, zip_filename))
 
 def zipWindowsBin(zip_filename, zip_options):
-    os.system("zip %s %s bin/* -x bin/buddy-list.txt" % (zip_options, zip_filename))
+    os.system("zip %s %s bin/* -x bin/buddy-list.txt *.log" % (zip_options, zip_filename))
     os.system("zip %s %s bin/Tor/*" % (zip_options, zip_filename))
     os.system("zip %s %s bin/icons/*" % (zip_options, zip_filename))
 

@@ -300,6 +300,7 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.conn = socks.socksocket()
+            self.conn.settimeout(10)
             self.conn.setproxy(socks.PROXY_TYPE_SOCKS4, 
                                TOR_SERVER, 
                                TOR_SERVER_SOCKS_PORT)
