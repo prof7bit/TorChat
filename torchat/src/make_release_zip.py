@@ -3,10 +3,30 @@
 import version
 import os
 
+def zipSource(zip_filename, zip_options):
+    os.system("zip %s %s src/* -x *.pyc src/buddy-list.txt" % (zip_options, zip_filename))
+    os.system("zip %s %s src/icons/*" % (zip_options, zip_filename))
+    os.system("zip %s %s src/SocksiPy/* -x *.pyc" % (zip_options, zip_filename))
+
+def zipWindowsBin(zip_filename, zip_options):
+    os.system("zip %s %s bin/* -x bin/buddy-list.txt" % (zip_options, zip_filename))
+    os.system("zip %s %s bin/Tor/*" % (zip_options, zip_filename))
+    os.system("zip %s %s bin/icons/*" % (zip_options, zip_filename))
+
 dir = os.getcwd()
-os.chdir("..")
 try:
-    os.mkdir("release")
+    os.mkdir("../release")
 except:
     pass
-os.chdir("release")
+os.chdir("..")
+zip_options = "-9"
+
+zip_filename = "release/torchat-windows-%s.zip" % version.VERSION
+os.system("rm %s" % zip_filename)
+zipWindowsBin(zip_filename, zip_options)
+zipSource(zip_filename, zip_options)
+
+zip_filename = "release/torchat-source-%s.zip" % version.VERSION
+os.system("rm %s" % zip_filename)
+zipSource(zip_filename, zip_options)
+
