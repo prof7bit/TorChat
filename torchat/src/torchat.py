@@ -232,7 +232,7 @@ class GuiEditContact(wx.Dialog):
                 return
             
         if self.buddy == None:
-            buddy = Buddy(address, 
+            buddy = TorIM.Buddy(address, 
                           self.bl, 
                           self.txt_name.GetValue())
             res = self.bl.addBuddy(buddy)
