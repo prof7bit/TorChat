@@ -27,8 +27,10 @@ ICON_NAMES = {TorIM.STATUS_OFFLINE : "offline.png",
               TorIM.STATUS_AWAY : "away.png",
               TorIM.STATUS_XA : "xa.png"}
 
-DIR = os.path.dirname(sys.argv[0])
-os.chdir(DIR)
+script_dir = os.path.dirname(sys.argv[0])
+if script_dir != "":
+    os.chdir(script_dir)
+DIR = os.getcwd()
 
 def isWindows():
     return "win" in sys.platform
