@@ -27,11 +27,6 @@ ICON_NAMES = {TorIM.STATUS_OFFLINE : "offline.png",
               TorIM.STATUS_AWAY : "away.png",
               TorIM.STATUS_XA : "xa.png"}
 
-script_dir = os.path.dirname(sys.argv[0])
-if script_dir != "":
-    os.chdir(script_dir)
-DIR = os.getcwd()
-
 def isWindows():
     return "win" in sys.platform
 
@@ -548,6 +543,9 @@ class MainWindow(wx.Frame):
         
         
 def main():
+    script_dir = os.path.dirname(sys.argv[0])
+    if script_dir != "":
+        os.chdir(script_dir)
     app = wx.App(redirect=False)
     app.mw = MainWindow()
     app.SetTopWindow(app.mw)
