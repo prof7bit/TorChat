@@ -20,6 +20,7 @@ import TorIM
 import sys
 import os
 import version
+import config
 
 ICON_NAMES = {TorIM.STATUS_OFFLINE : "offline.png",
               TorIM.STATUS_ONLINE : "online.png",
@@ -334,7 +335,7 @@ class GuiBuddyList(wx.ListCtrl):
         index = self.GetFirstSelected()
         addr = self.GetItemText(index)[0:16]
         return self.bl.getBuddyFromAddress(addr)
-        
+
 
 class GuiStatusSwitchList(wx.Menu):
     def __init__(self, status_switch):

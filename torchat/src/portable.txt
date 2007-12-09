@@ -1,0 +1,19 @@
+This file (portable.txt) is used to indicate that 
+TorChat is running in portable mode. If this file 
+is found in this folder, all config and data will 
+be stored in the program folder itself, rather 
+than in the users home directory.
+
+If you delete this file, then TorChat will create
+a folder ~/.torchat (or %AppData%\torchat on w32) 
+on the computer's harddisk and store it's 
+configuration and data there, so if you plan to 
+run the program from a removable media, leave this
+file where it is.
+
+Distributors and packagers remove this file if
+a fixed installation of TorChat is desired.
+
+The contents of this file are irrelevant. It could
+also be completely empty. It is only checked if
+there is a file "portable.txt" or not.

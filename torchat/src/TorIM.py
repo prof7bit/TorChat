@@ -39,6 +39,7 @@ import sys
 import os
 import subprocess
 import version
+import config
 
 TORCHAT_PORT = 11009 #do NOT change this.
 STATUS_OFFLINE = 0
@@ -127,11 +128,13 @@ class BuddyList(object):
         self.listener = Listener(self)
         self.own_status = STATUS_ONLINE
         
+        filename = os.path.join(config.getDataDir(), "buddy-list.txt")
+        
         #create it if it does not already exist
-        f = open("buddy-list.txt", "a")
+        f = open(filename, "a")
         f.close()
         
-        f = open("buddy-list.txt", "r")
+        f = open(filename, "r")
         l = f.read().split("\n")
         f.close
         self.list = []
@@ -158,7 +161,7 @@ class BuddyList(object):
         self.test()
 
     def save(self):
-        f = open("buddy-list.txt", "w")
+        f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
         for buddy in self.list:
             line = "%s %s" % (buddy.address, buddy.name)
             f.write("%s\r\n" % line.rstrip())
