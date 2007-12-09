@@ -19,6 +19,7 @@ import wx
 import TorIM
 import sys
 import os
+import subprocess
 import version
 import config
 
@@ -438,6 +439,7 @@ class ChatWindow(wx.Frame):
         
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.txt_out.Bind(wx.EVT_TEXT_ENTER, self.onSend)
+        self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
     def writeColored(self, color, name, text):
         red, green, blue = color
@@ -471,6 +473,20 @@ class ChatWindow(wx.Frame):
             self.writeColored((0,0,192), "myself", text)
         else:
             wx.MessageBox("We have no connection to this contact. \nPlease wait.")
+
+    def onURL(self, evt):
+        #all URL mouse events trigger this
+        if evt.GetMouseEvent().GetEventType() == wx.wxEVT_LEFT_DOWN:
+            #left button down, now we need the URL
+            start = evt.GetURLStart()
+            end = evt.GetURLEnd()
+            url = self.txt_in.GetRange(start, end)
+            if isWindows():
+                #this works very reliable 
+                subprocess.Popen(("cmd /c start %s" % url).split(), creationflags=0x08000000)
+            else:
+                #FIXME: is this the way to go? better make it a config option.
+                subprocess.Popen(("/etc/alternatives/x-www-browser %s" % url).split())
 
 
 class MainWindow(wx.Frame):
