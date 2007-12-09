@@ -35,7 +35,7 @@ def getStatusBitmap(status):
     return wx.Bitmap("icons/%s" % ICON_NAMES[status], wx.BITMAP_TYPE_PNG)
 
 
-class GuiTaskbarIcon(wx.TaskBarIcon):
+class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
         wx.TaskBarIcon.__init__(self)
         self.mw = main_window
@@ -54,10 +54,10 @@ class GuiTaskbarIcon(wx.TaskBarIcon):
         self.mw.Show(not self.mw.IsShown())
 
     def CreatePopupMenu(self):
-        return GuiTaskbarMenu(self.mw)
+        return TaskbarMenu(self.mw)
 
 
-class GuiTaskbarMenu(wx.Menu):
+class TaskbarMenu(wx.Menu):
     def __init__(self, main_window):
         wx.Menu.__init__(self)
         self.mw = main_window
@@ -105,7 +105,7 @@ class GuiTaskbarMenu(wx.Menu):
         self.mw.status_switch.setStatus(TorIM.STATUS_XA)
 
 
-class GuiPopupMenu(wx.Menu):
+class PopupMenu(wx.Menu):
     def __init__(self, main_window, type):
         wx.Menu.__init__(self)
         self.mw = main_window
@@ -142,7 +142,7 @@ class GuiPopupMenu(wx.Menu):
 
     def onEdit(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
-        dialog = GuiEditContact(self.mw, buddy)
+        dialog = DlgEditContact(self.mw, buddy)
         dialog.ShowModal()
 
     def onDelete(self, evt):
@@ -155,7 +155,7 @@ class GuiPopupMenu(wx.Menu):
             self.mw.buddy_list.removeBuddy(buddy)
 
     def onAdd(self, evt):
-        dialog = GuiEditContact(self.mw, None)
+        dialog = DlgEditContact(self.mw, None)
         dialog.ShowModal()
 
     def onAbout(self, evt):
@@ -169,7 +169,7 @@ class GuiPopupMenu(wx.Menu):
             wx.MessageBox("Bernd is already on your list")
 
 
-class GuiEditContact(wx.Dialog):
+class DlgEditContact(wx.Dialog):
     def __init__(self, main_window, buddy=None): #no buddy -> Add new
         wx.Dialog.__init__(self, main_window, -1)
         self.mw = main_window
@@ -250,7 +250,7 @@ class GuiEditContact(wx.Dialog):
         self.Close()
 
 
-class GuiBuddyList(wx.ListCtrl):
+class BuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_LIST)
         self.mw = main_window
@@ -322,12 +322,12 @@ class GuiBuddyList(wx.ListCtrl):
     def onRClick(self, evt):
         index, flags = self.HitTest(evt.GetPosition())
         if index != -1:
-            self.mw.PopupMenu(GuiPopupMenu(self.mw, "contact"))
+            self.mw.PopupMenu(PopupMenu(self.mw, "contact"))
         
     def onRDown(self, evt):
         index, flags = self.HitTest(evt.GetPosition())
         if index == -1:
-            self.mw.PopupMenu(GuiPopupMenu(self.mw, "empty"))
+            self.mw.PopupMenu(PopupMenu(self.mw, "empty"))
         else:
             evt.Skip()
 
@@ -337,7 +337,7 @@ class GuiBuddyList(wx.ListCtrl):
         return self.bl.getBuddyFromAddress(addr)
 
 
-class GuiStatusSwitchList(wx.Menu):
+class StatusSwitchList(wx.Menu):
     def __init__(self, status_switch):
         wx.Menu.__init__(self)
         self.status_switch = status_switch
@@ -358,7 +358,7 @@ class GuiStatusSwitchList(wx.Menu):
         self.Bind(wx.EVT_MENU, self.status_switch.onXA, item)
 
 
-class GuiStatusSwitch(wx.Button):
+class StatusSwitch(wx.Button):
     def __init__(self, parent, main_window):
         wx.Button.__init__(self, parent)
         self.parent = parent
@@ -368,7 +368,7 @@ class GuiStatusSwitch(wx.Button):
         self.setStatus(self.main_window.buddy_list.own_status)
         
     def onClick(self, evt):
-        self.PopupMenu(GuiStatusSwitchList(self))
+        self.PopupMenu(StatusSwitchList(self))
 
     def onAvailable(self, evt):
         self.setStatus(TorIM.STATUS_ONLINE)
@@ -483,13 +483,13 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
         # setup gui elements
-        self.taskbar_icon = GuiTaskbarIcon(self)
+        self.taskbar_icon = TaskbarIcon(self)
         self.main_panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        self.gui_bl = GuiBuddyList(self.main_panel, self)
+        self.gui_bl = BuddyList(self.main_panel, self)
         sizer.Add(self.gui_bl, 1, wx.EXPAND)
         
-        self.status_switch = GuiStatusSwitch(self.main_panel, self)
+        self.status_switch = StatusSwitch(self.main_panel, self)
         sizer.Add(self.status_switch, 0, wx.EXPAND)
         
         self.main_panel.SetSizer(sizer)
