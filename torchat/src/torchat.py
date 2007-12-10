@@ -16,18 +16,18 @@
 ##############################################################################
 
 import wx
-import TorIM
+import tc_client
 import sys
 import os
 import subprocess
 import version
 import config
 
-ICON_NAMES = {TorIM.STATUS_OFFLINE : "offline.png",
-              TorIM.STATUS_ONLINE : "online.png",
-              TorIM.STATUS_HANDSHAKE : "connecting.png",
-              TorIM.STATUS_AWAY : "away.png",
-              TorIM.STATUS_XA : "xa.png"}
+ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
+              tc_client.STATUS_ONLINE : "online.png",
+              tc_client.STATUS_HANDSHAKE : "connecting.png",
+              tc_client.STATUS_AWAY : "away.png",
+              tc_client.STATUS_XA : "xa.png"}
 
 def isWindows():
     return "win" in sys.platform
@@ -70,17 +70,17 @@ class TaskbarMenu(wx.Menu):
         self.AppendSeparator()
 
         item = wx.MenuItem(self, wx.NewId(), "Available")
-        item.SetBitmap(getStatusBitmap(TorIM.STATUS_ONLINE))
+        item.SetBitmap(getStatusBitmap(tc_client.STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAvailable, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Away")
-        item.SetBitmap(getStatusBitmap(TorIM.STATUS_AWAY))
+        item.SetBitmap(getStatusBitmap(tc_client.STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAway, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Extended Away")
-        item.SetBitmap(getStatusBitmap(TorIM.STATUS_XA))
+        item.SetBitmap(getStatusBitmap(tc_client.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onXA, item)
         
@@ -97,13 +97,13 @@ class TaskbarMenu(wx.Menu):
         self.mw.exitProgram()
 
     def onAvailable(self, evt):
-        self.mw.status_switch.setStatus(TorIM.STATUS_ONLINE)
+        self.mw.status_switch.setStatus(tc_client.STATUS_ONLINE)
 
     def onAway(self, evt):
-        self.mw.status_switch.setStatus(TorIM.STATUS_AWAY)
+        self.mw.status_switch.setStatus(tc_client.STATUS_AWAY)
 
     def onXA(self, evt):
-        self.mw.status_switch.setStatus(TorIM.STATUS_XA)
+        self.mw.status_switch.setStatus(tc_client.STATUS_XA)
 
 
 class PopupMenu(wx.Menu):
@@ -163,7 +163,7 @@ class PopupMenu(wx.Menu):
         wx.MessageBox(about_text, "About TorChat")
 
     def onAskBernd(self, evt):
-        res = self.mw.buddy_list.addBuddy(TorIM.Buddy("utvrla6mjdypbyw6", 
+        res = self.mw.buddy_list.addBuddy(tc_client.Buddy("utvrla6mjdypbyw6", 
                                     self.mw.buddy_list,
                                     "Bernd"))
         if res == False:
@@ -231,7 +231,7 @@ class DlgEditContact(wx.Dialog):
                 return
             
         if self.buddy == None:
-            buddy = TorIM.Buddy(address, 
+            buddy = tc_client.Buddy(address, 
                           self.bl, 
                           self.txt_name.GetValue())
             res = self.bl.addBuddy(buddy)
@@ -261,11 +261,11 @@ class BuddyList(wx.ListCtrl):
         
         self.il = wx.ImageList(16, 16)
         self.il_idx = {}
-        for status in [TorIM.STATUS_OFFLINE, 
-                       TorIM.STATUS_HANDSHAKE, 
-                       TorIM.STATUS_ONLINE,
-                       TorIM.STATUS_AWAY,
-                       TorIM.STATUS_XA]:
+        for status in [tc_client.STATUS_OFFLINE, 
+                       tc_client.STATUS_HANDSHAKE, 
+                       tc_client.STATUS_ONLINE,
+                       tc_client.STATUS_AWAY,
+                       tc_client.STATUS_XA]:
             self.il_idx[status] = self.il.Add(getStatusBitmap(status))
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
         
@@ -297,7 +297,7 @@ class BuddyList(wx.ListCtrl):
             line = buddy.getDisplayName()
             index = self.FindItem(0, line)
             if index == -1:
-                index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[TorIM.STATUS_OFFLINE])
+                index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
             self.SetItemImage(index, self.il_idx[buddy.status])  
         self.Refresh()
     
@@ -344,17 +344,17 @@ class StatusSwitchList(wx.Menu):
         self.status_switch = status_switch
 
         item = wx.MenuItem(self, wx.NewId(), "Available")
-        item.SetBitmap(getStatusBitmap(TorIM.STATUS_ONLINE))
+        item.SetBitmap(getStatusBitmap(tc_client.STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAvailable, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Away")
-        item.SetBitmap(getStatusBitmap(TorIM.STATUS_AWAY))
+        item.SetBitmap(getStatusBitmap(tc_client.STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAway, item)
 
         item = wx.MenuItem(self, wx.NewId(), "Extended Away")
-        item.SetBitmap(getStatusBitmap(TorIM.STATUS_XA))
+        item.SetBitmap(getStatusBitmap(tc_client.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onXA, item)
 
@@ -372,24 +372,24 @@ class StatusSwitch(wx.Button):
         self.PopupMenu(StatusSwitchList(self))
 
     def onAvailable(self, evt):
-        self.setStatus(TorIM.STATUS_ONLINE)
+        self.setStatus(tc_client.STATUS_ONLINE)
     
     def onAway(self, evt):
-        self.setStatus(TorIM.STATUS_AWAY)
+        self.setStatus(tc_client.STATUS_AWAY)
     
     def onXA(self, evt):
-        self.setStatus(TorIM.STATUS_XA)
+        self.setStatus(tc_client.STATUS_XA)
     
     def setStatus(self, status):
         self.status = status
         self.main_window.setStatus(status)
-        if status == TorIM.STATUS_AWAY:
+        if status == tc_client.STATUS_AWAY:
             status_text = "Away"
-        if status == TorIM.STATUS_XA:
+        if status == tc_client.STATUS_XA:
             status_text = "Extended Away"
-        if status == TorIM.STATUS_ONLINE:
+        if status == tc_client.STATUS_ONLINE:
             status_text = "Available"
-        if status == TorIM.STATUS_OFFLINE:
+        if status == tc_client.STATUS_OFFLINE:
             status_text = "Offline"
         self.SetLabel(status_text)
 
@@ -466,7 +466,7 @@ class ChatWindow(wx.Frame):
         
     def onSend(self, evt):
         evt.Skip()
-        if self.buddy.status not in  [TorIM.STATUS_OFFLINE, TorIM.STATUS_HANDSHAKE]:
+        if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
             text = self.txt_out.GetValue().rstrip().lstrip()
             wx.CallAfter(self.txt_out.SetValue, "")
             self.buddy.send("message %s" % text.encode("UTF-8"))
@@ -494,7 +494,7 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, None, -1, "TorChat", size=(250,350))
         self.conns = []
         self.chat_windows = []
-        self.buddy_list = TorIM.BuddyList(self.callbackMessage)
+        self.buddy_list = tc_client.BuddyList(self.callbackMessage)
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
