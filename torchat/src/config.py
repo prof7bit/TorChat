@@ -1,19 +1,35 @@
 import sys, os
 
+ICON_DIR = "icons" #can be absolute or relative to script dir
+
+def getScriptDir():
+    #must be called at least once before working dir is changed
+    #because after that abspath won't work correctly anymore.
+    #this is the reason why this function uses a cache.
+    global _script_dir
+    try:
+        return _script_dir
+    except:
+        #first call, _script_dir not yet defined
+        _script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        return _script_dir
+
 def isPortable():
     #if the file portable.txt exists in the same directory
     #then we know that we are running in portable mode.
-    dir = os.path.dirname(sys.argv[0])
+    dir = getScriptDir()
     try:
         f = open(os.path.join(dir, "portable.txt"), "r")
         f.close()
+        print "portable"
         return True
     except:
+        print "installed"
         return False
     
 def getDataDir():
     if isPortable():
-        data_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        data_dir = getScriptDir()
     else:
         if "win" in sys.platform:
             appdata = os.environ["APPDATA"]

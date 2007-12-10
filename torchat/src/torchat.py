@@ -33,7 +33,7 @@ def isWindows():
     return "win" in sys.platform
 
 def getStatusBitmap(status):
-    return wx.Bitmap("icons/%s" % ICON_NAMES[status], wx.BITMAP_TYPE_PNG)
+    return wx.Bitmap(os.path.join(config.ICON_DIR, ICON_NAMES[status]), wx.BITMAP_TYPE_PNG)
 
 
 class TaskbarIcon(wx.TaskBarIcon):
@@ -45,7 +45,7 @@ class TaskbarIcon(wx.TaskBarIcon):
         
     def showStatus(self, status):
         icon_name = ICON_NAMES[status]
-        img = wx.Image("icons/%s" % icon_name)
+        img = wx.Image(os.path.join(config.ICON_DIR, icon_name))
         img.ConvertAlphaToMask()
         bmp = img.ConvertToBitmap()
         icon = wx.IconFromBitmap(bmp)
@@ -511,7 +511,8 @@ class MainWindow(wx.Frame):
         self.main_panel.SetSizer(sizer)
         sizer.FitInside(self)
         
-        icon = wx.Icon(name="icons/torchat.ico", type=wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(name=os.path.join(config.ICON_DIR, "torchat.ico"), 
+                       type=wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
         
         self.Show()
@@ -560,9 +561,7 @@ class MainWindow(wx.Frame):
         
         
 def main():
-    script_dir = os.path.dirname(sys.argv[0])
-    if script_dir != "":
-        os.chdir(script_dir)
+    os.chdir(config.getScriptDir())
     app = wx.App(redirect=False)
     app.mw = MainWindow()
     app.SetTopWindow(app.mw)
