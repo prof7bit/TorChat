@@ -21,10 +21,8 @@ def isPortable():
     try:
         f = open(os.path.join(dir, "portable.txt"), "r")
         f.close()
-        print "portable"
         return True
     except:
-        print "installed"
         return False
     
 def getDataDir():
