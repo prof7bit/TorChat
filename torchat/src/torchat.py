@@ -42,7 +42,7 @@ class TaskbarIcon(wx.TaskBarIcon):
         self.mw = main_window
         self.showStatus(self.mw.buddy_list.own_status)
         self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.onLeftClick)
-        
+
     def showStatus(self, status):
         icon_name = ICON_NAMES[status]
         img = wx.Image(os.path.join(config.ICON_DIR, icon_name))
@@ -83,13 +83,13 @@ class TaskbarMenu(wx.Menu):
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onXA, item)
-        
+
         self.AppendSeparator()
-        
+
         item = wx.MenuItem(self, wx.NewId(), "Quit")
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onExit, item)
-        
+
     def onShowHide(self, evt):
         self.mw.Show(not self.mw.IsShown())
 
@@ -110,12 +110,12 @@ class PopupMenu(wx.Menu):
     def __init__(self, main_window, type):
         wx.Menu.__init__(self)
         self.mw = main_window
-        
-        if type == "contact": 
+
+	if type == "contact": 
             item = wx.MenuItem(self, wx.NewId(), "Chat")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.mw.gui_bl.onDClick, item)
-        
+
             item = wx.MenuItem(self, wx.NewId(), "Edit contact")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onEdit, item)
@@ -123,14 +123,14 @@ class PopupMenu(wx.Menu):
             item = wx.MenuItem(self, wx.NewId(), "Delete contact")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onDelete, item)
-    
+
         if type == "empty": 
             item = wx.MenuItem(self, wx.NewId(), "Add contact")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onAdd, item)
-    
+
         self.AppendSeparator()
-        
+
         item = wx.MenuItem(self, wx.NewId(), "About TorChat")
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAbout, item)

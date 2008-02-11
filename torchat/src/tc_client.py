@@ -368,7 +368,16 @@ def startPortableTor():
     old_dir = os.getcwd()
     try:
         os.chdir("tor")
+        # completely remove all cache files from the previous run
+        for root, dirs, files in os.walk("tor_data", topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        
+        # now start tor with the supplied config file
         subprocess.Popen("tor -f torrc.txt".split(), creationflags=0x08000000)
+        
         # we now assume the existence of our hostname file
         # it WILL be created after the first start
         # if not, something must be totally wrong.

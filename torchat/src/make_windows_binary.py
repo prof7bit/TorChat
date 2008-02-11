@@ -6,6 +6,9 @@ import sys
 import os
 import time
 import version
+import wx
+
+wx_path = wx.__path__[0]
 
 app_name = "TorChat" 
 app_descr = "Messenger on top of the TOR-network" 
@@ -74,9 +77,8 @@ setup(
     ]
 )
 
-#os.system("copy c:\python25\lib\site-packages\wx-2.8-msw-unicode\wx\gdiplus.dll dist")
-#os.system("copy c:\python25\lib\site-packages\wx-2.8-msw-unicode\wx\msvcp71.dll dist")
-#os.system("copy config.txt dist")
+os.system("copy %s\gdiplus.dll dist" % wx_path)
+os.system("copy %s\msvcp71.dll dist" % wx_path)
 os.system("upx dist\\*.*")
 
 os.system("copy dist\\*.* ..\\bin")
