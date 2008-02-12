@@ -1,6 +1,7 @@
 import sys, os
 
 ICON_DIR = "icons" #can be absolute or relative to script dir
+TIME_STAMP_FORMAT = "(%H:%M:%S)"
 
 def getScriptDir():
     #must be called at least once before working dir is changed

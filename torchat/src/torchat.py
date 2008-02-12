@@ -19,6 +19,7 @@ import wx
 import tc_client
 import sys
 import os
+import time
 import subprocess
 import version
 import config
@@ -442,6 +443,8 @@ class ChatWindow(wx.Frame):
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
     def writeColored(self, color, name, text):
+        self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(128, 128, 128)))    
+        self.txt_in.write("%s " % time.strftime(config.TIME_STAMP_FORMAT))
         red, green, blue = color
         self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(red, green, blue)))    
         self.txt_in.write("%s: " % name)

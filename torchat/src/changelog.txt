@@ -1,0 +1,2 @@
+new since version 0.9.9.64
+- Time stamps in chat window
