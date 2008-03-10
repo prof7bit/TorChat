@@ -61,6 +61,15 @@ def splitLine(text):
         b = ""
     return a, b
 
+def escape(text):
+    text = text.replace("\\", "\\/") #replace \ with \/
+    text = text.replace("\n", "\\n")  #replace linebreak with \n
+    return text
+
+def unescape(text):
+    text = text.replace("\\n", "\n") #replace \n with linebreak
+    text = text.replace("\\/", "\\") #replace \/ with \
+    return text
 
 class Buddy(object):
     def __init__(self, address, buddy_list, name=""):
@@ -89,7 +98,7 @@ class Buddy(object):
     def send(self, text):
         if self.conn_out == None:
             self.connect()
-        self.conn_out.send(text + "\n")
+        self.conn_out.send(escape(text) + "\n")
         
     def ping(self):
         if self.conn_out == None:
@@ -243,7 +252,7 @@ class BuddyList(object):
         if cmd == "message":
             if connection.buddy != None:
                 buddy = connection.buddy
-                self.callbackMessage(buddy, text)
+                self.callbackMessage(buddy, unescape(text))
                     
         if cmd == "status":
             if connection.buddy != None:
