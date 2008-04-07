@@ -112,10 +112,14 @@ class PopupMenu(wx.Menu):
         wx.Menu.__init__(self)
         self.mw = main_window
 
-	if type == "contact": 
+        if type == "contact": 
             item = wx.MenuItem(self, wx.NewId(), "Chat")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.mw.gui_bl.onDClick, item)
+
+            item = wx.MenuItem(self, wx.NewId(), "Send file (not working yet)")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onSendFile, item)
 
             item = wx.MenuItem(self, wx.NewId(), "Edit contact")
             self.AppendItem(item)
@@ -141,6 +145,13 @@ class PopupMenu(wx.Menu):
             item = wx.MenuItem(self, wx.NewId(), "Ask Bernd")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onAskBernd, item)
+
+    def onSendFile(self, evt):
+        buddy = self.mw.gui_bl.getSelectedBuddy()
+        dialog = wx.FileDialog ( None, style = wx.OPEN )
+        if dialog.ShowModal() == wx.ID_OK:
+            filename = dialog.GetPath()
+            transfer_window = FileTransferWindow(self.mw, buddy)
 
     def onEdit(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
@@ -491,6 +502,53 @@ class ChatWindow(wx.Frame):
                 #FIXME: is this the way to go? better make it a config option.
                 subprocess.Popen(("/etc/alternatives/x-www-browser %s" % url).split())
 
+class FileTransferWindow(wx.Frame):
+    def __init__(self, main_window, buddy):
+        wx.Frame.__init__(self, main_window, -1)
+        self.mw = main_window
+        self.buddy = buddy
+    
+        self.bytes_total = 42000
+        self.bytes_complete = 23000
+        self.filename = "foo.bar"
+        
+        self.panel = wx.Panel(self)
+        outer_sizer = wx.BoxSizer()
+        grid_sizer = wx.GridBagSizer(vgap = 5, hgap = 5)
+        grid_sizer.AddGrowableCol(0)
+        outer_sizer.Add(grid_sizer, 1, wx.EXPAND | wx.ALL, 5)
+        
+        self.text = wx.StaticText(self.panel, -1, "foo")
+        self.text.SetMinSize((300,-1))
+        grid_sizer.Add(self.text, (0, 0), (1, 4), wx.EXPAND)
+        
+        self.progress_bar = wx.Gauge(self.panel)
+        grid_sizer.Add(self.progress_bar, (1, 0), (1, 4), wx.EXPAND)
+        
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, "Cancel")
+        grid_sizer.Add(btn_cancel, (2, 3))
+        
+        self.panel.SetSizer(outer_sizer)
+        self.updateOutput()
+        outer_sizer.Fit(self)
+        
+        self.Show()
+
+    def updateOutput(self):
+        percent = 100.0 * self.bytes_complete / self.bytes_total
+        peername = self.buddy.address
+        if self.buddy.name != "":
+            peername += " (%s)" % self.buddy.name
+        title = "%04.1f%% - %s" % (percent, self.filename)
+        self.SetTitle(title)
+        self.progress_bar.SetValue(percent)
+        text = "sending %s\nto %s\n%04.1f%% (%i of %i bytes)" \
+            % (self.filename, 
+               peername, percent, 
+               self.bytes_complete, 
+               self.bytes_total)
+        self.text.SetLabel(text)
+        
 
 class MainWindow(wx.Frame):
     def __init__(self):
