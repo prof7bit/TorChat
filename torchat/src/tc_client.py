@@ -38,7 +38,6 @@ import time
 import sys
 import os
 import subprocess
-import version
 import config
 
 TORCHAT_PORT = 11009 #do NOT change this.
@@ -100,6 +99,10 @@ class Buddy(object):
             self.connect()
         self.conn_out.send(escape(text) + "\n")
         
+    def sendFile(self, filename, gui_callback):
+        sender = FileSender(self, filename, gui_callback)
+        return sender
+    
     def ping(self):
         if self.conn_out == None:
             self.connect()
@@ -337,6 +340,18 @@ class OutConnection(threading.Thread):
         except:
             pass
         
+
+class FileSender(threading.Thread):
+    def __init__(self, buddy, filename, gui_callback):
+        threading.Thread.__init__(self)
+        self.buddy = buddy
+        self.filaname = filename
+        self.gui_callback = gui_callback
+        self.start()
+        
+    def run(self):
+        pass
+        
         
 class Listener(threading.Thread):
     def __init__(self, buddy_list):
@@ -368,6 +383,7 @@ class Listener(threading.Thread):
             self.socket.close()
         except:
             pass
+
 
 def startPortableTor():
     global OWN_HOSTNAME

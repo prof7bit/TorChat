@@ -151,7 +151,7 @@ class PopupMenu(wx.Menu):
         dialog = wx.FileDialog ( None, style = wx.OPEN )
         if dialog.ShowModal() == wx.ID_OK:
             filename = dialog.GetPath()
-            transfer_window = FileTransferWindow(self.mw, buddy)
+            transfer_window = FileTransferWindow(self.mw, buddy, filename)
 
     def onEdit(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
@@ -502,15 +502,18 @@ class ChatWindow(wx.Frame):
                 #FIXME: is this the way to go? better make it a config option.
                 subprocess.Popen(("/etc/alternatives/x-www-browser %s" % url).split())
 
+
 class FileTransferWindow(wx.Frame):
-    def __init__(self, main_window, buddy):
+    def __init__(self, main_window, buddy, filename):
         wx.Frame.__init__(self, main_window, -1)
         self.mw = main_window
         self.buddy = buddy
     
-        self.bytes_total = 42000
-        self.bytes_complete = 23000
-        self.filename = "foo.bar"
+        self.bytes_total = 1
+        self.bytes_complete = 0
+        self.filename = filename
+        
+        self.sender = self.buddy.sendFile(self.filename, self.callback)
         
         self.panel = wx.Panel(self)
         outer_sizer = wx.BoxSizer()
@@ -549,6 +552,13 @@ class FileTransferWindow(wx.Frame):
                self.bytes_total)
         self.text.SetLabel(text)
         
+    def callback(self, total, complete):
+        #will be called from the FileSender-object in the
+        #protocol module to update gui
+        self.bytes_total = total
+        self.bytes_complete = complete
+        self.updateOutput()
+    
 
 class MainWindow(wx.Frame):
     def __init__(self):
