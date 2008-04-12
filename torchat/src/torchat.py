@@ -557,7 +557,10 @@ class FileTransferWindow(wx.Frame):
         #protocol module to update gui
         self.bytes_total = total
         self.bytes_complete = complete
-        self.updateOutput()
+        
+        #we must use wx.Callafter to make calls into wx
+        #because we are not in the context of the gui tread here
+        wx.CallAfter(self.updateOutput)
     
 
 class MainWindow(wx.Frame):

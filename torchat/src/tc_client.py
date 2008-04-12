@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+import socket
 
 ##############################################################################
 #                                                                            #
@@ -99,6 +100,12 @@ class Buddy(object):
             self.connect()
         self.conn_out.send(escape(text) + "\n")
         
+    def callback(self, connection, text):
+        self.bl.callback(connection, text)
+    
+    def getSendBufferSize(self):
+        return self.conn_out.getSendBufferSize()
+        
     def sendFile(self, filename, gui_callback):
         sender = FileSender(self, filename, gui_callback)
         return sender
@@ -137,12 +144,15 @@ class BuddyList(object):
         if TRY_PORTABLE_MODE:
             startPortableTor()
         
+        self.file_sender = {}
+        self.file_receiver = {}
+        
         self.listener = Listener(self)
         self.own_status = STATUS_ONLINE
         
         filename = os.path.join(config.getDataDir(), "buddy-list.txt")
         
-        #create it if it does not already exist
+        #create empty buddy list file if it does not already exist
         f = open(filename, "a")
         f.close()
         
@@ -220,7 +230,7 @@ class BuddyList(object):
         for buddy in self.list:
             buddy.sendStatus()
     
-    def process(self, connection, line):
+    def callback(self, connection, line):
         cmd, text = splitLine(line)
         if cmd == "ping":
             address, random = splitLine(text)
@@ -266,35 +276,74 @@ class BuddyList(object):
                 if text == "xa":
                     connection.buddy.status = STATUS_XA
 
+        if cmd == "filename":
+            address = connection.buddy.address
+            id, filename = splitLine(text)
+            receiver = FileReceiver(connection.buddy, filename)
+            self.file_receiver[address, id] = receiver
+            
+        if cmd == "filedata":
+            address = connection.buddy.address
+            id, text = splitLine(text)
+            start, text = splitLine(text)
+            size, text = splitLine(text)
+            self.file_receiver[address, id].data(start, size, text)
+            
 
-class InConnection(threading.Thread):
-    def __init__(self, conn, buddy_list):
+class Receiver(threading.Thread):
+    def __init__(self, conn, callback):
         threading.Thread.__init__(self)
+        self.conn = conn
+        self.callback = callback
+        self.running = True
+        self.start()
+
+    def run(self):
+        readbuffer = ""
+        while self.running:
+            try:
+                recv = self.conn.recv(1024)
+                if recv != "":
+                    readbuffer = readbuffer + recv
+                    temp = readbuffer.split("\n")
+                    readbuffer = temp.pop()
+                
+                    for line in temp:
+                        line = line.rstrip()
+                        if self.running:
+                            self.callback(line)
+                else:
+                    self.running = False
+                    self.callback("error")     
+            
+            except socket.timeout:
+                pass
+                           
+            except:
+                import traceback
+                traceback.print_exc()
+    
+        
+class InConnection:
+    def __init__(self, conn, buddy_list):
         self.buddy = None
         self.bl = buddy_list
         self.conn = conn
-        self.start()
-        
-    def run(self):
-        self.running = True
-        readbuffer = ""
-        while self.running:
-            recv = self.conn.recv(1024)
-            if recv != "":
-                readbuffer = readbuffer + recv
-                temp = readbuffer.split("\n")
-                readbuffer = temp.pop()
+        self.receiver = Receiver(self.conn, self.callback)
+    
+    def callback(self, text):
+        if text == "error":
+            text = "error-in"
             
-                for line in temp:
-                    line = line.rstrip()
-                    if self.running:
-                        self.bl.process(self, line)
-            else:
-                self.close()  
-                self.bl.process(self, "error-in")
+        if self.buddy:
+            self.buddy.callback(self, text)
+        else:
+            self.bl.callback(self, text)
+    
+    def send(self, text):
+        self.conn.sendall(text)
     
     def close(self):
-        self.running = False
         try:
             self.conn.close()
         except:
@@ -319,20 +368,27 @@ class OutConnection(threading.Thread):
                                TOR_SERVER, 
                                TOR_SERVER_SOCKS_PORT)
             self.conn.connect((self.address, TORCHAT_PORT))
-            self.bl.process(self, "connected")
+            self.bl.callback(self, "connected")
+            self.receiver = Receiver(self.conn, self.callback)
             while self.running:
                 if len(self.send_buffer) > 0:
                     text = self.send_buffer.pop(0)
                     self.conn.send(text)
-                time.sleep(0.1)
+                time.sleep(0.05)
                 
         except:
-            self.bl.process(self, "error-out")
+            self.bl.callback(self, "error-out")
             self.close()
             
     def send(self, text):
         self.send_buffer.append(text)
         
+    def callback(self, text):
+        self.buddy.callback(self, text)
+    
+    def getSendBufferSize(self):
+        return len(self.send_buffer)    
+    
     def close(self):
         self.running = False
         try:
@@ -345,13 +401,47 @@ class FileSender(threading.Thread):
     def __init__(self, buddy, filename, gui_callback):
         threading.Thread.__init__(self)
         self.buddy = buddy
-        self.filaname = filename
+        self.filename = filename
         self.gui_callback = gui_callback
+        self.id = random.getrandbits(16)
+        self.buddy.bl.file_sender[self.buddy.address, self.id] = self
         self.start()
         
     def run(self):
-        pass
+        try:
+            file_handle = open(self.filename)
+            file_handle.seek(0, os.SEEK_END)
+            filesize = file_handle.tell()
+            self.gui_callback(filesize, 0)
+            self.buddy.conn_in.send("filename %i %s\n" % (self.id, self.filename))
+            BLOCK_SIZE = 4096
+            blocks = int(filesize / BLOCK_SIZE) + 1
+            for i in range(blocks):
+                start = i * BLOCK_SIZE
+                remaining = filesize - start
+                if remaining > BLOCK_SIZE:
+                    size = BLOCK_SIZE
+                else:
+                    size = remaining
+                file_handle.seek(start)
+                data = file_handle.read(size)
+                send_line = "filedata %i %i %i %s\n" % (self.id, start, size, escape(data))
+                
+                self.buddy.conn_in.send(send_line)
+                self.gui_callback(filesize, start + size)
+                
+        except:
+            #FIXME: call gui and tell it about error
+            print "error sending file %s" % self.filename
+
+class FileReceiver:
+    def __init__(self, buddy, filename):
+        self.buddy = buddy
+        self.filename = filename
         
+    def data(self, start, size, text):
+        block = unescape(text)
+        print "r %s %s %s" % (self.filename, start, len(block))
         
 class Listener(threading.Thread):
     def __init__(self, buddy_list):
