@@ -3,7 +3,7 @@
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>                       #
+# Copyright (c) 2007-2008 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # This program is licensed under the GNU General Public License V3,          #
 # the full source code is included in the binary distribution.               #
@@ -24,11 +24,13 @@ import subprocess
 import version
 import config
 
+
 ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
               tc_client.STATUS_ONLINE : "online.png",
               tc_client.STATUS_HANDSHAKE : "connecting.png",
               tc_client.STATUS_AWAY : "away.png",
               tc_client.STATUS_XA : "xa.png"}
+
 
 def isWindows():
     return "win" in sys.platform

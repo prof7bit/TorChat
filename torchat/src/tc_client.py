@@ -1,9 +1,8 @@
 # -*- coding: UTF-8 -*-
-import socket
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>                       #
+# Copyright (c) 2007-2008 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # This program is licensed under the GNU General Public License V3,          #
 # the full source code is included in the binary distribution.               #
@@ -71,6 +70,121 @@ def unescape(text):
     text = text.replace("\\/", "\\") #replace \/ with \
     return text
 
+
+class MProtocolMsg(type):
+    #Meta-Class for ProtocolMsg. It automagically creates a hash for 
+    #mapping protocol-commands and corresponding ProtocolMsg-subclasses
+    subclasses = {}
+    def __init__(cls, name, bases, dict):
+        #this will be executed whenever a ProtocolMsg gets *defined*
+        #(happens once at the time when this module is imported).
+        #the commands and their classes will be stored in 
+        #the static member MProtocolMsg.subclasses
+        cls.subclasses[dict["command"]] = cls
+        super(MProtocolMsg, cls).__init__(name, bases, dict)
+
+        
+class ProtocolMsg(object):
+    __metaclass__ = MProtocolMsg
+    command = ""
+    #the base class for all ProtocolMsg-classes. All message classes
+    #must inherit from this and declare the static member command
+    #which is used (by the metaclass-magic-voodoo;-) to map between the
+    #command-string and the corresponding message class
+
+    def __init__(self, connection, command, text):
+        self.connection = connection
+        if connection:
+            self.buddy = connection.buddy
+            self.bl = connection.bl
+        else:
+            self.buddy = None
+            self.bl = None
+        self.command = command
+        self.text = text
+
+    def execute(self):
+        #generic message does nothing
+        pass
+
+    def getLine(self):
+        return self.command + " " + self.text
+
+    def send(self, buddy):
+        #FIXME: what if it is None?
+        buddy.send(self.getLine())
+
+    
+def ProtocolMsgFromLine(conn, line):
+    #this is the factory for producing instances of ProtocolMsg classes.
+    #it separates the first word from the line, looks up the corresponding
+    #ProtocolMsg subclass which can handle this kind of protocol message
+    #and returns an instance. If no class matches the command string it
+    #returns a ProtocolMsg instance which is generic and just does nothing.
+    command, text = splitLine(line)
+    try:
+        return MProtocolMsg.subclasses[command](conn, command, text)
+    except:
+        return ProtocolMsg(conn, command, text)
+
+ 
+class ProtocolMsg_ping(ProtocolMsg):
+    command = "ping"
+    def __init__(self, *args):
+        ProtocolMsg.__init__(self, *args)
+        #the sender address is in the text. we take it for granted.
+        address, self.answer = splitLine(self.text)
+        self.buddy = self.connection.bl.getBuddyFromAddress(address)
+
+    def execute(self):
+        if self.buddy:
+            answer = ProtocolMsg(None, "pong", self.answer)
+            answer.send(self.buddy)
+
+
+class ProtocolMsg_pong(ProtocolMsg):
+    command = "pong"
+    def __init__(self, *args):
+        ProtocolMsg.__init__(self, *args)
+        #pong message is used to identify and authenticate the incoming 
+        #connection. we search all our buddies for the corresponding random
+        #string to identify which buddy is replying here.
+        self.buddy = self.connection.bl.getBuddyFromRandom(self.text)
+
+    def execute(self):
+        #if the pong is found to belong to a known buddy we can now
+        #safely assign this connection to this buddy and regard the
+        #handshake as completed.
+        if self.buddy:
+            if self.buddy.conn_in == None:
+                self.buddy.conn_in = self.connection
+                self.buddy.status = STATUS_ONLINE
+                self.connection.buddy = self.buddy
+
+                
+class ProtocolMsg_message(ProtocolMsg):
+    command = "message"
+    #this is a normal text chat message.
+    def execute(self):
+        #give buddy and text to bl. bl knows how to deal with it.
+        if self.buddy:
+            self.buddy.bl.onChatMessage(self.buddy, unescape(self.text))
+
+
+class ProtocolMsg_status(ProtocolMsg):
+    command = "status"
+    #this is a status message.
+    def execute(self):
+        #set the status flag of the corresponding buddy
+        if self.buddy:
+            if self.text == "available":
+                self.buddy.status = STATUS_ONLINE
+            if self.text == "away":
+                self.buddy.status = STATUS_AWAY
+            if self.text == "xa":
+                self.buddy.status = STATUS_XA
+    
+    
 class Buddy(object):
     def __init__(self, address, buddy_list, name=""):
         self.bl = buddy_list
@@ -100,8 +214,8 @@ class Buddy(object):
             self.connect()
         self.conn_out.send(escape(text) + "\n")
         
-    def callback(self, connection, text):
-        self.bl.callback(connection, text)
+    def processMessage(self, connection, text):
+        self.bl.processMessage(connection, text)
     
     def getSendBufferSize(self):
         return self.conn_out.getSendBufferSize()
@@ -138,8 +252,13 @@ class Buddy(object):
     
 
 class BuddyList(object):
-    def __init__(self, callbackMessage):
-        self.callbackMessage = callbackMessage
+    #the buddy list object is somewhat like a central API.
+    #All functionality and access to all other objects should
+    #be possible with it's methods. Most other objects carry
+    #a reference to the one and only BuddyList object around 
+    #to be able to find and interact with other objects.
+    def __init__(self, guiChatCallback):
+        self.guiChatCallback = guiChatCallback
         
         if TRY_PORTABLE_MODE:
             startPortableTor()
@@ -224,77 +343,39 @@ class BuddyList(object):
             if buddy.address == address:
                 return buddy
         return None
-        
+    
+    def getBuddyFromRandom(self, random):
+        for buddy in self.list:
+            if buddy.random1 == random:
+                return buddy
+        return None
+    
     def setStatus(self, status):
         self.own_status = status
         for buddy in self.list:
             buddy.sendStatus()
     
-    def callback(self, connection, line):
-        cmd, text = splitLine(line)
-        if cmd == "ping":
-            address, random = splitLine(text)
-            buddy = self.getBuddyFromAddress(address)
-            if buddy:
-                buddy.send("pong " + random)
-            else:
-                buddy = self.addBuddy(Buddy(address, self))
-                
-        if cmd == "pong":
-            for buddy in self.list:
-                if buddy.random1 == text:
-                    if buddy.conn_in == None:
-                        buddy.conn_in = connection
-                        buddy.status = STATUS_ONLINE
-                        connection.buddy = buddy
-                    break
-                
-        if cmd == "error-in":
-            for buddy in self.list:
-                if buddy.conn_in == connection:
-                    buddy.disconnect()
-                    break
-                
-        if cmd == "error-out":
-            buddy = connection.buddy
-            buddy.disconnect()
-        
-        if cmd == "connected":
-            connection.buddy.status = STATUS_HANDSHAKE
-                    
-        if cmd == "message":
-            if connection.buddy != None:
-                buddy = connection.buddy
-                self.callbackMessage(buddy, unescape(text))
-                    
-        if cmd == "status":
-            if connection.buddy != None:
-                if text == "available":
-                    connection.buddy.status = STATUS_ONLINE
-                if text == "away":
-                    connection.buddy.status = STATUS_AWAY
-                if text == "xa":
-                    connection.buddy.status = STATUS_XA
+    def onErrorIn(self, connection):
+        for buddy in self.list:
+            if buddy.conn_in == connection:
+                buddy.disconnect()
+                break
+    
+    def onErrorOut(self, connection):
+        connection.buddy.disconnect()
 
-        if cmd == "filename":
-            address = connection.buddy.address
-            id, filename = splitLine(text)
-            receiver = FileReceiver(connection.buddy, filename)
-            self.file_receiver[address, id] = receiver
-            
-        if cmd == "filedata":
-            address = connection.buddy.address
-            id, text = splitLine(text)
-            start, text = splitLine(text)
-            size, text = splitLine(text)
-            self.file_receiver[address, id].data(start, size, text)
-            
+    def onConnected(self, connection):
+        connection.buddy.status = STATUS_HANDSHAKE
+
+    def onChatMessage(self, buddy, message):
+        self.guiChatCallback(buddy, message)
+        
 
 class Receiver(threading.Thread):
-    def __init__(self, conn, callback):
+    def __init__(self, conn):
         threading.Thread.__init__(self)
         self.conn = conn
-        self.callback = callback
+        self.socket = conn.socket
         self.running = True
         self.start()
 
@@ -302,7 +383,7 @@ class Receiver(threading.Thread):
         readbuffer = ""
         while self.running:
             try:
-                recv = self.conn.recv(1024)
+                recv = self.socket.recv(1024)
                 if recv != "":
                     readbuffer = readbuffer + recv
                     temp = readbuffer.split("\n")
@@ -311,10 +392,11 @@ class Receiver(threading.Thread):
                     for line in temp:
                         line = line.rstrip()
                         if self.running:
-                            self.callback(line)
+                            message = ProtocolMsgFromLine(self.conn, line)
+                            message.execute()
                 else:
                     self.running = False
-                    self.callback("error")     
+                    self.conn.onReceiverError()     
             
             except socket.timeout:
                 pass
@@ -325,27 +407,21 @@ class Receiver(threading.Thread):
     
         
 class InConnection:
-    def __init__(self, conn, buddy_list):
+    def __init__(self, socket, buddy_list):
         self.buddy = None
         self.bl = buddy_list
-        self.conn = conn
-        self.receiver = Receiver(self.conn, self.callback)
-    
-    def callback(self, text):
-        if text == "error":
-            text = "error-in"
-            
-        if self.buddy:
-            self.buddy.callback(self, text)
-        else:
-            self.bl.callback(self, text)
+        self.socket = socket
+        self.receiver = Receiver(self)
     
     def send(self, text):
-        self.conn.sendall(text)
+        self.socket.sendall(text)
+        
+    def onReceiverError(self):
+        self.bl.onErrorIn(self)
     
     def close(self):
         try:
-            self.conn.close()
+            self.socket.close()
         except:
             pass
     
@@ -362,37 +438,35 @@ class OutConnection(threading.Thread):
     def run(self):
         self.running = True
         try:
-            self.conn = socks.socksocket()
-            self.conn.settimeout(25)
-            self.conn.setproxy(socks.PROXY_TYPE_SOCKS4, 
+            self.socket = socks.socksocket()
+            self.socket.settimeout(25)
+            self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
                                TOR_SERVER, 
                                TOR_SERVER_SOCKS_PORT)
-            self.conn.connect((self.address, TORCHAT_PORT))
-            self.bl.callback(self, "connected")
-            self.receiver = Receiver(self.conn, self.callback)
+            self.socket.connect((self.address, TORCHAT_PORT))
+            self.bl.onConnected(self)
+            self.receiver = Receiver(self)
             while self.running:
                 if len(self.send_buffer) > 0:
                     text = self.send_buffer.pop(0)
-                    self.conn.send(text)
+                    self.socket.send(text)
                 time.sleep(0.05)
                 
         except:
-            self.bl.callback(self, "error-out")
+            self.bl.onErrorOut(self)
             self.close()
             
     def send(self, text):
         self.send_buffer.append(text)
         
-    def callback(self, text):
-        self.buddy.callback(self, text)
-    
-    def getSendBufferSize(self):
-        return len(self.send_buffer)    
+    def onReceiverError(self):
+        self.bl.onErrorOut(self)
+        self.close()
     
     def close(self):
         self.running = False
         try:
-            self.conn.close()
+            self.socket.close()
         except:
             pass
         
@@ -402,8 +476,9 @@ class FileSender(threading.Thread):
         threading.Thread.__init__(self)
         self.buddy = buddy
         self.filename = filename
+        self.filename_short = os.path.basename(self.filename)
         self.gui_callback = gui_callback
-        self.id = random.getrandbits(16)
+        self.id = random.getrandbits(32)
         self.buddy.bl.file_sender[self.buddy.address, self.id] = self
         self.start()
         
@@ -413,8 +488,9 @@ class FileSender(threading.Thread):
             file_handle.seek(0, os.SEEK_END)
             filesize = file_handle.tell()
             self.gui_callback(filesize, 0)
-            self.buddy.conn_in.send("filename %i %s\n" % (self.id, self.filename))
             BLOCK_SIZE = 4096
+            self.buddy.conn_in.send("filename %i %i %i %s\n" 
+                % (self.id, filesize, BLOCK_SIZE, self.filename_short))
             blocks = int(filesize / BLOCK_SIZE) + 1
             for i in range(blocks):
                 start = i * BLOCK_SIZE
@@ -425,7 +501,7 @@ class FileSender(threading.Thread):
                     size = remaining
                 file_handle.seek(start)
                 data = file_handle.read(size)
-                send_line = "filedata %i %i %i %s\n" % (self.id, start, size, escape(data))
+                send_line = "filedata %i %i %s\n" % (self.id, start, escape(data))
                 
                 self.buddy.conn_in.send(send_line)
                 self.gui_callback(filesize, start + size)
@@ -433,13 +509,15 @@ class FileSender(threading.Thread):
         except:
             #FIXME: call gui and tell it about error
             print "error sending file %s" % self.filename
+            
 
 class FileReceiver:
-    def __init__(self, buddy, filename):
+    def __init__(self, buddy, filename, block_size):
         self.buddy = buddy
         self.filename = filename
+        self.block_size = block_size
         
-    def data(self, start, size, text):
+    def data(self, start, text):
         block = unescape(text)
         print "r %s %s %s" % (self.filename, start, len(block))
         
