@@ -485,7 +485,7 @@ class ChatWindow(wx.Frame):
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
             text = self.txt_out.GetValue().rstrip().lstrip()
             wx.CallAfter(self.txt_out.SetValue, "")
-            self.buddy.send("message %s" % text.encode("UTF-8"))
+            self.buddy.sendChatMessage(text.encode("UTF-8"))
             self.writeColored((0,0,192), "myself", text)
         else:
             wx.MessageBox("We have no connection to this contact. \nPlease wait.")

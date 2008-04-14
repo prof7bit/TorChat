@@ -92,64 +92,66 @@ class ProtocolMsg(object):
     #which is used (by the metaclass-magic-voodoo;-) to map between the
     #command-string and the corresponding message class
 
-    def __init__(self, connection, command, text):
+    def __init__(self, bl, connection, command, text):
         self.connection = connection
         if connection:
             self.buddy = connection.buddy
-            self.bl = connection.bl
         else:
             self.buddy = None
-            self.bl = None
+        self.bl = bl
         self.command = command
         self.text = text
+        self.parse()
 
+    def parse(self):
+        pass
+    
     def execute(self):
         #generic message does nothing
         pass
 
     def getLine(self):
-        return self.command + " " + self.text
+        return self.command + " " + escape(self.text)
 
     def send(self, buddy):
         #FIXME: what if it is None?
-        buddy.send(self.getLine())
+        buddy.sendLine(self.getLine())
 
     
-def ProtocolMsgFromLine(conn, line):
+def ProtocolMsgFromLine(bl, conn, line):
     #this is the factory for producing instances of ProtocolMsg classes.
     #it separates the first word from the line, looks up the corresponding
     #ProtocolMsg subclass which can handle this kind of protocol message
     #and returns an instance. If no class matches the command string it
     #returns a ProtocolMsg instance which is generic and just does nothing.
-    command, text = splitLine(line)
+    command, text_escaped = splitLine(line)
+    text = unescape(text_escaped)
     try:
-        return MProtocolMsg.subclasses[command](conn, command, text)
+        return MProtocolMsg.subclasses[command](bl, conn, command, text)
     except:
-        return ProtocolMsg(conn, command, text)
+        return ProtocolMsg(bl, conn, command, text)
 
  
 class ProtocolMsg_ping(ProtocolMsg):
     command = "ping"
-    def __init__(self, *args):
-        ProtocolMsg.__init__(self, *args)
+    def parse(self):
         #the sender address is in the text. we take it for granted.
         address, self.answer = splitLine(self.text)
-        self.buddy = self.connection.bl.getBuddyFromAddress(address)
+        self.buddy = self.bl.getBuddyFromAddress(address)
 
     def execute(self):
         if self.buddy:
-            answer = ProtocolMsg(None, "pong", self.answer)
+            answer = ProtocolMsg(self.bl, None, "pong", self.answer)
             answer.send(self.buddy)
 
 
 class ProtocolMsg_pong(ProtocolMsg):
     command = "pong"
-    def __init__(self, *args):
-        ProtocolMsg.__init__(self, *args)
+    def parse(self):
         #pong message is used to identify and authenticate the incoming 
         #connection. we search all our buddies for the corresponding random
         #string to identify which buddy is replying here.
-        self.buddy = self.connection.bl.getBuddyFromRandom(self.text)
+        self.buddy = self.bl.getBuddyFromRandom(self.text)
 
     def execute(self):
         #if the pong is found to belong to a known buddy we can now
@@ -168,7 +170,7 @@ class ProtocolMsg_message(ProtocolMsg):
     def execute(self):
         #give buddy and text to bl. bl knows how to deal with it.
         if self.buddy:
-            self.buddy.bl.onChatMessage(self.buddy, unescape(self.text))
+            self.bl.onChatMessage(self.buddy, self.text)
 
 
 class ProtocolMsg_status(ProtocolMsg):
@@ -209,17 +211,15 @@ class Buddy(object):
             self.conn_in = None
         self.status = STATUS_OFFLINE
         
-    def send(self, text):
+    def sendLine(self, text):
         if self.conn_out == None:
             self.connect()
-        self.conn_out.send(escape(text) + "\n")
-        
-    def processMessage(self, connection, text):
-        self.bl.processMessage(connection, text)
-    
-    def getSendBufferSize(self):
-        return self.conn_out.getSendBufferSize()
-        
+        self.conn_out.send(text + "\n")
+
+    def sendChatMessage(self, text):
+        message = ProtocolMsg(self.bl, None, "message", text)
+        message.send(self)
+
     def sendFile(self, filename, gui_callback):
         sender = FileSender(self, filename, gui_callback)
         return sender
@@ -228,7 +228,9 @@ class Buddy(object):
         if self.conn_out == None:
             self.connect()
         else:
-            self.send("ping %s %s" % (OWN_HOSTNAME, self.random1))
+            text = OWN_HOSTNAME + " " + self.random1
+            ping = ProtocolMsg(self.bl, None, "ping", text)
+            ping.send(self)
             self.sendStatus()
                 
     def sendStatus(self):
@@ -241,7 +243,8 @@ class Buddy(object):
             if self.bl.own_status == STATUS_XA:
                 status = "xa"
             if status != "":
-                self.send("status %s" % status)
+                msg = ProtocolMsg(self.bl, None, "status", status)
+                msg.send(self)
         
     def getDisplayName(self):
         if self.name != "":
@@ -392,7 +395,9 @@ class Receiver(threading.Thread):
                     for line in temp:
                         line = line.rstrip()
                         if self.running:
-                            message = ProtocolMsgFromLine(self.conn, line)
+                            message = ProtocolMsgFromLine(self.conn.bl, 
+                                                          self.conn, 
+                                                          line)
                             message.execute()
                 else:
                     self.running = False
@@ -518,8 +523,7 @@ class FileReceiver:
         self.block_size = block_size
         
     def data(self, start, text):
-        block = unescape(text)
-        print "r %s %s %s" % (self.filename, start, len(block))
+        print "r %s %s %s" % (self.filename, start, len(text))
         
 class Listener(threading.Thread):
     def __init__(self, buddy_list):
