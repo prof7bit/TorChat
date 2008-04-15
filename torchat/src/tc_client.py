@@ -100,22 +100,29 @@ class ProtocolMsg(object):
             self.buddy = None
         self.bl = bl
         self.command = command
-        self.text = text
+        if type(text) in (list, tuple):
+            self.text = " ".join(str(x) for x in text)
+        else:
+            self.text = str(text)
         self.parse()
 
     def parse(self):
         pass
     
     def execute(self):
-        #generic message does nothing
-        pass
+        #generic message will be instantiated if command is not recognized 
+        #do nothing and just reply with "not_implemented"
+        message = ProtocolMsg(self.bl, None, "not_implemented", self.command)
+        message.send(self.buddy)
 
     def getLine(self):
         return self.command + " " + escape(self.text)
 
-    def send(self, buddy):
-        #FIXME: what if it is None?
-        buddy.sendLine(self.getLine())
+    def send(self, buddy, conn=0):
+        #conn=0 use outgoing connection
+        #conn=1 use incoming connection
+        #FIXME: what if buddy is None?
+        buddy.sendLine(self.getLine(), conn)
 
     
 def ProtocolMsgFromLine(bl, conn, line):
@@ -130,6 +137,12 @@ def ProtocolMsgFromLine(bl, conn, line):
         return MProtocolMsg.subclasses[command](bl, conn, command, text)
     except:
         return ProtocolMsg(bl, conn, command, text)
+
+
+class ProtocolMsg_not_implemented(ProtocolMsg):
+    command = "not_implemented"
+    def ececute(self):
+        print "buddy says he can't handle '%s'" % self.text
 
  
 class ProtocolMsg_ping(ProtocolMsg):
@@ -185,7 +198,48 @@ class ProtocolMsg_status(ProtocolMsg):
                 self.buddy.status = STATUS_AWAY
             if self.text == "xa":
                 self.buddy.status = STATUS_XA
+
+
+class ProtocolMsg_filename(ProtocolMsg):
+    command = "filename"
+    def parse(self):
+        self.id, text = splitLine(self.text)
+        file_size, text = splitLine(text) 
+        block_size, self.file_name = splitLine(text)
+        self.file_size = int(file_size)
+        self.block_size = int(block_size)
+
+    def execute(self):
+        FileReceiver(self.buddy, 
+                     self.id, 
+                     self.block_size, 
+                     self.file_size,
+                     self.file_name)
+        
     
+class ProtocolMsg_filedata(ProtocolMsg):
+    command = "filedata"
+    def parse(self):
+        self.id, text = splitLine(self.text)
+        start, self.data = splitLine(text)
+        self.start = int(start)
+
+    def execute(self):
+        receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
+        if receiver:
+            receiver.data(self.start, self.data)
+
+
+class ProtocolMsg_filedata_ok(ProtocolMsg):
+    command = "filedata_ok"
+    def parse(self):
+        self.id, start = splitLine(self.text)
+        self.start = int(start)
+        
+    def execute(self):
+        sender = self.bl.getFileSender(self.buddy.address, self.id)
+        if sender:
+            sender.receivedOK(self.start)
     
 class Buddy(object):
     def __init__(self, address, buddy_list, name=""):
@@ -211,10 +265,18 @@ class Buddy(object):
             self.conn_in = None
         self.status = STATUS_OFFLINE
         
-    def sendLine(self, text):
+    def sendLine(self, line, conn=0):
+        #conn: use outgiong or incoming connection
         if self.conn_out == None:
             self.connect()
-        self.conn_out.send(text + "\n")
+        if conn == 0:
+            self.conn_out.send(line + "\n")
+        else:
+            if self.conn_in:
+                self.conn_in.send(line + "\n")
+            else:
+                #FIXME: handle this condition
+                pass
 
     def sendChatMessage(self, text):
         message = ProtocolMsg(self.bl, None, "message", text)
@@ -228,8 +290,7 @@ class Buddy(object):
         if self.conn_out == None:
             self.connect()
         else:
-            text = OWN_HOSTNAME + " " + self.random1
-            ping = ProtocolMsg(self.bl, None, "ping", text)
+            ping = ProtocolMsg(self.bl, None, "ping", (OWN_HOSTNAME, self.random1))
             ping.send(self)
             self.sendStatus()
                 
@@ -353,6 +414,18 @@ class BuddyList(object):
                 return buddy
         return None
     
+    def getFileReceiver(self, address, id):
+        try:
+            return self.file_receiver[address, id]
+        except:
+            return None
+        
+    def getFileSender(self, address, id):
+        try:
+            return self.file_sender[address, id]
+        except:
+            return None
+    
     def setStatus(self, status):
         self.own_status = status
         for buddy in self.list:
@@ -419,7 +492,7 @@ class InConnection:
         self.receiver = Receiver(self)
     
     def send(self, text):
-        self.socket.sendall(text)
+        self.socket.send(text)
         
     def onReceiverError(self):
         self.bl.onErrorIn(self)
@@ -477,53 +550,84 @@ class OutConnection(threading.Thread):
         
 
 class FileSender(threading.Thread):
-    def __init__(self, buddy, filename, gui_callback):
+    def __init__(self, buddy, file_name, gui_callback):
         threading.Thread.__init__(self)
         self.buddy = buddy
-        self.filename = filename
-        self.filename_short = os.path.basename(self.filename)
+        self.bl = buddy.bl
+        self.file_name = file_name
+        self.file_name_short = os.path.basename(self.file_name)
         self.gui_callback = gui_callback
-        self.id = random.getrandbits(32)
+        self.id = str(random.getrandbits(32))
         self.buddy.bl.file_sender[self.buddy.address, self.id] = self
+        self.file_size = 0
+        self.block_size = 8192
+        self.blocks_wait = 16
+        self.start_ok = -1
         self.start()
         
     def run(self):
         try:
-            file_handle = open(self.filename)
+            file_handle = open(self.file_name)
             file_handle.seek(0, os.SEEK_END)
-            filesize = file_handle.tell()
-            self.gui_callback(filesize, 0)
-            BLOCK_SIZE = 4096
-            self.buddy.conn_in.send("filename %i %i %i %s\n" 
-                % (self.id, filesize, BLOCK_SIZE, self.filename_short))
-            blocks = int(filesize / BLOCK_SIZE) + 1
+            self.file_size = file_handle.tell()
+            self.gui_callback(self.file_size, 0)
+            msg = ProtocolMsg(self.bl, None, "filename", (self.id, 
+                                                          self.file_size, 
+                                                          self.block_size,
+                                                          self.file_name_short))
+            msg.send(self.buddy, 1)
+            blocks = int(self.file_size / self.block_size) + 1
             for i in range(blocks):
-                start = i * BLOCK_SIZE
-                remaining = filesize - start
-                if remaining > BLOCK_SIZE:
-                    size = BLOCK_SIZE
+                start = i * self.block_size
+                remaining = self.file_size - start
+                if remaining > self.block_size:
+                    size = self.block_size
                 else:
                     size = remaining
                 file_handle.seek(start)
                 data = file_handle.read(size)
-                send_line = "filedata %i %i %s\n" % (self.id, start, escape(data))
                 
-                self.buddy.conn_in.send(send_line)
-                self.gui_callback(filesize, start + size)
+                msg = ProtocolMsg(self.bl, None, "filedata", (self.id,
+                                                              start,
+                                                              data))
+                msg.send(self.buddy, 1)
+                while not self.start_ok + self.blocks_wait * self.block_size > start:
+                    time.sleep(0.1)
                 
         except:
             #FIXME: call gui and tell it about error
-            print "error sending file %s" % self.filename
+            print "error sending file %s" % self.file_name
+            import traceback
+            traceback.print_exc()
+        
+    def receivedOK(self, start):
+        end = start + self.block_size
+        if end > self.file_size:
+            end = self.file_size
             
+        self.gui_callback(self.file_size, end)
+        self.start_ok = start
+        
+    def close(self):
+        del self.buddy.bl.file_sender[self.buddy.address, self.id]
 
 class FileReceiver:
-    def __init__(self, buddy, filename, block_size):
+    def __init__(self, buddy, id, block_size, file_size, file_name):
         self.buddy = buddy
-        self.filename = filename
+        self.id = id
         self.block_size = block_size
+        self.file_name = file_name
+        self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
+        print "FileReceiver created %s" % self.id
         
-    def data(self, start, text):
-        print "r %s %s %s" % (self.filename, start, len(text))
+    def data(self, start, data):
+        msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
+                                                               start))
+        msg.send(self.buddy)
+        print "filedata received %s %s %s" % (self.id, start, len(data))
+
+    def close(self):
+        del self.buddy.bl.file_sender[self.buddy.address, self.id]
         
 class Listener(threading.Thread):
     def __init__(self, buddy_list):
@@ -544,6 +648,8 @@ class Listener(threading.Thread):
                     conn, address = self.socket.accept()
                     self.conns.append(InConnection(conn, self.buddy_list))
                 except:
+                    import traceback
+                    traceback.print_exc()
                     self.running = False
                     
         except TypeError:
