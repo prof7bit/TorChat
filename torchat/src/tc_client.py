@@ -94,8 +94,15 @@ class ProtocolMsg(object):
     #must inherit from this and declare the static member command
     #which is used (by the metaclass-magic-voodoo;-) to map between the
     #command-string and the corresponding message class
+    
+    #Besides being the base class for all ProtocolMsg_* classes
+    #this class has two other use cases:
+    # - it is used for outgoing messages (therefore the send method)
+    # - it is instantiated for every unknown incoming message
 
-    def __init__(self, bl, connection, command, text):
+    def __init__(self, bl, connection, command, data):
+        #connection may be None for outgoing messages
+        #data can be a number, a string, a tuple or a list
         self.connection = connection
         if connection:
             self.buddy = connection.buddy
@@ -103,22 +110,30 @@ class ProtocolMsg(object):
             self.buddy = None
         self.bl = bl
         self.command = command
-        if type(text) in (list, tuple):
-            self.text = " ".join(str(x) for x in text)
+        
+        #self.text is always a string containing all arguments and data
+        if type(data) in (list, tuple):
+            self.text = " ".join(str(x) for x in data)
         else:
-            self.text = str(text)
+            self.text = str(data)
         self.parse()
 
     def parse(self):
         pass
     
     def execute(self):
-        #generic message will be instantiated if command is not recognized 
+        #a generic message of this class will be automatically instantiated 
+        #if an incoming message with an unknown command is received 
         #do nothing and just reply with "not_implemented"
         message = ProtocolMsg(self.bl, None, "not_implemented", self.command)
         message.send(self.buddy)
 
     def getLine(self):
+        #bring the message into a form we can transmit over the socket
+        #it will escape newline characters, as they are the only
+        #characters with a special meaning.
+        #the opposite of this operation takes place in the function
+        #ProtocolMsgFromLine() where incoming messages are instantiated.
         return self.command + " " + escape(self.text)
 
     def send(self, buddy, conn=0):
@@ -135,15 +150,20 @@ def ProtocolMsgFromLine(bl, conn, line):
     #and returns an instance. If no class matches the command string it
     #returns a ProtocolMsg instance which is generic and just does nothing.
     command, text_escaped = splitLine(line)
-    text = unescape(text_escaped)
+    #the rest of the message can be arbitrary (but escaped) data.
+    #unescape it, so it is in it's original (maybe even binary) form.
+    data = unescape(text_escaped)
     try:
-        return MProtocolMsg.subclasses[command](bl, conn, command, text)
+        return MProtocolMsg.subclasses[command](bl, conn, command, data)
     except:
-        return ProtocolMsg(bl, conn, command, text)
+        return ProtocolMsg(bl, conn, command, data)
 
 
 class ProtocolMsg_not_implemented(ProtocolMsg):
     command = "not_implemented"
+    #FIXME: Maybe it would be better to have a *separate* 
+    #"not_implemented"-message for every protocol message.
+    #I have to meditate over this for a while.
     def ececute(self):
         print "buddy says he can't handle '%s'" % self.text
 
@@ -176,15 +196,31 @@ class ProtocolMsg_ping(ProtocolMsg):
 class ProtocolMsg_pong(ProtocolMsg):
     command = "pong"
     def parse(self):
-        #pong message is used to identify and authenticate the incoming 
-        #connection. we search all our buddies for the corresponding random
+        #incoming pong messages are used to identify and authenticate 
+        #incoming connections. Basically we send out pings and see which
+        #corresponding pongs come in on which connections.
+        #we search all our known buddies for the corresponding random
         #string to identify which buddy is replying here.
         self.buddy = self.bl.getBuddyFromRandom(self.text)
 
     def execute(self):
         #if the pong is found to belong to a known buddy we can now
-        #safely assign this connection to this buddy and regard the
-        #handshake as completed.
+        #safely assign this incoming connection to this buddy and 
+        #regard the handshake as completed.
+        
+        #if we receive an unknown pong, we just ignore it.
+        
+        #FIXME: are unknown pongs a sign for an attempted  MITM-Attack?
+        #At least they should never happen.
+        #Maybe we should throw out a warning to the user, but pongs
+        #do not contain any further address info, so we cannot tell
+        #*which* connection the attacker is trying to forge. 
+        #maybe we must change the protocol so that valid pong messages
+        #*must* contain the address too.
+        #On the other hand: I have no idea why someone would even *try*
+        #to do a MITM without controlling the *other* rendevouz-node
+        #too, which would effectively mean that he must have control 
+        #over the complete TOR-network.
         if self.buddy:
             if self.buddy.conn_in == None:
                 self.buddy.conn_in = self.connection
@@ -196,7 +232,8 @@ class ProtocolMsg_message(ProtocolMsg):
     command = "message"
     #this is a normal text chat message.
     def execute(self):
-        #give buddy and text to bl. bl knows how to deal with it.
+        #give buddy and text to bl. bl will then call into the gui
+        #to open a chat window and/or display the text.
         if self.buddy:
             self.bl.onChatMessage(self.buddy, self.text)
 
@@ -217,6 +254,7 @@ class ProtocolMsg_status(ProtocolMsg):
 
 class ProtocolMsg_filename(ProtocolMsg):
     command = "filename"
+    #the first message in a file transfer, initiating the transfer.
     def parse(self):
         self.id, text = splitLine(self.text)
         file_size, text = splitLine(text) 
@@ -225,6 +263,8 @@ class ProtocolMsg_filename(ProtocolMsg):
         self.block_size = int(block_size)
 
     def execute(self):
+        #we create a file receiver instance which can deal with the
+        #file data we expect to receive now
         FileReceiver(self.buddy, 
                      self.id, 
                      self.block_size, 
@@ -234,17 +274,23 @@ class ProtocolMsg_filename(ProtocolMsg):
     
 class ProtocolMsg_filedata(ProtocolMsg):
     command = "filedata"
+    #after a filename message has initiated the transfer several
+    #filedata messagess transport the actual data in blocks of fixed
+    #size. The data blocks are transmitted as they are and only 
+    #newline characters are escaped. (see escape() and unescape())
     def parse(self):
         self.id, text = splitLine(self.text)
         start, self.data = splitLine(text)
         self.start = int(start)
 
     def execute(self):
+        #there should already be a receiver, because there should have been
+        #a "filename"-message at the very beginning of the transfer.
         receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
         if receiver:
             receiver.data(self.start, self.data)
         else:
-            #there is no receiver for this data, so we just reply
+            #if there is no receiver for this data, we just reply
             #with a stop message and hope the sender gets it and
             #stops sending data. Not much else to do for us here.
             msg = ProtocolMsg(self.bl, None, "file_stop_sending", self.id)
@@ -253,6 +299,8 @@ class ProtocolMsg_filedata(ProtocolMsg):
 
 class ProtocolMsg_filedata_ok(ProtocolMsg):
     command = "filedata_ok"
+    #every received "filedata" must be confirmed with a "filedata_ok"
+    #(or a "filedata_error")
     def parse(self):
         self.id, start = splitLine(self.text)
         self.start = int(start)
@@ -538,6 +586,10 @@ class Receiver(threading.Thread):
             
             except socket.timeout:
                 pass
+            
+            except socket.error, exc:
+                print exc.message
+                self.conn.onReceiveError()
                            
             except:
                 import traceback
