@@ -47,6 +47,9 @@ STATUS_ONLINE = 2
 STATUS_AWAY = 3
 STATUS_XA = 4
 
+CB_TYPE_CHAT = 1
+CB_TYPE_FILE = 2
+
 def isWindows():
     return "win" in sys.platform
 
@@ -147,15 +150,27 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
  
 class ProtocolMsg_ping(ProtocolMsg):
     command = "ping"
+    #a ping message consists of sender address and a random string
     def parse(self):
-        #the sender address is in the text. we take it for granted.
-        address, self.answer = splitLine(self.text)
-        self.buddy = self.bl.getBuddyFromAddress(address)
+        #the sender address is in the text. we take it for granted
+        #and see if we can find a buddy in our list with that address.
+        self.address, self.answer = splitLine(self.text)
+        self.buddy = self.bl.getBuddyFromAddress(self.address)
 
     def execute(self):
-        if self.buddy:
-            answer = ProtocolMsg(self.bl, None, "pong", self.answer)
-            answer.send(self.buddy)
+        #ping messages must be answered with pong messages
+        #the pong must contain the same random string as the ping.
+        if not self.buddy:
+            #we have received a ping, but there is no buddy with
+            #that address in our list. The only reason for that
+            #can be that someone new has added our address to his list
+            #and his client now has connected us. We now just create
+            #a new buddy with this address and add it to our list.
+            self.buddy = Buddy(self.address, self.bl, "")
+            self.bl.addBuddy(self.buddy)
+            
+        answer = ProtocolMsg(self.bl, None, "pong", self.answer)
+        answer.send(self.buddy)
 
 
 class ProtocolMsg_pong(ProtocolMsg):
@@ -228,6 +243,12 @@ class ProtocolMsg_filedata(ProtocolMsg):
         receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
         if receiver:
             receiver.data(self.start, self.data)
+        else:
+            #there is no receiver for this data, so we just reply
+            #with a stop message and hope the sender gets it and
+            #stops sending data. Not much else to do for us here.
+            msg = ProtocolMsg(self.bl, None, "file_stop_sending", self.id)
+            msg.send(self.buddy)
 
 
 class ProtocolMsg_filedata_ok(ProtocolMsg):
@@ -240,6 +261,43 @@ class ProtocolMsg_filedata_ok(ProtocolMsg):
         sender = self.bl.getFileSender(self.buddy.address, self.id)
         if sender:
             sender.receivedOK(self.start)
+        else:
+            #there is no sender (anymore) to handle confirmation messages
+            #so we can send a stop message to tell the other side
+            #to stop receiving  
+            msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
+            msg.send(self.buddy)
+            
+
+class ProtocolMsg_file_stop_sending(ProtocolMsg):
+    command = "file_stop_sending"
+    #if the file transfer is prematurely canceled by the receiver
+    #then this message tells the sender to stop sending further data 
+    def parse(self):
+        self.id = self.text
+    
+    def execute(self):
+        sender = self.bl.getFileSender(self.buddy.address, self.id)
+        if sender:
+            #close the sender (if not already closed)
+            #otherwise just ignore it
+            sender.close()
+        
+
+class ProtocolMsg_file_stop_receiving(ProtocolMsg):
+    command = "file_stop_receiving"
+    #if the file transfer is prematurely canceled by the sender
+    #then this message tells the receiving buddy to close its receiver 
+    def parse(self):
+        self.id = self.text
+    
+    def execute(self):
+        receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
+        if receiver:
+            #close the receiver (if not already closed)
+            #otherwise just ignore it
+            receiver.close()
+        
     
 class Buddy(object):
     def __init__(self, address, buddy_list, name=""):
@@ -321,8 +379,8 @@ class BuddyList(object):
     #be possible with it's methods. Most other objects carry
     #a reference to the one and only BuddyList object around 
     #to be able to find and interact with other objects.
-    def __init__(self, guiChatCallback):
-        self.guiChatCallback = guiChatCallback
+    def __init__(self, guiCallback):
+        self.guiCallback = guiCallback
         
         if TRY_PORTABLE_MODE:
             startPortableTor()
@@ -444,8 +502,10 @@ class BuddyList(object):
         connection.buddy.status = STATUS_HANDSHAKE
 
     def onChatMessage(self, buddy, message):
-        self.guiChatCallback(buddy, message)
+        self.guiCallback(CB_TYPE_CHAT, (buddy, message))
         
+    def onFileReceive(self, file_receiver):
+        return self.guiCallback(CB_TYPE_FILE, (file_receiver))
 
 class Receiver(threading.Thread):
     def __init__(self, conn):
@@ -566,6 +626,7 @@ class FileSender(threading.Thread):
         self.start()
         
     def run(self):
+        self.running = True
         try:
             file_handle = open(self.file_name)
             file_handle.seek(0, os.SEEK_END)
@@ -593,6 +654,9 @@ class FileSender(threading.Thread):
                 msg.send(self.buddy, 1)
                 while not self.start_ok + self.blocks_wait * self.block_size > start:
                     time.sleep(0.1)
+                    
+                if not self.running:
+                    break
                 
         except:
             #FIXME: call gui and tell it about error
@@ -609,6 +673,7 @@ class FileSender(threading.Thread):
         self.start_ok = start
         
     def close(self):
+        self.running = False
         del self.buddy.bl.file_sender[self.buddy.address, self.id]
 
 class FileReceiver:
@@ -619,15 +684,28 @@ class FileReceiver:
         self.file_name = file_name
         self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
         print "FileReceiver created %s" % self.id
+        self.guiFileCallback = self.buddy.bl.onFileReceive(self)
         
     def data(self, start, data):
         msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
                                                                start))
         msg.send(self.buddy)
         print "filedata received %s %s %s" % (self.id, start, len(data))
-
+        if self.guiFileCallback:
+            pass
+        else:
+            #this condition should not be possible, but who knows?
+            #if there is still a receiver but no gui we close the receiver
+            #and send a stop message
+            self.sendStopMessage()
+            self.close()
+    
+    def sendStopMessage(self):
+        msg = ProtocolMsg(self.buddy.bl, None, "file_stop_sending", self.id)
+        msg.send(self.buddy)
+    
     def close(self):
-        del self.buddy.bl.file_sender[self.buddy.address, self.id]
+        del self.buddy.bl.file_receiver[self.buddy.address, self.id]
         
 class Listener(threading.Thread):
     def __init__(self, buddy_list):

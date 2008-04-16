@@ -598,17 +598,23 @@ class MainWindow(wx.Frame):
         self.taskbar_icon.showStatus(status)
 
  
-    def callbackMessage(self, buddy, message):
+    def callbackMessage(self, callback_type, callback_data):
         #we must always use wx.CallAfter() to interact with
         #the GUI-Thread because this method will be called
         #in the context of one of the connection threads 
-        for window in self.chat_windows:
-            if window.buddy == buddy:
-                wx.CallAfter(window.process, message)
-                return
         
-        #no window found, so we create a new one
-        wx.CallAfter(ChatWindow, self, buddy, message)
+        if callback_type == tc_client.CB_TYPE_CHAT:
+            buddy, message = callback_data
+            for window in self.chat_windows:
+                if window.buddy == buddy:
+                    wx.CallAfter(window.process, message)
+                    return
+            
+            #no window found, so we create a new one
+            wx.CallAfter(ChatWindow, self, buddy, message)
+
+        if callback_type == tc_client.CB_TYPE_FILE:
+            return None
     
     def onClose(self, evt):
         self.Show(False)
