@@ -589,7 +589,7 @@ class Receiver(threading.Thread):
             
             except socket.error, exc:
                 print exc.message
-                self.conn.onReceiveError()
+                self.conn.onReceiverError()
                            
             except:
                 import traceback
