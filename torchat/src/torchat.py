@@ -152,8 +152,8 @@ class PopupMenu(wx.Menu):
         buddy = self.mw.gui_bl.getSelectedBuddy()
         dialog = wx.FileDialog ( None, style = wx.OPEN )
         if dialog.ShowModal() == wx.ID_OK:
-            filename = dialog.GetPath()
-            transfer_window = FileTransferWindow(self.mw, buddy, filename)
+            file_name = dialog.GetPath()
+            transfer_window = FileTransferWindow(self.mw, buddy, file_name)
 
     def onEdit(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
@@ -506,24 +506,38 @@ class ChatWindow(wx.Frame):
 
 
 class FileTransferWindow(wx.Frame):
-    def __init__(self, main_window, buddy, filename):
+    def __init__(self, main_window, buddy, file_name, receiver=None):
+        #if receiver is given (a FileReceiver instance) we initialize
+        #a Receiver Window, else we initialize a sender window and
+        #let the client library create us a FileSender instance
         wx.Frame.__init__(self, main_window, -1)
         self.mw = main_window
         self.buddy = buddy
     
         self.bytes_total = 1
         self.bytes_complete = 0
-        self.filename = filename
+        self.file_name = file_name
         
-        self.sender = self.buddy.sendFile(self.filename, self.callback)
+        if not receiver:
+            self.is_receiver = False
+            self.transfer_object = self.buddy.sendFile(self.file_name, 
+                                                       self.onDataChange)
+        else:
+            self.is_receiver = True
+            self.transfer_object = receiver
+            self.bytes_total = receiver.file_size
+            self.file_name = file_name
+            
+            #the other end of the dirty hack in MainWindow.callbackMessage
+            self.mw.new_ft_window[receiver.id] = self
         
         self.panel = wx.Panel(self)
-        outer_sizer = wx.BoxSizer()
+        self.outer_sizer = wx.BoxSizer()
         grid_sizer = wx.GridBagSizer(vgap = 5, hgap = 5)
         grid_sizer.AddGrowableCol(0)
-        outer_sizer.Add(grid_sizer, 1, wx.EXPAND | wx.ALL, 5)
+        self.outer_sizer.Add(grid_sizer, 1, wx.EXPAND | wx.ALL, 5)
         
-        self.text = wx.StaticText(self.panel, -1, "foo")
+        self.text = wx.StaticText(self.panel, -1, "")
         self.text.SetMinSize((300,-1))
         grid_sizer.Add(self.text, (0, 0), (1, 4), wx.EXPAND)
         
@@ -533,43 +547,54 @@ class FileTransferWindow(wx.Frame):
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, "Cancel")
         grid_sizer.Add(btn_cancel, (2, 3))
         
-        self.panel.SetSizer(outer_sizer)
+        self.panel.SetSizer(self.outer_sizer)
         self.updateOutput()
-        outer_sizer.Fit(self)
+        self.outer_sizer.Fit(self)
         
         self.Show()
 
     def updateOutput(self):
         percent = 100.0 * self.bytes_complete / self.bytes_total
-        peername = self.buddy.address
+        peer_name = self.buddy.address
         if self.buddy.name != "":
-            peername += " (%s)" % self.buddy.name
-        title = "%04.1f%% - %s" % (percent, self.filename)
+            peer_name += " (%s)" % self.buddy.name
+        title = "%04.1f%% - %s" % (percent, self.file_name)
         self.SetTitle(title)
         self.progress_bar.SetValue(percent)
-        text = "sending %s\nto %s\n%04.1f%% (%i of %i bytes)" \
-            % (self.filename, 
-               peername, percent, 
-               self.bytes_complete, 
-               self.bytes_total)
+        if self.is_receiver:
+            text = "receiving %s\nfrom %s\n%04.1f%% (%i of %i bytes)" \
+                % (os.path.basename(self.file_name), 
+                   peer_name, percent, 
+                   self.bytes_complete, 
+                   self.bytes_total)
+        else:
+            text = "sending %s\nto %s\n%04.1f%% (%i of %i bytes)" \
+                % (os.path.basename(self.file_name), 
+                   peer_name, percent, 
+                   self.bytes_complete, 
+                   self.bytes_total)
         self.text.SetLabel(text)
         
-    def callback(self, total, complete):
-        #will be called from the FileSender-object in the
+    def onDataChange(self, total, complete):
+        #will be called from the FileSender/FileReceiver-object in the
         #protocol module to update gui
         self.bytes_total = total
         self.bytes_complete = complete
         
         #we must use wx.Callafter to make calls into wx
-        #because we are not in the context of the gui tread here
+        #because we are *NOT* in the context of the GUI thread here
         wx.CallAfter(self.updateOutput)
     
-
+    def onClose(self):
+        pass
+    
+    
 class MainWindow(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, -1, "TorChat", size=(250,350))
         self.conns = []
         self.chat_windows = []
+        self.new_ft_window = {} # only used in self.callbackMessage
         self.buddy_list = tc_client.BuddyList(self.callbackMessage)
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -597,7 +622,6 @@ class MainWindow(wx.Frame):
         self.buddy_list.setStatus(status)
         self.taskbar_icon.showStatus(status)
 
- 
     def callbackMessage(self, callback_type, callback_data):
         #we must always use wx.CallAfter() to interact with
         #the GUI-Thread because this method will be called
@@ -614,7 +638,36 @@ class MainWindow(wx.Frame):
             wx.CallAfter(ChatWindow, self, buddy, message)
 
         if callback_type == tc_client.CB_TYPE_FILE:
-            return None
+            #this happens when an incoming file transfer was initialized
+            #we must now create a FileTransferWindow and return its
+            #event handler method to the caller
+            receiver = callback_data
+            buddy = receiver.buddy
+            file_name = receiver.file_name
+            
+            #we cannot get return values from wx.CallAfter() calls
+            #so we have to CallAfter() and then just wait for 
+            #the TransferWindow to appear.
+            wx.CallAfter(FileTransferWindow, self, 
+                                             buddy, 
+                                             file_name, 
+                                             receiver)
+            
+            #FIXME: Is this the only way? Looks ugly to me.
+            #the other part of this hack is in FileTransferWindow.__init__
+            ftw = None
+            while not ftw:
+                try:
+                    ftw = self.new_ft_window[receiver.id]
+                except:
+                    time.sleep(0.1)
+            
+            # remember the callback function
+            handler = ftw.onDataChange
+            # and clean up the array
+            del self.new_ft_window[receiver.id]
+            
+            return handler
     
     def onClose(self, evt):
         self.Show(False)

@@ -553,7 +553,7 @@ class BuddyList(object):
         self.guiCallback(CB_TYPE_CHAT, (buddy, message))
         
     def onFileReceive(self, file_receiver):
-        return self.guiCallback(CB_TYPE_FILE, (file_receiver))
+        return self.guiCallback(CB_TYPE_FILE, file_receiver)
 
 class Receiver(threading.Thread):
     def __init__(self, conn):
@@ -662,13 +662,13 @@ class OutConnection(threading.Thread):
         
 
 class FileSender(threading.Thread):
-    def __init__(self, buddy, file_name, gui_callback):
+    def __init__(self, buddy, file_name, guiCallback):
         threading.Thread.__init__(self)
         self.buddy = buddy
         self.bl = buddy.bl
         self.file_name = file_name
         self.file_name_short = os.path.basename(self.file_name)
-        self.gui_callback = gui_callback
+        self.guiCallback = guiCallback
         self.id = str(random.getrandbits(32))
         self.buddy.bl.file_sender[self.buddy.address, self.id] = self
         self.file_size = 0
@@ -683,7 +683,7 @@ class FileSender(threading.Thread):
             file_handle = open(self.file_name)
             file_handle.seek(0, os.SEEK_END)
             self.file_size = file_handle.tell()
-            self.gui_callback(self.file_size, 0)
+            self.guiCallback(self.file_size, 0)
             msg = ProtocolMsg(self.bl, None, "filename", (self.id, 
                                                           self.file_size, 
                                                           self.block_size,
@@ -721,7 +721,7 @@ class FileSender(threading.Thread):
         if end > self.file_size:
             end = self.file_size
             
-        self.gui_callback(self.file_size, end)
+        self.guiCallback(self.file_size, end)
         self.start_ok = start
         
     def close(self):
@@ -734,24 +734,27 @@ class FileReceiver:
         self.id = id
         self.block_size = block_size
         self.file_name = file_name
+        self.file_size = file_size
         self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
-        print "FileReceiver created %s" % self.id
-        self.guiFileCallback = self.buddy.bl.onFileReceive(self)
+        self.guiCallback = self.buddy.bl.onFileReceive(self)
         
     def data(self, start, data):
         msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
                                                                start))
         msg.send(self.buddy)
-        print "filedata received %s %s %s" % (self.id, start, len(data))
-        if self.guiFileCallback:
-            pass
-        else:
+        try:
+            self.guiCallback(self.file_size, start + len(data))
+        except:            
             #this condition should not be possible, but who knows?
             #if there is still a receiver but no gui we close the receiver
             #and send a stop message
+            print "FileReceiver could not update the GUI"
+            import traceback
+            traceback.print_exc()
+
             self.sendStopMessage()
             self.close()
-    
+            
     def sendStopMessage(self):
         msg = ProtocolMsg(self.buddy.bl, None, "file_stop_sending", self.id)
         msg.send(self.buddy)
