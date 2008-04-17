@@ -517,6 +517,8 @@ class FileTransferWindow(wx.Frame):
         self.bytes_total = 1
         self.bytes_complete = 0
         self.file_name = file_name
+        self.file_name_save = ""
+        self.completed = False
         
         if not receiver:
             self.is_receiver = False
@@ -544,9 +546,18 @@ class FileTransferWindow(wx.Frame):
         self.progress_bar = wx.Gauge(self.panel)
         grid_sizer.Add(self.progress_bar, (1, 0), (1, 4), wx.EXPAND)
         
-        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, "Cancel")
-        grid_sizer.Add(btn_cancel, (2, 3))
+        self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, "Cancel")
+        self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
         
+        if self.is_receiver:
+            grid_sizer.Add(self.btn_cancel, (2, 2))
+            
+            self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, "Save as...")
+            grid_sizer.Add(self.btn_save, (2, 3))
+            self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
+        else:
+            grid_sizer.Add(self.btn_cancel, (2, 3))
+            
         self.panel.SetSizer(self.outer_sizer)
         self.updateOutput()
         self.outer_sizer.Fit(self)
@@ -575,6 +586,14 @@ class FileTransferWindow(wx.Frame):
                    self.bytes_total)
         self.text.SetLabel(text)
         
+        if self.bytes_complete == self.bytes_total:
+            self.completed = True
+            if self.is_receiver:
+                if self.file_name_save != "":
+                    self.btn_cancel.SetLabel("Close")
+            else:
+                self.btn_cancel.SetLabel("Close")
+        
     def onDataChange(self, total, complete):
         #will be called from the FileSender/FileReceiver-object in the
         #protocol module to update gui
@@ -585,8 +604,21 @@ class FileTransferWindow(wx.Frame):
         #because we are *NOT* in the context of the GUI thread here
         wx.CallAfter(self.updateOutput)
     
-    def onClose(self):
-        pass
+    def onCancel(self, evt):
+        try:
+            self.transfer_object.close()
+        except:
+            pass
+        self.Close()
+        
+    def onSave(self, evt):
+        dialog = wx.FileDialog ( None, style = wx.SAVE )
+        if dialog.ShowModal() == wx.ID_OK:
+            self.file_name_save = dialog.GetPath()
+            self.transfer_object.setFileNameSave(self.file_name_save)
+            self.btn_save.Enable(False)
+        else:
+            pass
     
     
 class MainWindow(wx.Frame):

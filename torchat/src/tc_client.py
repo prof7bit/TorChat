@@ -38,6 +38,8 @@ import time
 import sys
 import os
 import subprocess
+import tempfile
+import traceback
 import config
 
 TORCHAT_PORT = 11009 #do NOT change this.
@@ -49,6 +51,9 @@ STATUS_XA = 4
 
 CB_TYPE_CHAT = 1
 CB_TYPE_FILE = 2
+
+def tb():
+    traceback.print_exc()
 
 def isWindows():
     return "win" in sys.platform
@@ -344,7 +349,7 @@ class ProtocolMsg_file_stop_receiving(ProtocolMsg):
         if receiver:
             #close the receiver (if not already closed)
             #otherwise just ignore it
-            receiver.close()
+            receiver.closeForced()
         
     
 class Buddy(object):
@@ -724,6 +729,10 @@ class FileSender(threading.Thread):
         self.guiCallback(self.file_size, end)
         self.start_ok = start
         
+    def sendStopMessage(self):
+        msg = ProtocolMsg(self.buddy.bl, None, "file_stop_receiving", self.id)
+        msg.send(self.buddy)
+    
     def close(self):
         self.running = False
         del self.buddy.bl.file_sender[self.buddy.address, self.id]
@@ -734,11 +743,19 @@ class FileReceiver:
         self.id = id
         self.block_size = block_size
         self.file_name = file_name
+        self.file_name_save = ""
+        tmp = tempfile.mkstemp("_" + self.file_name, "torchat_incoming_")
+        fd, self.file_name_tmp = tmp
+        self.file_handle_tmp = os.fdopen(fd, "w+b")
+        print self.file_name_tmp
         self.file_size = file_size
         self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
         self.guiCallback = self.buddy.bl.onFileReceive(self)
         
     def data(self, start, data):
+        self.file_handle_tmp.seek(start)
+        self.file_handle_tmp.write(data)
+        
         msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
                                                                start))
         msg.send(self.buddy)
@@ -754,13 +771,29 @@ class FileReceiver:
 
             self.sendStopMessage()
             self.close()
+    
+    def setFileNameSave(self, file_name_save):
+        self.file_name_save = file_name_save
             
     def sendStopMessage(self):
         msg = ProtocolMsg(self.buddy.bl, None, "file_stop_sending", self.id)
         msg.send(self.buddy)
     
+    def closeForced(self):
+        self.sendStopMessage()
+        self.file_name_save = ""
+        self.close()
+    
     def close(self):
-        del self.buddy.bl.file_receiver[self.buddy.address, self.id]
+        try:
+            self.file_handle_tmp.close()
+            if self.file_name_save:
+                os.rename(self.file_name_tmp, self.file_name_save)
+            else:
+                os.unlink(self.file_name_tmp)
+            del self.buddy.bl.file_receiver[self.buddy.address, self.id]
+        except:
+            tb()
         
 class Listener(threading.Thread):
     def __init__(self, buddy_list):
