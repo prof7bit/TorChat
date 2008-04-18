@@ -715,7 +715,7 @@ class FileSender(threading.Thread):
                 if not self.running:
                     break
                 
-                self.running = False
+            self.running = False
                 
         except:
             #FIXME: call gui and tell it about error
