@@ -519,6 +519,7 @@ class FileTransferWindow(wx.Frame):
         self.file_name = file_name
         self.file_name_save = ""
         self.completed = False
+        self.error = False
         
         if not receiver:
             self.is_receiver = False
@@ -565,6 +566,11 @@ class FileTransferWindow(wx.Frame):
         self.Show()
 
     def updateOutput(self):
+        if self.bytes_complete == -1:
+            self.error = True
+            self.completed = True
+            self.bytes_complete = 0
+            
         percent = 100.0 * self.bytes_complete / self.bytes_total
         peer_name = self.buddy.address
         if self.buddy.name != "":
@@ -572,6 +578,7 @@ class FileTransferWindow(wx.Frame):
         title = "%04.1f%% - %s" % (percent, self.file_name)
         self.SetTitle(title)
         self.progress_bar.SetValue(percent)
+        
         if self.is_receiver:
             text = "receiving %s\nfrom %s\n%04.1f%% (%i of %i bytes)" \
                 % (os.path.basename(self.file_name), 
@@ -584,6 +591,13 @@ class FileTransferWindow(wx.Frame):
                    peer_name, percent, 
                    self.bytes_complete, 
                    self.bytes_total)
+                
+        if self.error:
+            text = self.error_msg
+            self.btn_cancel.SetLabel("Close")
+            if self.is_receiver:
+                self.btn_save.Enable(False)
+            
         self.text.SetLabel(text)
         
         if self.bytes_complete == self.bytes_total:
@@ -594,11 +608,12 @@ class FileTransferWindow(wx.Frame):
             else:
                 self.btn_cancel.SetLabel("Close")
         
-    def onDataChange(self, total, complete):
+    def onDataChange(self, total, complete, error_msg=""):
         #will be called from the FileSender/FileReceiver-object in the
         #protocol module to update gui
         self.bytes_total = total
         self.bytes_complete = complete
+        self.error_msg = error_msg
         
         #we must use wx.Callafter to make calls into wx
         #because we are *NOT* in the context of the GUI thread here
@@ -606,6 +621,9 @@ class FileTransferWindow(wx.Frame):
     
     def onCancel(self, evt):
         try:
+            # this is not always a real "cancel":
+            # FileReceiver.close() *after* successful transmission
+            # will save the file (if file name is known)
             self.transfer_object.close()
         except:
             pass
@@ -617,6 +635,8 @@ class FileTransferWindow(wx.Frame):
             self.file_name_save = dialog.GetPath()
             self.transfer_object.setFileNameSave(self.file_name_save)
             self.btn_save.Enable(False)
+            if self.completed:
+                self.onCancel(evt)
         else:
             pass
     
