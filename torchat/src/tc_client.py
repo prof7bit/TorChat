@@ -39,6 +39,7 @@ import sys
 import os
 import subprocess
 import tempfile
+import md5
 import traceback
 import config
 
@@ -285,7 +286,8 @@ class ProtocolMsg_filedata(ProtocolMsg):
     #newline characters are escaped. (see escape() and unescape())
     def parse(self):
         self.id, text = splitLine(self.text)
-        start, self.data = splitLine(text)
+        start, text = splitLine(text)
+        self.hash, self.data = splitLine(text)
         self.start = int(start)
 
     def execute(self):
@@ -293,7 +295,7 @@ class ProtocolMsg_filedata(ProtocolMsg):
         #a "filename"-message at the very beginning of the transfer.
         receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
         if receiver:
-            receiver.data(self.start, self.data)
+            receiver.data(self.start, self.hash, self.data)
         else:
             #if there is no receiver for this data, we just reply
             #with a stop message and hope the sender gets it and
@@ -320,7 +322,22 @@ class ProtocolMsg_filedata_ok(ProtocolMsg):
             #to stop receiving  
             msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
             msg.send(self.buddy)
-            
+      
+      
+class ProtocolMsg_filedata_error(ProtocolMsg):
+    command = "filedata_error"
+    def parse(self):
+        self.id, start = splitLine(self.text)
+        self.start = int(start)
+        
+    def execute(self):
+        sender = self.bl.getFileSender(self.buddy.address, self.id)
+        if sender:
+            sender.restart(self.start)
+        else:        
+            msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
+            msg.send(self.buddy)
+
 
 class ProtocolMsg_file_stop_sending(ProtocolMsg):
     command = "file_stop_sending"
@@ -579,7 +596,6 @@ class Receiver(threading.Thread):
                     readbuffer = temp.pop()
                 
                     for line in temp:
-                        line = line.rstrip()
                         if self.running:
                             try:
                                 message = ProtocolMsgFromLine(self.conn.bl, 
@@ -680,46 +696,83 @@ class FileSender(threading.Thread):
         self.block_size = 8192
         self.blocks_wait = 16
         self.start_ok = -1
+        self.restart_at = 0
+        self.restart_flag = False
+        self.completed = False
         self.start()
         
+    def canGoOn(self, start):
+        position_ok = self.start_ok + self.blocks_wait * self.block_size
+        if not self.running or self.restart_flag:
+            return True
+        else:
+            return  position_ok > start
+        
+    
+    def sendBlocks(self, first):
+        blocks = int(self.file_size / self.block_size) + 1
+        for i in range(blocks):
+            start = i * self.block_size
+            #jump over already sent blocks
+            if start >= first:
+                remaining = self.file_size - start
+                if remaining > self.block_size:
+                    size = self.block_size
+                else:
+                    size = remaining
+                self.file_handle.seek(start)
+                data = self.file_handle.read(size)
+                hash = md5.md5(data).hexdigest()
+       
+                msg = ProtocolMsg(self.bl, None, "filedata", (self.id,
+                                                              start,
+                                                              hash,
+                                                              data))
+                msg.send(self.buddy, 1)
+                while not self.canGoOn(start):                    
+                    time.sleep(0.1)
+                    
+                if not self.running:
+                    break
+                
+                if self.restart_flag:
+                    break
+    
     def run(self):
         self.running = True
         try:
-            file_handle = open(self.file_name)
-            file_handle.seek(0, os.SEEK_END)
-            self.file_size = file_handle.tell()
+            self.file_handle = open(self.file_name)
+            self.file_handle.seek(0, os.SEEK_END)
+            self.file_size = self.file_handle.tell()
             self.guiCallback(self.file_size, 0)
             msg = ProtocolMsg(self.bl, None, "filename", (self.id, 
                                                           self.file_size, 
                                                           self.block_size,
                                                           self.file_name_short))
             msg.send(self.buddy, 1)
-            blocks = int(self.file_size / self.block_size) + 1
-            for i in range(blocks):
-                start = i * self.block_size
-                remaining = self.file_size - start
-                if remaining > self.block_size:
-                    size = self.block_size
-                else:
-                    size = remaining
-                file_handle.seek(start)
-                data = file_handle.read(size)
-                
-                msg = ProtocolMsg(self.bl, None, "filedata", (self.id,
-                                                              start,
-                                                              data))
-                msg.send(self.buddy, 1)
-                while not self.start_ok + self.blocks_wait * self.block_size > start:
-                    time.sleep(0.1)
-                    
-                if not self.running:
-                    break
+            
+            while (not self.completed) and self.running:
+                print "sending from %s" % self.restart_at
+                self.restart_flag = False
+                self.sendBlocks(self.restart_at)
+                while not self.restart_flag and not self.completed and self.running:
+                    print "sender waiting for restart or completed flag"
+                    time.sleep(1)
+            
+            print "sender loop exited"
+            print "sender.completed: %s" % self.completed
+            print "sender.running: %s" % self.running
                 
             self.running = False
-                
+            self.file_handle.close()
+
         except:
-            #FIXME: call gui and tell it about error
-            print "error sending file %s" % self.file_name
+            try:
+                self.guiCallback(self.file_size, 
+                                 -1, 
+                                 "error while sending %s" % self.file_name)
+            except:
+                tb()
             self.close()
             tb()
         
@@ -730,15 +783,27 @@ class FileSender(threading.Thread):
             
         self.guiCallback(self.file_size, end)
         self.start_ok = start
+        if end == self.file_size:
+            self.completed = True
+        
+    def restart(self, start):
+        print "sender received restart message %i" % start
+        self.restart_at = start
+        self.restart_flag = True
         
     def sendStopMessage(self):
         msg = ProtocolMsg(self.buddy.bl, None, "file_stop_receiving", self.id)
         msg.send(self.buddy)
     
     def close(self):
+        print "sender.close() called"
         if self.running:
             self.running = False
             self.sendStopMessage()
+            try:
+                self.guiCallback(self.file_size, -1, "transfer aborted")
+            except:
+                pass
         del self.buddy.bl.file_sender[self.buddy.address, self.id]
 
 
@@ -752,30 +817,57 @@ class FileReceiver:
         tmp = tempfile.mkstemp("_" + self.file_name, "torchat_incoming_")
         fd, self.file_name_tmp = tmp
         self.file_handle_tmp = os.fdopen(fd, "w+b")
-        print self.file_name_tmp
         self.file_size = file_size
+        self.next_start = 0
+        self.wrong_block_number_count = 0
         self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
         self.guiCallback = self.buddy.bl.onFileReceive(self)
         
-    def data(self, start, data):
-        self.file_handle_tmp.seek(start)
-        self.file_handle_tmp.write(data)
-        
-        msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
-                                                               start))
-        msg.send(self.buddy)
-        try:
-            self.guiCallback(self.file_size, start + len(data))
-        except:            
-            #this condition should not be possible, but who knows?
-            #if there is still a receiver but no gui we close the receiver
-            #and send a stop message
-            print "FileReceiver could not update the GUI"
-            import traceback
-            traceback.print_exc()
+    def data(self, start, hash, data):
+        if start > self.next_start:
+            if self.wrong_block_number_count == 0:
+                #not on every single out-of-order block in a row 
+                #we must send an error message...
+                print "receiver wrong block number, sent restart %s" % self.next_start   
+                msg = ProtocolMsg(self.buddy.bl, None, "filedata_error", (self.id, 
+                                                                          self.next_start))
+                msg.send(self.buddy)
+                self.wrong_block_number_count += 1
+                #...only every 16
+                if self.wrong_block_number_count == 16:
+                    self.wrong_block_number_count = 0
+            return 
 
-            self.sendStopMessage()
-            self.close()
+        self.wrong_block_number_count = 0
+        hash2 = md5.md5(data).hexdigest()
+        if hash == hash2 and (random.getrandbits(5) != 0):
+            self.file_handle_tmp.seek(start)
+            self.file_handle_tmp.write(data)
+            self.next_start = start + len(data)
+            msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
+                                                               start))
+            msg.send(self.buddy)
+            try:
+                self.guiCallback(self.file_size, start + len(data))
+            except:            
+                #this condition should not be possible, but who knows?
+                #if there is still a receiver but no gui we close the receiver
+                #and send a stop message
+                print "FileReceiver could not update the GUI"
+                tb()
+                
+                self.sendStopMessage()
+                self.close()
+        else:
+            print "receiver wrong hash %i len: %i" % (start, len(data))
+            msg = ProtocolMsg(self.buddy.bl, None, "filedata_error", (self.id, 
+                                                                      start))
+            msg.send(self.buddy)
+            #we try to avoid unnecessary wrong-block-number errors
+            #the next block sure will be out of order, but we have sent
+            #an error already because of the wrong hash
+            self.wrong_block_number_count = 1
+            
     
     def setFileNameSave(self, file_name_save):
         self.file_name_save = file_name_save
@@ -785,6 +877,7 @@ class FileReceiver:
         msg.send(self.buddy)
     
     def closeForced(self):
+        self.guiCallback(self.file_size, -1, "transfer aborted")
         self.sendStopMessage()
         self.file_name_save = ""
         self.close()
@@ -793,12 +886,24 @@ class FileReceiver:
         try:
             self.file_handle_tmp.close()
             if self.file_name_save:
-                os.rename(self.file_name_tmp, self.file_name_save)
+                #FIXME: this will always overwrite 
+                #an existing file without any warning
+                try:
+                    os.unlink(self.file_name_save)
+                except:
+                    pass
+                try:
+                    os.rename(self.file_name_tmp, self.file_name_save)
+                except:
+                    pass
             else:
-                os.unlink(self.file_name_tmp)
+                try:
+                    os.unlink(self.file_name_tmp)
+                except:
+                    pass
             del self.buddy.bl.file_receiver[self.buddy.address, self.id]
         except:
-            tb()
+            pass
             
         
 class Listener(threading.Thread):
