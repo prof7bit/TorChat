@@ -840,7 +840,7 @@ class FileReceiver:
 
         self.wrong_block_number_count = 0
         hash2 = md5.md5(data).hexdigest()
-        if hash == hash2 and (random.getrandbits(5) != 0):
+        if hash == hash2:
             self.file_handle_tmp.seek(start)
             self.file_handle_tmp.write(data)
             self.next_start = start + len(data)
