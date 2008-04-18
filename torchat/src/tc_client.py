@@ -741,7 +741,7 @@ class FileSender(threading.Thread):
     def run(self):
         self.running = True
         try:
-            self.file_handle = open(self.file_name)
+            self.file_handle = open(self.file_name, mode="rb")
             self.file_handle.seek(0, os.SEEK_END)
             self.file_size = self.file_handle.tell()
             self.guiCallback(self.file_size, 0)
