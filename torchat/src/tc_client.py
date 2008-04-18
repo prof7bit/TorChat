@@ -581,10 +581,13 @@ class Receiver(threading.Thread):
                     for line in temp:
                         line = line.rstrip()
                         if self.running:
-                            message = ProtocolMsgFromLine(self.conn.bl, 
-                                                          self.conn, 
-                                                          line)
-                            message.execute()
+                            try:
+                                message = ProtocolMsgFromLine(self.conn.bl, 
+                                                              self.conn, 
+                                                              line)
+                                message.execute()
+                            except:
+                                tb()
                 else:
                     self.running = False
                     self.conn.onReceiverError()     
@@ -592,14 +595,11 @@ class Receiver(threading.Thread):
             except socket.timeout:
                 pass
             
-            except socket.error, exc:
-                print exc.message
+            except socket.error:
+                tb()
+                self.running = False
                 self.conn.onReceiverError()
-                           
-            except:
-                import traceback
-                traceback.print_exc()
-    
+                               
         
 class InConnection:
     def __init__(self, socket, buddy_list):
@@ -715,11 +715,13 @@ class FileSender(threading.Thread):
                 if not self.running:
                     break
                 
+                self.running = False
+                
         except:
             #FIXME: call gui and tell it about error
             print "error sending file %s" % self.file_name
-            import traceback
-            traceback.print_exc()
+            self.close()
+            tb()
         
     def receivedOK(self, start):
         end = start + self.block_size
@@ -734,8 +736,11 @@ class FileSender(threading.Thread):
         msg.send(self.buddy)
     
     def close(self):
-        self.running = False
+        if self.running:
+            self.running = False
+            self.sendStopMessage()
         del self.buddy.bl.file_sender[self.buddy.address, self.id]
+
 
 class FileReceiver:
     def __init__(self, buddy, id, block_size, file_size, file_name):
@@ -794,6 +799,7 @@ class FileReceiver:
             del self.buddy.bl.file_receiver[self.buddy.address, self.id]
         except:
             tb()
+            
         
 class Listener(threading.Thread):
     def __init__(self, buddy_list):
