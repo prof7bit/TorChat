@@ -1,4 +1,8 @@
-new since version 0.9.9.64
-- Time stamps in chat window
+version 0.9.9.85
+- time stamps in chat window
 - fixed: Messages may now contain newline characters
-- implemented file transfer
+- file transfer
+
+versions up to 0.9.9.64
+- basic messaging functionality
+- first really stable version

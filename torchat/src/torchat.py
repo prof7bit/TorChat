@@ -119,20 +119,20 @@ class PopupMenu(wx.Menu):
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.mw.gui_bl.onDClick, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Send file (not working yet)")
+            item = wx.MenuItem(self, wx.NewId(), "Send file...")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onSendFile, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Edit contact")
+            item = wx.MenuItem(self, wx.NewId(), "Edit contact...")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onEdit, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Delete contact")
+            item = wx.MenuItem(self, wx.NewId(), "Delete contact...")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onDelete, item)
 
         if type == "empty": 
-            item = wx.MenuItem(self, wx.NewId(), "Add contact")
+            item = wx.MenuItem(self, wx.NewId(), "Add contact...")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onAdd, item)
 
@@ -630,7 +630,7 @@ class FileTransferWindow(wx.Frame):
         self.Close()
         
     def onSave(self, evt):
-        dialog = wx.FileDialog ( None, style = wx.SAVE )
+        dialog = wx.FileDialog(None, defaultFile=self.file_name, style=wx.SAVE)
         if dialog.ShowModal() == wx.ID_OK:
             self.file_name_save = dialog.GetPath()
             self.transfer_object.setFileNameSave(self.file_name_save)

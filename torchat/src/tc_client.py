@@ -213,25 +213,16 @@ class ProtocolMsg_pong(ProtocolMsg):
         #if the pong is found to belong to a known buddy we can now
         #safely assign this incoming connection to this buddy and 
         #regard the handshake as completed.
-        
-        #if we receive an unknown pong, we just ignore it.
-        
-        #FIXME: are unknown pongs a sign for an attempted  MITM-Attack?
-        #At least they should never happen.
-        #Maybe we should throw out a warning to the user, but pongs
-        #do not contain any further address info, so we cannot tell
-        #*which* connection the attacker is trying to forge. 
-        #maybe we must change the protocol so that valid pong messages
-        #*must* contain the address too.
-        #On the other hand: I have no idea why someone would even *try*
-        #to do a MITM without controlling the *other* rendevouz-node
-        #too, which would effectively mean that he must have control 
-        #over the complete TOR-network.
         if self.buddy:
             if self.buddy.conn_in == None:
                 self.buddy.conn_in = self.connection
                 self.buddy.status = STATUS_ONLINE
                 self.connection.buddy = self.buddy
+        else:
+            #if we receive an unknown pong, we just ignore it.
+            #FIXME: are unknown pongs a sign for an attempted  MITM-Attack?
+            #At least they should never happen.
+            print "strange: incoming 'pong' without corresponding ping"
 
                 
 class ProtocolMsg_message(ProtocolMsg):
@@ -752,17 +743,11 @@ class FileSender(threading.Thread):
             msg.send(self.buddy, 1)
             
             while (not self.completed) and self.running:
-                print "sending from %s" % self.restart_at
                 self.restart_flag = False
                 self.sendBlocks(self.restart_at)
                 while not self.restart_flag and not self.completed and self.running:
-                    print "sender waiting for restart or completed flag"
                     time.sleep(1)
             
-            print "sender loop exited"
-            print "sender.completed: %s" % self.completed
-            print "sender.running: %s" % self.running
-                
             self.running = False
             self.file_handle.close()
 
@@ -780,14 +765,19 @@ class FileSender(threading.Thread):
         end = start + self.block_size
         if end > self.file_size:
             end = self.file_size
+        
+        try:    
+            self.guiCallback(self.file_size, end)
+        except:
+            #cannot update gui
+            tb()
+            self.close()
             
-        self.guiCallback(self.file_size, end)
         self.start_ok = start
         if end == self.file_size:
             self.completed = True
         
     def restart(self, start):
-        print "sender received restart message %i" % start
         self.restart_at = start
         self.restart_flag = True
         
@@ -796,7 +786,6 @@ class FileSender(threading.Thread):
         msg.send(self.buddy)
     
     def close(self):
-        print "sender.close() called"
         if self.running:
             self.running = False
             self.sendStopMessage()
@@ -828,12 +817,12 @@ class FileReceiver:
             if self.wrong_block_number_count == 0:
                 #not on every single out-of-order block in a row 
                 #we must send an error message...
-                print "receiver wrong block number, sent restart %s" % self.next_start   
                 msg = ProtocolMsg(self.buddy.bl, None, "filedata_error", (self.id, 
                                                                           self.next_start))
                 msg.send(self.buddy)
                 self.wrong_block_number_count += 1
                 #...only every 16
+                #FIXME: This must be solved more elegantly
                 if self.wrong_block_number_count == 16:
                     self.wrong_block_number_count = 0
             return 
@@ -925,8 +914,7 @@ class Listener(threading.Thread):
                     conn, address = self.socket.accept()
                     self.conns.append(InConnection(conn, self.buddy_list))
                 except:
-                    import traceback
-                    traceback.print_exc()
+                    tb()
                     self.running = False
                     
         except TypeError:
