@@ -21,6 +21,7 @@ import sys
 import os
 import time
 import subprocess
+import textwrap
 import version
 import config
 
@@ -108,6 +109,43 @@ class TaskbarMenu(wx.Menu):
     def onXA(self, evt):
         self.mw.status_switch.setStatus(tc_client.STATUS_XA)
 
+
+class NotificationWindow(wx.PopupWindow):
+    def __init__(self, mw, text):
+        wx.PopupWindow.__init__(self, mw)
+        self.panel = wx.Panel(self)
+        self.panel.SetBackgroundColour("red")
+        self.label = wx.StaticText(self.panel)
+        self.label.SetForegroundColour("yellow")
+        font = self.label.GetFont()
+        font.SetPointSize(12)
+        self.label.SetFont(font)
+        self.label.SetLabel(text)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.label, 0, wx.ALL, 5 )
+        self.panel.SetSizer(sizer)
+        
+        wsizer = wx.BoxSizer()
+        wsizer.Add(self.panel, 0, wx.ALL, 0)
+        self.SetSizerAndFit(wsizer)
+        self.Layout()        
+        
+        maxx, maxy = wx.GetDisplaySize()
+        width, height = self.GetSize()
+        self.SetPosition((maxx - width - 50, maxy - height - 50))
+        self.Show()
+        
+        self.mw = mw
+        self.text = text
+        self.timer = wx.Timer(self, -1)
+        self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+        self.timer.Start(milliseconds=7000, oneShot=True)
+
+    def onTimer(self, evt):
+        self.mw.notification_window = None
+        self.Hide()
+        self.Close()
+        
 
 class PopupMenu(wx.Menu):
     def __init__(self, main_window, type):
@@ -418,10 +456,8 @@ class ChatWindow(wx.Frame):
         self.mw = main_window
         self.mw.chat_windows.append(self)
         self.buddy = buddy
-        title = self.buddy.address
-        if self.buddy.name != "":
-            title += " (%s)" % self.buddy.name
-        self.SetTitle(title)
+        self.unread = 0
+        self.updateTitle()
         
         self.panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -455,6 +491,22 @@ class ChatWindow(wx.Frame):
         self.txt_out.Bind(wx.EVT_TEXT_ENTER, self.onSend)
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
+        self.Bind(wx.EVT_ACTIVATE, self.onActivate)
+    
+    def updateTitle(self):
+        if self.unread == 1:
+            title = "* "
+        elif self.unread > 1:
+            title = "*[%i] " % self.unread
+        else:
+            title = ""
+        
+        title += self.buddy.address
+        if self.buddy.name != "":
+            title += " (%s)" % self.buddy.name
+        
+        self.SetTitle(title)
+    
     def writeColored(self, color, name, text):
         self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(128, 128, 128)))    
         self.txt_in.write("%s " % time.strftime(config.TIME_STAMP_FORMAT))
@@ -475,6 +527,20 @@ class ChatWindow(wx.Frame):
         else:
             name = self.buddy.address
         self.writeColored((192,0,0), name, message.decode("utf-8"))
+        
+        #notification
+        if not self.IsActive():
+            self.RequestUserAttention(wx.USER_ATTENTION_INFO)
+            self.unread += 1
+            self.updateTitle()
+
+            nt = textwrap.fill("%s: %s" % (name, message.decode("utf-8")), 40)
+            NotificationWindow(self.mw, nt)
+        
+    def onActivate(self, evt):
+        self.unread = 0
+        self.updateTitle()
+        evt.Skip()
         
     def onClose(self, evt):
         self.mw.chat_windows.remove(self)
@@ -647,6 +713,7 @@ class MainWindow(wx.Frame):
         self.conns = []
         self.chat_windows = []
         self.new_ft_window = {} # only used in self.callbackMessage
+        self.notification_window = None
         self.buddy_list = tc_client.BuddyList(self.callbackMessage)
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -669,7 +736,7 @@ class MainWindow(wx.Frame):
         self.SetIcon(icon)
         
         self.Show()
-    
+        
     def setStatus(self, status):
         self.buddy_list.setStatus(status)
         self.taskbar_icon.showStatus(status)
