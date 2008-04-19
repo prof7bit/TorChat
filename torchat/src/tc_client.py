@@ -495,7 +495,7 @@ class BuddyList(object):
         for buddy in self.list:
             buddy.ping()
             
-        self.timer = threading.Timer(15, self.test)
+        self.timer = threading.Timer(60, self.test)
         self.timer.start()
         
     def addBuddy(self, buddy):
@@ -603,7 +603,6 @@ class Receiver(threading.Thread):
                 pass
             
             except socket.error:
-                tb()
                 self.running = False
                 self.conn.onReceiverError()
                                
@@ -641,10 +640,10 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            self.socket.settimeout(25)
+            self.socket.settimeout(59)
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
-                               TOR_SERVER, 
-                               TOR_SERVER_SOCKS_PORT)
+                                 TOR_SERVER, 
+                                 TOR_SERVER_SOCKS_PORT)
             self.socket.connect((self.address, TORCHAT_PORT))
             self.bl.onConnected(self)
             self.receiver = Receiver(self)
