@@ -495,7 +495,7 @@ class BuddyList(object):
         for buddy in self.list:
             buddy.ping()
             
-        self.timer = threading.Timer(60, self.test)
+        self.timer = threading.Timer(30, self.test)
         self.timer.start()
         
     def addBuddy(self, buddy):
@@ -640,8 +640,8 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            self.socket.settimeout(59)
-            self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
+            self.socket.settimeout(300)
+            self.socket.setproxy(socks.PROXY_TYPE_SOCKS5, 
                                  TOR_SERVER, 
                                  TOR_SERVER_SOCKS_PORT)
             self.socket.connect((self.address, TORCHAT_PORT))
@@ -936,11 +936,11 @@ def startPortableTor():
     try:
         os.chdir("tor")
         # completely remove all cache files from the previous run
-        for root, dirs, files in os.walk("tor_data", topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
+        #for root, dirs, files in os.walk("tor_data", topdown=False):
+        #    for name in files:
+        #        os.remove(os.path.join(root, name))
+        #    for name in dirs:
+        #        os.rmdir(os.path.join(root, name))
         
         # now start tor with the supplied config file
         subprocess.Popen("tor -f torrc.txt".split(), creationflags=0x08000000)
