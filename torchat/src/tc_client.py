@@ -643,8 +643,8 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            self.socket.settimeout(300)
-            self.socket.setproxy(socks.PROXY_TYPE_SOCKS5, 
+            self.socket.settimeout(59)
+            self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
                                  TOR_SERVER, 
                                  TOR_SERVER_SOCKS_PORT)
             self.socket.connect((self.address, TORCHAT_PORT))
