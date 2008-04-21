@@ -21,6 +21,7 @@ import os
 import time
 import subprocess
 import textwrap
+import threading
 import version
 import config
 
@@ -109,41 +110,58 @@ class TaskbarMenu(wx.Menu):
         self.mw.status_switch.setStatus(tc_client.STATUS_XA)
 
 
+class NotificationWindowAnimation(threading.Thread):
+    def __init__(self, win):
+        threading.Thread.__init__(self)
+        self.win = win
+        self.start()
+        
+    def run(self):
+        cx, cy, maxx, maxy = wx.ClientDisplayRect()
+        w, h = self.win.GetSize()
+        self.x_end = maxx - w - 20
+        self.y_end = maxy - h - 20
+        self.win.SetPosition((-w, self.y_end))
+        wx.CallAfter(self.win.Show)
+        for x in range(-w, self.x_end, 20):
+            wx.CallAfter(self.win.SetPosition, (x, self.y_end))
+            time.sleep(0.01)
+        wx.CallAfter(self.win.SetPosition, (self.x_end, self.y_end))
+
+        time.sleep(5)
+                
+        w, h = self.win.GetSize()
+        for y in reversed(range(-h, self.y_end, 20)):
+            wx.CallAfter(self.win.SetPosition, (self.x_end, y))
+            time.sleep(0.01)
+        wx.CallAfter(self.win.Hide)
+        wx.CallAfter(self.win.Close)
+                
+
 class NotificationWindow(wx.PopupWindow):
     def __init__(self, mw, text):
         wx.PopupWindow.__init__(self, mw)
         self.panel = wx.Panel(self)
-        self.panel.SetBackgroundColour("red")
+        sizer = wx.BoxSizer()
+        self.panel.SetSizer(sizer)
+
+        bitmap = wx.Bitmap(config.ICON_DIR + "/torchat.png", wx.BITMAP_TYPE_PNG)
+        static_image = wx.StaticBitmap(self.panel, -1, bitmap)
+        sizer.Add(static_image, 0, wx.ALL, 5 )
+        
         self.label = wx.StaticText(self.panel)
-        self.label.SetForegroundColour("yellow")
         font = self.label.GetFont()
         font.SetPointSize(12)
         self.label.SetFont(font)
         self.label.SetLabel(text)
-        sizer = wx.BoxSizer()
         sizer.Add(self.label, 0, wx.ALL, 5 )
-        self.panel.SetSizer(sizer)
         
         wsizer = wx.BoxSizer()
         wsizer.Add(self.panel, 0, wx.ALL, 0)
         self.SetSizerAndFit(wsizer)
         self.Layout()        
-        
-        maxx, maxy = wx.GetDisplaySize()
-        width, height = self.GetSize()
-        self.SetPosition((maxx - width - 50, maxy - height - 50))
-        self.Show()
-        
-        self.mw = mw
-        self.text = text
-        self.timer = wx.Timer(self, -1)
-        self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
-        self.timer.Start(milliseconds=7000, oneShot=True)
-
-    def onTimer(self, evt):
-        self.mw.notification_window = None
-        self.Hide()
-        self.Close()
+           
+        self.a = NotificationWindowAnimation(self)
         
 
 class PopupMenu(wx.Menu):
@@ -533,7 +551,7 @@ class ChatWindow(wx.Frame):
             self.unread += 1
             self.updateTitle()
 
-            nt = textwrap.fill("%s: %s" % (name, message.decode("utf-8")), 40)
+            nt = textwrap.fill("%s:\n%s" % (name, message.decode("utf-8")), 40)
             NotificationWindow(self.mw, nt)
         
     def onActivate(self, evt):
