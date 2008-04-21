@@ -500,6 +500,7 @@ class ChatWindow(wx.Frame):
         self.panel.SetSizer(sizer)
         sizer.FitInside(self)
         self.Show()
+        wx.GetApp().Yield()
         
         if message != "":
             self.process(message)
@@ -509,7 +510,7 @@ class ChatWindow(wx.Frame):
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
-    
+        
     def updateTitle(self):
         if self.unread == 1:
             title = "* "

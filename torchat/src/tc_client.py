@@ -615,7 +615,10 @@ class InConnection:
         self.receiver = Receiver(self)
     
     def send(self, text):
-        self.socket.send(text)
+        try:
+            self.socket.send(text)
+        except:
+            self.bl.onErrorIn(self)
         
     def onReceiverError(self):
         self.bl.onErrorIn(self)
@@ -689,8 +692,33 @@ class FileSender(threading.Thread):
         self.restart_at = 0
         self.restart_flag = False
         self.completed = False
+        self.timeout_count = 0
         self.start()
         
+    
+    def testTimeout(self):
+        #this will be called every 0.1 seconds whenever the sender
+        #is waiting for confirmation messages. Either in the 
+        #sendBlocks() loop or when all blocks are sent in the
+        #outer loop in run()
+        #if a timeout is detected then the restart flag will be set
+        if self.buddy.conn_in:
+            #we only increase timeout if we are connected
+            #otherwise other mechanisms are responsible and trying
+            #to get us connected again and we just wait
+            self.timeout_count += 1
+            
+        if self.timeout_count == 600: 
+            #one minute without filedata_ok
+            new_start = self.start_ok + self.block_size
+            self.restart(new_start)
+            #enforce a new connection
+            try:
+                self.buddy.conn_in.close()
+            except:
+                pass
+            print "timeout file sender restart at %i" % new_start     
+
     def canGoOn(self, start):
         position_ok = self.start_ok + self.blocks_wait * self.block_size
         if not self.running or self.restart_flag:
@@ -701,6 +729,7 @@ class FileSender(threading.Thread):
     
     def sendBlocks(self, first):
         blocks = int(self.file_size / self.block_size) + 1
+        #the inner loop (of the two loops)
         for i in range(blocks):
             start = i * self.block_size
             #jump over already sent blocks
@@ -713,21 +742,33 @@ class FileSender(threading.Thread):
                 self.file_handle.seek(start)
                 data = self.file_handle.read(size)
                 hash = md5.md5(data).hexdigest()
-       
+                
                 msg = ProtocolMsg(self.bl, None, "filedata", (self.id,
                                                               start,
                                                               hash,
                                                               data))
-                msg.send(self.buddy, 1)
+               
+                #we can only send data if we are connected
+                while not self.buddy.conn_in and not self.restart_flag:
+                    time.sleep(0.1)
+                    self.testTimeout()
+                                    
+                if self.buddy.conn_in:
+                    msg.send(self.buddy, 1)
+                
+                #wait for confirmations more than blocks_wait behind
                 while not self.canGoOn(start):                    
                     time.sleep(0.1)
+                    self.testTimeout() #this can trigger the restart flag
+                    
+                if self.restart_flag:
+                    #the outer loop in run() will start us again
+                    break
                     
                 if not self.running:
+                    #the outer loop in run() will also end
                     break
-                
-                if self.restart_flag:
-                    break
-    
+                    
     def run(self):
         self.running = True
         try:
@@ -741,11 +782,18 @@ class FileSender(threading.Thread):
                                                           self.file_name_short))
             msg.send(self.buddy, 1)
             
+            #the outer loop (of the two sender loops)
+            #runs forever until completed ore canceled
             while (not self.completed) and self.running:
                 self.restart_flag = False
+                
+                #(re)start the inner loop
                 self.sendBlocks(self.restart_at)
+                
+                #wait for *last* filedata_ok or restart flag
                 while not self.restart_flag and not self.completed and self.running:
-                    time.sleep(1)
+                    time.sleep(0.1)
+                    self.testTimeout() #this can trigger the restart flag
             
             self.running = False
             self.file_handle.close()
@@ -761,6 +809,7 @@ class FileSender(threading.Thread):
             tb()
         
     def receivedOK(self, start):
+        self.timeout_count = 0 # we have received a sign of life
         end = start + self.block_size
         if end > self.file_size:
             end = self.file_size
@@ -773,12 +822,18 @@ class FileSender(threading.Thread):
             self.close()
             
         self.start_ok = start
+        
         if end == self.file_size:
+            #the outer sender loop can now stop waiting for timeout
             self.completed = True
         
     def restart(self, start):
+        #trigger the reatart flag
+        self.timeout_count = 0
         self.restart_at = start
         self.restart_flag = True
+        #the inner loop will now immediately break and
+        #the outer loop will start it again at position restart_at
         
     def sendStopMessage(self):
         msg = ProtocolMsg(self.buddy.bl, None, "file_stop_receiving", self.id)
