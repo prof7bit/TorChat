@@ -1,5 +1,6 @@
-next release
+version 0.9.9.95
 - notification popups and flashing symbols in taskbar
+- file transfers can recover from connection breakdowns
 
 version 0.9.9.85
 - time stamps in chat window
