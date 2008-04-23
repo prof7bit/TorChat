@@ -485,15 +485,19 @@ class ChatWindow(wx.Frame):
                                    wx.TE_MULTILINE |
                                    wx.TE_AUTO_URL |
                                    wx.TE_AUTO_SCROLL |
-                                   wx.TE_RICH2)
+                                   wx.TE_RICH2 |
+                                   wx.BORDER_SUNKEN)
         
-        sizer.Add(self.txt_in, 1, wx.EXPAND)
+        sizer.Add(self.txt_in, 1, wx.EXPAND | wx.ALL, 0)
         
         self.txt_out = wx.TextCtrl(self.panel,
                                    -1,
                                    style=wx.TE_MULTILINE |
-                                   wx.TE_PROCESS_ENTER)
-        sizer.Add(self.txt_out, 0, wx.EXPAND)
+                                   wx.TE_PROCESS_ENTER |
+                                   wx.TE_RICH2 |
+                                   wx.BORDER_SUNKEN)
+        
+        sizer.Add(self.txt_out, 0, wx.EXPAND | wx.ALL, 0)
         
         sizer.SetItemMinSize(self.txt_out, (-1,50))
         
