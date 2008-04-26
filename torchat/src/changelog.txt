@@ -1,3 +1,6 @@
+version 0.9.9.98
+- bugfix: allow non ascii characters in filenames
+
 version 0.9.9.96
 - bugfix: fixes slow connection in 0.9.9.95
  
