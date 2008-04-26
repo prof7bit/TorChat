@@ -258,6 +258,7 @@ class ProtocolMsg_filename(ProtocolMsg):
         block_size, self.file_name = splitLine(text)
         self.file_size = int(file_size)
         self.block_size = int(block_size)
+        self.file_name = self.file_name.decode("utf-8")
 
     def execute(self):
         #we create a file receiver instance which can deal with the
@@ -776,10 +777,11 @@ class FileSender(threading.Thread):
             self.file_handle.seek(0, os.SEEK_END)
             self.file_size = self.file_handle.tell()
             self.guiCallback(self.file_size, 0)
+            filename_utf8 = self.file_name_short.encode("utf-8")
             msg = ProtocolMsg(self.bl, None, "filename", (self.id, 
                                                           self.file_size, 
                                                           self.block_size,
-                                                          self.file_name_short))
+                                                          filename_utf8))
             msg.send(self.buddy, 1)
             
             #the outer loop (of the two sender loops)
