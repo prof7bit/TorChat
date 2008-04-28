@@ -197,6 +197,7 @@ class ProtocolMsg_ping(ProtocolMsg):
             
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
+        self.buddy.sendStatus()
 
 
 class ProtocolMsg_pong(ProtocolMsg):
@@ -374,7 +375,7 @@ class Buddy(object):
     
     def connect(self):
         self.conn_out = OutConnection(self.address + ".onion", self.bl, self)
-        self.ping()
+        self.keepAlive()
         
     def disconnect(self):
         if self.conn_out != None:
@@ -406,14 +407,19 @@ class Buddy(object):
         sender = FileSender(self, filename, gui_callback)
         return sender
     
-    def ping(self):
+    def keepAlive(self):
         if self.conn_out == None:
             self.connect()
         else:
-            ping = ProtocolMsg(self.bl, None, "ping", (OWN_HOSTNAME, self.random1))
-            ping.send(self)
-            self.sendStatus()
-                
+            if not self.conn_in:
+                self.sendPing()
+            else:
+                self.sendStatus()
+    
+    def sendPing(self):
+        ping = ProtocolMsg(self.bl, None, "ping", (OWN_HOSTNAME, self.random1))
+        ping.send(self)
+    
     def sendStatus(self):
         if self.conn_out != None:
             status = ""
@@ -483,7 +489,7 @@ class BuddyList(object):
         if not found:
             self.addBuddy(Buddy(OWN_HOSTNAME, self, "myself"))
         
-        self.test()
+        self.onTimer()
 
     def save(self):
         f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
@@ -492,11 +498,11 @@ class BuddyList(object):
             f.write("%s\r\n" % line.rstrip())
         f.close()
 
-    def test(self):
+    def onTimer(self):
         for buddy in self.list:
-            buddy.ping()
+            buddy.keepAlive()
             
-        self.timer = threading.Timer(30, self.test)
+        self.timer = threading.Timer(30, self.onTimer)
         self.timer.start()
         
     def addBuddy(self, buddy):
