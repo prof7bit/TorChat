@@ -14,22 +14,6 @@
 #                                                                            #
 ##############################################################################
 
-#change OWN_HOSTNAME to yours, or it will NOT work
-#you find it in your hidden service dir in the file
-#hostname. Leave the tld (.onion) away.
-#(On windows in portable mode this is done automatically.)
-OWN_HOSTNAME = "utvrla6mjdypbyw6" #.onion
-TRY_PORTABLE_MODE = True
-
-#configure the following if your Tor is running on a separate machine
-TOR_SERVER = "127.0.0.1"
-TOR_SERVER_SOCKS_PORT = 9050
-TOR_SERVER_CONTROL_PORT = 9051
-
-#configure where to listen for connections *from* the Tor server
-LISTEN_INTERFACE = "127.0.0.1"
-LISTEN_PORT = 11009
-
 import SocksiPy.socks as socks
 import socket
 import threading
@@ -44,6 +28,7 @@ import traceback
 import config
 
 TORCHAT_PORT = 11009 #do NOT change this.
+TOR_CONFIG = "tor" #the name of the active section in the .ini file
 STATUS_OFFLINE = 0
 STATUS_HANDSHAKE = 1
 STATUS_ONLINE = 2
@@ -417,7 +402,11 @@ class Buddy(object):
                 self.sendStatus()
     
     def sendPing(self):
-        ping = ProtocolMsg(self.bl, None, "ping", (OWN_HOSTNAME, self.random1))
+        ping = ProtocolMsg(self.bl, 
+                           None, 
+                           "ping", 
+                           (config.get("client","own_hostname"), 
+                            self.random1))
         ping.send(self)
     
     def sendStatus(self):
@@ -450,7 +439,7 @@ class BuddyList(object):
     def __init__(self, guiCallback):
         self.guiCallback = guiCallback
         
-        if TRY_PORTABLE_MODE:
+        if config.isPortable():
             startPortableTor()
         
         self.file_sender = {}
@@ -483,11 +472,13 @@ class BuddyList(object):
         
         found = False
         for buddy in self.list:
-            if buddy.address == OWN_HOSTNAME:
+            if buddy.address == config.get("client", "own_hostname"):
                 found = True
         
         if not found:
-            self.addBuddy(Buddy(OWN_HOSTNAME, self, "myself"))
+            self.addBuddy(Buddy(config.get("client", "own_hostname"), 
+                                self, 
+                                "myself"))
         
         self.onTimer()
 
@@ -652,8 +643,8 @@ class OutConnection(threading.Thread):
             self.socket = socks.socksocket()
             self.socket.settimeout(59)
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
-                                 TOR_SERVER, 
-                                 TOR_SERVER_SOCKS_PORT)
+                                 config.get(TOR_CONFIG, "tor_server"), 
+                                 config.getint(TOR_CONFIG, "tor_server_socks_port"))
             self.socket.connect((self.address, TORCHAT_PORT))
             self.bl.onConnected(self)
             self.receiver = Receiver(self)
@@ -968,7 +959,8 @@ class Listener(threading.Thread):
         self.running = True
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((LISTEN_INTERFACE, LISTEN_PORT))
+        self.socket.bind((config.get("client", "listen_interface"), 
+                          config.getint("client", "listen_port")))
         self.socket.listen(1)
         try:
             while self.running:
@@ -991,10 +983,8 @@ class Listener(threading.Thread):
 
 
 def startPortableTor():
-    global OWN_HOSTNAME
-    global TOR_SERVER_SOCKS_PORT
-    global TOR_SERVER_CONTROL_PORT
     global tor_in, tor_out
+    global TOR_CONFIG
     old_dir = os.getcwd()
     try:
         os.chdir("tor")
@@ -1015,7 +1005,8 @@ def startPortableTor():
         while cnt < 20:
             try:
                 f = open("hidden_service\\hostname", "r")
-                OWN_HOSTNAME = f.read().rstrip()[:-6]
+                hostname = f.read().rstrip()[:-6]
+                config.set("client", "own_hostname", hostname)
                 f.close()
                 break
             except:
@@ -1024,8 +1015,9 @@ def startPortableTor():
                 cnt += 1
 
         #in portable mode we run Tor on some non-standard ports:
-        TOR_SERVER_SOCKS_PORT = 11109
-        TOR_SERVER_CONTROL_PORT = 11119
+        #so we switch to the other set of config-options
+        TOR_CONFIG = "tor_portable"
+        
         os.chdir(old_dir)
     except:
         os.chdir(old_dir)

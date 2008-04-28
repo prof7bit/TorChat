@@ -531,7 +531,7 @@ class ChatWindow(wx.Frame):
     
     def writeColored(self, color, name, text):
         self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(128, 128, 128)))    
-        self.txt_in.write("%s " % time.strftime(config.TIME_STAMP_FORMAT))
+        self.txt_in.write("%s " % time.strftime(config.get("gui", "time_stamp_format")))
         red, green, blue = color
         self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(red, green, blue)))    
         self.txt_in.write("%s: " % name)
@@ -552,12 +552,14 @@ class ChatWindow(wx.Frame):
         
         #notification
         if not self.IsActive():
-            self.RequestUserAttention(wx.USER_ATTENTION_INFO)
+            if config.getint("gui", "notification_flash_window"):
+                self.RequestUserAttention(wx.USER_ATTENTION_INFO)
             self.unread += 1
             self.updateTitle()
 
-            nt = textwrap.fill("%s:\n%s" % (name, message.decode("utf-8")), 40)
-            NotificationWindow(self.mw, nt)
+            if config.getint("gui", "notification_popup"):
+                nt = textwrap.fill("%s:\n%s" % (name, message.decode("utf-8")), 40)
+                NotificationWindow(self.mw, nt)
         
     def onActivate(self, evt):
         self.unread = 0
