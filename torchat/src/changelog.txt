@@ -1,3 +1,6 @@
+svn/trunk
+- show correct buddy status immediately after connect
+
 version 0.9.9.98
 - bugfix: allow non ascii characters in filenames
 
