@@ -1,5 +1,9 @@
-svn/trunk
-- show correct buddy status immediately after connect
+version 0.9.9.109
+- bugfix: if /tmp was on a separate partition, file receiving was broken   
+- bugfix: show correct buddy status immediately after connect
+- new connection attempts and keep-alives now in random intervals
+- implemented configuration file
+- included some (unfinished) documantation
 
 version 0.9.9.98
 - bugfix: allow non ascii characters in filenames

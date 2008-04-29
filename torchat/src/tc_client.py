@@ -21,6 +21,7 @@ import random
 import time
 import sys
 import os
+import shutil
 import subprocess
 import tempfile
 import md5
@@ -791,7 +792,7 @@ class FileSender(threading.Thread):
         self.running = True
         try:
             self.file_handle = open(self.file_name, mode="rb")
-            self.file_handle.seek(0, os.SEEK_END)
+            self.file_handle.seek(0, 2) #SEEK_END
             self.file_size = self.file_handle.tell()
             self.guiCallback(self.file_size, 0)
             filename_utf8 = self.file_name_short.encode("utf-8")
@@ -955,7 +956,7 @@ class FileReceiver:
                 except:
                     pass
                 try:
-                    os.rename(self.file_name_tmp, self.file_name_save)
+                    shutil.move(self.file_name_tmp, self.file_name_save)
                 except:
                     pass
             else:
