@@ -38,8 +38,12 @@ STATUS_XA = 4
 CB_TYPE_CHAT = 1
 CB_TYPE_FILE = 2
 
-def tb():
-    traceback.print_exc()
+def tb(brief=False):
+    if brief:
+        e = sys.exc_info()
+        print e[1]
+    else:
+        traceback.print_exc()
 
 def isWindows():
     return "win" in sys.platform
@@ -467,7 +471,6 @@ class BuddyList(object):
                 else:
                     name = ""
                 buddy = Buddy(address, self, name)
-                buddy.connect()
                 self.list.append(buddy)
         
         found = False
@@ -490,10 +493,23 @@ class BuddyList(object):
         f.close()
 
     def onTimer(self):
-        for buddy in self.list:
-            buddy.keepAlive()
+        average_time = 15.0
+        #every 15/<number of buddies> seconds we select a random
+        #buddy and try to connect or send status. This should
+        #smoothly spread all network activity over time and
+        #give all buddies the same chance of being connected
+        #in environments where concurrent connection attempts 
+        #are limited like in recent windows versions.
+        if len(self.list) > 0:
+            random_index = random.randrange(0, len(self.list))
+            random_buddy = self.list[random_index]
+            random_buddy.keepAlive()
+        
+            interval = float(average_time)/len(self.list)
+        else:
+            interval = 15
             
-        self.timer = threading.Timer(30, self.onTimer)
+        self.timer = threading.Timer(interval, self.onTimer)
         self.timer.start()
         
     def addBuddy(self, buddy):
@@ -641,11 +657,13 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            self.socket.settimeout(59)
+            self.socket.settimeout(60)
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
                                  config.get(TOR_CONFIG, "tor_server"), 
                                  config.getint(TOR_CONFIG, "tor_server_socks_port"))
+            print "trying to connect %s" % self.address
             self.socket.connect((self.address, TORCHAT_PORT))
+            print "connected to %s" % self.address
             self.bl.onConnected(self)
             self.receiver = Receiver(self)
             while self.running:
@@ -655,6 +673,8 @@ class OutConnection(threading.Thread):
                 time.sleep(0.05)
                 
         except:
+            print ("outgoing connection to %s failed" % self.address),
+            tb(True)
             self.bl.onErrorOut(self)
             self.close()
             
