@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <title>
+   Howto: Run more than one instance of TorChat
+  </title>
+ </head>
+ <body>
+  <h1>
+   How to run more than on instance of TorChat
+  </h1>
+  <p>
+   First I will explain how torchat.ini and portable mode are working and
+   where all relevant data files are located. The most important things are
+   <ul>
+    <li><code>portable.txt</code></li>
+    <li>torchat.ini</li>
+    <li>the folder Tor</li>
+   </ul>
+  </p>
+  <h2>
+   portable.txt
+  </h2>
+  <p>
+   There is a file called <code>portable.txt</code>. It's contents are completely
+   irrelevant, in fact it could be empty, only it's <b>existance is an
+   indicator</b> wether TorChat should run in portable mode or not. If you delete
+   this file, TorChat will store all it's data like the buddy-list and the
+   configuration file in the user's <b>home directory</b> and it will not even 
+   try to start the <code>Tor\tor.exe</code>, you must then have a separate
+   tor service already running on this machine or somewhere in your network
+   and tell TorChat via <code>torchat.ini</code> about your tor installation. 
+   If there is a file called <code>portable.txt</code> TorChat will look for all
+   it's configuration and data in the same folder where torchat.exe 
+   (or .py on *ix systems) is located and try to start <code>tor\tor.exe<code>
+  </p>
+  <h2>
+   torchat.ini
+  </h2>
+  <p>
+   Depending on wether the <code>portable.txt</code> is found or not TorChat
+   will look for <code>torchat.ini</code> in the current directory or in the
+   user's home directory. <code>torchat.ini</code> contains two sections
+   <b>[tor]</b> and <b>[tor_portable]</b>. Only if we are in portable mode
+   (portable.txt) <b>and</b> TorChat was able to successfully start the
+   bundled <code>Tor\tor.exe</code> the section [tor_portable] is used, 
+   in all other cases the settings in [tor] are used.
+  </p>
+  <h2>
+   the folder Tor
+  </h2>
+  <p>
+   If we are in portable mode (portable.txt) TorChat will <b>try</b> to start
+   <code>Tor\tor.exe</code> with the tor configuration in <code>Tor\torrc.txt</code>.
+   It is perfectly ok to have a <code>portable.txt</code> but no <code>Tor\tor.exe</code>.
+   In this case all configuration and data files are kept in the installation
+   folder (which then must be writeable of course) and still an already existing
+   tor service can be used. 
+  </p>
+  <h2>
+   summary
+  </h2>
+  <p>
+   The whole thing could also be explained by some piece of pseudo-code:
+   <pre>
+     if found portable.txt:
+         use current folder for all data
+         if can start tor.exe:
+             use settings in [tor_portable]
+         else:
+             use settings in [tor]
+     else:
+         use home folder for all data
+         use settings in [tor]
+   </pre>
+   </p>
+   <p>
+   	or if you are more attracted to tables we can summarize it in a tabular way:
+   </p>
+   <table border="1">
+    <tr>
+     <th>portable.txt</th>
+     <th>Tor/tor.exe</th>
+     <th>what will happen</th>
+    </tr>
+    <tr>
+     <td>present</td>
+     <td>present and working</td>
+     <td>all data and config in installation folder
+     <br />settings in [tor_portable] are used</td>
+    </tr>
+    <tr>
+     <td>present</td>
+     <td>not present or not working</td>
+     <td>all data and config in installation folder
+     <br />settings in [tor] are used</td>
+    </tr>
+    <tr>
+     <td>-</td>
+     <td>no matter</td>
+     <td>all data and config in home folder (~/.torchat or %APPDATA%\torchat)
+     <br />settings in [tor] are used</td>
+    </tr>
+   </table>
+  </p>
+ </body>
+</html>
