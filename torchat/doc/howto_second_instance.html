@@ -13,16 +13,10 @@
   </h1>
   <p>
    First I will explain how torchat.ini and portable mode are working and
-   where all relevant data files are located. The most important things are
-   <ul>
-    <li><code>portable.txt</code></li>
-    <li>torchat.ini</li>
-    <li>the folder Tor</li>
-   </ul>
-   Then I will explain some things about adresses and port numbers of the 
-   client and the tor proxy. You should fully understand this before you go on
-   to the last section where we actually move files around and change some 
-   of the settings.
+   where all relevant data files are located. Then I will explain some 
+   things about adresses and port numbers of the client and the Tor proxy. 
+   You should fully understand this before you go on to the second part 
+   where we actually move files around and change some of the settings.
   </p>
   <p>
    Most of the this document is primarily targeted towards users of Microsoft
@@ -31,8 +25,22 @@
    all the information here for their platforms without problems.
   </p>
   <h2>
-   portable mode or fixed installation
+   Part 1 - How it works 
   </h2>
+  <p> 
+   The most important things are
+  </p>
+  <ul>
+   <li>portable.txt</li>
+   <li>torchat.ini</li>
+   <li>the folder Tor</li>
+  </ul>
+  <p>
+   I will now try to explain how this all works together.
+  </p>
+  <h3>
+   portable mode or fixed installation
+  </h3>
    <p>
     <b>Full Portable Mode</b> means that all that is needed is contained in one folder
     which you can carry around on an usb drive and run it wherever you
@@ -46,9 +54,9 @@
    <p>
     There is a second form of the portable mode, the <b>Half Portable Mode</b> 
     which is much like the first one except that it uses an already existing 
-    tor service on your computer or somewhere in your local network. This mode 
-    is useful if you want to run more than one instance of torchat over the 
-    same (already existing) tor proxy
+    Tor service on your computer or somewhere in your local network. This mode 
+    is useful if you want to run more than one instance of TorChat over the 
+    same (already existing) Tor proxy
    </p>  
    <p>
     Finally there is the <b>Permanent Installation</b>. TorChat can be installed 
@@ -59,9 +67,9 @@
     The next few sections will explain how the mode is selected and how
     this is related to the configuration files.
    </p>  
-  <h3>
+  <h4>
    portable.txt
-  </h3>
+  </h4>
   <p>
    There is a file called portable.txt. It's contents are completely
    irrelevant, in fact it could be empty, only it's <b>existance is an
@@ -69,15 +77,15 @@
    this file, TorChat will store all it's data like the buddy-list and the
    configuration file in the user's <b>home directory</b> and it will not even 
    try to start the Tor\tor.exe, you must then have a separate
-   tor service already running on this machine or somewhere in your network
-   and tell TorChat via torchat.ini about your tor installation. 
+   Tor service already running on this machine or somewhere in your network
+   and tell TorChat via torchat.ini about your Tor installation. 
    If there is a file called portable.txt TorChat will look for all
    it's configuration and data in the same folder where torchat.exe 
-   (or .py on *ix systems) is located and try to start tor\tor.exe
+   (or .py on *ix systems) is located and try to start Tor\tor.exe
   </p>
-  <h3>
+  <h4>
    torchat.ini
-  </h3>
+  </h4>
   <p>
    Depending on wether the portable.txt is found or not TorChat
    will look for torchat.ini in the current directory or in the
@@ -88,80 +96,79 @@
    and the section [tor_portable] is used, in all other cases 
    (Half Portable or Permanent Installation) the settings in [tor] are used.
   </p>
-  <h3>
+  <h4>
    The folder Tor
-  </h3>
+  </h4>
   <p>
    If we are in portable mode (portable.txt) TorChat will <b>try</b> to start
-   Tor\tor.exe with the tor configuration in Tor\torrc.txt.
+   Tor\tor.exe with the Tor configuration in Tor\torrc.txt.
    If this all succeeds we are in <b>Full Portable Mode</b>.
    It is perfectly ok to have a portable.txt but no Tor\tor.exe.
    In this case all configuration and data files are kept in the installation
    folder (which then must be writeable of course) and still an already existing
-   tor service can be used (<b>Half Portable Mode</b>). 
+   Tor service can be used (<b>Half Portable Mode</b>). 
   </p>
-  <h3>
+  <h4>
    Summary
-  </h3>
+  </h4>
   <p>
    The whole thing could also be explained by some piece of pseudo-code:
-   <pre>
-     if found portable.txt:
-         -> Portable Mode
-         -> use current folder for all data
-         if can start tor.exe:
-             -> Full Portable Mode
-             -> use settings in [tor_portable]
-         else:
-             -> Half portable Mode
-             ->use settings in [tor]
-     else:
-         -> Permanent Installation
-         -> use home folder for all data
-         -> use settings in [tor]
-   </pre>
-   </p>
-   <p>
+  </p> 
+  <pre>
+    if found portable.txt:
+        -> Portable Mode
+        -> use current folder for all data
+        if can start tor.exe:
+            -> Full Portable Mode
+            -> use settings in [tor_portable]
+        else:
+            -> Half portable Mode
+            ->use settings in [tor]
+    else:
+        -> Permanent Installation
+        -> use home folder for all data
+        -> use settings in [tor]
+  </pre>
+  <p>
    	or if you are more attracted to tables we can summarize it in a tabular way:
-   </p>
-   <table border="1">
-    <tr>
-     <th>portable.txt</th>
-     <th>Tor/tor.exe</th>
-     <th>what will happen</th>
-    </tr>
-    <tr>
-     <td>present</td>
-     <td>present and working</td>
-     <td><b>Full Portable Mode</b><br />
-      all data and config in installation folder<br />
-      settings in [tor_portable] are used</td>
-    </tr>
-    <tr>
-     <td>present</td>
-     <td>not present or not working</td>
-     <td><b>Half Portable Mode</b><br />
-      all data and config in installation folder<br />
-      settings in [tor] are used</td>
-    </tr>
-    <tr>
-     <td>-</td>
-     <td>no matter</td>
-     <td><b>Permanent Installation</b><br />
-      all data and config in home folder (~/.torchat or %APPDATA%\torchat)<br />
-      settings in [tor] are used</td>
-    </tr>
-   </table>
   </p>
-  <h2>
-   The configuration of Tor
-  </h2>
+  <table border="1" summary="TorChat mode selection">
+   <tr>
+    <th>portable.txt</th>
+    <th>Tor/tor.exe</th>
+    <th>what will happen</th>
+   </tr>
+   <tr>
+    <td>present</td>
+    <td>present and working</td>
+    <td><b>Full Portable Mode</b><br />
+     all data and config in installation folder<br />
+     settings in [tor_portable] are used</td>
+   </tr>
+   <tr>
+    <td>present</td>
+    <td>not present or not working</td>
+    <td><b>Half Portable Mode</b><br />
+     all data and config in installation folder<br />
+     settings in [tor] are used</td>
+   </tr>
+   <tr>
+    <td>-</td>
+    <td>no matter</td>
+    <td><b>Permanent Installation</b><br />
+     all data and config in home folder (~/.torchat or %APPDATA%\torchat)<br />
+     settings in [tor] are used</td>
+   </tr>
+  </table>
   <h3>
-   Full Portable Mode
+   The configuration of Tor
   </h3>
+  <h4>
+   Full Portable Mode
+  </h4>
   <p>
    In Full Portable Mode normally you don't have to configure anything. The
-   tor binary which is bundled with TorChat will be started with /Tor/torrc.txt
+   Tor binary which is bundled with TorChat will be started with /Tor/torrc.txt
    as it's configuration file. Out of the box it is configured to listen on
    port 11109 (socks) and port 11119 (control) and to forward the hidden 
    service port 11009 to localhost:11009. Note that this are the same
@@ -175,27 +182,31 @@
    If you plan to run a second Full Portable instance on the same computer
    you will have to change all this port numbers and also the corresponding
    settings in torchat.ini section [tor_portable] and [client] in the
-   <b>second copy</b> of the whole torchat folder.
+   <b>second copy</b> of the whole TorChat folder.
   </p>
-  <h3>
+  <h4>
    Half Portable and Permanent Installation
-  </h3>
+  </h4>
   <p>
-   You need to configure a hidden service in your existing tor installation.
+   You need to configure a hidden service in your existing Tor installation.
    To do this simply create a folder somewhere on your harddisk.
    For simplicity we just assume the full path to this folder is 
-   <pre>
+  </p>
+  <pre>
    c:\foo\bar\onion1
-   </pre>
+  </pre>
+  <p>
    put the following lines into your torrc:
-   <pre>
+  </p>
+  <pre>
    HiddenServiceDir c:\foo\bar\onion1
    HiddenServicePort 11009 localhost:11009
-   </pre>
-   Now restart your tor service, make sure it runs without errors. While tor is
+  </pre>
+  <p>
+   Now restart your Tor service, make sure it runs without errors. While Tor is
    now running again in the background as normal, have a look into our hidden
    service folder we just created. There should be two files (which have been
-   created by tor). One is named <b>private_key</b> and one is named <b>hostname</b>.
+   created by Tor). One is named <b>private_key</b> and one is named <b>hostname</b>.
    Inside this file (open it with notepad) you will find your <b>.onion address</b>.
    It will be something like <b>16crypticletters.onion</b>. Later on in this 
    document i will refer to this 16 cryptic letters as your .onion address.
@@ -203,11 +214,11 @@
   <p>
    Note: In the example above we have forwarded the hidden service 11009 to the
    <b>local</b> address localhost, port 11009. The <b>first</b> 11009 is the port
-   "inside" the tor network, never change this.
+   "inside" the Tor network, never change this.
   </p>
-  <h2>
+  <h3>
    The configuration of TorChat
-  </h2>
+  </h3>
   <p>
    Torchat ist configured with torchat.ini. Where this file is located depends
    on the mode (portable or permanent, see above). Two sections in this 
@@ -218,12 +229,123 @@
   <p>
    The options in [tor] or [tor_portable] tell TorChat how to reach your 
    tor proxy. They must be identical to SocksPort and ControlPort in the
-   torrc of your tor installation.
+   torrc of your Tor installation.
   </p>
   <p>
    The options in [client] tell TorChat where to listen for incoming
    connections. They correspond to the last part of the HiddenServicePort
    setting in your torrc.
+  </p>
+  <h2>
+   Part 2 - Some common scenarios
+  </h2>
+  <p>
+   Now you have learned enough to actually make changes to the configuration.
+   Following are a few common scenarios and how to configure them
+  </p>
+  <h3>
+   A second instance in Full Portable Mode
+  </h3>
+  <p>
+   I recommend that you start experimenting with this scenario until you
+   feel confident with all the settings. You can always start out with a
+   fresh copy of the bin folder if you think you have screwed it all up 
+   an don't need to make any changes to files or configurations outside 
+   this folder. All other scenarios involve changes to the torrc of your
+   permanent installation of the Tor service (vidalia, etc.), so the 
+   Full Portable configuration is a great place to get used to the 
+   Tor configuration without the danger of screwing up your whole system.
+  </p>
+  <p>
+   Scenario: You already have TorChat running in Full Portable Mode and you 
+   want another instance of it running on the same computer with it's own 
+   settings and buddy list.
+  </p>
+  <p>
+   <b>Step 1:</b> Take your existing and already workink copy and make a 
+   second copy of the bin folder. This will become your second Full Portable
+   instance.
+  </p>
+  <p>
+   <b>Step 2:</b> Make this copy virgin again. Delete the file buddy-list.txt, 
+   go to the folder Tor, delete the two folders hidden_service and tor_data
+  </p>
+  <p>
+   <b>Step 3:</b> Configure the second Tor instance: We know that our ports 
+   11009, 11109 and 11119 are already used so we think up 3 other numbers, 
+   say 22009 (TorChat), 22209 (Tor socks) and 22229 (Tor control). Our torrc.txt
+   should now be altered so that the relevant lines look like this:
+  </p>
+  <pre>
+   SocksPort 22209
+   SocksListenAddress 127.0.0.1
+   ControlPort 22229
+   HiddenServiceDir hidden_service
+   HiddenServicePort 11009 127.0.0.1:22009
+  </pre>
+  <p>
+   Note the last line: <b>HiddenServicePort <span style="color: #009900;">11009</span> 127.0.0.1:<span style="color: #990000;">22009</span></b>
+   The first number is the TorChat Port <b>inside</b> the hidden network, it
+   is never seen from the outside. It <b>must always be 11009</b> or TorChat would
+   not work. Other clients will always try to connect to 11009. The second
+   number is what is interesting for you, it is where you want this port to
+   be <b>forwarded</b> to when it leaves the tunnel and enters the real world
+   on your machine.
+  </p>
+  <p>
+   <b>Step 4:</b> The configuration of the second TorChat instance. Open 
+   torchat.ini with your text editor and change the relevant lines so that 
+   they look like below (note that the settings in [tor] are not relevant 
+   in Full Portable Mode):
+  </p>
+  <pre>
+   [tor_portable]
+   tor_server_control_port = 22229
+   tor_server_socks_port = 22209
+   tor_server = 127.0.0.1
+
+   [client]
+   own_hostname = xxxxxxxxxxxxxxxx
+   listen_interface = 127.0.0.1
+   listen_port = 22009
+  </pre>
+  <p>
+   The setting own_hostname can be left alone. it will be updated 
+   automatically. In Full Portble Mode TorChat will look into the
+   hostname file, extract the hostname from it and automatically
+   fill in the correct value. 
+  </p>
+  <p>
+   <b>Step 5:</b> Try it out! It is time to start your second copy of TorChat. 
+   It should start with an empty buddy list with only the newly generated 
+   unique hostname as "myself" on it. Remember that it can take some time 
+   until the myself-icon will become green. 
+  </p>
+  <p>
+   If it doesn't become green after more than 15 minutes then there is 
+   something wrong. If all your contacts get stuck in the state with blue 
+   earth symbol and never turn green, then this is a sign that outgoing 
+   connections work, but incoming connections don't work. In this case make
+   sure that HiddenServicePort in torrc.txt and listen_port in torchat.ini
+   are configured correctly.
+  </p>
+  <h3>
+   Using your already installed Tor service
+  </h3>
+  <p>
+   yet to be written...
+  </p>
+  <h3>
+   More than one instance using the same Tor service
+  </h3>
+  <p>
+   yet to be written...
+  </p>
+  <h3>
+   A permanent installation
+  </h3>
+  <p>
+   yet to be written...
   </p>
  </body>
 </html>
