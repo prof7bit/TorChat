@@ -12,6 +12,9 @@
    How to run more than on instance of TorChat
   </h1>
   <p>
+   <span style="color: #ff0000">This howto will <b>not</b> work with versions <b>below 0.9.9.109</b></span>
+  </p>
+  <p>
    First I will explain how torchat.ini and portable mode are working and
    where all relevant data files are located. Then I will explain some 
    things about adresses and port numbers of the client and the Tor proxy. 
@@ -87,6 +90,8 @@
    torchat.ini
   </h4>
   <p>
+   torchat.ini will be automatically created at the first start of TorChat or 
+   whenever it has been deleted or moved and TorChat can not find it.
    Depending on wether the portable.txt is found or not TorChat
    will look for torchat.ini in the current directory or in the
    user's home directory. torchat.ini contains two sections
@@ -249,8 +254,8 @@
   <p>
    I recommend that you start experimenting with this scenario until you
    feel confident with all the settings. You can always start out with a
-   fresh copy of the bin folder if you think you have screwed it all up 
-   an don't need to make any changes to files or configurations outside 
+   fresh copy of the bin folder if you think you have screwed it all up,
+   you don't need to make any changes to files or configurations outside 
    this folder. All other scenarios involve changes to the torrc of your
    permanent installation of the Tor service (vidalia, etc.), so the 
    Full Portable configuration is a great place to get used to the 
