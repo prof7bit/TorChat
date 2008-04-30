@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+   <channel>
+      <title>TorChat Updates</title>
+      <link>http://torchat.googlecode.com/</link>
+      <description>Updates and news around the anonymous instant messenger TorChat</description>
+      <language>en-us</language>
+      <pubDate>Wed, 30 Apr 2008 00:00:00 GMT</pubDate>
+      <lastBuildDate>Wed, 30 Apr 2003 00:00:00 GMT</lastBuildDate>
+      <item>
+         <title>Version 0.9.9.109 is out</title>
+         <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-source-0.9.9.109.zip</link>
+         <description>Version 0.9.9.109 is out. I have made some changes in the way and the order
+         in which buddies on the list are connected. New in this version is support for a configuration file.
+         You can now use an already running tor proxy in your network by specifying adress and port
+         numbers (you mus also configure a hidden service on this proxy). Unfortubetely I hit the quota 
+         and am still waiting for Google to increase my limit until I can upload the windows binary.</description>
+         <pubDate>Wed, 30 Apr 2008 00:00:00 GMT</pubDate>
+         <guid>0.9.9.109</guid>
+      </item>
+   </channel>
+</rss>
