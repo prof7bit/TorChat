@@ -39,12 +39,61 @@ STATUS_XA = 4
 CB_TYPE_CHAT = 1
 CB_TYPE_FILE = 2
 
-def tb(brief=False):
-    if brief:
-        e = sys.exc_info()
-        print e[1]
-    else:
-        traceback.print_exc()
+def tb(level=0):
+    print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
+
+class LogWriter:
+    def __init__(self):
+        self.stdout = sys.stdout
+        sys.stdout = self
+        sys.stderr = self
+        self.level = config.getint("client", "log_level")
+        self.file_name = config.get("client", "log_file")
+        if  self.level and self.file_name:
+            try:
+                self.logfile = open(self.file_name, 'a')
+                print "(1) started logging to file '%s'" % os.path.abspath(self.file_name)
+            except:
+                tb(0)
+                print "(0) could not open logfile '%s'" % os.path.abspath(self.file_name)
+                print "(0) logging only to stdout"
+        print "(1) current log level is '%i'" % self.level
+
+    def write(self, text):
+        text = text.rstrip()
+        if text == "":
+            return
+        text += "\n"
+        try:
+            x = text[0]
+            y = text[2]
+            if x == "(" and y == ")":
+                level = int(text[1])
+            else:
+                level = 0
+        except:
+            level = 0
+
+        if level <= self.level:
+            text = text
+            self.stdout.write(text)
+            self.stdout.flush()
+            try:
+                self.logfile.write(text)
+                self.logfile.flush()
+            except:
+                pass
+
+    def close(self):
+        self.stdout.close()
+        self.logfile.close()
+
+LogWriter()
+print "(1) LogWriter initialized"
+print "(2) test message level 2"
+print "(3) test message level 3"
+print "(4) test message level 4"
+print "(5) test message level 5"
 
 def isWindows():
     return "win" in sys.platform
@@ -161,7 +210,7 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
     #"not_implemented"-message for every protocol message.
     #I have to meditate over this for a while.
     def ececute(self):
-        print "buddy says he can't handle '%s'" % self.text
+        print "(3) buddy says he can't handle '%s'" % self.text
 
  
 class ProtocolMsg_ping(ProtocolMsg):
@@ -213,7 +262,7 @@ class ProtocolMsg_pong(ProtocolMsg):
             #if we receive an unknown pong, we just ignore it.
             #FIXME: are unknown pongs a sign for an attempted  MITM-Attack?
             #At least they should never happen.
-            print "strange: incoming 'pong' without corresponding ping"
+            print "(3) strange: incoming 'pong' without corresponding ping"
 
                 
 class ProtocolMsg_message(ProtocolMsg):
@@ -662,9 +711,9 @@ class OutConnection(threading.Thread):
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
                                  config.get(TOR_CONFIG, "tor_server"), 
                                  config.getint(TOR_CONFIG, "tor_server_socks_port"))
-            print "trying to connect %s" % self.address
+            print "(2) trying to connect %s" % self.address
             self.socket.connect((self.address, TORCHAT_PORT))
-            print "connected to %s" % self.address
+            print "(2) connected to %s" % self.address
             self.bl.onConnected(self)
             self.receiver = Receiver(self)
             while self.running:
@@ -674,8 +723,7 @@ class OutConnection(threading.Thread):
                 time.sleep(0.05)
                 
         except:
-            print ("outgoing connection to %s failed" % self.address),
-            tb(True)
+            print "(2) outgoing connection to %s failed: %s" % (self.address, sys.exc_info()[1])
             self.bl.onErrorOut(self)
             self.close()
             
@@ -736,7 +784,7 @@ class FileSender(threading.Thread):
                 self.buddy.conn_in.close()
             except:
                 pass
-            print "timeout file sender restart at %i" % new_start     
+            print "(2) timeout file sender restart at %i" % new_start     
 
     def canGoOn(self, start):
         position_ok = self.start_ok + self.blocks_wait * self.block_size
@@ -916,13 +964,13 @@ class FileReceiver:
                 #this condition should not be possible, but who knows?
                 #if there is still a receiver but no gui we close the receiver
                 #and send a stop message
-                print "FileReceiver could not update the GUI"
+                print "(2) FileReceiver could not update the GUI"
                 tb()
                 
                 self.sendStopMessage()
                 self.close()
         else:
-            print "receiver wrong hash %i len: %i" % (start, len(data))
+            print "(3) receiver wrong hash %i len: %i" % (start, len(data))
             msg = ProtocolMsg(self.buddy.bl, None, "filedata_error", (self.id, 
                                                                       start))
             msg.send(self.buddy)
@@ -1004,11 +1052,15 @@ class Listener(threading.Thread):
 
 
 def startPortableTor():
+    print "(1) entering function startPortableTor()"
     global tor_in, tor_out
     global TOR_CONFIG
     old_dir = os.getcwd()
+    print "(1) current working directory is %s" % os.getcwd()
     try:
-        os.chdir("tor")
+        print "(1) changing working directory"
+        os.chdir("Tor")
+        print "(1) current working directory is %s" % os.getcwd()
         # completely remove all cache files from the previous run
         #for root, dirs, files in os.walk("tor_data", topdown=False):
         #    for name in files:
@@ -1017,17 +1069,24 @@ def startPortableTor():
         #        os.rmdir(os.path.join(root, name))
         
         # now start tor with the supplied config file
-        subprocess.Popen("tor -f torrc.txt".split(), creationflags=0x08000000)
+        print "(1) trying to start tor.exe"
+        subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
+        print "(1) started tor.exe"
         
         # we now assume the existence of our hostname file
         # it WILL be created after the first start
         # if not, something must be totally wrong.
         cnt = 0
-        while cnt < 20:
+        found = False
+        while cnt <= 20:
             try:
+                print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
                 f = open("hidden_service\\hostname", "r")
                 hostname = f.read().rstrip()[:-6]
+                print "(1) found hostname: %s" % hostname
+                print "(1) writing own_hostname to torchat.ini"
                 config.set("client", "own_hostname", hostname)
+                found = True
                 f.close()
                 break
             except:
@@ -1035,11 +1094,20 @@ def startPortableTor():
                 time.sleep(1)
                 cnt += 1
 
-        #in portable mode we run Tor on some non-standard ports:
-        #so we switch to the other set of config-options
-        TOR_CONFIG = "tor_portable"
+        if not found:
+            print "(0) very strange: portable tor started but hostname could not be read"
+            print "(0) will use section [tor] and not [tor_portable]"
+        else:
+            #in portable mode we run Tor on some non-standard ports:
+            #so we switch to the other set of config-options
+            print "(1) switching active config section from [tor] to [tor_portable]"
+            TOR_CONFIG = "tor_portable"
         
-        os.chdir(old_dir)
     except:
-        os.chdir(old_dir)
+        print "(1) could not start tor, traceback is shown below"
+        tb(1)
+        
+    print "(1) changing working directory back to %s" % old_dir
+    os.chdir(old_dir)    
+    print "(1) current working directory is %s" % os.getcwd()
         

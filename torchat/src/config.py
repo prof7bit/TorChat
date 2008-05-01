@@ -11,6 +11,8 @@ config_defaults = {
     ("client", "own_hostname") : "utvrla6mjdypbyw6",
     ("client", "listen_interface") : "127.0.0.1",
     ("client", "listen_port") : 11009,
+    ("client", "log_file") : "",
+    ("client", "log_level") : 0,
     ("gui", "notification_popup") : 1,
     ("gui", "notification_flash_window") : 1,
     ("gui", "time_stamp_format") : "(%H:%M:%S)",
