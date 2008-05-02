@@ -234,15 +234,33 @@ class ProtocolMsg_ping(ProtocolMsg):
     def execute(self):
         #ping messages must be answered with pong messages
         #the pong must contain the same random string as the ping.
+        print "(3) received ping from %s" % self.address
         if not self.buddy:
+            print "(2) %s is not on the buddy-list" % self.address
             #we have received a ping, but there is no buddy with
-            #that address in our list. The only reason for that
+            #that address in our buddy-list. The only reason for that
             #can be that someone new has added our address to his list
-            #and his client now has connected us. We now just create
-            #a new buddy with this address and add it to our list.
-            self.buddy = Buddy(self.address, self.bl, "")
-            self.bl.addBuddy(self.buddy)
-            
+            #and his client now has connected us. First we search if
+            #we already have a connection to this buddy, if not we
+            #create one.
+            found = False
+            for buddy in self.bl.incoming_buddies.values():
+                if buddy.address == self.address:
+                    print "(2) %s is already on the temporary incoming list" % self.address
+                    print ""
+                    found = True
+                    self.buddy = buddy
+                    break
+            if not found:
+                #create it and put it in the temporary list
+                print "(2) %s is new. creating a temporary buddy instance" % self.address
+                self.buddy = Buddy(self.address, self.bl, "")
+                self.bl.incoming_buddies[self.buddy.random1] = self.buddy
+                
+            #this will connect if necessary
+            self.buddy.keepAlive()            
+        
+        print "(3) sending pong and status to %s" % self.address    
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
         self.buddy.sendStatus()
@@ -251,27 +269,45 @@ class ProtocolMsg_ping(ProtocolMsg):
 class ProtocolMsg_pong(ProtocolMsg):
     command = "pong"
     def parse(self):
+        self.is_new_buddy = False
         #incoming pong messages are used to identify and authenticate 
         #incoming connections. Basically we send out pings and see which
         #corresponding pongs come in on which connections.
         #we search all our known buddies for the corresponding random
         #string to identify which buddy is replying here.
+        
+        #first we search the buddy-list
         self.buddy = self.bl.getBuddyFromRandom(self.text)
+        if not self.buddy:
+            #we also try to find it in the temporary buddies list
+            try:
+                self.buddy = self.bl.incoming_buddies[self.text]
+                #found it. this is a new buddy, remember this fact
+                self.is_new_buddy = True
+            except:
+                pass
 
     def execute(self):
         #if the pong is found to belong to a known buddy we can now
         #safely assign this incoming connection to this buddy and 
         #regard the handshake as completed.
         if self.buddy:
+            print "(3) received pong from %s" % self.buddy.address
+            if self.is_new_buddy:
+                print "(2) %s is a new buddy. adding it to the list" % self.buddy.address
+                #move it to the permanent list
+                self.bl.addBuddy(self.buddy)
+                del self.bl.incoming_buddies[self.text]
+
             if self.buddy.conn_in == None:
+                print "(2) setting %s to online" % self.buddy.address
+                #and set it to online (authenticated)
                 self.buddy.conn_in = self.connection
                 self.buddy.status = STATUS_ONLINE
                 self.connection.buddy = self.buddy
         else:
-            #if we receive an unknown pong, we just ignore it.
-            #FIXME: are unknown pongs a sign for an attempted  MITM-Attack?
-            #At least they should never happen.
-            print "(3) strange: incoming 'pong' without corresponding ping"
+            #there is no buddy for this pong. nothing to do.
+            print "(3) strange: unknown incoming 'pong': %s" % (self.text[:30])
 
                 
 class ProtocolMsg_message(ProtocolMsg):
@@ -422,7 +458,8 @@ class Buddy(object):
         self.status = STATUS_OFFLINE
     
     def connect(self):
-        self.conn_out = OutConnection(self.address + ".onion", self.bl, self)
+        if self.conn_out == None:
+            self.conn_out = OutConnection(self.address + ".onion", self.bl, self)
         self.keepAlive()
         
     def disconnect(self):
@@ -507,6 +544,11 @@ class BuddyList(object):
         
         self.file_sender = {}
         self.file_receiver = {}
+        
+        #temporary buddies, created from incoming pings with new hostnames
+        #these buddies are not yet in the list and if they do not
+        #answer and authenticate on the first try they will be deleted
+        self.incoming_buddies = {}  
         
         self.listener = Listener(self)
         self.own_status = STATUS_ONLINE
@@ -737,6 +779,7 @@ class OutConnection(threading.Thread):
             self.close()
             
     def send(self, text):
+        print "(3) %s.conn_out.send(%s...)" % (self.buddy.address, text[:30].rstrip())
         self.send_buffer.append(text)
         
     def onReceiverError(self):
