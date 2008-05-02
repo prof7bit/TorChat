@@ -7,7 +7,7 @@ version 0.9.9.109
 - bugfix: show correct buddy status immediately after connect
 - new connection attempts and keep-alives now in random intervals
 - implemented configuration file
-- included some (unfinished) documantation
+- included some (unfinished) documentation
 
 version 0.9.9.98
 - bugfix: allow non ascii characters in filenames
