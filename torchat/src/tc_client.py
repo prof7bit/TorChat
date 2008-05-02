@@ -26,6 +26,7 @@ import subprocess
 import tempfile
 import md5
 import traceback
+import inspect
 import config
 
 TORCHAT_PORT = 11009 #do NOT change this.
@@ -47,11 +48,11 @@ class LogWriter:
         self.stdout = sys.stdout
         sys.stdout = self
         sys.stderr = self
-        self.level = config.getint("client", "log_level")
-        self.file_name = config.get("client", "log_file")
+        self.level = config.getint("logging", "log_level")
+        self.file_name = config.get("logging", "log_file")
         if  self.level and self.file_name:
             try:
-                self.logfile = open(self.file_name, 'a')
+                self.logfile = open(self.file_name, 'w')
                 print "(1) started logging to file '%s'" % os.path.abspath(self.file_name)
             except:
                 tb(0)
@@ -70,12 +71,20 @@ class LogWriter:
             if x == "(" and y == ")":
                 level = int(text[1])
             else:
+                text = "(0) " + text
                 level = 0
         except:
+            text = "(0) " + text
             level = 0
 
         if level <= self.level:
-            text = text
+            #frame = inspect.stack()[1]
+            frame = inspect.getframeinfo(inspect.currentframe(1))
+            module = os.path.basename(frame[0])
+            line = frame[1]
+            func = frame[2]
+            pos = "%s line %i in %s -" % (module, line, func)
+            text = text[0:4] + pos + text[3:]
             self.stdout.write(text)
             self.stdout.flush()
             try:
