@@ -259,22 +259,18 @@ class ProtocolMsg_ping(ProtocolMsg):
             #and his client now has connected us. First we search if
             #we already have a connection to this buddy, if not we
             #create one.
-            found = False
-            for buddy in self.bl.incoming_buddies.values():
-                if buddy.address == self.address:
-                    print "(2) %s is already on the temporary incoming list" % self.address
-                    print ""
-                    found = True
-                    self.buddy = buddy
-                    break
-            if not found:
+            self.buddy = self.bl.getIncomingBuddyFromAddress(self.address)
+            if not self.buddy:
                 #create it and put it in the temporary list
                 print "(2) %s is new. creating a temporary buddy instance" % self.address
                 self.buddy = Buddy(self.address, self.bl, "")
-                self.bl.incoming_buddies[self.buddy.random1] = self.buddy
+                self.bl.incoming_buddies.append(self.buddy)
+            else:
+                print "(2) %s is already in the incoming list" % self.address
                 
             #this will connect if necessary
-            self.buddy.keepAlive()            
+            print "(2) %s.keepAlive()" % self.buddy.address
+            self.buddy.keepAlive()           
         
         print "(3) sending pong and status to %s" % self.address    
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
@@ -296,12 +292,11 @@ class ProtocolMsg_pong(ProtocolMsg):
         self.buddy = self.bl.getBuddyFromRandom(self.text)
         if not self.buddy:
             #we also try to find it in the temporary buddies list
-            try:
-                self.buddy = self.bl.incoming_buddies[self.text]
+            self.buddy = self.bl.getIncomingBuddyFromRandom(self.text)
+            if self.buddy:
                 #found it. this is a new buddy, remember this fact
                 self.is_new_buddy = True
-            except:
-                pass
+
 
     def execute(self):
         #if the pong is found to belong to a known buddy we can now
@@ -313,8 +308,10 @@ class ProtocolMsg_pong(ProtocolMsg):
                 print "(2) %s is a new buddy. adding it to the list" % self.buddy.address
                 #move it to the permanent list
                 self.bl.addBuddy(self.buddy)
-                del self.bl.incoming_buddies[self.text]
+                self.bl.incoming_buddies.remove(self.buddy)
 
+            #never *change* a buddies existing in-connection
+            #only if it was empty.
             if self.buddy.conn_in == None:
                 print "(2) setting %s to online" % self.buddy.address
                 #and set it to online (authenticated)
@@ -564,7 +561,7 @@ class BuddyList(object):
         #temporary buddies, created from incoming pings with new hostnames
         #these buddies are not yet in the list and if they do not
         #answer and authenticate on the first try they will be deleted
-        self.incoming_buddies = {}  
+        self.incoming_buddies = []  
         
         self.listener = Listener(self)
         self.own_status = STATUS_ONLINE
@@ -658,8 +655,20 @@ class BuddyList(object):
                 return buddy
         return None
     
+    def getIncomingBuddyFromAddress(self, address):
+        for buddy in self.incoming_buddies:
+            if buddy.address == address:
+                return buddy
+        return None
+    
     def getBuddyFromRandom(self, random):
         for buddy in self.list:
+            if buddy.random1 == random:
+                return buddy
+        return None
+    
+    def getIncomingBuddyFromRandom(self, random):
+        for buddy in self.incoming_buddies:
             if buddy.random1 == random:
                 return buddy
         return None
@@ -682,29 +691,29 @@ class BuddyList(object):
             buddy.sendStatus()
     
     def onErrorIn(self, connection):
+        for buddy in self.incoming_buddies:
+            if buddy.conn_in == connection:
+                print "(2) in-connection of temporary buddy %s failed" % buddy.address
+                print "(2) removing buddy instance %s" % buddy.address
+                buddy.disconnect()
+                self.incoming_buddies.remove(buddy)
+                break
+            
         for buddy in self.list:
             if buddy.conn_in == connection:
                 buddy.disconnect()
                 break
             
-        for buddy in self.incoming_buddies.values():
-            if buddy.conn_in == connection:
-                print "(2) in-connection of temporary buddy %s failed" % buddy.address
-                print "(2) removing buddy instance %s" % buddy.address
-                buddy.disconnect()
-                del self.incoming_buddies[buddy.random1]
-                break
-    
     def onErrorOut(self, connection):
-        connection.buddy.disconnect()
-
-        for buddy in self.incoming_buddies.values():
+        for buddy in self.incoming_buddies:
             if buddy.conn_out == connection:
                 print "(2) out-connection of temporary buddy %s failed" % buddy.address
                 print "(2) removing buddy instance %s" % buddy.address
-                buddy.disconnect()
-                del self.incoming_buddies[buddy.random1]
+                self.incoming_buddies.remove(buddy)
                 break
+        
+        connection.buddy.disconnect()
+
 
     def onConnected(self, connection):
         connection.buddy.status = STATUS_HANDSHAKE
@@ -812,7 +821,7 @@ class OutConnection(threading.Thread):
             self.close()
             
     def send(self, text):
-        print "(3) %s.conn_out.send(%s...)" % (self.buddy.address, text[:30].rstrip())
+        print "(4) %s.conn_out.send(%s...)" % (self.buddy.address, text[:30].rstrip())
         self.send_buffer.append(text)
         
     def onReceiverError(self):
