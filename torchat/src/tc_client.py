@@ -232,9 +232,25 @@ class ProtocolMsg_ping(ProtocolMsg):
         self.buddy = self.bl.getBuddyFromAddress(self.address)
 
     def execute(self):
+        print "(3) received ping from %s" % self.address
+        
+        #first a little security check to detect mass pings
+        #with faked host names over the same connection
+        if self.connection.last_ping_address != "":
+            #this is not the first ping over this connection
+            #lets see if it has the correct address:
+            if self.address != self.connection.last_ping_address:
+                print "(1) Possible Attack: in-connection sent fake address %s" % self.address
+                print "(1) Will disconnect incoming connection from fake %s" % self.address
+                self.connection.close()
+                return
+        else:
+            self.connection.last_ping_address = self.address
+        
         #ping messages must be answered with pong messages
         #the pong must contain the same random string as the ping.
-        print "(3) received ping from %s" % self.address
+        #note that we will NOT yet assign buddy.conn_in
+        #this can only be done in reaction to a pong message
         if not self.buddy:
             print "(2) %s is not on the buddy-list" % self.address
             #we have received a ping, but there is no buddy with
@@ -670,9 +686,25 @@ class BuddyList(object):
             if buddy.conn_in == connection:
                 buddy.disconnect()
                 break
+            
+        for buddy in self.incoming_buddies.values():
+            if buddy.conn_in == connection:
+                print "(2) in-connection of temporary buddy %s failed" % buddy.address
+                print "(2) removing buddy instance %s" % buddy.address
+                buddy.disconnect()
+                del self.incoming_buddies[buddy.random1]
+                break
     
     def onErrorOut(self, connection):
         connection.buddy.disconnect()
+
+        for buddy in self.incoming_buddies.values():
+            if buddy.conn_out == connection:
+                print "(2) out-connection of temporary buddy %s failed" % buddy.address
+                print "(2) removing buddy instance %s" % buddy.address
+                buddy.disconnect()
+                del self.incoming_buddies[buddy.random1]
+                break
 
     def onConnected(self, connection):
         connection.buddy.status = STATUS_HANDSHAKE
@@ -728,6 +760,7 @@ class InConnection:
         self.bl = buddy_list
         self.socket = socket
         self.receiver = Receiver(self)
+        self.last_ping_address = "" #used to detect mass pings with fake adresses
     
     def send(self, text):
         try:
