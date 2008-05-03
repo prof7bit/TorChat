@@ -5,8 +5,19 @@
       <link>http://torchat.googlecode.com/</link>
       <description>Updates and news around the anonymous instant messenger TorChat</description>
       <language>en-us</language>
-      <pubDate>Wed, 30 Apr 2008 00:00:00 GMT</pubDate>
-      <lastBuildDate>Wed, 30 Apr 2003 00:00:00 GMT</lastBuildDate>
+      <pubDate>Sat, 03 May 2008 00:00:00 GMT</pubDate>
+      <lastBuildDate>Sat, 03 May 2003 00:00:00 GMT</lastBuildDate>
+      <item>
+         <title>Windows binary of 0.9.9.109 now in the download area as normal</title>
+         <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.109.zip</link>
+         <description>My quota has now been increased by Google and the windows
+         binary can now be found in the download area. Current version is
+         0.9.9.109. This version has proven to be the most stable version to date.
+         Several bugs have been fixed in this release and the process of
+         connecting to buddies is now faster and more reliable.</description>
+         <pubDate>Sat, 03 May 2008 00:00:00 GMT</pubDate>
+         <guid>0.9.9.109-1</guid>
+      </item>
       <item>
          <title>Version 0.9.9.109 is out</title>
          <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-source-0.9.9.109.zip</link>
