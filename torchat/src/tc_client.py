@@ -335,12 +335,16 @@ class ProtocolMsg_status(ProtocolMsg):
     def execute(self):
         #set the status flag of the corresponding buddy
         if self.buddy:
+            print "(3) received status %s from %s" % (self.text, self.buddy.address)
             if self.text == "available":
                 self.buddy.status = STATUS_ONLINE
             if self.text == "away":
                 self.buddy.status = STATUS_AWAY
             if self.text == "xa":
                 self.buddy.status = STATUS_XA
+        else:
+            print "(3) received status %s from unknown buddy" % self.text
+            print "(3) unknown buddy had '%s' in his ping" % self.connection.last_ping_address
 
 
 class ProtocolMsg_filename(ProtocolMsg):

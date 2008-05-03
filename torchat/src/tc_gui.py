@@ -559,7 +559,12 @@ class ChatWindow(wx.Frame):
 
             if config.getint("gui", "notification_popup"):
                 nt = textwrap.fill("%s:\n%s" % (name, message.decode("utf-8")), 40)
-                NotificationWindow(self.mw, nt)
+                try:
+                    NotificationWindow(self.mw, nt)
+                except:
+                    #Some platforms (Mac) dont have wx.PopupWindow
+                    #FIXME: need alternative solution
+                    pass
         
     def onActivate(self, evt):
         self.unread = 0

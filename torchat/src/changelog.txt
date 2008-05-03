@@ -1,6 +1,7 @@
 svn/head
 - implemented logging
 - bugfix: prevent possible DoS attack through faked "ping" messages
+- bugfix: wrong initialization of buddy list window didn't work on Mac 
 
 version 0.9.9.109
 - bugfix: if /tmp was on a separate partition, file receiving was broken   
