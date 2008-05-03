@@ -593,9 +593,10 @@ class BuddyList(object):
                 found = True
         
         if not found:
-            self.addBuddy(Buddy(config.get("client", "own_hostname"), 
-                                self, 
-                                "myself"))
+            if config.get("client", "own_hostname") != "0000000000000000":
+                self.addBuddy(Buddy(config.get("client", "own_hostname"), 
+                                    self, 
+                                    "myself"))
         
         self.onTimer()
 
