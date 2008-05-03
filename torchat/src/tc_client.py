@@ -99,10 +99,6 @@ class LogWriter:
 
 LogWriter()
 print "(1) LogWriter initialized"
-print "(2) test message level 2"
-print "(3) test message level 3"
-print "(4) test message level 4"
-print "(5) test message level 5"
 
 def isWindows():
     return "win" in sys.platform

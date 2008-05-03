@@ -338,8 +338,8 @@ class BuddyList(wx.ListCtrl):
             self.il_idx[status] = self.il.Add(getStatusBitmap(status))
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
         
-        self.InsertColumn(0, "Buddy")
-        self.SetColumnWidth(0, 200)
+        #self.InsertColumn(0, "Buddy")
+        #self.SetColumnWidth(0, 200)
         
         self.timer = wx.Timer(self, -1)
         self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
@@ -760,7 +760,14 @@ class MainWindow(wx.Frame):
         self.SetIcon(icon)
         
         self.Show()
-        
+        if config.get("logging", "log_file") and config.getint("logging", "log_level"):
+            print "(0) logging to file may leave sensitive information on disk"
+            msg = "Logging to file is activated!" 
+            msg += "\n\nLog File: %s" % os.path.abspath(config.get("logging", "log_file"))
+            msg += "\n\nRemember to delete the log file if you have finished debugging"
+            msg += "\nbecause the log file may contain sensitive information."
+            wx.MessageBox(msg, "TorChat: Logging is active", wx.ICON_WARNING)
+            
     def setStatus(self, status):
         self.buddy_list.setStatus(status)
         self.taskbar_icon.showStatus(status)
