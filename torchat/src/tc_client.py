@@ -729,13 +729,20 @@ class BuddyList(object):
             #send remove_me and leave the connections open
             #but remove them from this buddy.
             buddy_to_remove.sendRemoveMe()
-            buddy_to_remove.conn_out.buddy = None
-            buddy_to_remove.conn_out = None
-            buddy_to_remove.conn_in.buddy = None
-            buddy_to_remove.conn_in = None
+            if buddy_to_remove.conn_out:
+                buddy_to_remove.conn_out.buddy = None
+                buddy_to_remove.conn_out = None
+            if buddy_to_remove.conn_in:
+                buddy_to_remove.conn_in.buddy = None
+                buddy_to_remove.conn_in = None
         else:
             buddy_to_remove.disconnect()
         self.list.remove(buddy_to_remove)
+        file_name = buddy_to_remove.getOfflineFileName()
+        try:
+            os.unlink(file_name)
+        except:
+            pass
         self.save()
         
     def removeBuddyWithAddress(self, address):

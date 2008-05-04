@@ -362,11 +362,17 @@ class DlgEditContact(wx.Dialog):
                 buddy.storeOfflineChatMessage(self.txt_intro.GetValue())
         else:
             address_old = self.buddy.address
+            offline_file_name_old = self.buddy.getOfflineFileName()
             self.buddy.address = address
+            offline_file_name_new = self.buddy.getOfflineFileName()
             self.buddy.name = self.txt_name.GetValue()
             self.bl.save()
             if address != address_old:
                 self.buddy.disconnect()
+                try:
+                    os.rename(offline_file_name_old, offline_file_name_new)
+                except:
+                    pass
             
         self.Close()
         
