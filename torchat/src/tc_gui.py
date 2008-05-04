@@ -230,7 +230,12 @@ class PopupMenu(wx.Menu):
                                "Confirm deletion", 
                                wx.YES_NO|wx.NO_DEFAULT)
         if answer == wx.YES:
-            self.mw.buddy_list.removeBuddy(buddy)
+            #remove from list without disconnecting
+            #this will send a remove_me message
+            #the other buddy will then disconnect,
+            #because there is not much it can do with the
+            #connections anymore.
+            self.mw.buddy_list.removeBuddy(buddy, disconnect=False)
 
     def onShowOffline(self, event):
         buddy = self.mw.gui_bl.getSelectedBuddy()
@@ -424,8 +429,9 @@ class BuddyList(wx.ListCtrl):
                 found_window = False
                 for window in self.mw.chat_windows:
                     if window.buddy == buddy:
-                        found_window = True
-                        break
+                        if not window.IsBeingDeleted():
+                            found_window = True
+                            break
                 
                 if not found_window:
                     window = ChatWindow(self.mw, buddy)
@@ -838,8 +844,9 @@ class MainWindow(wx.Frame):
             buddy, message = callback_data
             for window in self.chat_windows:
                 if window.buddy == buddy:
-                    wx.CallAfter(window.process, message)
-                    return
+                    if not window.IsBeingDeleted():
+                        wx.CallAfter(window.process, message)
+                        return
             
             #no window found, so we create a new one
             wx.CallAfter(ChatWindow, self, buddy, message)

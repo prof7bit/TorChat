@@ -347,8 +347,9 @@ class ProtocolMsg_remove_me(ProtocolMsg):
     command = "remove_me"
     def execute(self):
         if self.buddy:
+            print "(2) received remove_me from buddy %s" % self.buddy.address
             if self.buddy in self.bl.list:
-                print "(2) received remove_me from buddy %" % self.buddy.address
+                print "(2) removing %s from list" % self.buddy.address
                 self.bl.removeBuddy(self.buddy)
                 
                 
@@ -359,7 +360,13 @@ class ProtocolMsg_message(ProtocolMsg):
         #give buddy and text to bl. bl will then call into the gui
         #to open a chat window and/or display the text.
         if self.buddy:
-            self.bl.onChatMessage(self.buddy, self.text)
+            if self.buddy in self.bl.list:
+                self.bl.onChatMessage(self.buddy, self.text)
+            else:
+                msg = "This is an automatic reply. "
+                msg += "You are not on my buddy list. "
+                msg += "Make sure you have the latest version of TorChat. "
+                self.buddy.sendChatMessage(msg)
 
 
 class ProtocolMsg_status(ProtocolMsg):
@@ -713,14 +720,19 @@ class BuddyList(object):
         else:
             return False
         
-    def removeBuddy(self, buddy_to_remove):
-        try:
+    def removeBuddy(self, buddy_to_remove, disconnect=True):
+        if not disconnect:
+            #send remove_me and leave the connections open
+            #but remove them from this buddy.
+            buddy_to_remove.sendRemoveMe()
+            buddy_to_remove.conn_out.buddy = None
+            buddy_to_remove.conn_out = None
+            buddy_to_remove.conn_in.buddy = None
+            buddy_to_remove.conn_in = None
+        else:
             buddy_to_remove.disconnect()
-            self.list.remove(buddy_to_remove)
-            self.save()
-            return True
-        except:
-            return False
+        self.list.remove(buddy_to_remove)
+        self.save()
         
     def removeBuddyWithAddress(self, address):
         buddy = self.getBuddyFromAddress(address)
@@ -790,7 +802,8 @@ class BuddyList(object):
                 self.incoming_buddies.remove(buddy)
                 break
         
-        connection.buddy.disconnect()
+        if connection.buddy:
+            connection.buddy.disconnect()
 
     def onConnected(self, connection):
         connection.buddy.status = STATUS_HANDSHAKE
@@ -891,6 +904,7 @@ class OutConnection(threading.Thread):
                 if len(self.send_buffer) > 0:
                     text = self.send_buffer.pop(0)
                     self.socket.send(text)
+                    print "(4) conn-out to %s sent %s..." % (self.address, text[:40])
                 time.sleep(0.05)
                 
         except:
