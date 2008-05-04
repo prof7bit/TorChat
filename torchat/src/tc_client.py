@@ -178,6 +178,7 @@ class ProtocolMsg(object):
         #a generic message of this class will be automatically instantiated 
         #if an incoming message with an unknown command is received 
         #do nothing and just reply with "not_implemented"
+        print "(2) received unimplemented msg (%s) from %s" % (self.command, self.buddy.address)
         message = ProtocolMsg(self.bl, None, "not_implemented", self.command)
         message.send(self.buddy)
 
@@ -217,7 +218,7 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
     #FIXME: Maybe it would be better to have a *separate* 
     #"not_implemented"-message for every protocol message.
     #I have to meditate over this for a while.
-    def ececute(self):
+    def execute(self):
         print "(3) buddy says he can't handle '%s'" % self.text
 
  
@@ -338,7 +339,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
                 print "(2) received add_me from new buddy %s" % self.buddy.address
                 self.bl.addBuddy(self.buddy)
                 self.bl.incoming_buddies.remove(self.buddy)
-                msg = "[notification] %s has added you to his/her list"
+                msg = "[notification] %s has added you" % self.buddy.address
                 self.bl.onChatMessage(self.buddy, msg)
 
 
@@ -603,6 +604,10 @@ class Buddy(object):
         msg = ProtocolMsg(self.bl, None, "add_me", "")
         msg.send(self)
         
+    def sendRemoveMe(self):
+        msg = ProtocolMsg(self.bl, None, "remove_me", "")
+        msg.send(self)
+        
     def sendVersion(self):
         msg = ProtocolMsg(self.bl, None, "version", version.VERSION)
         msg.send(self)
@@ -787,7 +792,6 @@ class BuddyList(object):
         
         connection.buddy.disconnect()
 
-
     def onConnected(self, connection):
         connection.buddy.status = STATUS_HANDSHAKE
 
@@ -796,6 +800,7 @@ class BuddyList(object):
         
     def onFileReceive(self, file_receiver):
         return self.guiCallback(CB_TYPE_FILE, file_receiver)
+
 
 class Receiver(threading.Thread):
     def __init__(self, conn):
