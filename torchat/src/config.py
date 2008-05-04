@@ -20,6 +20,9 @@ config_defaults = {
 
 ICON_DIR = "icons" #can be absolute or relative to script dir
 
+AUTHORS_ID = "utvrla6mjdypbyw6"
+AUTHORS_NAME = "Bernd"
+
 def getScriptDir():
     #must be called at least once before working dir is changed
     #because after that abspath won't work correctly anymore.

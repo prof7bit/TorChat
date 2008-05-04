@@ -186,6 +186,10 @@ class PopupMenu(wx.Menu):
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onDelete, item)
 
+            item = wx.MenuItem(self, wx.NewId(), "Clear queued offline messages ")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onClearOffline, item)
+
         if type == "empty": 
             item = wx.MenuItem(self, wx.NewId(), "Add contact...")
             self.AppendItem(item)
@@ -199,9 +203,9 @@ class PopupMenu(wx.Menu):
 
         if type == "empty": 
             self.AppendSeparator()
-            item = wx.MenuItem(self, wx.NewId(), "Ask Bernd")
+            item = wx.MenuItem(self, wx.NewId(), "Ask %s" % config.AUTHORS_NAME)
             self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onAskBernd, item)
+            self.Bind(wx.EVT_MENU, self.onAskAuthor, item)
 
     def onSendFile(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
@@ -224,23 +228,30 @@ class PopupMenu(wx.Menu):
         if answer == wx.YES:
             self.mw.buddy_list.removeBuddy(buddy)
 
+    def onClearOffline(self, evt):
+        buddy = self.mw.gui_bl.getSelectedBuddy()
+        try:
+            os.unlink(buddy.getOfflineFileName())
+        except:
+            pass
+
     def onAdd(self, evt):
-        dialog = DlgEditContact(self.mw, None)
+        dialog = DlgEditContact(self.mw)
         dialog.ShowModal()
 
     def onAbout(self, evt):
         wx.MessageBox(about_text, "About TorChat")
 
-    def onAskBernd(self, evt):
-        res = self.mw.buddy_list.addBuddy(tc_client.Buddy("utvrla6mjdypbyw6", 
-                                    self.mw.buddy_list,
-                                    "Bernd"))
-        if res == False:
-            wx.MessageBox("Bernd is already on your list")
+    def onAskAuthor(self, evt):
+        if self.mw.buddy_list.getBuddyFromAddress(config.AUTHORS_ID):
+            wx.MessageBox("%s is already on your list" % config.AUTHORS_NAME)
+        else:
+            dialog = DlgEditContact(self.mw, add_author=True)
+            dialog.ShowModal()
 
 
 class DlgEditContact(wx.Dialog):
-    def __init__(self, main_window, buddy=None): #no buddy -> Add new
+    def __init__(self, main_window, buddy=None, add_author=False): #no buddy -> Add new
         wx.Dialog.__init__(self, main_window, -1)
         self.mw = main_window
         self.bl = self.mw.buddy_list
@@ -256,39 +267,62 @@ class DlgEditContact(wx.Dialog):
 
         self.panel = wx.Panel(self)
         
+        #setup the sizers
         sizer = wx.GridBagSizer(vgap = 5, hgap = 5)
         box_sizer = wx.BoxSizer()
         box_sizer.Add(sizer, 1, wx.EXPAND | wx.ALL, 5)
         
-        lbl = wx.StaticText(self.panel, -1, "Address")
-        sizer.Add(lbl, (0, 0))
-        
-        lbl = wx.StaticText(self.panel, -1, "Name")
-        sizer.Add(lbl, (1, 0))
+        #address
+        row = 0
+        lbl = wx.StaticText(self.panel, -1, "TorChat ID")
+        sizer.Add(lbl, (row, 0))
         
         self.txt_address = wx.TextCtrl(self.panel, -1, address)
         self.txt_address.SetMinSize((250, -1))
-        sizer.Add(self.txt_address, (0, 1), (1, 2))
+        sizer.Add(self.txt_address, (row, 1), (1, 2))
+        
+        #name
+        row += 1
+        lbl = wx.StaticText(self.panel, -1, "Display name")
+        sizer.Add(lbl, (row, 0))
         
         self.txt_name = wx.TextCtrl(self.panel, -1, name)
         self.txt_name.SetMinSize((250, -1))
-        sizer.Add(self.txt_name, (1, 1), (1, 2))
+        sizer.Add(self.txt_name, (row, 1), (1, 2))
         
+        #add-me message (new buddies)
+        if not self.buddy:
+            row += 1
+            lbl = wx.StaticText(self.panel, -1, "Introduction")
+            sizer.Add(lbl, (row, 0))
+
+            self.txt_intro = wx.TextCtrl(self.panel, -1, "hello, my friend...")
+            self.txt_intro.SetMinSize((250, -1))
+            sizer.Add(self.txt_intro, (row, 1), (1, 2))
+        
+        if add_author:
+            self.txt_address.SetValue(config.AUTHORS_ID)
+            self.txt_name.SetValue(config.AUTHORS_NAME)
+        
+        #buttons
+        row += 1
         self.btn_cancel = wx.Button(self.panel, -1, "Cancel")
-        sizer.Add(self.btn_cancel, (2, 1), flag=wx.EXPAND)
+        sizer.Add(self.btn_cancel, (row, 1), flag=wx.EXPAND)
         
         self.btn_ok = wx.Button(self.panel, -1, "Ok")
         self.btn_ok.SetDefault()
-        sizer.Add(self.btn_ok, (2, 2), flag=wx.EXPAND)
+        sizer.Add(self.btn_ok, (row, 2), flag=wx.EXPAND)
         
+        #fit the sizers
         self.panel.SetSizer(box_sizer)
         box_sizer.Fit(self)
 
+        #bind the events
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
         self.btn_ok.Bind(wx.EVT_BUTTON, self.onOk)
 
     def onOk(self, evt):
-        address = self.txt_address.GetValue()
+        address = self.txt_address.GetValue().rstrip().lstrip()
         if len(address) != 16:
             l = len(address)
             wx.MessageBox("The address must be 16 characters long, not %i." % l)
@@ -306,6 +340,8 @@ class DlgEditContact(wx.Dialog):
             res = self.bl.addBuddy(buddy)
             if res == False:
                 wx.MessageBox("This contact is already on your list")
+            else:
+                buddy.storeOfflineChatMessage(self.txt_intro.GetValue())
         else:
             address_old = self.buddy.address
             self.buddy.address = address
@@ -337,9 +373,6 @@ class BuddyList(wx.ListCtrl):
                        tc_client.STATUS_XA]:
             self.il_idx[status] = self.il.Add(getStatusBitmap(status))
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
-        
-        #self.InsertColumn(0, "Buddy")
-        #self.SetColumnWidth(0, 200)
         
         self.timer = wx.Timer(self, -1)
         self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
@@ -577,13 +610,14 @@ class ChatWindow(wx.Frame):
         
     def onSend(self, evt):
         evt.Skip()
+        text = self.txt_out.GetValue().rstrip().lstrip()
+        wx.CallAfter(self.txt_out.SetValue, "")
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
-            text = self.txt_out.GetValue().rstrip().lstrip()
-            wx.CallAfter(self.txt_out.SetValue, "")
             self.buddy.sendChatMessage(text.encode("UTF-8"))
             self.writeColored((0,0,192), "myself", text)
         else:
-            wx.MessageBox("We have no connection to this contact. \nPlease wait.")
+            self.buddy.storeOfflineChatMessage(text.encode("UTF-8"))
+            self.writeColored((0,0,192), "myself", "[offline (unsent)] " + text)
 
     def onURL(self, evt):
         #all URL mouse events trigger this

@@ -78,13 +78,15 @@ class LogWriter:
             level = 0
 
         if level <= self.level:
-            #frame = inspect.stack()[1]
-            frame = inspect.getframeinfo(inspect.currentframe(1))
-            module = os.path.basename(frame[0])
-            line = frame[1]
-            func = frame[2]
-            pos = "%s line %i in %s -" % (module, line, func)
-            text = text[0:4] + pos + text[3:]
+            try:
+                frame = inspect.getframeinfo(inspect.currentframe(1))
+                module = os.path.basename(frame[0])
+                line = frame[1]
+                func = frame[2]
+                pos = "%s line %i in %s -" % (module, line, func)
+                text = text[0:4] + pos + text[3:]
+            except:
+                pass
             self.stdout.write(text)
             self.stdout.flush()
             try:
@@ -272,6 +274,11 @@ class ProtocolMsg_ping(ProtocolMsg):
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
         self.buddy.sendStatus()
+        
+        if self.buddy in self.bl.list:
+            self.buddy.sendAddMe()
+            
+        self.buddy.sendOfflineMessages()
 
 
 class ProtocolMsg_pong(ProtocolMsg):
@@ -289,9 +296,6 @@ class ProtocolMsg_pong(ProtocolMsg):
         if not self.buddy:
             #we also try to find it in the temporary buddies list
             self.buddy = self.bl.getIncomingBuddyFromRandom(self.text)
-            if self.buddy:
-                #found it. this is a new buddy, remember this fact
-                self.is_new_buddy = True
 
 
     def execute(self):
@@ -300,12 +304,6 @@ class ProtocolMsg_pong(ProtocolMsg):
         #regard the handshake as completed.
         if self.buddy:
             print "(3) received pong from %s" % self.buddy.address
-            if self.is_new_buddy:
-                print "(2) %s is a new buddy. adding it to the list" % self.buddy.address
-                #move it to the permanent list
-                self.bl.addBuddy(self.buddy)
-                self.bl.incoming_buddies.remove(self.buddy)
-
             #never *change* a buddies existing in-connection
             #only if it was empty.
             if self.buddy.conn_in == None:
@@ -318,6 +316,28 @@ class ProtocolMsg_pong(ProtocolMsg):
             #there is no buddy for this pong. nothing to do.
             print "(3) strange: unknown incoming 'pong': %s" % (self.text[:30])
 
+
+class ProtocolMsg_add_me(ProtocolMsg):
+    command = "add_me"
+    def execute(self):
+        if self.buddy:
+            print "add me from %s" % self.buddy.address
+            if not self.buddy in self.bl.list:
+                print "(2) received add_me from new buddy %" % self.buddy.address
+                self.bl.addBuddy(self.buddy)
+                self.bl.incoming_buddies.remove(self.buddy)
+                msg = "[notification] %s has added you to his/her list"
+                self.bl.onChatMessage(self.buddy, msg)
+
+
+class ProtocolMsg_remove_me(ProtocolMsg):
+    command = "remove_me"
+    def execute(self):
+        if self.buddy:
+            if self.buddy in self.bl.list:
+                print "(2) received remove_me from buddy %" % self.buddy.address
+                self.bl.removeBuddy(self.buddy)
+                
                 
 class ProtocolMsg_message(ProtocolMsg):
     command = "message"
@@ -498,8 +518,33 @@ class Buddy(object):
                 pass
 
     def sendChatMessage(self, text):
-        message = ProtocolMsg(self.bl, None, "message", text)
-        message.send(self)
+        if self.status != STATUS_OFFLINE:
+            message = ProtocolMsg(self.bl, None, "message", text)
+            message.send(self)
+        else:
+            self.sendOfflineChatMessage(text)
+    
+    def getOfflineFileName(self):
+        return os.path.join(config.getDataDir(),self.address + "_offline.txt")
+            
+    def storeOfflineChatMessage(self, text):
+        print "(2) storing offline message to %s" % self.address
+        file = open(self.getOfflineFileName(), "a")
+        file.write("[offline message] " + text + "\n")
+        file.close()
+
+    def sendOfflineMessages(self):
+        #this will be called after the answer to the ping message
+        file_name = os.path.join(config.getDataDir(),self.address + "_offline.txt")
+        try:
+            file = open(self.getOfflineFileName(), "r")
+            text = file.read().rstrip()
+            file.close()
+            os.unlink(self.getOfflineFileName())
+            print "(2) sending offline messages to %s" % self.address
+            self.sendChatMessage(text)
+        except:
+            pass
 
     def sendFile(self, filename, gui_callback):
         sender = FileSender(self, filename, gui_callback)
@@ -535,6 +580,10 @@ class Buddy(object):
                 msg = ProtocolMsg(self.bl, None, "status", status)
                 msg.send(self)
         
+    def sendAddMe(self):
+        msg = ProtocolMsg(self.bl, None, "add_me", "")
+        msg.send(self)
+
     def getDisplayName(self):
         if self.name != "":
             line = "%s (%s)" % (self.address, self.name)
@@ -805,8 +854,8 @@ class OutConnection(threading.Thread):
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
                                  config.get(TOR_CONFIG, "tor_server"), 
                                  config.getint(TOR_CONFIG, "tor_server_socks_port"))
-            print "(2) trying to connect %s" % self.address
-            self.socket.connect((self.address, TORCHAT_PORT))
+            print "(2) trying to connect '%s'" % self.address
+            self.socket.connect((str(self.address), TORCHAT_PORT))
             print "(2) connected to %s" % self.address
             self.bl.onConnected(self)
             self.receiver = Receiver(self)
