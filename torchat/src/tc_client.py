@@ -28,6 +28,7 @@ import md5
 import traceback
 import inspect
 import config
+import version
 
 TORCHAT_PORT = 11009 #do NOT change this.
 TOR_CONFIG = "tor" #the name of the active section in the .ini file
@@ -277,7 +278,8 @@ class ProtocolMsg_ping(ProtocolMsg):
         
         if self.buddy in self.bl.list:
             self.buddy.sendAddMe()
-            
+        
+        self.buddy.sendVersion()
         self.buddy.sendOfflineMessages()
 
 
@@ -315,6 +317,16 @@ class ProtocolMsg_pong(ProtocolMsg):
         else:
             #there is no buddy for this pong. nothing to do.
             print "(3) strange: unknown incoming 'pong': %s" % (self.text[:30])
+
+
+class ProtocolMsg_version(ProtocolMsg):
+    command = "version"
+    def parse(self):
+        self.version = self.text
+        
+    def execute(self):
+        print "(3) %s has version %s" % (self.buddy.address, self.version)
+        self.buddy.version = self.version
 
 
 class ProtocolMsg_add_me(ProtocolMsg):
@@ -489,6 +501,7 @@ class Buddy(object):
         self.conn_out = None
         self.conn_in = None
         self.status = STATUS_OFFLINE
+        self.version = ""
     
     def connect(self):
         if self.conn_out == None:
@@ -533,17 +546,23 @@ class Buddy(object):
         file.write("[offline message] " + text + "\n")
         file.close()
 
-    def sendOfflineMessages(self):
-        #this will be called after the answer to the ping message
-        file_name = os.path.join(config.getDataDir(),self.address + "_offline.txt")
+    def getOfflineMessages(self):
         try:
             file = open(self.getOfflineFileName(), "r")
             text = file.read().rstrip()
             file.close()
+            return text
+        except:
+            return ""
+        
+    def sendOfflineMessages(self):
+        #this will be called after the answer to the ping message
+        text = self.getOfflineMessages()
+        if text:
             os.unlink(self.getOfflineFileName())
             print "(2) sending offline messages to %s" % self.address
             self.sendChatMessage(text)
-        except:
+        else:
             pass
 
     def sendFile(self, filename, gui_callback):
@@ -582,6 +601,10 @@ class Buddy(object):
         
     def sendAddMe(self):
         msg = ProtocolMsg(self.bl, None, "add_me", "")
+        msg.send(self)
+        
+    def sendVersion(self):
+        msg = ProtocolMsg(self.bl, None, "version", version.VERSION)
         msg.send(self)
 
     def getDisplayName(self):

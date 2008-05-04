@@ -186,6 +186,10 @@ class PopupMenu(wx.Menu):
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onDelete, item)
 
+            item = wx.MenuItem(self, wx.NewId(), "Show queued offline messages ")
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onShowOffline, item)
+
             item = wx.MenuItem(self, wx.NewId(), "Clear queued offline messages ")
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onClearOffline, item)
@@ -227,6 +231,15 @@ class PopupMenu(wx.Menu):
                                wx.YES_NO|wx.NO_DEFAULT)
         if answer == wx.YES:
             self.mw.buddy_list.removeBuddy(buddy)
+
+    def onShowOffline(self, event):
+        buddy = self.mw.gui_bl.getSelectedBuddy()
+        om = buddy.getOfflineMessages().decode("UTF-8")
+        if om:
+            om = ("queued offline messages for %s:\n\n" % buddy.address) + om
+        else:
+            om = "there are no (more) queued messages for %s" % buddy.address
+        wx.MessageBox(om, "offline messages", wx.ICON_INFORMATION)
 
     def onClearOffline(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
@@ -538,6 +551,11 @@ class ChatWindow(wx.Frame):
         sizer.FitInside(self)
         self.Show()
         wx.GetApp().Yield()
+        
+        om = self.buddy.getOfflineMessages()
+        if om:
+            om = "[unsent offline messages]\n" + om
+            self.writeColored((0,0,192), "myself", om.decode("UTF-8"))
         
         if message != "":
             self.process(message)
