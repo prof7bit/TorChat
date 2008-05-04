@@ -367,6 +367,7 @@ class ProtocolMsg_message(ProtocolMsg):
                 msg += "You are not on my buddy list. "
                 msg += "Make sure you have the latest version of TorChat. "
                 self.buddy.sendChatMessage(msg)
+                self.buddy.sendRemoveMe()
 
 
 class ProtocolMsg_status(ProtocolMsg):
@@ -543,7 +544,7 @@ class Buddy(object):
             message = ProtocolMsg(self.bl, None, "message", text)
             message.send(self)
         else:
-            self.sendOfflineChatMessage(text)
+            self.storeOfflineChatMessage(text)
     
     def getOfflineFileName(self):
         return os.path.join(config.getDataDir(),self.address + "_offline.txt")
@@ -569,7 +570,10 @@ class Buddy(object):
         if text:
             os.unlink(self.getOfflineFileName())
             print "(2) sending offline messages to %s" % self.address
-            self.sendChatMessage(text)
+            #we send it without checking online status. because we have sent 
+            #a pong before, the receiver will have set the status to online. 
+            message = ProtocolMsg(self.bl, None, "message", text)
+            message.send(self)
         else:
             pass
 

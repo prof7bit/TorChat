@@ -2,6 +2,7 @@ svn/head
 - incompatible protocol change! (adding and removing buddies)  
 - implemented offline massages
 - implemented logging
+- bugfix: a buddy can now be removed from the list
 - bugfix: prevent possible DoS attack through faked "ping" messages
 - bugfix: wrong initialization of buddy list window didn't work on Mac 
 
