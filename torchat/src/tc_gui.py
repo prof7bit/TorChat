@@ -376,9 +376,11 @@ class DlgEditContact(wx.Dialog):
 
 class BuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
-        wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_LIST)
+        wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT | wx.LC_NO_HEADER)
         self.mw = main_window
         self.bl = self.mw.buddy_list
+        
+        self.InsertColumn(0, "buddy")
         
         self.r_down = False
         
@@ -419,6 +421,8 @@ class BuddyList(wx.ListCtrl):
             if index == -1:
                 index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
             self.SetItemImage(index, self.il_idx[buddy.status])  
+        
+        self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.Refresh()
     
     def onDClick(self, evt):
