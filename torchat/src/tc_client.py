@@ -48,7 +48,7 @@ class LogWriter:
     def __init__(self):
         self.stdout = sys.stdout
         sys.stdout = self
-        sys.stderr = self
+        #sys.stderr = self
         self.level = config.getint("logging", "log_level")
         self.file_name = config.get("logging", "log_file")
         if  self.level and self.file_name:

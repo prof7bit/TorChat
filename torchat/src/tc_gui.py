@@ -45,7 +45,10 @@ class TaskbarIcon(wx.TaskBarIcon):
         wx.TaskBarIcon.__init__(self)
         self.mw = main_window
         self.showStatus(self.mw.buddy_list.own_status)
+        self.timer = wx.Timer(self, -1)
+        self.blink_phase = False
         self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.onLeftClick)
+        self.Bind(wx.EVT_TIMER, self.onTimer)
 
     def showStatus(self, status):
         icon_name = ICON_NAMES[status]
@@ -61,11 +64,26 @@ class TaskbarIcon(wx.TaskBarIcon):
     def CreatePopupMenu(self):
         return TaskbarMenu(self.mw)
 
+    def blink(self, start=True):
+        if start:
+            self.timer.Start(500, False)
+        else:
+            self.timer.Stop()
+            self.showStatus(self.mw.buddy_list.own_status)
+
+    def onTimer(self, evt):
+        if self.blink_phase:
+            self.showStatus(self.mw.buddy_list.own_status)
+        else:
+            self.SetIcon(wx.EmptyIcon())
+        self.blink_phase = not self.blink_phase
+
 
 class TaskbarMenu(wx.Menu):
     def __init__(self, main_window):
         wx.Menu.__init__(self)
         self.mw = main_window
+        self.mw.taskbar_icon.blink(False)
 
         # show/hide
 
@@ -78,12 +96,15 @@ class TaskbarMenu(wx.Menu):
         # (hidden) chat windows
         
         cnt = 0
+        self.wnd = {}
         for window in self.mw.chat_windows:
             if not window.IsShown():
-                item = wx.MenuItem(self, wx.NewId(), window.GetTitle())
+                id = wx.NewId()
+                self.wnd[id] = window
+                item = wx.MenuItem(self, id, window.GetTitle())
                 item.SetBitmap(getStatusBitmap(window.buddy.status))
                 self.AppendItem(item)
-                #self.Bind(wx.EVT_MENU, self.onAvailable, item)
+                self.Bind(wx.EVT_MENU, self.onChatWindow, item)
                 cnt += 1
             
         if cnt:    
@@ -116,6 +137,9 @@ class TaskbarMenu(wx.Menu):
 
     def onShowHide(self, evt):
         self.mw.Show(not self.mw.IsShown())
+
+    def onChatWindow(self, evt):
+        self.wnd[evt.GetId()].Show()
 
     def onExit(self, evt):
         self.mw.exitProgram()
@@ -561,7 +585,7 @@ class StatusSwitch(wx.Button):
 
 
 class ChatWindow(wx.Frame):
-    def __init__(self, main_window, buddy, message=""):
+    def __init__(self, main_window, buddy, message="", hidden=False):
         wx.Frame.__init__(self, 
                           main_window, 
                           -1, 
@@ -600,7 +624,9 @@ class ChatWindow(wx.Frame):
         
         self.panel.SetSizer(sizer)
         sizer.FitInside(self)
-        self.Show()
+        
+        if not hidden:
+            self.Show()
         
         om = self.buddy.getOfflineMessages()
         if om:
@@ -868,7 +894,9 @@ class MainWindow(wx.Frame):
                        type=wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
         
-        self.Show()
+        if not config.getint("gui", "open_main_window_hidden"):
+            self.Show()
+        
         if config.get("logging", "log_file") and config.getint("logging", "log_level"):
             print "(0) logging to file may leave sensitive information on disk"
             msg = "Logging to file is activated!" 
@@ -895,7 +923,10 @@ class MainWindow(wx.Frame):
                         return
             
             #no window found, so we create a new one
-            wx.CallAfter(ChatWindow, self, buddy, message)
+            hidden = config.getint("gui", "open_chat_window_hidden")
+            wx.CallAfter(ChatWindow, self, buddy, message, hidden)
+            if hidden:
+                wx.CallAfter(self.taskbar_icon.blink, True)
 
         if callback_type == tc_client.CB_TYPE_FILE:
             #this happens when an incoming file transfer was initialized
