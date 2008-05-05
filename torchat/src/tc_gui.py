@@ -566,7 +566,6 @@ class ChatWindow(wx.Frame):
         self.panel.SetSizer(sizer)
         sizer.FitInside(self)
         self.Show()
-        wx.GetApp().Yield()
         
         om = self.buddy.getOfflineMessages()
         if om:
