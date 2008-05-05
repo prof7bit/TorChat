@@ -402,6 +402,7 @@ class BuddyList(wx.ListCtrl):
         
         self.timer = wx.Timer(self, -1)
         self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+        self.old_sum = ""
         self.timer.Start(milliseconds=1000, oneShot=False)
         
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDClick)
@@ -409,6 +410,14 @@ class BuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
         
     def onTimer(self, evt):
+        #first check if there have been any changes to the buddy list
+        sum = ""
+        for buddy in self.bl.list:
+            sum += buddy.address + buddy.name + str(buddy.status)
+        if sum == self.old_sum:
+            return
+        self.old_sum = sum
+        
         #remove items which are not in list anymore
         for index in xrange(0, self.GetItemCount()):
             found = False

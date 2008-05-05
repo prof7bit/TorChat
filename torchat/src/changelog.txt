@@ -1,3 +1,6 @@
+svn/head
+- remove the annoying permanent flicker of the buddy list
+ 
 version 0.9.9.140
 - incompatible protocol change! (adding and removing buddies)  
 - implemented offline messages
