@@ -540,6 +540,7 @@ class Buddy(object):
                 pass
 
     def sendChatMessage(self, text):
+        #text must be is UTF-8 encoded
         if self.status != STATUS_OFFLINE:
             message = ProtocolMsg(self.bl, None, "message", text)
             message.send(self)
@@ -550,6 +551,7 @@ class Buddy(object):
         return os.path.join(config.getDataDir(),self.address + "_offline.txt")
             
     def storeOfflineChatMessage(self, text):
+        #text must be UTF-8 encoded
         print "(2) storing offline message to %s" % self.address
         file = open(self.getOfflineFileName(), "a")
         file.write("[offline message] " + text + "\n")
