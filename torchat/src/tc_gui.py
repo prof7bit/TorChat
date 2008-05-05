@@ -359,7 +359,7 @@ class DlgEditContact(wx.Dialog):
             if res == False:
                 wx.MessageBox("This contact is already on your list")
             else:
-                buddy.storeOfflineChatMessage(self.txt_intro.GetValue())
+                buddy.storeOfflineChatMessage(self.txt_intro.GetValue().encode("UTF-8"))
         else:
             address_old = self.buddy.address
             offline_file_name_old = self.buddy.getOfflineFileName()

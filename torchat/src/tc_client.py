@@ -219,7 +219,7 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
     #"not_implemented"-message for every protocol message.
     #I have to meditate over this for a while.
     def execute(self):
-        print "(3) buddy says he can't handle '%s'" % self.text
+        print "(3) %s says it can't handle '%s'" % (self.buddy.address, self.text)
 
  
 class ProtocolMsg_ping(ProtocolMsg):
@@ -669,7 +669,7 @@ class BuddyList(object):
             if len(line) > 15:
                 address = line[0:16]
                 if len(line) > 17:
-                    name = line[17:]
+                    name = line[17:].decode("UTF-8")
                 else:
                     name = ""
                 buddy = Buddy(address, self, name)
@@ -691,7 +691,7 @@ class BuddyList(object):
     def save(self):
         f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
         for buddy in self.list:
-            line = "%s %s" % (buddy.address, buddy.name)
+            line = "%s %s" % (buddy.address, buddy.name.encode("UTF-8"))
             f.write("%s\r\n" % line.rstrip())
         f.close()
 
