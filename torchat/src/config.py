@@ -16,7 +16,7 @@ config_defaults = {
     ("gui", "notification_popup") : 1,
     ("gui", "notification_flash_window") : 1,
     ("gui", "open_main_window_hidden") : 0,
-    ("gui", "open_chat_window_hidden") : 1,
+    ("gui", "open_chat_window_hidden") : 0,
     ("gui", "time_stamp_format") : "(%H:%M:%S)",
 }
 
