@@ -334,7 +334,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
     command = "add_me"
     def execute(self):
         if self.buddy:
-            print "add me from %s" % self.buddy.address
+            print "(2) add me from %s" % self.buddy.address
             if not self.buddy in self.bl.list:
                 print "(2) received add_me from new buddy %s" % self.buddy.address
                 self.bl.addBuddy(self.buddy)
