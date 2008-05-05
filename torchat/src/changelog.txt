@@ -1,5 +1,6 @@
 svn/head
 - remove the annoying permanent flicker of the buddy list
+- show own hostname in windows and taskbar icon
  
 version 0.9.9.140
 - incompatible protocol change! (adding and removing buddies)  

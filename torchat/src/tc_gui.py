@@ -53,7 +53,7 @@ class TaskbarIcon(wx.TaskBarIcon):
         img.ConvertAlphaToMask()
         bmp = img.ConvertToBitmap()
         icon = wx.IconFromBitmap(bmp)
-        self.SetIcon(icon, 'TorChat')
+        self.SetIcon(icon, 'TorChat [%s]' % config.get("client", "own_hostname"))
 
     def onLeftClick(self, evt):
         self.mw.Show(not self.mw.IsShown())
@@ -67,11 +67,29 @@ class TaskbarMenu(wx.Menu):
         wx.Menu.__init__(self)
         self.mw = main_window
 
+        # show/hide
+
         item = wx.MenuItem(self, wx.NewId(), "Show/Hide TorChat")
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onShowHide, item)
 
         self.AppendSeparator()
+
+        # (hidden) chat windows
+        
+        cnt = 0
+        for window in self.mw.chat_windows:
+            if not window.IsShown():
+                item = wx.MenuItem(self, wx.NewId(), window.GetTitle())
+                item.SetBitmap(getStatusBitmap(window.buddy.status))
+                self.AppendItem(item)
+                #self.Bind(wx.EVT_MENU, self.onAvailable, item)
+                cnt += 1
+            
+        if cnt:    
+            self.AppendSeparator()
+
+        # status
 
         item = wx.MenuItem(self, wx.NewId(), "Available")
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_ONLINE))
@@ -90,6 +108,8 @@ class TaskbarMenu(wx.Menu):
 
         self.AppendSeparator()
 
+        # quit
+        
         item = wx.MenuItem(self, wx.NewId(), "Quit")
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onExit, item)
@@ -169,6 +189,8 @@ class PopupMenu(wx.Menu):
         wx.Menu.__init__(self)
         self.mw = main_window
 
+        # options for buddy
+
         if type == "contact": 
             item = wx.MenuItem(self, wx.NewId(), "Chat")
             self.AppendItem(item)
@@ -201,10 +223,14 @@ class PopupMenu(wx.Menu):
 
         self.AppendSeparator()
 
+        #about
+        
         item = wx.MenuItem(self, wx.NewId(), "About TorChat")
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAbout, item)
 
+        #ask bernd
+        
         if type == "empty": 
             self.AppendSeparator()
             item = wx.MenuItem(self, wx.NewId(), "Ask %s" % config.AUTHORS_NAME)
@@ -602,7 +628,7 @@ class ChatWindow(wx.Frame):
         if self.buddy.name != "":
             title += " (%s)" % self.buddy.name
         
-        self.SetTitle(title)
+        self.SetTitle(title + " [%s]" % config.get("client", "own_hostname"))
     
     def writeColored(self, color, name, text):
         self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(128, 128, 128)))    
@@ -820,6 +846,8 @@ class MainWindow(wx.Frame):
         self.new_ft_window = {} # only used in self.callbackMessage
         self.notification_window = None
         self.buddy_list = tc_client.BuddyList(self.callbackMessage)
+
+        self.SetTitle("TorChat: %s" % config.get("client", "own_hostname"))
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
