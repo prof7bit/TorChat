@@ -5,10 +5,23 @@
       <link>http://torchat.googlecode.com/</link>
       <description>Updates and news around the anonymous instant messenger TorChat</description>
       <language>en-us</language>
-      <pubDate>Mon, 05 May 2008 00:00:00 GMT</pubDate>
-      <lastBuildDate>Mon, 05 May 2003 00:00:00 GMT</lastBuildDate>
+      <pubDate>Mon, 06 May 2008 00:00:00 GMT</pubDate>
+      <lastBuildDate>Mon, 06 May 2003 00:00:00 GMT</lastBuildDate>
       <item>
-         <title>Version 0.9.9.140 is out</title>
+         <title>Version 0.9.9.149 is released</title>
+         <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.149.zip</link>
+         <description>Version 0.9.9.149 is ready for download. Many things
+         in the GUI have been improved. Incoming messages can now be opened
+         in the background, the taskbar icon will flash. If a delayed (offline)
+         Message is finally sent, a notification with time stamp will be created.
+         All windows and the taskbar icon show now the own ID, this is useful
+         if you are running more than one instance. The annoying flicker of
+         the buddy list, which was introduced with .140 has also been fixed.</description>
+         <pubDate>Mon, 06 May 2008 00:00:00 GMT</pubDate>
+         <guid>0.9.9.149</guid>
+      </item>
+      <item>
+         <title>Version 0.9.9.140 is released</title>
          <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.140.zip</link>
          <description>Version 0.9.9.140 is ready for download. This release
          has some improvements in the protocol which are incompatible to older
@@ -33,9 +46,9 @@
          <guid>0.9.9.109-1</guid>
       </item>
       <item>
-         <title>Version 0.9.9.109 is out</title>
+         <title>Version 0.9.9.109 is released</title>
          <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-source-0.9.9.109.zip</link>
-         <description>Version 0.9.9.109 is out. I have made some changes in the way and the order
+         <description>Version 0.9.9.109 is released. I have made some changes in the way and the order
          in which buddies on the list are connected. New in this version is support for a configuration file.
          You can now use an already running tor proxy in your network by specifying adress and port
          numbers (you mus also configure a hidden service on this proxy). Unfortubetely I hit the quota 
