@@ -50,6 +50,14 @@ class TaskbarIcon(wx.TaskBarIcon):
         self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.onLeftClick)
         self.Bind(wx.EVT_TIMER, self.onTimer)
 
+    def showEvent(self):
+        img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
+        img.ConvertAlphaToMask()
+        bmp = img.ConvertToBitmap()
+        icon = wx.IconFromBitmap(bmp)
+        self.SetIcon(icon)
+        
+
     def showStatus(self, status):
         icon_name = ICON_NAMES[status]
         img = wx.Image(os.path.join(config.ICON_DIR, icon_name))
@@ -72,11 +80,11 @@ class TaskbarIcon(wx.TaskBarIcon):
             self.showStatus(self.mw.buddy_list.own_status)
 
     def onTimer(self, evt):
+        self.blink_phase = not self.blink_phase
         if self.blink_phase:
             self.showStatus(self.mw.buddy_list.own_status)
         else:
-            self.SetIcon(wx.EmptyIcon())
-        self.blink_phase = not self.blink_phase
+            self.showEvent()
 
 
 class TaskbarMenu(wx.Menu):
