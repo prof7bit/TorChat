@@ -7,7 +7,7 @@
       <language>en-us</language>
       <ttl>10</ttl>
       <item>
-         <title>Version 0.9.9.149 is released.</title>
+         <title>Version 0.9.9.149 is released</title>
          <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.149.zip</link>
          <description>Version 0.9.9.149 is ready for download. Many things
          in the GUI have been improved. Incoming messages can now be opened
@@ -17,7 +17,7 @@
          if you are running more than one instance. The annoying flicker of
          the buddy list, which was introduced with .140 has also been fixed.</description>
          <pubDate>Mon, 06 May 2008 00:00:00 GMT</pubDate>
-         <guid>0.9.9.149-1</guid>
+         <guid>0.9.9.149</guid>
       </item>
       <item>
          <title>Version 0.9.9.140 is released</title>
