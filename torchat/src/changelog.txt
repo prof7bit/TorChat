@@ -3,9 +3,9 @@ version 0.9.9.149
 - show own hostname in windows and taskbar icon
 - option to start up with hidden main window (only taskbar icon)
 - option to open new chat windows hidden (taskbar icon flashing instead)
-- show list of unread windows when right click on taskbar icon
+- show list of unread (hidden) windows when right click on taskbar icon
 - show buddy status in chat window icon
-- show list of unread windows in taskbar icon tooltip
+- show list of unread (hidden) windows in taskbar icon tooltip
 - ask before exiting when there are unread messages
 - show message with timestamp when delayed messages have been sent
  
