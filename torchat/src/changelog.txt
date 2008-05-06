@@ -1,4 +1,4 @@
-svn/head
+version 0.9.9.149
 - remove the annoying permanent flicker of the buddy list
 - show own hostname in windows and taskbar icon
 - option to start up with hidden main window (only taskbar icon)
