@@ -5,8 +5,7 @@
       <link>http://torchat.googlecode.com/</link>
       <description>Updates and news around the anonymous instant messenger TorChat</description>
       <language>en-us</language>
-      <pubDate>Mon, 06 May 2008 00:00:00 GMT</pubDate>
-      <lastBuildDate>Mon, 06 May 2003 00:00:00 GMT</lastBuildDate>
+      <ttl>10</ttl>
       <item>
          <title>Version 0.9.9.149 is released</title>
          <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.149.zip</link>
