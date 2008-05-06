@@ -40,6 +40,7 @@ STATUS_XA = 4
 
 CB_TYPE_CHAT = 1
 CB_TYPE_FILE = 2
+CB_TYPE_OFFLINE_SENT = 3
 
 def tb(level=0):
     print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
@@ -275,13 +276,13 @@ class ProtocolMsg_ping(ProtocolMsg):
         print "(3) sending pong and status to %s" % self.address    
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
+        self.buddy.can_send = True
         self.buddy.sendStatus()
         
         if self.buddy in self.bl.list:
             self.buddy.sendAddMe()
         
         self.buddy.sendVersion()
-        self.buddy.sendOfflineMessages()
 
 
 class ProtocolMsg_pong(ProtocolMsg):
@@ -315,6 +316,7 @@ class ProtocolMsg_pong(ProtocolMsg):
                 self.buddy.conn_in = self.connection
                 self.buddy.status = STATUS_ONLINE
                 self.connection.buddy = self.buddy
+                self.buddy.sendOfflineMessages()
         else:
             #there is no buddy for this pong. nothing to do.
             print "(3) strange: unknown incoming 'pong': %s" % (self.text[:30])
@@ -326,8 +328,9 @@ class ProtocolMsg_version(ProtocolMsg):
         self.version = self.text
         
     def execute(self):
-        print "(3) %s has version %s" % (self.buddy.address, self.version)
-        self.buddy.version = self.version
+        if self.buddy:
+            print "(3) %s has version %s" % (self.buddy.address, self.version)
+            self.buddy.version = self.version
 
 
 class ProtocolMsg_add_me(ProtocolMsg):
@@ -341,6 +344,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
                 self.bl.incoming_buddies.remove(self.buddy)
                 msg = "[notification] %s has added you" % self.buddy.address
                 self.bl.onChatMessage(self.buddy, msg)
+                time.sleep(1)
 
 
 class ProtocolMsg_remove_me(ProtocolMsg):
@@ -363,8 +367,9 @@ class ProtocolMsg_message(ProtocolMsg):
             if self.buddy in self.bl.list:
                 self.bl.onChatMessage(self.buddy, self.text)
             else:
+                print "(2) ***** wrong version reply to %s" % self.buddy.address
                 msg = "This is an automatic reply. "
-                msg += "You are not on my buddy list. "
+                msg += "Your version seems to be out of date."
                 msg += "Make sure you have the latest version of TorChat. "
                 self.buddy.sendChatMessage(msg)
                 self.buddy.sendRemoveMe()
@@ -510,6 +515,7 @@ class Buddy(object):
         self.conn_out = None
         self.conn_in = None
         self.status = STATUS_OFFLINE
+        self.can_send = False
         self.version = ""
     
     def connect(self):
@@ -525,6 +531,7 @@ class Buddy(object):
             self.conn_in.close()
             self.conn_in = None
         self.status = STATUS_OFFLINE
+        self.can_send = False
         
     def sendLine(self, line, conn=0):
         #conn: use outgiong or incoming connection
@@ -541,7 +548,7 @@ class Buddy(object):
 
     def sendChatMessage(self, text):
         #text must be is UTF-8 encoded
-        if self.status != STATUS_OFFLINE:
+        if self.can_send:
             message = ProtocolMsg(self.bl, None, "message", text)
             message.send(self)
         else:
@@ -554,7 +561,7 @@ class Buddy(object):
         #text must be UTF-8 encoded
         print "(2) storing offline message to %s" % self.address
         file = open(self.getOfflineFileName(), "a")
-        file.write("[offline message] " + text + "\n")
+        file.write("[delayed] " + text + "\n")
         file.close()
 
     def getOfflineMessages(self):
@@ -576,6 +583,7 @@ class Buddy(object):
             #a pong before, the receiver will have set the status to online. 
             message = ProtocolMsg(self.bl, None, "message", text)
             message.send(self)
+            self.bl.guiCallback(CB_TYPE_OFFLINE_SENT, self)
         else:
             pass
 

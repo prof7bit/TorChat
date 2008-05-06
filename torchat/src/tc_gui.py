@@ -39,7 +39,6 @@ def isWindows():
 def getStatusBitmap(status):
     return wx.Bitmap(os.path.join(config.ICON_DIR, ICON_NAMES[status]), wx.BITMAP_TYPE_PNG)
 
-
 class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
         wx.TaskBarIcon.__init__(self)
@@ -55,22 +54,28 @@ class TaskbarIcon(wx.TaskBarIcon):
         img.ConvertAlphaToMask()
         bmp = img.ConvertToBitmap()
         icon = wx.IconFromBitmap(bmp)
-        self.SetIcon(icon)
+        self.SetIcon(icon, self.getToolTipText())
         
-
     def showStatus(self, status):
         icon_name = ICON_NAMES[status]
         img = wx.Image(os.path.join(config.ICON_DIR, icon_name))
         img.ConvertAlphaToMask()
         bmp = img.ConvertToBitmap()
         icon = wx.IconFromBitmap(bmp)
-        self.SetIcon(icon, 'TorChat [%s]' % config.get("client", "own_hostname"))
+        self.SetIcon(icon, self.getToolTipText())
 
     def onLeftClick(self, evt):
         self.mw.Show(not self.mw.IsShown())
 
     def CreatePopupMenu(self):
         return TaskbarMenu(self.mw)
+
+    def getToolTipText(self):
+        text = "TorChat [%s]" % config.get("client", "own_hostname")
+        for window in self.mw.chat_windows:
+            if not window.IsShown():
+                text += "\n" + window.getTitleShort()
+        return text
 
     def blink(self, start=True):
         if start:
@@ -109,7 +114,7 @@ class TaskbarMenu(wx.Menu):
             if not window.IsShown():
                 id = wx.NewId()
                 self.wnd[id] = window
-                item = wx.MenuItem(self, id, window.GetTitle())
+                item = wx.MenuItem(self, id, window.getTitleShort())
                 item.SetBitmap(getStatusBitmap(window.buddy.status))
                 self.AppendItem(item)
                 self.Bind(wx.EVT_MENU, self.onChatWindow, item)
@@ -148,6 +153,8 @@ class TaskbarMenu(wx.Menu):
 
     def onChatWindow(self, evt):
         self.wnd[evt.GetId()].Show()
+        #force update of the tooltip text (window list)
+        self.mw.taskbar_icon.showStatus(self.mw.buddy_list.own_status)
 
     def onExit(self, evt):
         self.mw.exitProgram()
@@ -506,13 +513,15 @@ class BuddyList(wx.ListCtrl):
                 found_window = False
                 for window in self.mw.chat_windows:
                     if window.buddy == buddy:
-                        if not window.IsBeingDeleted():
-                            found_window = True
-                            break
+                        found_window = True
+                        break
                 
                 if not found_window:
                     window = ChatWindow(self.mw, buddy)
                 
+                if not window.IsShown():
+                    window.Show()
+                    
                 window.txt_out.SetFocus()
                 break
 
@@ -593,14 +602,15 @@ class StatusSwitch(wx.Button):
 
 
 class ChatWindow(wx.Frame):
-    def __init__(self, main_window, buddy, message="", hidden=False):
+    def __init__(self, main_window, buddy, message="", 
+                                    hidden=False,
+                                    notify_offline_sent=False):
         wx.Frame.__init__(self, 
                           main_window, 
                           -1, 
                           size=(400,400))
         
         self.mw = main_window
-        self.mw.chat_windows.append(self)
         self.buddy = buddy
         self.unread = 0
         self.updateTitle()
@@ -638,17 +648,26 @@ class ChatWindow(wx.Frame):
         
         om = self.buddy.getOfflineMessages()
         if om:
-            om = "[unsent offline messages]\n" + om
+            om = "[delayed messages waiting to be sent]\n" + om
             self.writeColored((0,0,192), "myself", om.decode("UTF-8"))
         
         if message != "":
             self.process(message)
         
+        if notify_offline_sent:
+            self.notifyOfflineSent()
+            
+        self.timer = wx.Timer(self, -1)
+        self.timer.Start(1000, False)
+        self.onTimer(None)
+        
+        self.Bind(wx.EVT_TIMER, self.onTimer)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.txt_out.Bind(wx.EVT_TEXT_ENTER, self.onSend)
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
+        self.mw.chat_windows.append(self)
         
     def updateTitle(self):
         if self.unread == 1:
@@ -664,6 +683,10 @@ class ChatWindow(wx.Frame):
         
         self.SetTitle(title + " [%s]" % config.get("client", "own_hostname"))
     
+    def getTitleShort(self):
+        t = self.GetTitle()
+        return t[:-19]
+    
     def writeColored(self, color, name, text):
         self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(128, 128, 128)))    
         self.txt_in.write("%s " % time.strftime(config.get("gui", "time_stamp_format")))
@@ -678,14 +701,7 @@ class ChatWindow(wx.Frame):
         self.txt_in.ScrollLines(-1)
         self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
     
-    def process(self, message):
-        if self.buddy.name != "":
-            name = self.buddy.name
-        else:
-            name = self.buddy.address
-        self.writeColored((192,0,0), name, message.decode("utf-8"))
-        
-        #notification
+    def notify(self, name, message):
         if not self.IsActive():
             if config.getint("gui", "notification_flash_window"):
                 self.RequestUserAttention(wx.USER_ATTENTION_INFO)
@@ -700,6 +716,22 @@ class ChatWindow(wx.Frame):
                     #Some platforms (Mac) dont have wx.PopupWindow
                     #FIXME: need alternative solution
                     pass
+
+        if not self.IsShown():
+            self.mw.taskbar_icon.blink()
+    
+    def notifyOfflineSent(self):
+        message = "[delayed messages have been sent]"
+        self.writeColored((0,0,192), "myself", message)
+        self.notify("to %s" % self.buddy.address, message)
+    
+    def process(self, message):
+        if self.buddy.name != "":
+            name = self.buddy.name
+        else:
+            name = self.buddy.address
+        self.writeColored((192,0,0), name, message.decode("utf-8"))
+        self.notify(name, message)
         
     def onActivate(self, evt):
         self.unread = 0
@@ -719,8 +751,13 @@ class ChatWindow(wx.Frame):
             self.writeColored((0,0,192), "myself", text)
         else:
             self.buddy.storeOfflineChatMessage(text.encode("UTF-8"))
-            self.writeColored((0,0,192), "myself", "[offline (unsent)] " + text)
+            self.writeColored((0,0,192), "myself", "[delayed] " + text)
 
+    def onTimer(self, evt):
+        bmp = getStatusBitmap(self.buddy.status)
+        icon = wx.IconFromBitmap(bmp)
+        self.SetIcon(icon)
+        
     def onURL(self, evt):
         #all URL mouse events trigger this
         if evt.GetMouseEvent().GetEventType() == wx.wxEVT_LEFT_DOWN:
@@ -926,15 +963,22 @@ class MainWindow(wx.Frame):
             buddy, message = callback_data
             for window in self.chat_windows:
                 if window.buddy == buddy:
-                    if not window.IsBeingDeleted():
-                        wx.CallAfter(window.process, message)
-                        return
+                    wx.CallAfter(window.process, message)
+                    return
             
             #no window found, so we create a new one
             hidden = config.getint("gui", "open_chat_window_hidden")
             wx.CallAfter(ChatWindow, self, buddy, message, hidden)
-            if hidden:
-                wx.CallAfter(self.taskbar_icon.blink, True)
+
+        if callback_type == tc_client.CB_TYPE_OFFLINE_SENT:
+            buddy = callback_data
+            for window in self.chat_windows:
+                if window.buddy == buddy:
+                    wx.CallAfter(window.notifyOfflineSent)
+                    return
+                    
+            hidden = config.getint("gui", "open_chat_window_hidden")
+            wx.CallAfter(ChatWindow, self, buddy, "", hidden, notify_offline_sent=True)
 
         if callback_type == tc_client.CB_TYPE_FILE:
             #this happens when an incoming file transfer was initialized
@@ -972,6 +1016,23 @@ class MainWindow(wx.Frame):
         self.Show(False)
         
     def exitProgram(self):
+        found_unread = False
+        for window in self.chat_windows:
+            if not window.IsShown() or window.unread:
+                found_unread = True
+                break
+            
+        if found_unread:
+            msg = "There are unread messages.\n"
+            msg += "They will be lost forever!\n\n"
+            msg += "Do you really want to exit TorChat now?"
+            answer = wx.MessageBox(msg,
+                                   "TorChat: Unread messages", 
+                                   wx.YES_NO|wx.NO_DEFAULT)
+
+            if answer == wx.NO:
+                return
+        
         for buddy in self.buddy_list.list:
             if buddy.conn_out != None:
                 buddy.conn_out.close()
