@@ -449,15 +449,16 @@ class ProtocolMsg_filedata_ok(ProtocolMsg):
         self.start = int(start)
         
     def execute(self):
-        sender = self.bl.getFileSender(self.buddy.address, self.id)
-        if sender:
-            sender.receivedOK(self.start)
-        else:
-            #there is no sender (anymore) to handle confirmation messages
-            #so we can send a stop message to tell the other side
-            #to stop receiving  
-            msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
-            msg.send(self.buddy)
+        if self.buddy:
+            sender = self.bl.getFileSender(self.buddy.address, self.id)
+            if sender:
+                sender.receivedOK(self.start)
+            else:
+                #there is no sender (anymore) to handle confirmation messages
+                #so we can send a stop message to tell the other side
+                #to stop receiving  
+                msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
+                msg.send(self.buddy)
       
       
 class ProtocolMsg_filedata_error(ProtocolMsg):
@@ -467,12 +468,13 @@ class ProtocolMsg_filedata_error(ProtocolMsg):
         self.start = int(start)
         
     def execute(self):
-        sender = self.bl.getFileSender(self.buddy.address, self.id)
-        if sender:
-            sender.restart(self.start)
-        else:        
-            msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
-            msg.send(self.buddy)
+        if self.buddy:
+            sender = self.bl.getFileSender(self.buddy.address, self.id)
+            if sender:
+                sender.restart(self.start)
+            else:        
+                msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
+                msg.send(self.buddy)
 
 
 class ProtocolMsg_file_stop_sending(ProtocolMsg):
@@ -483,11 +485,12 @@ class ProtocolMsg_file_stop_sending(ProtocolMsg):
         self.id = self.text
     
     def execute(self):
-        sender = self.bl.getFileSender(self.buddy.address, self.id)
-        if sender:
-            #close the sender (if not already closed)
-            #otherwise just ignore it
-            sender.close()
+        if self.buddy:
+            sender = self.bl.getFileSender(self.buddy.address, self.id)
+            if sender:
+                #close the sender (if not already closed)
+                #otherwise just ignore it
+                sender.close()
         
 
 class ProtocolMsg_file_stop_receiving(ProtocolMsg):
@@ -498,11 +501,12 @@ class ProtocolMsg_file_stop_receiving(ProtocolMsg):
         self.id = self.text
     
     def execute(self):
-        receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
-        if receiver:
-            #close the receiver (if not already closed)
-            #otherwise just ignore it
-            receiver.closeForced()
+        if self.buddy:
+            receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
+            if receiver:
+                #close the receiver (if not already closed)
+                #otherwise just ignore it
+                receiver.closeForced()
         
     
 class Buddy(object):
