@@ -42,67 +42,7 @@ CB_TYPE_CHAT = 1
 CB_TYPE_FILE = 2
 CB_TYPE_OFFLINE_SENT = 3
 
-def tb(level=0):
-    print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
-
-class LogWriter:
-    def __init__(self):
-        self.stdout = sys.stdout
-        sys.stdout = self
-        sys.stderr = self
-        self.level = config.getint("logging", "log_level")
-        self.file_name = config.get("logging", "log_file")
-        if  self.level and self.file_name:
-            try:
-                self.logfile = open(self.file_name, 'w')
-                print "(1) started logging to file '%s'" % os.path.abspath(self.file_name)
-            except:
-                tb(0)
-                print "(0) could not open logfile '%s'" % os.path.abspath(self.file_name)
-                print "(0) logging only to stdout"
-        print "(1) current log level is '%i'" % self.level
-
-    def write(self, text):
-        text = text.rstrip()
-        if text == "":
-            return
-        text += "\n"
-        try:
-            x = text[0]
-            y = text[2]
-            if x == "(" and y == ")":
-                level = int(text[1])
-            else:
-                text = "(0) " + text
-                level = 0
-        except:
-            text = "(0) " + text
-            level = 0
-
-        if level <= self.level:
-            try:
-                frame = inspect.getframeinfo(inspect.currentframe(1))
-                module = os.path.basename(frame[0])
-                line = frame[1]
-                func = frame[2]
-                pos = "%s line %i in %s -" % (module, line, func)
-                text = text[0:4] + pos + text[3:]
-            except:
-                pass
-            self.stdout.write(text)
-            self.stdout.flush()
-            try:
-                self.logfile.write(text)
-                self.logfile.flush()
-            except:
-                pass
-
-    def close(self):
-        self.stdout.close()
-        self.logfile.close()
-
-LogWriter()
-print "(1) LogWriter initialized"
+tb = config.tb # the traceback function has moved to config
 
 def isWindows():
     return "win" in sys.platform
@@ -511,6 +451,7 @@ class ProtocolMsg_file_stop_receiving(ProtocolMsg):
     
 class Buddy(object):
     def __init__(self, address, buddy_list, name=""):
+        print "(2) initializing buddy %s" % address
         self.bl = buddy_list
         self.address = address
         self.name = name
@@ -652,6 +593,7 @@ class BuddyList(object):
     #a reference to the one and only BuddyList object around 
     #to be able to find and interact with other objects.
     def __init__(self, guiCallback):
+        print "(1) initializing buddy list"
         self.guiCallback = guiCallback
         
         if config.isPortable():
@@ -695,12 +637,14 @@ class BuddyList(object):
                 found = True
         
         if not found:
+            print "(1) adding own hostname %s to list" % config.get("client", "own_hostname")
             if config.get("client", "own_hostname") != "0000000000000000":
                 self.addBuddy(Buddy(config.get("client", "own_hostname"), 
                                     self, 
                                     "myself"))
         
         self.onTimer()
+        print "(1) buddy list initialized"
 
     def save(self):
         f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
@@ -708,6 +652,7 @@ class BuddyList(object):
             line = "%s %s" % (buddy.address, buddy.name.encode("UTF-8"))
             f.write("%s\r\n" % line.rstrip())
         f.close()
+        print "(2) buddy list saved"
 
     def onTimer(self):
         average_time = 15.0
@@ -720,12 +665,15 @@ class BuddyList(object):
         if len(self.list) > 0:
             random_index = random.randrange(0, len(self.list))
             random_buddy = self.list[random_index]
+            print "(3) random buddy %s.keepAlive()" % random_buddy.address
             random_buddy.keepAlive()
         
             interval = float(average_time)/len(self.list)
         else:
+            print "(3) buddy-list is empty"
             interval = 15
-            
+        
+        print "(3) next buddy-list timer event in %f seconds" % interval
         self.timer = threading.Timer(interval, self.onTimer)
         self.timer.start()
         

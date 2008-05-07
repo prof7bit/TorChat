@@ -945,7 +945,7 @@ class MainWindow(wx.Frame):
         if config.get("logging", "log_file") and config.getint("logging", "log_level"):
             print "(0) logging to file may leave sensitive information on disk"
             msg = "Logging to file is activated!" 
-            msg += "\n\nLog File: %s" % os.path.abspath(config.get("logging", "log_file"))
+            msg += "\n\nLog File: %s" % config.log_writer.file_name
             msg += "\n\nRemember to delete the log file if you have finished debugging"
             msg += "\nbecause the log file may contain sensitive information."
             wx.MessageBox(msg, "TorChat: Logging is active", wx.ICON_WARNING)

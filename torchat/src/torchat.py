@@ -15,18 +15,19 @@
 #                                                                            #
 ##############################################################################
 
+import config
 import os
 import wx
 import tc_gui
-import config
         
 def main():
-    os.chdir(config.getScriptDir())
     app = wx.App(redirect=False)
+    print "(1) start initializing main window"
     app.mw = tc_gui.MainWindow()
     app.SetTopWindow(app.mw)
+    print "(1) main window initialized"
+    print "(1) entering main loop"
     app.MainLoop()
-
 
 if __name__ == "__main__":
     main()

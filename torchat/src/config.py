@@ -1,5 +1,7 @@
 import sys, os
 import ConfigParser
+import traceback
+import inspect
 
 config_defaults = {
     ("tor", "tor_server") : "127.0.0.1",
@@ -104,4 +106,71 @@ def set(section, option, value):
     config.set(section, option, value)
     writeConfig()
 
+def tb(level=0):
+    print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
+
+class LogWriter:
+    def __init__(self):
+        old_dir = os.getcwd()
+        os.chdir(getDataDir())
+        #if log_file is a relative path then let it be relative to DataDir()
+        self.file_name = os.path.abspath(get("logging", "log_file"))
+        os.chdir(old_dir)
+        self.stdout = sys.stdout
+        sys.stdout = self
+        sys.stderr = self
+        self.level = getint("logging", "log_level")
+        if  self.level and self.file_name:
+            try:
+                self.logfile = open(self.file_name, 'w')
+                print "(1) started logging to file '%s'" % self.file_name
+            except:
+                tb(0)
+                print "(0) could not open logfile '%s'" % self.file_name
+                print "(0) logging only to stdout"
+        print "(1) current log level is %i" % self.level
+        print "(1) LogWriter initialized"
+
+    def write(self, text):
+        text = text.rstrip()
+        if text == "":
+            return
+        text += "\n"
+        try:
+            x = text[0]
+            y = text[2]
+            if x == "(" and y == ")":
+                level = int(text[1])
+            else:
+                text = "(0) " + text
+                level = 0
+        except:
+            text = "(0) " + text
+            level = 0
+
+        if level <= self.level:
+            try:
+                frame = inspect.getframeinfo(inspect.currentframe(1))
+                module = os.path.basename(frame[0])
+                line = frame[1]
+                func = frame[2]
+                pos = "%s line %i in %s -" % (module, line, func)
+                text = text[0:4] + pos + text[3:]
+            except:
+                pass
+            self.stdout.write(text)
+            self.stdout.flush()
+            try:
+                self.logfile.write(text)
+                self.logfile.flush()
+            except:
+                pass
+
+    def close(self):
+        self.stdout.close()
+        self.logfile.close()
+
+#many things are relative to the script directory, so set is as the cwd
+os.chdir(getScriptDir())
 readConfig()
+log_writer = LogWriter()
