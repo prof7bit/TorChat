@@ -14,6 +14,7 @@
 #                                                                            #
 ##############################################################################
 
+import config
 import wx
 import tc_client
 import sys
@@ -23,8 +24,7 @@ import subprocess
 import textwrap
 import threading
 import version
-import config
-
+import lang
 
 ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
               tc_client.STATUS_ONLINE : "online.png",
@@ -100,7 +100,7 @@ class TaskbarMenu(wx.Menu):
 
         # show/hide
 
-        item = wx.MenuItem(self, wx.NewId(), "Show/Hide TorChat")
+        item = wx.MenuItem(self, wx.NewId(), lang.SHOW_HIDE_TORCHAT)
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onShowHide, item)
 
@@ -125,17 +125,17 @@ class TaskbarMenu(wx.Menu):
 
         # status
 
-        item = wx.MenuItem(self, wx.NewId(), "Available")
+        item = wx.MenuItem(self, wx.NewId(), lang.AVAILABLE)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAvailable, item)
 
-        item = wx.MenuItem(self, wx.NewId(), "Away")
+        item = wx.MenuItem(self, wx.NewId(), lang.AWAY)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAway, item)
 
-        item = wx.MenuItem(self, wx.NewId(), "Extended Away")
+        item = wx.MenuItem(self, wx.NewId(), lang.EXTENDED_AWAY)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onXA, item)
@@ -144,7 +144,7 @@ class TaskbarMenu(wx.Menu):
 
         # quit
         
-        item = wx.MenuItem(self, wx.NewId(), "Quit")
+        item = wx.MenuItem(self, wx.NewId(), lang.QUIT)
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onExit, item)
 

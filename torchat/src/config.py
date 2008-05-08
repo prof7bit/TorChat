@@ -2,6 +2,7 @@ import sys, os
 import ConfigParser
 import traceback
 import inspect
+import lang
 
 config_defaults = {
     ("tor", "tor_server") : "127.0.0.1",
@@ -15,6 +16,7 @@ config_defaults = {
     ("client", "listen_port") : 11009,
     ("logging", "log_file") : "",
     ("logging", "log_level") : 0,
+    ("gui", "language") : "en",
     ("gui", "notification_popup") : 1,
     ("gui", "notification_flash_window") : 1,
     ("gui", "open_main_window_hidden") : 0,
@@ -109,6 +111,24 @@ def set(section, option, value):
 def tb(level=0):
     print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
 
+def importLanguage():
+    lang_xx = "lang_" + get("gui", "language")
+    if lang_xx == "lang_en":
+        #this is the standard. nothing to replace.
+        return
+    
+    print "(1) trying to import language module %s.py" % lang_xx
+    try:
+        #this will replace all strings in lang which have a translation 
+        #in lang_xx by replacing the bindings in lang's namespace at runtime
+        dict_std = lang.__dict__
+        dict_trans = __import__(lang_xx).__dict__
+        for key in dict_trans.keys():
+            dict_std[key] = dict_trans[key]
+    except:
+        print "(0) language module %s.py not found" % lang_xx
+
+
 class LogWriter:
     def __init__(self):
         old_dir = os.getcwd()
@@ -133,7 +153,9 @@ class LogWriter:
 
     def write(self, text):
         text = text.rstrip()
-        if text == "":
+        if text == "":        #dict is the __dict__ of the standard lang module
+        #dict_trans is the __dict__ of the translation
+
             return
         text += "\n"
         try:
@@ -174,3 +196,4 @@ class LogWriter:
 os.chdir(getScriptDir())
 readConfig()
 log_writer = LogWriter()
+importLanguage()
