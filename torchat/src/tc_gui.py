@@ -24,7 +24,9 @@ import subprocess
 import textwrap
 import threading
 import version
-import lang
+import translations
+lang = translations.lang_en
+tb = config.tb
 
 ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
               tc_client.STATUS_ONLINE : "online.png",
@@ -325,7 +327,8 @@ class PopupMenu(wx.Menu):
         wx.MessageBox(lang.ABOUT_TEXT % {"version":version.VERSION, 
                                          "copyright":config.COPYRIGHT,
                                          "python":".".join(str(x) for x in sys.version_info),
-                                         "wx":wx.version()}, 
+                                         "wx":wx.version(),
+                                         "translators":config.getTranslators()}, 
                       lang.ABOUT_TITLE)
 
     def onAskAuthor(self, evt):

@@ -10,6 +10,10 @@
 #                                                                            #
 ##############################################################################
 
+LANGUAGE_CODE = u"de"
+LANGUAGE_NAME = u"Deutsch"
+TRANSLATOR_NAMES = [u"Bernd Kreuß"]
+
 #buttons
 BTN_CANCEL = u"Abbrechen"
 BTN_OK = u"Ok"
@@ -73,8 +77,8 @@ ABOUT_TITLE = u"Über TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s
   %(copyright)s
 
-Deutsche Übersetzung: 
-  Bernd Kreuß <prof7bit@gmail.com>
+Übersetzungen: 
+  %(translators)s
 
 Laufzeitumgebung:
   Python: %(python)s

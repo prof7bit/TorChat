@@ -10,6 +10,10 @@
 #                                                                            #
 ##############################################################################
 
+LANGUAGE_CODE = u"en"
+LANGUAGE_NAME = u"English"
+TRANSLATOR_NAMES = []
+
 #buttons
 BTN_CANCEL = u"Cancel"
 BTN_OK = u"Ok"
@@ -72,6 +76,9 @@ NOTICE_DELAYED = u"delayed"
 ABOUT_TITLE = u"About TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s
   %(copyright)s
+
+Translations: 
+  %(translators)s
 
 Runtime environment:
   Python: %(python)s

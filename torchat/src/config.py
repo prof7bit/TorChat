@@ -4,7 +4,7 @@ import sys, os
 import ConfigParser
 import traceback
 import inspect
-import lang
+import translations
 
 config_defaults = {
     ("tor", "tor_server") : "127.0.0.1",
@@ -114,22 +114,60 @@ def set(section, option, value):
 def tb(level=0):
     print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
 
+def getTranslators():
+    translators = []
+    for mname in translations.__dict__:
+        if mname[:5] == "lang_":
+            m = translations.__dict__[mname]
+            try:
+                lcode = m.LANGUAGE_CODE
+                lname = m.LANGUAGE_NAME
+                ltrans = m.TRANSLATOR_NAMES
+                for person in ltrans:
+                    new_entry = "%s (%s [%s])" % (person, lname, lcode)
+                    if not new_entry in translators:
+                        translators.append(new_entry) 
+            except:
+                pass
+    return ", ".join(translators)
+
 def importLanguage():
     lang_xx = "lang_" + get("gui", "language")
     if lang_xx == "lang_en":
-        #this is the standard. nothing to replace.
+        #lang_en is the standard translation. nothing to replace.
         return
     
-    print "(1) trying to import language module %s.py" % lang_xx
+    if not getScriptDir() in sys.path:
+        #make sure that script dir is in sys.path (py2exe etc.)
+        print "(1) putting script directory into module search path"
+        sys.path.insert(0, getScriptDir())
+
+    dict_std = translations.lang_en.__dict__
+    print "(1) trying to import language module %s" % lang_xx
     try:
-        #this will replace all strings in lang which have a translation 
-        #in lang_xx by replacing the bindings in lang's namespace at runtime
-        dict_std = lang.__dict__
+        #first we try to find a language module in the script dir
         dict_trans = __import__(lang_xx).__dict__
-        for key in dict_trans.keys():
-            dict_std[key] = dict_trans[key]
+        print "(1) found custom language module %s.py" % lang_xx
     except:
-        print "(0) language module %s.py not found" % lang_xx
+        #nothing found, so we try the built in translations 
+        if lang_xx in translations.__dict__:
+            print "(1) found built in language module %s" % lang_xx
+            dict_trans = translations.__dict__[lang_xx].__dict__
+        else:
+            print "(0) translation module %s not found"
+            dict_trans = None
+            
+    if dict_trans:
+        #find missing translations and report them in the log
+        for key in dict_std:
+            if not key in dict_trans:
+                print "(2) %s is missing translation for %s" % (lang_xx, key)
+        #replace the bindings in lang_en with those from lang_xx
+        for key in dict_trans:
+            if not key in dict_std:
+                print "(2) unused %s in %s" % (key, lang_xx)
+            else:
+                dict_std[key] = dict_trans[key]
 
 
 class LogWriter:
