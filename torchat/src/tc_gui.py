@@ -100,7 +100,7 @@ class TaskbarMenu(wx.Menu):
 
         # show/hide
 
-        item = wx.MenuItem(self, wx.NewId(), lang.SHOW_HIDE_TORCHAT)
+        item = wx.MenuItem(self, wx.NewId(), lang.MTB_SHOW_HIDE_TORCHAT)
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onShowHide, item)
 
@@ -125,17 +125,17 @@ class TaskbarMenu(wx.Menu):
 
         # status
 
-        item = wx.MenuItem(self, wx.NewId(), lang.AVAILABLE)
+        item = wx.MenuItem(self, wx.NewId(), lang.ST_AVAILABLE)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAvailable, item)
 
-        item = wx.MenuItem(self, wx.NewId(), lang.AWAY)
+        item = wx.MenuItem(self, wx.NewId(), lang.ST_AWAY)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAway, item)
 
-        item = wx.MenuItem(self, wx.NewId(), lang.EXTENDED_AWAY)
+        item = wx.MenuItem(self, wx.NewId(), lang.ST_EXTENDED_AWAY)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onXA, item)
@@ -144,7 +144,7 @@ class TaskbarMenu(wx.Menu):
 
         # quit
         
-        item = wx.MenuItem(self, wx.NewId(), lang.QUIT)
+        item = wx.MenuItem(self, wx.NewId(), lang.MTB_QUIT)
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onExit, item)
 
@@ -231,32 +231,32 @@ class PopupMenu(wx.Menu):
         # options for buddy
 
         if type == "contact": 
-            item = wx.MenuItem(self, wx.NewId(), "Chat")
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_CHAT)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.mw.gui_bl.onDClick, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Send file...")
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SEND_FILE)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onSendFile, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Edit contact...")
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_EDIT_CONTACT)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onEdit, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Delete contact...")
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_DELETE_CONTACT)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onDelete, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Show queued offline messages ")
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SHOW_OFFLINE_MESSAGES)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onShowOffline, item)
 
-            item = wx.MenuItem(self, wx.NewId(), "Clear queued offline messages ")
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_CLEAR_OFFLINE_MESSAGES)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onClearOffline, item)
 
         if type == "empty": 
-            item = wx.MenuItem(self, wx.NewId(), "Add contact...")
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ADD_CONTACT)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onAdd, item)
 
@@ -264,7 +264,7 @@ class PopupMenu(wx.Menu):
 
         #about
         
-        item = wx.MenuItem(self, wx.NewId(), "About TorChat")
+        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ABOUT)
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAbout, item)
 
@@ -272,7 +272,7 @@ class PopupMenu(wx.Menu):
         
         if type == "empty": 
             self.AppendSeparator()
-            item = wx.MenuItem(self, wx.NewId(), "Ask %s" % config.AUTHORS_NAME)
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ASK_AUTHOR % config.AUTHORS_NAME)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onAskAuthor, item)
 
@@ -290,9 +290,8 @@ class PopupMenu(wx.Menu):
 
     def onDelete(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
-        answer = wx.MessageBox("Really delete this contact?\n%s\n%s" 
-                               % (buddy.address, buddy.name), 
-                               "Confirm deletion", 
+        answer = wx.MessageBox(lang.D_CONFIRM_DELETE_MESSAGE % (buddy.address, buddy.name), 
+                               lang.D_CONFIRM_DELETE_TITLE, 
                                wx.YES_NO|wx.NO_DEFAULT)
         if answer == wx.YES:
             #remove from list without disconnecting
@@ -323,11 +322,12 @@ class PopupMenu(wx.Menu):
         dialog.ShowModal()
 
     def onAbout(self, evt):
-        wx.MessageBox(about_text, "About TorChat")
+        wx.MessageBox(lang.ABOUT_TEXT % version.VERSION, 
+                      lang.ABOUT_TITLE)
 
     def onAskAuthor(self, evt):
         if self.mw.buddy_list.getBuddyFromAddress(config.AUTHORS_ID):
-            wx.MessageBox("%s is already on your list" % config.AUTHORS_NAME)
+            wx.MessageBox(lang.DEC_MSG_ALREADY_ON_LIST % config.AUTHORS_NAME)
         else:
             dialog = DlgEditContact(self.mw, add_author=True)
             dialog.ShowModal()
@@ -340,11 +340,11 @@ class DlgEditContact(wx.Dialog):
         self.bl = self.mw.buddy_list
         self.buddy = buddy
         if buddy == None:
-            self.SetTitle("Add new contact")
+            self.SetTitle(lang.DEC_TITLE_ADD)
             address = ""
             name = ""
         else:
-            self.SetTitle("Edit contact")
+            self.SetTitle(lang.DEC_TITLE_EDIT)
             address = buddy.address
             name = buddy.name
 
@@ -357,7 +357,7 @@ class DlgEditContact(wx.Dialog):
         
         #address
         row = 0
-        lbl = wx.StaticText(self.panel, -1, "TorChat ID")
+        lbl = wx.StaticText(self.panel, -1, lang.DEC_TORCHAT_ID)
         sizer.Add(lbl, (row, 0))
         
         self.txt_address = wx.TextCtrl(self.panel, -1, address)
@@ -366,7 +366,7 @@ class DlgEditContact(wx.Dialog):
         
         #name
         row += 1
-        lbl = wx.StaticText(self.panel, -1, "Display name")
+        lbl = wx.StaticText(self.panel, -1, lang.DEC_DISPLAY_NAME)
         sizer.Add(lbl, (row, 0))
         
         self.txt_name = wx.TextCtrl(self.panel, -1, name)
@@ -376,7 +376,7 @@ class DlgEditContact(wx.Dialog):
         #add-me message (new buddies)
         if not self.buddy:
             row += 1
-            lbl = wx.StaticText(self.panel, -1, "Introduction")
+            lbl = wx.StaticText(self.panel, -1, lang.DEC_INTRODUCTION)
             sizer.Add(lbl, (row, 0))
 
             self.txt_intro = wx.TextCtrl(self.panel, -1, "hello, my friend...")
@@ -389,10 +389,10 @@ class DlgEditContact(wx.Dialog):
         
         #buttons
         row += 1
-        self.btn_cancel = wx.Button(self.panel, -1, "Cancel")
+        self.btn_cancel = wx.Button(self.panel, -1, lang.BTN_CANCEL)
         sizer.Add(self.btn_cancel, (row, 1), flag=wx.EXPAND)
         
-        self.btn_ok = wx.Button(self.panel, -1, "Ok")
+        self.btn_ok = wx.Button(self.panel, -1, lang.BTN_OK)
         self.btn_ok.SetDefault()
         sizer.Add(self.btn_ok, (row, 2), flag=wx.EXPAND)
         
@@ -408,12 +408,12 @@ class DlgEditContact(wx.Dialog):
         address = self.txt_address.GetValue().rstrip().lstrip()
         if len(address) != 16:
             l = len(address)
-            wx.MessageBox("The address must be 16 characters long, not %i." % l)
+            wx.MessageBox(lang.DEC_MSG_16_CHARACTERS % l)
             return
         
         for c in address:
             if c not in "0123456789abcdefghijklmnopqrstuvwxyz":
-                wx.MessageBox("The address must only contain numbers and lowercase letters")
+                wx.MessageBox(lang.DEC_MSG_ONLY_ALPANUM)
                 return
             
         if self.buddy == None:
@@ -422,7 +422,7 @@ class DlgEditContact(wx.Dialog):
                           self.txt_name.GetValue())
             res = self.bl.addBuddy(buddy)
             if res == False:
-                wx.MessageBox("This contact is already on your list")
+                wx.MessageBox(lang.DEC_MSG_ALREADY_ON_LIST % address)
             else:
                 buddy.storeOfflineChatMessage(self.txt_intro.GetValue().encode("UTF-8"))
         else:
@@ -550,17 +550,17 @@ class StatusSwitchList(wx.Menu):
         wx.Menu.__init__(self)
         self.status_switch = status_switch
 
-        item = wx.MenuItem(self, wx.NewId(), "Available")
+        item = wx.MenuItem(self, wx.NewId(), lang.ST_AVAILABLE)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_ONLINE))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAvailable, item)
 
-        item = wx.MenuItem(self, wx.NewId(), "Away")
+        item = wx.MenuItem(self, wx.NewId(), lang.ST_AWAY)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_AWAY))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onAway, item)
 
-        item = wx.MenuItem(self, wx.NewId(), "Extended Away")
+        item = wx.MenuItem(self, wx.NewId(), lang.ST_EXTENDED_AWAY)
         item.SetBitmap(getStatusBitmap(tc_client.STATUS_XA))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.status_switch.onXA, item)
@@ -591,13 +591,13 @@ class StatusSwitch(wx.Button):
         self.status = status
         self.main_window.setStatus(status)
         if status == tc_client.STATUS_AWAY:
-            status_text = "Away"
+            status_text = lang.ST_AWAY
         if status == tc_client.STATUS_XA:
-            status_text = "Extended Away"
+            status_text = lang.ST_EXTENDED_AWAY
         if status == tc_client.STATUS_ONLINE:
-            status_text = "Available"
+            status_text = lang.ST_AVAILABLE
         if status == tc_client.STATUS_OFFLINE:
-            status_text = "Offline"
+            status_text = lang.ST_OFFLINE
         self.SetLabel(status_text)
 
 
@@ -648,7 +648,7 @@ class ChatWindow(wx.Frame):
         
         om = self.buddy.getOfflineMessages()
         if om:
-            om = "[delayed messages waiting to be sent]\n" + om
+            om = "[%s]\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
             self.writeColored((0,0,192), "myself", om.decode("UTF-8"))
         
         if message != "":
@@ -721,7 +721,7 @@ class ChatWindow(wx.Frame):
             self.mw.taskbar_icon.blink()
     
     def notifyOfflineSent(self):
-        message = "[delayed messages have been sent]"
+        message = "[%s]" % lang.NOTICE_DELAYED_MSG_SENT
         self.writeColored((0,0,192), "myself", message)
         self.notify("to %s" % self.buddy.address, message)
     
@@ -748,10 +748,14 @@ class ChatWindow(wx.Frame):
         wx.CallAfter(self.txt_out.SetValue, "")
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
             self.buddy.sendChatMessage(text.encode("UTF-8"))
-            self.writeColored((0,0,192), "myself", text)
+            self.writeColored((0,0,192), 
+                              "myself", 
+                              text)
         else:
             self.buddy.storeOfflineChatMessage(text.encode("UTF-8"))
-            self.writeColored((0,0,192), "myself", "[delayed] " + text)
+            self.writeColored((0,0,192), 
+                              "myself", 
+                              "[%s] %s" % (lang.NOTICE_DELAYED, text))
 
     def onTimer(self, evt):
         bmp = getStatusBitmap(self.buddy.status)
@@ -815,13 +819,13 @@ class FileTransferWindow(wx.Frame):
         self.progress_bar = wx.Gauge(self.panel)
         grid_sizer.Add(self.progress_bar, (1, 0), (1, 4), wx.EXPAND)
         
-        self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, "Cancel")
+        self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
         
         if self.is_receiver:
             grid_sizer.Add(self.btn_cancel, (2, 2))
             
-            self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, "Save as...")
+            self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, lang.BTN_SAVE_AS)
             grid_sizer.Add(self.btn_save, (2, 3))
             self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
         else:
@@ -848,13 +852,13 @@ class FileTransferWindow(wx.Frame):
         self.progress_bar.SetValue(percent)
         
         if self.is_receiver:
-            text = "receiving %s\nfrom %s\n%04.1f%% (%i of %i bytes)" \
+            text = lang.DFT_RECEIVE \
                 % (os.path.basename(self.file_name), 
                    peer_name, percent, 
                    self.bytes_complete, 
                    self.bytes_total)
         else:
-            text = "sending %s\nto %s\n%04.1f%% (%i of %i bytes)" \
+            text = lang.DFT_SEND \
                 % (os.path.basename(self.file_name), 
                    peer_name, percent, 
                    self.bytes_complete, 
@@ -862,7 +866,7 @@ class FileTransferWindow(wx.Frame):
                 
         if self.error:
             text = self.error_msg
-            self.btn_cancel.SetLabel("Close")
+            self.btn_cancel.SetLabel(lang.BTN_CLOSE)
             if self.is_receiver:
                 self.btn_save.Enable(False)
             
@@ -872,9 +876,9 @@ class FileTransferWindow(wx.Frame):
             self.completed = True
             if self.is_receiver:
                 if self.file_name_save != "":
-                    self.btn_cancel.SetLabel("Close")
+                    self.btn_cancel.SetLabel(lang.BTN_CLOSE)
             else:
-                self.btn_cancel.SetLabel("Close")
+                self.btn_cancel.SetLabel(lang.BTN_CLOSE)
         
     def onDataChange(self, total, complete, error_msg=""):
         #will be called from the FileSender/FileReceiver-object in the
@@ -944,11 +948,9 @@ class MainWindow(wx.Frame):
         
         if config.get("logging", "log_file") and config.getint("logging", "log_level"):
             print "(0) logging to file may leave sensitive information on disk"
-            msg = "Logging to file is activated!" 
-            msg += "\n\nLog File: %s" % config.log_writer.file_name
-            msg += "\n\nRemember to delete the log file if you have finished debugging"
-            msg += "\nbecause the log file may contain sensitive information."
-            wx.MessageBox(msg, "TorChat: Logging is active", wx.ICON_WARNING)
+            wx.MessageBox(lang.D_LOG_WARNING_MESSAGE % config.log_writer.file_name, 
+                          lang.D_LOG_WARNING_TITLE, 
+                          wx.ICON_WARNING)
             
     def setStatus(self, status):
         self.buddy_list.setStatus(status)
@@ -1023,11 +1025,8 @@ class MainWindow(wx.Frame):
                 break
             
         if found_unread:
-            msg = "There are unread messages.\n"
-            msg += "They will be lost forever!\n\n"
-            msg += "Do you really want to exit TorChat now?"
-            answer = wx.MessageBox(msg,
-                                   "TorChat: Unread messages", 
+            answer = wx.MessageBox(lang.D_WARN_UNREAD_MESSAGE,
+                                   lang.D_WARN_UNREAD_TITLE, 
                                    wx.YES_NO|wx.NO_DEFAULT)
 
             if answer == wx.NO:
@@ -1054,25 +1053,3 @@ class MainWindow(wx.Frame):
         # still alive? obscure new windows version?
         sys.exit() # take that...
 
-about_text = """TorChat %s
-Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
-    
-TorChat is free software: you can redistribute it and/or \
-modify it under the terms of the GNU General Public \
-License as published by the Free Software Foundation, \
-either version 3 of the License, or (at your option) \
-any later version.
-
-TorChat is distributed in the hope that it will be useful, \
-but WITHOUT ANY WARRANTY; without even the implied \
-warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. \
-See the GNU General Public License for more details.
-
-*
-
-And now for something completely different:
-
-If you happen to run a software company in germany and are in \
-need of a new coder, feel free to regard this little program \
-as my application documents and drop me a mail with your answer.
-""" % version.VERSION
