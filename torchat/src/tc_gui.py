@@ -322,7 +322,10 @@ class PopupMenu(wx.Menu):
         dialog.ShowModal()
 
     def onAbout(self, evt):
-        wx.MessageBox(lang.ABOUT_TEXT % version.VERSION, 
+        wx.MessageBox(lang.ABOUT_TEXT % {"version":version.VERSION, 
+                                         "copyright":config.COPYRIGHT,
+                                         "python":".".join(str(x) for x in sys.version_info),
+                                         "wx":wx.version()}, 
                       lang.ABOUT_TITLE)
 
     def onAskAuthor(self, evt):

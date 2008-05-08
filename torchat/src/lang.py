@@ -70,8 +70,12 @@ NOTICE_DELAYED = u"delayed"
 
 #about box
 ABOUT_TITLE = u"About TorChat"
-ABOUT_TEXT = u"""TorChat %s
-Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
+ABOUT_TEXT = u"""TorChat %(version)s
+  %(copyright)s
+
+Runtime environment:
+  Python: %(python)s
+  wx: %(wx)s
     
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
@@ -88,7 +92,7 @@ See the GNU General Public License for more details.
 
 And now for something completely different:
 
-If you happen to run a software company in germany and are in \
-need of a new coder, feel free to regard this little program \
+If you happen to run a software company near Hannover, Germany and \
+are in need of a new coder, feel free to regard this little program \
 as my application documents and drop me a mail with your answer.
 """

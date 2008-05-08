@@ -70,25 +70,38 @@ NOTICE_DELAYED = u"Verzögert"
 
 #about box
 ABOUT_TITLE = u"Über TorChat"
-ABOUT_TEXT = u"""TorChat %s
-Copyright (c) 2007 Bernd Kreuss <prof7bit@gmail.com>
-    
-TorChat is free software: you can redistribute it and/or \
-modify it under the terms of the GNU General Public \
-License as published by the Free Software Foundation, \
-either version 3 of the License, or (at your option) \
-any later version.
+ABOUT_TEXT = u"""TorChat %(version)s
+  %(copyright)s
 
-TorChat is distributed in the hope that it will be useful, \
-but WITHOUT ANY WARRANTY; without even the implied \
-warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. \
-See the GNU General Public License for more details.
+Deutsche Übersetzung: 
+  Bernd Kreuß <prof7bit@gmail.com>
+
+Laufzeitumgebung:
+  Python: %(python)s
+  wx: %(wx)s
+    
+Dieses Programm ist freie Software. Sie können es unter den \
+Bedingungen der GNU General Public License, wie von der \
+Free Software Foundation veröffentlicht, weitergeben und/oder \
+modifizieren, entweder gemäß Version 3 der Lizenz oder \
+(nach Ihrer Option) jeder späteren Version.
+
+Die Veröffentlichung dieses Programms erfolgt in der Hoffnung, \
+daß es Ihnen von Nutzen sein wird, aber OHNE IRGENDEINE GARANTIE, \
+sogar ohne die implizite Garantie der MARKTREIFE oder der \
+VERWENDBARKEIT FÜR EINEN BESTIMMTEN ZWECK. Details finden Sie \
+in der GNU General Public License.
+
+Sie sollten ein Exemplar der GNU General Public License zusammen \
+mit diesem Programm erhalten haben. Falls nicht, siehe \
+<http://www.gnu.org/licenses/>.     
 
 *
 
-And now for something completely different:
+Und nun zu etwas vollkommen Anderem:
 
-If you happen to run a software company in germany and are in \
-need of a new coder, feel free to regard this little program \
-as my application documents and drop me a mail with your answer.
+Sollten Sie zufällig eine Software-Firma irgendwo in der Nähe \
+von Hannover betreiben und gerade Bedarf an einem neuen Programmierer \
+haben, dann betrachten Sie dieses kleine Programm einfach als meine \
+Bewerbung und schicken Sie mir eine E-Mail mit Ihrer Zusage ;-)
 """

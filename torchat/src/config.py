@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 import sys, os
 import ConfigParser
 import traceback
@@ -28,6 +30,7 @@ ICON_DIR = "icons" #can be absolute or relative to script dir
 
 AUTHORS_ID = "utvrla6mjdypbyw6"
 AUTHORS_NAME = "Bernd"
+COPYRIGHT = u"Copyright (c) 2007, 2008 Bernd Kreuß <prof7bit@gmail.com>"
 
 def getScriptDir():
     #must be called at least once before working dir is changed
