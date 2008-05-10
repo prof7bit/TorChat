@@ -37,7 +37,7 @@ MPOP_EDIT_CONTACT = u"Bewerk contactpersoon..."
 MPOP_DELETE_CONTACT = u"Verwijder contact..."
 MPOP_SHOW_OFFLINE_MESSAGES = u"Toon Offline berichten in wacht"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Schoon Offline berichten in wacht"
-MPOP_ADD_CONTACT = u"Contactpersoon toevoegen"
+MPOP_ADD_CONTACT = u"Contactpersoon toevoegen..."
 MPOP_ABOUT = u"Over TorChat"
 MPOP_ASK_AUTHOR = u"Vraag %s"
 

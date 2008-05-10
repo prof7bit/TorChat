@@ -37,9 +37,10 @@ MPOP_EDIT_CONTACT = u"Kontakt bearbeiten..."
 MPOP_DELETE_CONTACT = u"Kontakt löschen..."
 MPOP_SHOW_OFFLINE_MESSAGES = u"Nachrichten in Warteschlange anzeigen"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Nachrichten in Warteschlange löschen"
-MPOP_ADD_CONTACT = u"Kontakt hinzufügen"
+MPOP_ADD_CONTACT = u"Kontakt hinzufügen..."
 MPOP_ABOUT = u"Über TorChat"
 MPOP_ASK_AUTHOR = u"%s fragen"
+MPOP_SETTINGS = u"Einstellungen..."
 
 #confirm delete message box
 D_CONFIRM_DELETE_TITLE = u"Löschen bestätigen"

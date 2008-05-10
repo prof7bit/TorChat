@@ -37,9 +37,10 @@ MPOP_EDIT_CONTACT = u"Edit contact..."
 MPOP_DELETE_CONTACT = u"Delete contact..."
 MPOP_SHOW_OFFLINE_MESSAGES = u"Show queued offline messages"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Clear queued offline messages"
-MPOP_ADD_CONTACT = u"Add contact"
+MPOP_ADD_CONTACT = u"Add contact..."
 MPOP_ABOUT = u"About TorChat"
 MPOP_ASK_AUTHOR = u"Ask %s"
+MPOP_SETTINGS = u"Settings..."
 
 #confirm delete message box
 D_CONFIRM_DELETE_TITLE = u"Confirm deletion"
@@ -66,6 +67,20 @@ DEC_MSG_ALREADY_ON_LIST = u"%s is already on your list"
 #file transfer window
 DFT_SEND = u"Sending %s\nto %s\n%04.1f%% (%i of %i bytes)"
 DFT_RECEIVE = u"Receiving %s\nfrom %s\n%04.1f%% (%i of %i bytes)"
+
+#settings dialaog
+DSET_TITLE = u"TorChat configuration"
+DSET_NET_TITLE = u"Network"
+DSET_NET_ACTIVE = "active"
+DSET_NET_INACTIVE = "inactive"
+DSET_NET_TOR_ADDRESS = u"Tor proxy address"
+DSET_NET_TOR_SOCKS = u"Socks port"
+DSET_NET_TOR_CONTROL = u"Control port"
+DSET_NET_OWN_HOSTNAME = u"Own TorChat-ID"
+DSET_NET_LISTEN_INTERFACE = u"Listen interface"
+DSET_NET_LISTEN_PORT = u"Listen port"
+DSET_GUI_TITLE = u"User interface"
+
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"delayed messages waiting to be sent"
