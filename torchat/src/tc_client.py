@@ -68,386 +68,7 @@ def unescape(text):
     return text
 
 
-class MProtocolMsg(type):
-    #Meta-Class for ProtocolMsg. It automagically creates a hash for 
-    #mapping protocol-commands and corresponding ProtocolMsg-subclasses
-    subclasses = {}
-    def __init__(cls, name, bases, dict):
-        #this will be executed whenever a ProtocolMsg gets *defined*
-        #(happens once at the time when this module is imported).
-        #the commands and their classes will be stored in 
-        #the static member MProtocolMsg.subclasses
-        cls.subclasses[dict["command"]] = cls
-        super(MProtocolMsg, cls).__init__(name, bases, dict)
-
-        
-class ProtocolMsg(object):
-    __metaclass__ = MProtocolMsg
-    command = ""
-    #the base class for all ProtocolMsg-classes. All message classes
-    #must inherit from this and declare the static member command
-    #which is used (by the metaclass-magic-voodoo;-) to map between the
-    #command-string and the corresponding message class
-    
-    #Besides being the base class for all ProtocolMsg_* classes
-    #this class has two other use cases:
-    # - it is used for outgoing messages (therefore the send method)
-    # - it is instantiated for every unknown incoming message
-
-    def __init__(self, bl, connection, command, data):
-        #connection may be None for outgoing messages
-        #data can be a number, a string, a tuple or a list
-        self.connection = connection
-        if connection:
-            self.buddy = connection.buddy
-        else:
-            self.buddy = None
-        self.bl = bl
-        self.command = command
-        
-        #self.text is always a string containing all arguments and data
-        if type(data) in (list, tuple):
-            self.text = " ".join(str(x) for x in data)
-        else:
-            self.text = str(data)
-        self.parse()
-
-    def parse(self):
-        pass
-    
-    def execute(self):
-        #a generic message of this class will be automatically instantiated 
-        #if an incoming message with an unknown command is received 
-        #do nothing and just reply with "not_implemented"
-        print "(2) received unimplemented msg (%s) from %s" % (self.command, self.buddy.address)
-        message = ProtocolMsg(self.bl, None, "not_implemented", self.command)
-        message.send(self.buddy)
-
-    def getLine(self):
-        #bring the message into a form we can transmit over the socket
-        #it will escape newline characters, as they are the only
-        #characters with a special meaning.
-        #the opposite of this operation takes place in the function
-        #ProtocolMsgFromLine() where incoming messages are instantiated.
-        return self.command + " " + escape(self.text)
-
-    def send(self, buddy, conn=0):
-        #conn=0 use outgoing connection
-        #conn=1 use incoming connection
-        #FIXME: what if buddy is None?
-        buddy.sendLine(self.getLine(), conn)
-
-    
-def ProtocolMsgFromLine(bl, conn, line):
-    #this is the factory for producing instances of ProtocolMsg classes.
-    #it separates the first word from the line, looks up the corresponding
-    #ProtocolMsg subclass which can handle this kind of protocol message
-    #and returns an instance. If no class matches the command string it
-    #returns a ProtocolMsg instance which is generic and just does nothing.
-    command, text_escaped = splitLine(line)
-    #the rest of the message can be arbitrary (but escaped) data.
-    #unescape it, so it is in it's original (maybe even binary) form.
-    data = unescape(text_escaped)
-    try:
-        return MProtocolMsg.subclasses[command](bl, conn, command, data)
-    except:
-        return ProtocolMsg(bl, conn, command, data)
-
-
-class ProtocolMsg_not_implemented(ProtocolMsg):
-    command = "not_implemented"
-    #FIXME: Maybe it would be better to have a *separate* 
-    #"not_implemented"-message for every protocol message.
-    #I have to meditate over this for a while.
-    def execute(self):
-        print "(3) %s says it can't handle '%s'" % (self.buddy.address, self.text)
-
- 
-class ProtocolMsg_ping(ProtocolMsg):
-    command = "ping"
-    #a ping message consists of sender address and a random string
-    def parse(self):
-        #the sender address is in the text. we take it for granted
-        #and see if we can find a buddy in our list with that address.
-        self.address, self.answer = splitLine(self.text)
-        self.buddy = self.bl.getBuddyFromAddress(self.address)
-
-    def execute(self):
-        print "(3) received ping from %s" % self.address
-        
-        #first a little security check to detect mass pings
-        #with faked host names over the same connection
-        if self.connection.last_ping_address != "":
-            #this is not the first ping over this connection
-            #lets see if it has the correct address:
-            if self.address != self.connection.last_ping_address:
-                print "(1) Possible Attack: in-connection sent fake address %s" % self.address
-                print "(1) Will disconnect incoming connection from fake %s" % self.address
-                self.connection.close()
-                return
-        else:
-            self.connection.last_ping_address = self.address
-        
-        #ping messages must be answered with pong messages
-        #the pong must contain the same random string as the ping.
-        #note that we will NOT yet assign buddy.conn_in
-        #this can only be done in reaction to a pong message
-        if not self.buddy:
-            print "(2) %s is not on the buddy-list" % self.address
-            #we have received a ping, but there is no buddy with
-            #that address in our buddy-list. The only reason for that
-            #can be that someone new has added our address to his list
-            #and his client now has connected us. First we search if
-            #we already have a connection to this buddy, if not we
-            #create one.
-            self.buddy = self.bl.getIncomingBuddyFromAddress(self.address)
-            if not self.buddy:
-                #create it and put it in the temporary list
-                print "(2) %s is new. creating a temporary buddy instance" % self.address
-                self.buddy = Buddy(self.address, self.bl, "")
-                self.bl.incoming_buddies.append(self.buddy)
-            else:
-                print "(2) %s is already in the incoming list" % self.address
-                
-            #this will connect if necessary
-            print "(2) %s.keepAlive()" % self.buddy.address
-            self.buddy.keepAlive()           
-        
-        print "(3) sending pong and status to %s" % self.address    
-        answer = ProtocolMsg(self.bl, None, "pong", self.answer)
-        answer.send(self.buddy)
-        self.buddy.can_send = True
-        self.buddy.sendStatus()
-        
-        if self.buddy in self.bl.list:
-            self.buddy.sendAddMe()
-        
-        self.buddy.sendVersion()
-
-
-class ProtocolMsg_pong(ProtocolMsg):
-    command = "pong"
-    def parse(self):
-        self.is_new_buddy = False
-        #incoming pong messages are used to identify and authenticate 
-        #incoming connections. Basically we send out pings and see which
-        #corresponding pongs come in on which connections.
-        #we search all our known buddies for the corresponding random
-        #string to identify which buddy is replying here.
-        
-        #first we search the buddy-list
-        self.buddy = self.bl.getBuddyFromRandom(self.text)
-        if not self.buddy:
-            #we also try to find it in the temporary buddies list
-            self.buddy = self.bl.getIncomingBuddyFromRandom(self.text)
-
-
-    def execute(self):
-        #if the pong is found to belong to a known buddy we can now
-        #safely assign this incoming connection to this buddy and 
-        #regard the handshake as completed.
-        if self.buddy:
-            print "(3) received pong from %s" % self.buddy.address
-            #never *change* a buddies existing in-connection
-            #only if it was empty.
-            if self.buddy.conn_in == None:
-                print "(2) setting %s to online" % self.buddy.address
-                #and set it to online (authenticated)
-                self.buddy.conn_in = self.connection
-                self.buddy.status = STATUS_ONLINE
-                self.connection.buddy = self.buddy
-                self.buddy.sendOfflineMessages()
-        else:
-            #there is no buddy for this pong. nothing to do.
-            print "(3) strange: unknown incoming 'pong': %s" % (self.text[:30])
-
-
-class ProtocolMsg_version(ProtocolMsg):
-    command = "version"
-    def parse(self):
-        self.version = self.text
-        
-    def execute(self):
-        if self.buddy:
-            print "(3) %s has version %s" % (self.buddy.address, self.version)
-            self.buddy.version = self.version
-
-
-class ProtocolMsg_add_me(ProtocolMsg):
-    command = "add_me"
-    def execute(self):
-        if self.buddy:
-            print "(2) add me from %s" % self.buddy.address
-            if not self.buddy in self.bl.list:
-                print "(2) received add_me from new buddy %s" % self.buddy.address
-                self.bl.addBuddy(self.buddy)
-                self.bl.incoming_buddies.remove(self.buddy)
-                msg = "[notification] %s has added you" % self.buddy.address
-                self.bl.onChatMessage(self.buddy, msg)
-                time.sleep(1)
-
-
-class ProtocolMsg_remove_me(ProtocolMsg):
-    command = "remove_me"
-    def execute(self):
-        if self.buddy:
-            print "(2) received remove_me from buddy %s" % self.buddy.address
-            if self.buddy in self.bl.list:
-                print "(2) removing %s from list" % self.buddy.address
-                self.bl.removeBuddy(self.buddy)
-                
-                
-class ProtocolMsg_message(ProtocolMsg):
-    command = "message"
-    #this is a normal text chat message.
-    def execute(self):
-        #give buddy and text to bl. bl will then call into the gui
-        #to open a chat window and/or display the text.
-        if self.buddy:
-            if self.buddy in self.bl.list:
-                self.bl.onChatMessage(self.buddy, self.text)
-            else:
-                print "(2) ***** wrong version reply to %s" % self.buddy.address
-                msg = "This is an automatic reply. "
-                msg += "Your version seems to be out of date."
-                msg += "Make sure you have the latest version of TorChat. "
-                self.buddy.sendChatMessage(msg)
-                self.buddy.sendRemoveMe()
-
-
-class ProtocolMsg_status(ProtocolMsg):
-    command = "status"
-    #this is a status message.
-    def execute(self):
-        #set the status flag of the corresponding buddy
-        if self.buddy:
-            print "(3) received status %s from %s" % (self.text, self.buddy.address)
-            if self.text == "available":
-                self.buddy.status = STATUS_ONLINE
-            if self.text == "away":
-                self.buddy.status = STATUS_AWAY
-            if self.text == "xa":
-                self.buddy.status = STATUS_XA
-        else:
-            print "(3) received status %s from unknown buddy" % self.text
-            print "(3) unknown buddy had '%s' in his ping" % self.connection.last_ping_address
-
-
-class ProtocolMsg_filename(ProtocolMsg):
-    command = "filename"
-    #the first message in a file transfer, initiating the transfer.
-    def parse(self):
-        self.id, text = splitLine(self.text)
-        file_size, text = splitLine(text) 
-        block_size, self.file_name = splitLine(text)
-        self.file_size = int(file_size)
-        self.block_size = int(block_size)
-        self.file_name = self.file_name.decode("utf-8")
-
-    def execute(self):
-        #we create a file receiver instance which can deal with the
-        #file data we expect to receive now
-        FileReceiver(self.buddy, 
-                     self.id, 
-                     self.block_size, 
-                     self.file_size,
-                     self.file_name)
-        
-    
-class ProtocolMsg_filedata(ProtocolMsg):
-    command = "filedata"
-    #after a filename message has initiated the transfer several
-    #filedata messagess transport the actual data in blocks of fixed
-    #size. The data blocks are transmitted as they are and only 
-    #newline characters are escaped. (see escape() and unescape())
-    def parse(self):
-        self.id, text = splitLine(self.text)
-        start, text = splitLine(text)
-        self.hash, self.data = splitLine(text)
-        self.start = int(start)
-
-    def execute(self):
-        #there should already be a receiver, because there should have been
-        #a "filename"-message at the very beginning of the transfer.
-        receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
-        if receiver:
-            receiver.data(self.start, self.hash, self.data)
-        else:
-            #if there is no receiver for this data, we just reply
-            #with a stop message and hope the sender gets it and
-            #stops sending data. Not much else to do for us here.
-            msg = ProtocolMsg(self.bl, None, "file_stop_sending", self.id)
-            msg.send(self.buddy)
-
-
-class ProtocolMsg_filedata_ok(ProtocolMsg):
-    command = "filedata_ok"
-    #every received "filedata" must be confirmed with a "filedata_ok"
-    #(or a "filedata_error")
-    def parse(self):
-        self.id, start = splitLine(self.text)
-        self.start = int(start)
-        
-    def execute(self):
-        if self.buddy:
-            sender = self.bl.getFileSender(self.buddy.address, self.id)
-            if sender:
-                sender.receivedOK(self.start)
-            else:
-                #there is no sender (anymore) to handle confirmation messages
-                #so we can send a stop message to tell the other side
-                #to stop receiving  
-                msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
-                msg.send(self.buddy)
-      
-      
-class ProtocolMsg_filedata_error(ProtocolMsg):
-    command = "filedata_error"
-    def parse(self):
-        self.id, start = splitLine(self.text)
-        self.start = int(start)
-        
-    def execute(self):
-        if self.buddy:
-            sender = self.bl.getFileSender(self.buddy.address, self.id)
-            if sender:
-                sender.restart(self.start)
-            else:        
-                msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
-                msg.send(self.buddy)
-
-
-class ProtocolMsg_file_stop_sending(ProtocolMsg):
-    command = "file_stop_sending"
-    #if the file transfer is prematurely canceled by the receiver
-    #then this message tells the sender to stop sending further data 
-    def parse(self):
-        self.id = self.text
-    
-    def execute(self):
-        if self.buddy:
-            sender = self.bl.getFileSender(self.buddy.address, self.id)
-            if sender:
-                #close the sender (if not already closed)
-                #otherwise just ignore it
-                sender.close()
-        
-
-class ProtocolMsg_file_stop_receiving(ProtocolMsg):
-    command = "file_stop_receiving"
-    #if the file transfer is prematurely canceled by the sender
-    #then this message tells the receiving buddy to close its receiver 
-    def parse(self):
-        self.id = self.text
-    
-    def execute(self):
-        if self.buddy:
-            receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
-            if receiver:
-                #close the receiver (if not already closed)
-                #otherwise just ignore it
-                receiver.closeForced()
-        
+#--- ### Client API        
     
 class Buddy(object):
     def __init__(self, address, buddy_list, name=""):
@@ -788,119 +409,6 @@ class BuddyList(object):
         return self.guiCallback(CB_TYPE_FILE, file_receiver)
 
 
-class Receiver(threading.Thread):
-    def __init__(self, conn):
-        threading.Thread.__init__(self)
-        self.conn = conn
-        self.socket = conn.socket
-        self.running = True
-        self.start()
-
-    def run(self):
-        readbuffer = ""
-        while self.running:
-            try:
-                recv = self.socket.recv(1024)
-                if recv != "":
-                    readbuffer = readbuffer + recv
-                    temp = readbuffer.split("\n")
-                    readbuffer = temp.pop()
-                
-                    for line in temp:
-                        if self.running:
-                            try:
-                                message = ProtocolMsgFromLine(self.conn.bl, 
-                                                              self.conn, 
-                                                              line)
-                                message.execute()
-                            except:
-                                tb()
-                else:
-                    self.running = False
-                    self.conn.onReceiverError()     
-            
-            except socket.timeout:
-                pass
-            
-            except socket.error:
-                self.running = False
-                self.conn.onReceiverError()
-                               
-        
-class InConnection:
-    def __init__(self, socket, buddy_list):
-        self.buddy = None
-        self.bl = buddy_list
-        self.socket = socket
-        self.receiver = Receiver(self)
-        self.last_ping_address = "" #used to detect mass pings with fake adresses
-    
-    def send(self, text):
-        try:
-            self.socket.send(text)
-        except:
-            self.bl.onErrorIn(self)
-        
-    def onReceiverError(self):
-        self.bl.onErrorIn(self)
-    
-    def close(self):
-        try:
-            self.socket.close()
-        except:
-            pass
-    
-
-class OutConnection(threading.Thread):
-    def __init__(self, address, buddy_list, buddy):
-        threading.Thread.__init__(self)
-        self.bl = buddy_list
-        self.buddy = buddy
-        self.address = address
-        self.send_buffer = []
-        self.start()
-        
-    def run(self):
-        self.running = True
-        try:
-            self.socket = socks.socksocket()
-            self.socket.settimeout(60)
-            self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
-                                 config.get(TOR_CONFIG, "tor_server"), 
-                                 config.getint(TOR_CONFIG, "tor_server_socks_port"))
-            print "(2) trying to connect '%s'" % self.address
-            self.socket.connect((str(self.address), TORCHAT_PORT))
-            print "(2) connected to %s" % self.address
-            self.bl.onConnected(self)
-            self.receiver = Receiver(self)
-            while self.running:
-                if len(self.send_buffer) > 0:
-                    text = self.send_buffer.pop(0)
-                    self.socket.send(text)
-                    print "(4) conn-out to %s sent %s..." % (self.address, text[:40])
-                time.sleep(0.05)
-                
-        except:
-            print "(2) outgoing connection to %s failed: %s" % (self.address, sys.exc_info()[1])
-            self.bl.onErrorOut(self)
-            self.close()
-            
-    def send(self, text):
-        print "(4) %s.conn_out.send(%s...)" % (self.buddy.address, text[:30].rstrip())
-        self.send_buffer.append(text)
-        
-    def onReceiverError(self):
-        self.bl.onErrorOut(self)
-        self.close()
-    
-    def close(self):
-        self.running = False
-        try:
-            self.socket.close()
-        except:
-            pass
-        
-
 class FileSender(threading.Thread):
     def __init__(self, buddy, file_name, guiCallback):
         threading.Thread.__init__(self)
@@ -1174,8 +682,513 @@ class FileReceiver:
             del self.buddy.bl.file_receiver[self.buddy.address, self.id]
         except:
             pass
-            
+
+        pass #Pydev/Eclipse parser (comments in outline) needs this "pass"
+
+
+#--- ### Protocol messages
+
+class MProtocolMsg(type):
+    #Meta-Class for ProtocolMsg. It automagically creates a hash for 
+    #mapping protocol-commands and corresponding ProtocolMsg-subclasses
+    subclasses = {}
+    def __init__(cls, name, bases, dict):
+        #this will be executed whenever a ProtocolMsg gets *defined*
+        #(happens once at the time when this module is imported).
+        #the commands and their classes will be stored in 
+        #the static member MProtocolMsg.subclasses
+        cls.subclasses[dict["command"]] = cls
+        super(MProtocolMsg, cls).__init__(name, bases, dict)
+
         
+class ProtocolMsg(object):
+    __metaclass__ = MProtocolMsg
+    command = ""
+    #the base class for all ProtocolMsg-classes. All message classes
+    #must inherit from this and declare the static member command
+    #which is used (by the metaclass-magic-voodoo;-) to map between the
+    #command-string and the corresponding message class
+    
+    #Besides being the base class for all ProtocolMsg_* classes
+    #this class has two other use cases:
+    # - it is used for outgoing messages (therefore the send method)
+    # - it is instantiated for every unknown incoming message
+
+    def __init__(self, bl, connection, command, data):
+        #connection may be None for outgoing messages
+        #data can be a number, a string, a tuple or a list
+        self.connection = connection
+        if connection:
+            self.buddy = connection.buddy
+        else:
+            self.buddy = None
+        self.bl = bl
+        self.command = command
+        
+        #self.text is always a string containing all arguments and data
+        if type(data) in (list, tuple):
+            self.text = " ".join(str(x) for x in data)
+        else:
+            self.text = str(data)
+        self.parse()
+
+    def parse(self):
+        pass
+    
+    def execute(self):
+        #a generic message of this class will be automatically instantiated 
+        #if an incoming message with an unknown command is received 
+        #do nothing and just reply with "not_implemented"
+        print "(2) received unimplemented msg (%s) from %s" % (self.command, self.buddy.address)
+        message = ProtocolMsg(self.bl, None, "not_implemented", self.command)
+        message.send(self.buddy)
+
+    def getLine(self):
+        #bring the message into a form we can transmit over the socket
+        #it will escape newline characters, as they are the only
+        #characters with a special meaning.
+        #the opposite of this operation takes place in the function
+        #ProtocolMsgFromLine() where incoming messages are instantiated.
+        return self.command + " " + escape(self.text)
+
+    def send(self, buddy, conn=0):
+        #conn=0 use outgoing connection
+        #conn=1 use incoming connection
+        #FIXME: what if buddy is None?
+        buddy.sendLine(self.getLine(), conn)
+
+    
+def ProtocolMsgFromLine(bl, conn, line):
+    #this is the factory for producing instances of ProtocolMsg classes.
+    #it separates the first word from the line, looks up the corresponding
+    #ProtocolMsg subclass which can handle this kind of protocol message
+    #and returns an instance. If no class matches the command string it
+    #returns a ProtocolMsg instance which is generic and just does nothing.
+    command, text_escaped = splitLine(line)
+    #the rest of the message can be arbitrary (but escaped) data.
+    #unescape it, so it is in it's original (maybe even binary) form.
+    data = unescape(text_escaped)
+    try:
+        return MProtocolMsg.subclasses[command](bl, conn, command, data)
+    except:
+        return ProtocolMsg(bl, conn, command, data)
+
+
+class ProtocolMsg_not_implemented(ProtocolMsg):
+    command = "not_implemented"
+    #FIXME: Maybe it would be better to have a *separate* 
+    #"not_implemented"-message for every protocol message.
+    #I have to meditate over this for a while.
+    def execute(self):
+        print "(3) %s says it can't handle '%s'" % (self.buddy.address, self.text)
+
+#--- Connection handshake and authenticaton
+ 
+class ProtocolMsg_ping(ProtocolMsg):
+    command = "ping"
+    #a ping message consists of sender address and a random string
+    def parse(self):
+        #the sender address is in the text. we take it for granted
+        #and see if we can find a buddy in our list with that address.
+        self.address, self.answer = splitLine(self.text)
+        self.buddy = self.bl.getBuddyFromAddress(self.address)
+
+    def execute(self):
+        print "(3) received ping from %s" % self.address
+        
+        #first a little security check to detect mass pings
+        #with faked host names over the same connection
+        if self.connection.last_ping_address != "":
+            #this is not the first ping over this connection
+            #lets see if it has the correct address:
+            if self.address != self.connection.last_ping_address:
+                print "(1) Possible Attack: in-connection sent fake address %s" % self.address
+                print "(1) Will disconnect incoming connection from fake %s" % self.address
+                self.connection.close()
+                return
+        else:
+            self.connection.last_ping_address = self.address
+        
+        #ping messages must be answered with pong messages
+        #the pong must contain the same random string as the ping.
+        #note that we will NOT yet assign buddy.conn_in
+        #this can only be done in reaction to a pong message
+        if not self.buddy:
+            print "(2) %s is not on the buddy-list" % self.address
+            #we have received a ping, but there is no buddy with
+            #that address in our buddy-list. The only reason for that
+            #can be that someone new has added our address to his list
+            #and his client now has connected us. First we search if
+            #we already have a connection to this buddy, if not we
+            #create one.
+            self.buddy = self.bl.getIncomingBuddyFromAddress(self.address)
+            if not self.buddy:
+                #create it and put it in the temporary list
+                print "(2) %s is new. creating a temporary buddy instance" % self.address
+                self.buddy = Buddy(self.address, self.bl, "")
+                self.bl.incoming_buddies.append(self.buddy)
+            else:
+                print "(2) %s is already in the incoming list" % self.address
+                
+            #this will connect if necessary
+            print "(2) %s.keepAlive()" % self.buddy.address
+            self.buddy.keepAlive()           
+        
+        print "(3) sending pong and status to %s" % self.address    
+        answer = ProtocolMsg(self.bl, None, "pong", self.answer)
+        answer.send(self.buddy)
+        self.buddy.can_send = True
+        self.buddy.sendStatus()
+        
+        if self.buddy in self.bl.list:
+            self.buddy.sendAddMe()
+        
+        self.buddy.sendVersion()
+
+
+class ProtocolMsg_pong(ProtocolMsg):
+    command = "pong"
+    def parse(self):
+        self.is_new_buddy = False
+        #incoming pong messages are used to identify and authenticate 
+        #incoming connections. Basically we send out pings and see which
+        #corresponding pongs come in on which connections.
+        #we search all our known buddies for the corresponding random
+        #string to identify which buddy is replying here.
+        
+        #first we search the buddy-list
+        self.buddy = self.bl.getBuddyFromRandom(self.text)
+        if not self.buddy:
+            #we also try to find it in the temporary buddies list
+            self.buddy = self.bl.getIncomingBuddyFromRandom(self.text)
+
+
+    def execute(self):
+        #if the pong is found to belong to a known buddy we can now
+        #safely assign this incoming connection to this buddy and 
+        #regard the handshake as completed.
+        if self.buddy:
+            print "(3) received pong from %s" % self.buddy.address
+            #never *change* a buddies existing in-connection
+            #only if it was empty.
+            if self.buddy.conn_in == None:
+                print "(2) setting %s to online" % self.buddy.address
+                #and set it to online (authenticated)
+                self.buddy.conn_in = self.connection
+                self.buddy.status = STATUS_ONLINE
+                self.connection.buddy = self.buddy
+                self.buddy.sendOfflineMessages()
+        else:
+            #there is no buddy for this pong. nothing to do.
+            print "(3) strange: unknown incoming 'pong': %s" % (self.text[:30])
+
+
+class ProtocolMsg_version(ProtocolMsg):
+    command = "version"
+    def parse(self):
+        self.version = self.text
+        
+    def execute(self):
+        if self.buddy:
+            print "(3) %s has version %s" % (self.buddy.address, self.version)
+            self.buddy.version = self.version
+
+
+class ProtocolMsg_status(ProtocolMsg):
+    command = "status"
+    #this is a status message.
+    def execute(self):
+        #set the status flag of the corresponding buddy
+        if self.buddy:
+            print "(3) received status %s from %s" % (self.text, self.buddy.address)
+            if self.text == "available":
+                self.buddy.status = STATUS_ONLINE
+            if self.text == "away":
+                self.buddy.status = STATUS_AWAY
+            if self.text == "xa":
+                self.buddy.status = STATUS_XA
+        else:
+            print "(3) received status %s from unknown buddy" % self.text
+            print "(3) unknown buddy had '%s' in his ping" % self.connection.last_ping_address
+
+#--- buddy list
+
+class ProtocolMsg_add_me(ProtocolMsg):
+    command = "add_me"
+    def execute(self):
+        if self.buddy:
+            print "(2) add me from %s" % self.buddy.address
+            if not self.buddy in self.bl.list:
+                print "(2) received add_me from new buddy %s" % self.buddy.address
+                self.bl.addBuddy(self.buddy)
+                self.bl.incoming_buddies.remove(self.buddy)
+                msg = "[notification] %s has added you" % self.buddy.address
+                self.bl.onChatMessage(self.buddy, msg)
+                time.sleep(1)
+
+
+class ProtocolMsg_remove_me(ProtocolMsg):
+    command = "remove_me"
+    def execute(self):
+        if self.buddy:
+            print "(2) received remove_me from buddy %s" % self.buddy.address
+            if self.buddy in self.bl.list:
+                print "(2) removing %s from list" % self.buddy.address
+                self.bl.removeBuddy(self.buddy)
+                
+#--- Chat
+                
+class ProtocolMsg_message(ProtocolMsg):
+    command = "message"
+    #this is a normal text chat message.
+    def execute(self):
+        #give buddy and text to bl. bl will then call into the gui
+        #to open a chat window and/or display the text.
+        if self.buddy:
+            if self.buddy in self.bl.list:
+                self.bl.onChatMessage(self.buddy, self.text)
+            else:
+                print "(2) ***** wrong version reply to %s" % self.buddy.address
+                msg = "This is an automatic reply. "
+                msg += "Your version seems to be out of date."
+                msg += "Make sure you have the latest version of TorChat. "
+                self.buddy.sendChatMessage(msg)
+                self.buddy.sendRemoveMe()
+
+#--- File transfer
+
+class ProtocolMsg_filename(ProtocolMsg):
+    command = "filename"
+    #the first message in a file transfer, initiating the transfer.
+    def parse(self):
+        self.id, text = splitLine(self.text)
+        file_size, text = splitLine(text) 
+        block_size, self.file_name = splitLine(text)
+        self.file_size = int(file_size)
+        self.block_size = int(block_size)
+        self.file_name = self.file_name.decode("utf-8")
+
+    def execute(self):
+        #we create a file receiver instance which can deal with the
+        #file data we expect to receive now
+        FileReceiver(self.buddy, 
+                     self.id, 
+                     self.block_size, 
+                     self.file_size,
+                     self.file_name)
+        
+    
+class ProtocolMsg_filedata(ProtocolMsg):
+    command = "filedata"
+    #after a filename message has initiated the transfer several
+    #filedata messagess transport the actual data in blocks of fixed
+    #size. The data blocks are transmitted as they are and only 
+    #newline characters are escaped. (see escape() and unescape())
+    def parse(self):
+        self.id, text = splitLine(self.text)
+        start, text = splitLine(text)
+        self.hash, self.data = splitLine(text)
+        self.start = int(start)
+
+    def execute(self):
+        #there should already be a receiver, because there should have been
+        #a "filename"-message at the very beginning of the transfer.
+        receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
+        if receiver:
+            receiver.data(self.start, self.hash, self.data)
+        else:
+            #if there is no receiver for this data, we just reply
+            #with a stop message and hope the sender gets it and
+            #stops sending data. Not much else to do for us here.
+            msg = ProtocolMsg(self.bl, None, "file_stop_sending", self.id)
+            msg.send(self.buddy)
+
+
+class ProtocolMsg_filedata_ok(ProtocolMsg):
+    command = "filedata_ok"
+    #every received "filedata" must be confirmed with a "filedata_ok"
+    #(or a "filedata_error")
+    def parse(self):
+        self.id, start = splitLine(self.text)
+        self.start = int(start)
+        
+    def execute(self):
+        if self.buddy:
+            sender = self.bl.getFileSender(self.buddy.address, self.id)
+            if sender:
+                sender.receivedOK(self.start)
+            else:
+                #there is no sender (anymore) to handle confirmation messages
+                #so we can send a stop message to tell the other side
+                #to stop receiving  
+                msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
+                msg.send(self.buddy)
+      
+      
+class ProtocolMsg_filedata_error(ProtocolMsg):
+    command = "filedata_error"
+    def parse(self):
+        self.id, start = splitLine(self.text)
+        self.start = int(start)
+        
+    def execute(self):
+        if self.buddy:
+            sender = self.bl.getFileSender(self.buddy.address, self.id)
+            if sender:
+                sender.restart(self.start)
+            else:        
+                msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
+                msg.send(self.buddy)
+
+
+class ProtocolMsg_file_stop_sending(ProtocolMsg):
+    command = "file_stop_sending"
+    #if the file transfer is prematurely canceled by the receiver
+    #then this message tells the sender to stop sending further data 
+    def parse(self):
+        self.id = self.text
+    
+    def execute(self):
+        if self.buddy:
+            sender = self.bl.getFileSender(self.buddy.address, self.id)
+            if sender:
+                #close the sender (if not already closed)
+                #otherwise just ignore it
+                sender.close()
+        
+
+class ProtocolMsg_file_stop_receiving(ProtocolMsg):
+    command = "file_stop_receiving"
+    #if the file transfer is prematurely canceled by the sender
+    #then this message tells the receiving buddy to close its receiver 
+    def parse(self):
+        self.id = self.text
+    
+    def execute(self):
+        if self.buddy:
+            receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
+            if receiver:
+                #close the receiver (if not already closed)
+                #otherwise just ignore it
+                receiver.closeForced()
+
+
+            
+#--- ### Low level network stuff
+
+class Receiver(threading.Thread):
+    def __init__(self, conn):
+        threading.Thread.__init__(self)
+        self.conn = conn
+        self.socket = conn.socket
+        self.running = True
+        self.start()
+
+    def run(self):
+        readbuffer = ""
+        while self.running:
+            try:
+                recv = self.socket.recv(1024)
+                if recv != "":
+                    readbuffer = readbuffer + recv
+                    temp = readbuffer.split("\n")
+                    readbuffer = temp.pop()
+                
+                    for line in temp:
+                        if self.running:
+                            try:
+                                message = ProtocolMsgFromLine(self.conn.bl, 
+                                                              self.conn, 
+                                                              line)
+                                message.execute()
+                            except:
+                                tb()
+                else:
+                    self.running = False
+                    self.conn.onReceiverError()     
+            
+            except socket.timeout:
+                pass
+            
+            except socket.error:
+                self.running = False
+                self.conn.onReceiverError()
+                               
+        
+class InConnection:
+    def __init__(self, socket, buddy_list):
+        self.buddy = None
+        self.bl = buddy_list
+        self.socket = socket
+        self.receiver = Receiver(self)
+        self.last_ping_address = "" #used to detect mass pings with fake adresses
+    
+    def send(self, text):
+        try:
+            self.socket.send(text)
+        except:
+            self.bl.onErrorIn(self)
+        
+    def onReceiverError(self):
+        self.bl.onErrorIn(self)
+    
+    def close(self):
+        try:
+            self.socket.close()
+        except:
+            pass
+    
+
+class OutConnection(threading.Thread):
+    def __init__(self, address, buddy_list, buddy):
+        threading.Thread.__init__(self)
+        self.bl = buddy_list
+        self.buddy = buddy
+        self.address = address
+        self.send_buffer = []
+        self.start()
+        
+    def run(self):
+        self.running = True
+        try:
+            self.socket = socks.socksocket()
+            self.socket.settimeout(60)
+            self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
+                                 config.get(TOR_CONFIG, "tor_server"), 
+                                 config.getint(TOR_CONFIG, "tor_server_socks_port"))
+            print "(2) trying to connect '%s'" % self.address
+            self.socket.connect((str(self.address), TORCHAT_PORT))
+            print "(2) connected to %s" % self.address
+            self.bl.onConnected(self)
+            self.receiver = Receiver(self)
+            while self.running:
+                if len(self.send_buffer) > 0:
+                    text = self.send_buffer.pop(0)
+                    self.socket.send(text)
+                    print "(4) conn-out to %s sent %s..." % (self.address, text[:40])
+                time.sleep(0.05)
+                
+        except:
+            print "(2) outgoing connection to %s failed: %s" % (self.address, sys.exc_info()[1])
+            self.bl.onErrorOut(self)
+            self.close()
+            
+    def send(self, text):
+        print "(4) %s.conn_out.send(%s...)" % (self.buddy.address, text[:30].rstrip())
+        self.send_buffer.append(text)
+        
+    def onReceiverError(self):
+        self.bl.onErrorOut(self)
+        self.close()
+    
+    def close(self):
+        self.running = False
+        try:
+            self.socket.close()
+        except:
+            pass
+        
+
 class Listener(threading.Thread):
     def __init__(self, buddy_list):
         threading.Thread.__init__(self)
