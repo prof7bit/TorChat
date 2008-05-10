@@ -836,8 +836,10 @@ class ConfigPanel(wx.Panel):
             self.saveData(control)
     
     def addSeparator(self):
+        box = wx.BoxSizer(wx.VERTICAL)
         sep = wx.StaticLine(self, wx.ID_ANY)
-        self.grid_sizer.Add(sep, (self.py, self.px), (1, 2), wx.EXPAND)
+        box.Add(sep, 0, wx.EXPAND | wx.TOP, 10)
+        self.grid_sizer.Add(box, (self.py, self.px), (1, 2), wx.EXPAND)
         self.py += 1
     
     def addLabel(self, label, disabled=False):
