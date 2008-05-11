@@ -32,6 +32,8 @@ config_defaults = {
     ("client", "listen_port") : 11009,
     ("logging", "log_file") : "",
     ("logging", "log_level") : 0,
+    ("files", "temp_files_in_data_dir") : 1,
+    ("files", "temp_files_custom_dir") : "",
     ("gui", "language") : "en",
     ("gui", "notification_popup") : 1,
     ("gui", "notification_flash_window") : 1,
@@ -110,7 +112,7 @@ def get(section, option):
     if not config.has_option(section, option):
         value = config_defaults[section, option]
         set(section, option, value)
-    return config.get(section, option, True)
+    return config.get(section, option, True).rstrip(" \"'").lstrip(" \"'")
 
 def getint(section, option):
     value = get(section, option)

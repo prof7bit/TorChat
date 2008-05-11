@@ -67,6 +67,24 @@ def unescape(text):
     text = text.replace("\\/", "\\") #replace \/ with \
     return text
 
+def createTemporaryFile(file_name):
+    if config.getint("files", "temp_files_in_data_dir"):
+        dir = config.getDataDir()
+    else:
+        dir = config.get("files", "temp_files_custom_dir")
+    try:
+        if dir == "":
+            dir = None
+        tmp = tempfile.mkstemp("_" + file_name, "torchat_incoming_", dir)
+    except:
+        print "(1) could not create temporary file in %s" % dir
+        tb()
+        print "(1) trying system temporary folder"
+        tmp = tempfile.mkstemp("_" + file_name, "torchat_incoming_")
+    fd, file_name_tmp = tmp
+    file_handle_tmp = os.fdopen(fd, "w+b")
+    print "(2) created temporary file  %s" % file_name_tmp    
+    return (file_name_tmp, file_handle_tmp)
 
 #--- ### Client API        
     
@@ -592,9 +610,8 @@ class FileReceiver:
         self.block_size = block_size
         self.file_name = file_name
         self.file_name_save = ""
-        tmp = tempfile.mkstemp("_" + self.file_name, "torchat_incoming_")
-        fd, self.file_name_tmp = tmp
-        self.file_handle_tmp = os.fdopen(fd, "w+b")
+        tmp = createTemporaryFile(self.file_name)
+        self.file_name_tmp, self.file_handle_tmp = tmp
         self.file_size = file_size
         self.next_start = 0
         self.wrong_block_number_count = 0
@@ -672,11 +689,13 @@ class FileReceiver:
                     pass
                 try:
                     shutil.move(self.file_name_tmp, self.file_name_save)
+                    print "(2) moved temporary file to %s" % self.file_name_save
                 except:
                     pass
             else:
                 try:
                     os.unlink(self.file_name_tmp)
+                    print "(2) deleted temporary file %s" % self.file_name_tmp
                 except:
                     pass
             del self.buddy.bl.file_receiver[self.buddy.address, self.id]
