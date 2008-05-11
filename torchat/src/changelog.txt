@@ -1,3 +1,7 @@
+svn trunk
+- let the user specify a path for temporary files, change the default
+  to be the data directory (the torchat folder in portable mode)
+
 version 0.9.9.149
 - remove the annoying permanent flicker of the buddy list
 - show own hostname in windows and taskbar icon
