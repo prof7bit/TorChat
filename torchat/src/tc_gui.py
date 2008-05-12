@@ -14,6 +14,8 @@
 #                                                                            #
 ##############################################################################
 
+# this is a graphical User interface for the TorChat client library.
+
 import config
 import wx
 import tc_client
@@ -24,6 +26,7 @@ import subprocess
 import textwrap
 import threading
 import version
+import dlg_settings
 import translations
 lang = translations.lang_en
 tb = config.tb
@@ -331,7 +334,7 @@ class PopupMenu(wx.Menu):
         dialog.ShowModal()
         
     def onSettings(self, evt):
-        dialog = DlgSettings(self.mw)
+        dialog = dlg_settings.Dialog(self.mw)
         dialog.ShowModal()
 
     def onAbout(self, evt):
@@ -792,148 +795,6 @@ class ChatWindow(wx.Frame):
             else:
                 #FIXME: is this the way to go? better make it a config option.
                 subprocess.Popen(("/etc/alternatives/x-www-browser %s" % url).split())
-
-
-class ConfigPanel(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-        self.outer_sizer = wx.BoxSizer()
-        self.SetSizer(self.outer_sizer)
-        self.grid_sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        self.outer_sizer.Add(self.grid_sizer, 1, wx.EXPAND | wx.ALL, 5)
-        self.px = 0
-        self.py = 0
-        self.controls = []
-        
-    def fit(self):
-        self.outer_sizer.Fit(self)
-    
-    def placeElements(self, lbl, ctrl=None):
-        self.grid_sizer.Add(lbl, (self.py, self.px), (1, 1), wx.EXPAND)
-        if ctrl:
-            self.grid_sizer.Add(ctrl, (self.py, self.px + 1), (1, 1))
-            self.controls.append(ctrl)
-        self.py += 1
-
-    def setDefault(self, ctrl, default):
-        if type(default) == tuple:
-            ctrl.SetValue(config.get(default[0], default[1]))
-            ctrl._config_section = default[0]
-            ctrl._config_option = default[1]
-        else:
-            ctrl.SetValue(default)
-
-    def saveData(self, ctrl):
-        try:
-            section = ctrl._config_section
-            option = ctrl._config_option
-            config.set(section, option, ctrl.GetValue())
-        except:
-            pass
-    
-    def saveAllData(self):
-        for control in self.controls:
-            self.saveData(control)
-    
-    def addSeparator(self):
-        box = wx.BoxSizer(wx.VERTICAL)
-        sep = wx.StaticLine(self, wx.ID_ANY)
-        box.Add(sep, 0, wx.EXPAND | wx.TOP, 10)
-        self.grid_sizer.Add(box, (self.py, self.px), (1, 2), wx.EXPAND)
-        self.py += 1
-    
-    def addLabel(self, label, disabled=False):
-        lbl = wx.StaticText(self, wx.ID_ANY, label)
-        self.placeElements(lbl)
-        if disabled:
-            lbl.Enable(False)
-    
-    def addCheckbox(self, label, default, disabled=False):
-        lbl = wx.StaticText(self, wx.ID_ANY, label)
-        chk = wx.CheckBox(self, wx.ID_ANY)
-        chk.SetValue(default)
-        self.placeElements(lbl, chk)
-        if disabled:
-            chk.Enable(False)
-        return chk
-    
-    def addTextbox(self, label, default, disabled=False, width=0):
-        lbl = wx.StaticText(self, wx.ID_ANY, label)
-        txt = wx.TextCtrl(self, wx.ID_ANY)
-        self.setDefault(txt, default)
-        self.placeElements(lbl, txt)
-        if width:
-            txt.SetMinSize((width, -1))
-        if disabled:
-            lbl.Enable(False)
-            txt.Enable(False)
-        return txt
-
-
-class DlgSettings(wx.Dialog):
-    def __init__(self, main_window):
-        wx.Dialog.__init__(self, main_window, wx.ID_ANY, lang.DSET_TITLE)
-        self.mw = main_window
-        
-        #1 outer panel and vertical sizer
-        self.outer_panel = wx.Panel(self)
-        outer_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.outer_panel.SetSizer(outer_sizer)
-
-        #1.1 the notebook on the top
-        self.notebook = wx.Notebook(self.outer_panel)
-        outer_sizer.Add(self.notebook, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.RIGHT, border=5)
-        
-        #1.2 the button_sizer at the bottom
-        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        outer_sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, border=5)
-        
-        #1.2.1 cancel button
-        btn_cancel = wx.Button(self.outer_panel, wx.ID_CANCEL, lang.BTN_CANCEL)
-        button_sizer.Add(btn_cancel)
-        
-        #1.2.2 ok button
-        btn_ok = wx.Button(self.outer_panel, wx.ID_OK, lang.BTN_OK)
-        button_sizer.Add(btn_ok, 0, wx.LEFT, 5)
-        
-        #2 the button bindings
-        btn_ok.Bind(wx.EVT_BUTTON, self.onOk)
-        btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
-        
-        #3 now we create the notebook tabs
-        #3.1 network
-        self.p1 = ConfigPanel(self.notebook)
-        self.notebook.AddPage(self.p1, lang.DSET_NET_TITLE)
-
-        portable = (tc_client.TOR_CONFIG == "tor_portable")
-        self.p1.addLabel("Tor portable", not portable)
-        self.p1.addTextbox(lang.DSET_NET_TOR_ADDRESS, ("tor_portable", "tor_server"), not portable, width=150)
-        self.p1.addTextbox(lang.DSET_NET_TOR_SOCKS, ("tor_portable", "tor_server_socks_port"), not portable)
-        self.p1.addTextbox(lang.DSET_NET_TOR_CONTROL, ("tor_portable", "tor_server_control_port"), not portable)
-        self.p1.addSeparator()
-        self.p1.addLabel("Tor", portable)
-        self.p1.addTextbox(lang.DSET_NET_TOR_ADDRESS, ("tor", "tor_server"), portable, width=150)
-        self.p1.addTextbox(lang.DSET_NET_TOR_SOCKS, ("tor", "tor_server_socks_port"), portable)
-        self.p1.addTextbox(lang.DSET_NET_TOR_CONTROL, ("tor", "tor_server_control_port"), portable)
-        self.p1.addTextbox(lang.DSET_NET_OWN_HOSTNAME, ("client", "own_hostname"), portable, width=150)
-        self.p1.addSeparator()
-        self.p1.addTextbox(lang.DSET_NET_LISTEN_INTERFACE, ("client", "listen_interface"), width=150)
-        self.p1.addTextbox(lang.DSET_NET_LISTEN_PORT, ("client", "listen_port"))
-        self.p1.fit()
-        
-        #3.2 user interface
-        self.p2 = ConfigPanel(self.notebook)
-        self.notebook.AddPage(self.p2, lang.DSET_GUI_TITLE)
-        
-        #4 fit the sizers
-        outer_sizer.Fit(self)
-        
-    def onCancel(self, evt):
-        evt.Skip() #let the frame now process the Cancel event
-        
-    def onOk(self, evt):
-        self.p1.saveAllData()
-        evt.Skip() #let the frame now process the Ok event
 
 
 class FileTransferWindow(wx.Frame):

@@ -14,6 +14,9 @@
 #                                                                            #
 ##############################################################################
 
+# This is the TorChat client library. Import this module, make an instance
+# of BuddyList, give it your call-back function and your client is running.
+
 import SocksiPy.socks as socks
 import socket
 import threading
