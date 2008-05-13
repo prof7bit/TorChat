@@ -427,7 +427,7 @@ class BuddyList(object):
         self.guiCallback(CB_TYPE_CHAT, (buddy, message))
         
     def onFileReceive(self, file_receiver):
-        return self.guiCallback(CB_TYPE_FILE, file_receiver)
+        self.guiCallback(CB_TYPE_FILE, file_receiver)
 
 
 class FileSender(threading.Thread):
@@ -619,7 +619,15 @@ class FileReceiver:
         self.next_start = 0
         self.wrong_block_number_count = 0
         self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
-        self.guiCallback = self.buddy.bl.onFileReceive(self)
+        
+        #this will (optionally) point to the file transfer GUI callback
+        self.guiCallback = None
+        
+        #the following will result in a call into the GUI
+        self.buddy.bl.onFileReceive(self)
+        
+    def setCallbackFunction(self, callback):
+        self.guiCallback = callback
         
     def data(self, start, hash, data):
         if start > self.next_start:
@@ -648,14 +656,9 @@ class FileReceiver:
             try:
                 self.guiCallback(self.file_size, start + len(data))
             except:            
-                #this condition should not be possible, but who knows?
-                #if there is still a receiver but no gui we close the receiver
-                #and send a stop message
-                print "(2) FileReceiver could not update the GUI"
-                tb()
-                
-                self.sendStopMessage()
-                self.close()
+                # The GUI has not (yet) provided a callback function
+                print "(2) FileReceiver cannot call the GUI"
+
         else:
             print "(3) receiver wrong hash %i len: %i" % (start, len(data))
             msg = ProtocolMsg(self.buddy.bl, None, "filedata_error", (self.id, 
@@ -675,7 +678,10 @@ class FileReceiver:
         msg.send(self.buddy)
     
     def closeForced(self):
-        self.guiCallback(self.file_size, -1, "transfer aborted")
+        try:
+            self.guiCallback(self.file_size, -1, "transfer aborted")
+        except:
+            pass
         self.sendStopMessage()
         self.file_name_save = ""
         self.close()

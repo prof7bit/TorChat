@@ -819,12 +819,10 @@ class FileTransferWindow(wx.Frame):
                                                        self.onDataChange)
         else:
             self.is_receiver = True
+            receiver.setCallbackFunction(self.onDataChange)
             self.transfer_object = receiver
             self.bytes_total = receiver.file_size
             self.file_name = file_name
-            
-            #the other end of the dirty hack in MainWindow.callbackMessage
-            self.mw.new_ft_window[receiver.id] = self
         
         self.panel = wx.Panel(self)
         self.outer_sizer = wx.BoxSizer()
@@ -938,7 +936,6 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, None, -1, "TorChat", size=(250,350))
         self.conns = []
         self.chat_windows = []
-        self.new_ft_window = {} # only used in self.callbackMessage
         self.notification_window = None
         self.buddy_list = tc_client.BuddyList(self.callbackMessage)
 
@@ -1018,21 +1015,6 @@ class MainWindow(wx.Frame):
                                              file_name, 
                                              receiver)
             
-            #FIXME: Is this the only way? Looks ugly to me.
-            #the other part of this hack is in FileTransferWindow.__init__
-            ftw = None
-            while not ftw:
-                try:
-                    ftw = self.new_ft_window[receiver.id]
-                except:
-                    time.sleep(0.1)
-            
-            # remember the callback function
-            handler = ftw.onDataChange
-            # and clean up the array
-            del self.new_ft_window[receiver.id]
-            
-            return handler
     
     def onClose(self, evt):
         self.Show(False)
