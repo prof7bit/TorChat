@@ -112,7 +112,10 @@ def get(section, option):
     if not config.has_option(section, option):
         value = config_defaults[section, option]
         set(section, option, value)
-    return config.get(section, option, True).rstrip(" \"'").lstrip(" \"'")
+    value = config.get(section, option, True)
+    if type(value) == str:
+        value = value.rstrip(" \"'").lstrip(" \"'")
+    return value
 
 def getint(section, option):
     value = get(section, option)
