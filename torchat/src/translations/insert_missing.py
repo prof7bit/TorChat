@@ -3,7 +3,7 @@
 import os
 import sys
 
-msg = """This little Script will insert the missing strings into
+msg = """This little script will insert the missing strings into
 all incomplete translation files. It will create backup 
 files with _ at the beginning.
 
