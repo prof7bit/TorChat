@@ -13,10 +13,10 @@
          for the last 2 years, all keys and certificates created since then are 
          BROKEN. This also affects ALL DEBIAN AND UBUNTU USERS of TorChat: You 
          will have to create new TorChat-IDs AFTER upgrading OpenSSL and Tor.
-         <br /><br />
+         <br><br>
          Windows users of TorChat are NOT AFFECTED, as long as you didn't 
          replace the 0.1.2.19 Tor binary with one of the 0.2.0.x development 
-         versions. <br /><br /> 
+         versions. <br><br> 
          So if you are running TorChat on a Debian based Distribution (Ubuntu),
          NO MATTER WICH VERSION OF TOR you use, you will have to update OpenSSL 
          (and maybe Tor), delete the hidden service key which will give you a
