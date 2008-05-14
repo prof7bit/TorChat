@@ -7,6 +7,25 @@
       <language>en-us</language>
       <ttl>10</ttl>
       <item>
+         <title>All Debian and Ubuntu users must change their ID</title>
+         <link>http://code.google.com/p/torchat/?openssl-debian-bug</link>
+         <description>There has been a BIG hole in DEBIAN versions of OpenSSL 
+         for the last 2 years, all keys and certificates created since then are 
+         BROKEN. This also affects ALL DEBIAN AND UBUNTU USERS of TorChat: You 
+         will have to create new TorChat-IDs AFTER upgrading OpenSSL and Tor.
+         <br /><br />
+         Windows users of TorChat are NOT AFFECTED, as long as you didn't 
+         replace the 0.1.2.19 Tor binary with one of the 0.2.0.x development 
+         versions. <br /><br /> 
+         So if you are running TorChat on a Debian based Distribution (Ubuntu),
+         NO MATTER WICH VERSION OF TOR you use, you will have to update OpenSSL 
+         (and maybe Tor), delete the hidden service key which will give you a
+         new .onion address. Then you must update your torchat.ini with the
+         new address and tell all your buddies about your new ID.</description>
+         <pubDate>Wed, 14 May 2008 00:00:00 GMT</pubDate>
+         <guid>openssl-debian-bug</guid>
+      </item>
+      <item>
          <title>Version 0.9.9.149 is released</title>
          <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.149.zip</link>
          <description>Version 0.9.9.149 is ready for download. Many things
