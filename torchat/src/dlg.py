@@ -113,7 +113,7 @@ class Check(Control):
     def __init__(self, panel, label, default, label2=""):
         Control.__init__(self, panel, label, default)
         self.wx_ctrl = wx.CheckBox(self.panel, wx.ID_ANY)
-        self.wx_ctrl.SetValue(self.default)
+        self.wx_ctrl.SetValue(bool(self.default))
         self.wx_ctrl.SetLabel(label2)
         self.addToPanel()
     

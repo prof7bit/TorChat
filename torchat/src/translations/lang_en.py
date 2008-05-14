@@ -71,8 +71,8 @@ DFT_RECEIVE = u"Receiving %s\nfrom %s\n%04.1f%% (%i of %i bytes)"
 #settings dialaog
 DSET_TITLE = u"TorChat configuration"
 DSET_NET_TITLE = u"Network"
-DSET_NET_ACTIVE = "active"
-DSET_NET_INACTIVE = "inactive"
+DSET_NET_ACTIVE = u"active"
+DSET_NET_INACTIVE = u"inactive"
 DSET_NET_TOR_ADDRESS = u"Tor proxy address"
 DSET_NET_TOR_SOCKS = u"Socks port"
 DSET_NET_TOR_CONTROL = u"Control port"
@@ -80,7 +80,11 @@ DSET_NET_OWN_HOSTNAME = u"Own TorChat-ID"
 DSET_NET_LISTEN_INTERFACE = u"Listen interface"
 DSET_NET_LISTEN_PORT = u"Listen port"
 DSET_GUI_TITLE = u"User interface"
-
+DSET_GUI_LANGUAGE = u"Language"
+DSET_GUI_OPEN_MAIN_HIDDEN = u"Start with minimized main window"
+DSET_GUI_OPEN_CHAT_HIDDEN = u"Don't automatically open new windows"
+DSET_GUI_NOTIFICATION_POPUP = u"Notification pop-up"
+DSET_GUI_FLASH_WINDOW = u"Flash window title on new message"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"delayed messages waiting to be sent"

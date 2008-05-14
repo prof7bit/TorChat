@@ -80,6 +80,13 @@ class Dialog(wx.Dialog):
         #3.2 user interface
         self.p2 = dlg.Panel(self.notebook)
         self.notebook.AddPage(self.p2, lang.DSET_GUI_TITLE)
+
+        self.lang = dlg.Text(self.p2, lang.DSET_GUI_LANGUAGE, ("gui", "language"))
+        self.lang_old = self.lang.getValue()
+        dlg.Check(self.p2, lang.DSET_GUI_OPEN_MAIN_HIDDEN, ("gui", "open_main_window_hidden"))
+        dlg.Check(self.p2, lang.DSET_GUI_OPEN_CHAT_HIDDEN, ("gui", "open_chat_window_hidden"))
+        dlg.Check(self.p2, lang.DSET_GUI_NOTIFICATION_POPUP, ("gui", "notification_popup"))
+        dlg.Check(self.p2, lang.DSET_GUI_FLASH_WINDOW, ("gui", "notification_flash_window"))
         
         #4 fit the sizers
         outer_sizer.Fit(self)
@@ -89,5 +96,8 @@ class Dialog(wx.Dialog):
         
     def onOk(self, evt):
         self.p1.saveAllData()
+        self.p2.saveAllData()
+        if self.lang.getValue() != self.lang_old:
+            config.importLanguage()
         evt.Skip() #let the frame now process the Ok event
 

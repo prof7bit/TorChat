@@ -151,6 +151,14 @@ def getTranslators():
     return ", ".join(translators)
 
 def importLanguage():
+    #if the strings in the language module have already been changed then
+    if translations.lang_en.LANGUAGE_CODE != "en":
+        #restore the original values from our backup to have
+        #all strings reset to english. This helps when switching
+        #between incomplete translations.
+        for key in standard_dict:
+            translations.lang_en.__dict__[key] = standard_dict[key]
+            
     lang_xx = "lang_" + get("gui", "language")
     if lang_xx == "lang_en":
         #lang_en is the standard translation. nothing to replace.
@@ -256,4 +264,12 @@ class LogWriter:
 os.chdir(getScriptDir())
 readConfig()
 log_writer = LogWriter()
+
+#make a backup of all strings that are in the standard language file
+#because we could need them when switching between incomplete languages
+standard_dict = {}
+for key in translations.lang_en.__dict__:
+    standard_dict[key] = translations.lang_en.__dict__[key]
+
+#now switch to the configured translation
 importLanguage()
