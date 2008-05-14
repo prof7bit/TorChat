@@ -6,12 +6,11 @@
 #                                                                            #
 # Translation file for TorChat                                               #
 #                                                                            #
-# Language: French (Français) [fr]                                           #
-#                                                                            #
 ##############################################################################
 
 LANGUAGE_CODE = u"fr"
 LANGUAGE_NAME = u"Français"
+LANGUAGE_NAME_ENGLISH = u"French"
 TRANSLATOR_NAMES = [u"vitisch"]
 
 #buttons

@@ -6,12 +6,11 @@
 #                                                                            #
 # Translation file for TorChat                                               #
 #                                                                            #
-# Language: German (Deutsch) [de]                                            #
-#                                                                            #
 ##############################################################################
 
 LANGUAGE_CODE = u"de"
 LANGUAGE_NAME = u"Deutsch"
+LANGUAGE_NAME_ENGLISH = u"German"
 TRANSLATOR_NAMES = [u"Bernd Kreuß"]
 
 #buttons

@@ -6,12 +6,11 @@
 #                                                                            #
 # Translation file for TorChat                                               #
 #                                                                            #
-# Language: English [en]                                                     #
-#                                                                            #
 ##############################################################################
 
 LANGUAGE_CODE = u"nl"
 LANGUAGE_NAME = u"Nederlands"
+LANGUAGE_NAME_ENGLISH = u"Dutch"
 TRANSLATOR_NAMES = [u"2by3"]
 
 #buttons
