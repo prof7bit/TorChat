@@ -1,4 +1,6 @@
 svn trunk
+- added dutch translation
+- added french translation
 - let the user specify a path for temporary files, change the default
   to be the data directory (the torchat folder in portable mode)
 
