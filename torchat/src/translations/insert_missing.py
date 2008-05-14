@@ -11,10 +11,10 @@ If for example lang_en.py has the definition
 
 FOO_BAR = u"foo bar"
 
-and that definition is missing in lang_de.py because it 
-is older then it will insert the missing definition into 
-lang_de.py but it will be commented out, so that you can 
-better find it:
+and that definition is missing in lang_de.py because 
+lang_de.py is older then it will insert the missing 
+definition into lang_de.py but it will be commented 
+out, so that you can better find it:
 
 # FOO_BAR = u"foo bar"
 
