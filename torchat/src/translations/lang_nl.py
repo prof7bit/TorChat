@@ -39,6 +39,7 @@ MPOP_CLEAR_OFFLINE_MESSAGES = u"Schoon Offline berichten in wacht"
 MPOP_ADD_CONTACT = u"Contactpersoon toevoegen..."
 MPOP_ABOUT = u"Over TorChat"
 MPOP_ASK_AUTHOR = u"Vraag %s"
+# MPOP_SETTINGS = u"Settings..."
 
 #confirm delete message box
 D_CONFIRM_DELETE_TITLE = u"Bevestig verwijderen"
@@ -66,6 +67,24 @@ DEC_MSG_ALREADY_ON_LIST = u"%s staat al in uw lijst."
 DFT_SEND = u"Verzenden %s\nnaar %s\n%04.1f%% (%i van %i bytes)"
 DFT_RECEIVE = u"Ontvangen %s\nvan %s\n%04.1f%% (%i van %i bytes)"
 
+# #settings dialaog
+# DSET_TITLE = u"TorChat configuration"
+# DSET_NET_TITLE = u"Network"
+# DSET_NET_ACTIVE = u"active"
+# DSET_NET_INACTIVE = u"inactive"
+# DSET_NET_TOR_ADDRESS = u"Tor proxy address"
+# DSET_NET_TOR_SOCKS = u"Socks port"
+# DSET_NET_TOR_CONTROL = u"Control port"
+# DSET_NET_OWN_HOSTNAME = u"Own TorChat-ID"
+# DSET_NET_LISTEN_INTERFACE = u"Listen interface"
+# DSET_NET_LISTEN_PORT = u"Listen port"
+# DSET_GUI_TITLE = u"User interface"
+# DSET_GUI_LANGUAGE = u"Language"
+# DSET_GUI_OPEN_MAIN_HIDDEN = u"Start with minimized main window"
+# DSET_GUI_OPEN_CHAT_HIDDEN = u"Don't automatically open new windows"
+# DSET_GUI_NOTIFICATION_POPUP = u"Notification pop-up"
+# DSET_GUI_FLASH_WINDOW = u"Flash window title on new message"
+
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"vertraagde berichten, wachtend om verzonden te worden"
 NOTICE_DELAYED_MSG_SENT = u"vertraagde berichten zijn verzonden"
@@ -76,13 +95,13 @@ ABOUT_TITLE = u"Over TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s
   %(copyright)s
 
-Translations: 
+Translations:
   %(translators)s
 
 Runtime environment:
   Python: %(python)s
   wx: %(wx)s
-    
+
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
 License as published by the Free Software Foundation, \

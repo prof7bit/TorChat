@@ -79,7 +79,11 @@ DSET_NET_OWN_HOSTNAME = u"Mon TorChat ID"
 DSET_NET_LISTEN_INTERFACE = u"Interface d'écouter"
 DSET_NET_LISTEN_PORT = u"Port d'écouter"
 DSET_GUI_TITLE = u"Interface d'utilisateur"
-
+# DSET_GUI_LANGUAGE = u"Language"
+# DSET_GUI_OPEN_MAIN_HIDDEN = u"Start with minimized main window"
+# DSET_GUI_OPEN_CHAT_HIDDEN = u"Don't automatically open new windows"
+# DSET_GUI_NOTIFICATION_POPUP = u"Notification pop-up"
+# DSET_GUI_FLASH_WINDOW = u"Flash window title on new message"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"messages retardés attendant pour être envoyé"
@@ -91,13 +95,13 @@ ABOUT_TITLE = u"À propos de TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s
   %(copyright)s
 
-Translations: 
+Translations:
   %(translators)s
 
 Runtime environment:
   Python: %(python)s
   wx: %(wx)s
-    
+
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
 License as published by the Free Software Foundation, \
@@ -117,4 +121,3 @@ If you happen to run a software company near Hannover, Germany and \
 are in need of a new coder, feel free to regard this little program \
 as my application documents and drop me a mail with your answer.
 """
-

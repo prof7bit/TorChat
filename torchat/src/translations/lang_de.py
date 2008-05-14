@@ -95,13 +95,13 @@ ABOUT_TITLE = u"Über TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s
   %(copyright)s
 
-Übersetzungen: 
+Übersetzungen:
   %(translators)s
 
 Laufzeitumgebung:
   Python: %(python)s
   wx: %(wx)s
-    
+
 Dieses Programm ist freie Software. Sie können es unter den \
 Bedingungen der GNU General Public License, wie von der \
 Free Software Foundation veröffentlicht, weitergeben und/oder \
@@ -116,7 +116,7 @@ in der GNU General Public License.
 
 Sie sollten ein Exemplar der GNU General Public License zusammen \
 mit diesem Programm erhalten haben. Falls nicht, siehe \
-<http://www.gnu.org/licenses/>.     
+<http://www.gnu.org/licenses/>.
 
 *
 
