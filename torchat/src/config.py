@@ -112,13 +112,16 @@ def get(section, option):
     if not config.has_option(section, option):
         value = config_defaults[section, option]
         set(section, option, value)
-    value = config.get(section, option, True)
-    if type(value) == str:
-        value = value.rstrip(" \"'").lstrip(" \"'")
+    value = str(config.get(section, option, True))
+    value = value.rstrip(" \"'").lstrip(" \"'")
     return value
 
 def getint(section, option):
-    value = get(section, option)
+    value = get(section, option).lower()
+    if value in ["yes", "on", "true"]:
+        return 1
+    if value in ["no", "off", "false"]:
+        return 0
     try:
         return int(value)
     except:
@@ -127,6 +130,8 @@ def getint(section, option):
 def set(section, option, value):
     if not config.has_section(section):
         config.add_section(section)
+    if type(value) == bool:
+        value = int(value)
     config.set(section, option, value)
     writeConfig()
 

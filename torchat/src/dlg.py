@@ -64,13 +64,14 @@ class Control(object):
         self.wx_label = wx.StaticText(self.panel, wx.ID_ANY, self.label)
         self.wx_ctrl = None
         self.panel.registerControl(self)
+    
         
     def getDefault(self, default):
         if type(default) == tuple:
             self.config_section = default[0]
             self.config_option = default[1]
             self.from_config = True
-            return config.get(default[0], default[1])
+            return self.readConfig(default[0], default[1])
         else:
             return default
         
@@ -98,6 +99,9 @@ class Control(object):
     def save(self):
         if self.from_config:
             config.set(self.config_section, self.config_option, self.getValue())
+
+    def readConfig(self, section, option):
+        return config.get(section, option)
                 
                 
 class Text(Control):
@@ -116,7 +120,9 @@ class Check(Control):
         self.wx_ctrl.SetValue(bool(self.default))
         self.wx_ctrl.SetLabel(label2)
         self.addToPanel()
-    
+
+    def readConfig(self, section, option):
+        return config.getint(section, option)
 
 class Separator(Control):
     def __init__(self, panel, label):
