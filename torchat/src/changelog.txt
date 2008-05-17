@@ -1,5 +1,5 @@
 svn trunk
-- implemented configuration dialig
+- implemented configuration dialog
 - added dutch translation
 - added french translation
 - let the user specify a path for temporary files, change the default
