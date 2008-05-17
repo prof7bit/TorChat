@@ -58,16 +58,16 @@ class Dialog(wx.Dialog):
         self.notebook.AddPage(self.p1, lang.DSET_NET_TITLE)
 
         self.s_tor_portable = dlg.Separator(self.p1, "Tor portable")
-        dlg.Text(self.p1, lang.DSET_NET_TOR_ADDRESS, ("tor_portable", "tor_server"), width=150)
+        dlg.Text(self.p1, lang.DSET_NET_TOR_ADDRESS, ("tor_portable", "tor_server"), True)
         dlg.Text(self.p1, lang.DSET_NET_TOR_SOCKS, ("tor_portable", "tor_server_socks_port"))
         dlg.Text(self.p1, lang.DSET_NET_TOR_CONTROL, ("tor_portable", "tor_server_control_port"))
         self.s_tor = dlg.Separator(self.p1, "Tor")
-        dlg.Text(self.p1, lang.DSET_NET_TOR_ADDRESS, ("tor", "tor_server"), width=150)
+        dlg.Text(self.p1, lang.DSET_NET_TOR_ADDRESS, ("tor", "tor_server"), True)
         dlg.Text(self.p1, lang.DSET_NET_TOR_SOCKS, ("tor", "tor_server_socks_port"))
         dlg.Text(self.p1, lang.DSET_NET_TOR_CONTROL, ("tor", "tor_server_control_port"))
-        dlg.Text(self.p1, lang.DSET_NET_OWN_HOSTNAME, ("client", "own_hostname"), width=150)
+        dlg.Text(self.p1, lang.DSET_NET_OWN_HOSTNAME, ("client", "own_hostname"), True)
         dlg.Separator(self.p1, "Client")
-        dlg.Text(self.p1, lang.DSET_NET_LISTEN_INTERFACE, ("client", "listen_interface"), width=150)
+        dlg.Text(self.p1, lang.DSET_NET_LISTEN_INTERFACE, ("client", "listen_interface"), True)
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_PORT, ("client", "listen_port"))
         self.p1.fit()
         
@@ -88,8 +88,19 @@ class Dialog(wx.Dialog):
         dlg.Check(self.p2, lang.DSET_GUI_NOTIFICATION_POPUP, ("gui", "notification_popup"))
         dlg.Check(self.p2, lang.DSET_GUI_FLASH_WINDOW, ("gui", "notification_flash_window"))
         
+        #3.3 misc options
+        self.p3 = dlg.Panel(self.notebook)
+        self.notebook.AddPage(self.p3, lang.DSET_MISC_TITLE)
+        self.chk_tmp = dlg.Check(self.p3, lang.DSET_MISC_TEMP_IN_DATA, ("files", "temp_files_in_data_dir"))
+        self.dir_tmp = dlg.Dir(self.p3, lang.DSET_MISC_TEMP_CUSTOM_DIR, ("files", "temp_files_custom_dir"))
+        self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
+        self.chk_tmp.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onChkTmp)
+        
         #4 fit the sizers
         outer_sizer.Fit(self)
+        
+    def onChkTmp(self, evt):
+        self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
         
     def onCancel(self, evt):
         evt.Skip() #let the frame now process the Cancel event
@@ -97,6 +108,7 @@ class Dialog(wx.Dialog):
     def onOk(self, evt):
         self.p1.saveAllData()
         self.p2.saveAllData()
+        self.p3.saveAllData()
         if self.lang.getValue() != self.lang_old:
             config.importLanguage()
         evt.Skip() #let the frame now process the Ok event

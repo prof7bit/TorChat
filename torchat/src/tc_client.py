@@ -134,7 +134,7 @@ class Buddy(object):
                 pass
 
     def sendChatMessage(self, text):
-        #text must be is UTF-8 encoded
+        #text must be UTF-8 encoded
         if self.can_send:
             message = ProtocolMsg(self.bl, None, "message", text)
             message.send(self)
