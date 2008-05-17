@@ -54,6 +54,10 @@ class Panel(wx.Panel):
     
     def registerControl(self, control):
         self.controls.append(control)
+        try:
+            self.last_separator.controls.append(control)
+        except:
+            pass
     
     def newLine(self):
         self.py += 1
