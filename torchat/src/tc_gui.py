@@ -269,10 +269,9 @@ class PopupMenu(wx.Menu):
         
         #settings
         
-        if version.EXPERIMENTAL:
-            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SETTINGS)
-            self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onSettings, item)
+        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SETTINGS)
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onSettings, item)
 
         #about
         
