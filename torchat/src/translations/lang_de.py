@@ -84,6 +84,9 @@ DSET_GUI_OPEN_MAIN_HIDDEN = u"Starte mit minimiertem Hauptfenster"
 DSET_GUI_OPEN_CHAT_HIDDEN = u"Öffne neue Fenster nicht automatisch"
 DSET_GUI_NOTIFICATION_POPUP = u"Benachrichtigungs-PopUp"
 DSET_GUI_FLASH_WINDOW = u"Blinkender Fenstertitel bei neuer Nachricht"
+DSET_MISC_TITLE = u"Verschiedenes"
+DSET_MISC_TEMP_IN_DATA = u"Temporäre Dateien im Datenverzeichnis"
+DSET_MISC_TEMP_CUSTOM_DIR = u"Verzeichnis für temporäre Dateien (leer lassen für OS-Default)"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"Verzögerte Nachrichten in der Sendewarteschlange"

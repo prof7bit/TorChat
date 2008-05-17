@@ -84,6 +84,9 @@ DSET_GUI_TITLE = u"Interface d'utilisateur"
 # DSET_GUI_OPEN_CHAT_HIDDEN = u"Don't automatically open new windows"
 # DSET_GUI_NOTIFICATION_POPUP = u"Notification pop-up"
 # DSET_GUI_FLASH_WINDOW = u"Flash window title on new message"
+# DSET_MISC_TITLE = u"Misc"
+# DSET_MISC_TEMP_IN_DATA = u"Store temporary files inside data directory"
+# DSET_MISC_TEMP_CUSTOM_DIR = u"Temporary directory (leave empty for OS-default)"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"messages retardés attendant pour être envoyé"
