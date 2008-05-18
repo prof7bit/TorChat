@@ -7,6 +7,24 @@
       <language>en-us</language>
       <ttl>10</ttl>
       <item>
+         <title>TorChat 0.9.9.191 Released</title>
+         <pubDate>Sun, 18 May 2008 00:00:00 GMT</pubDate>
+         <guid>0.9.9.191</guid>
+         <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.191.zip</link>
+         <description>
+         &lt;p&gt;
+         TorChat 0.9.9.191 Released. This version has support for translations
+         of the user interface. Available translations at the moment are English,
+         German, Dutch and French. The Dutch and the French translation are
+         partially incomplete. 
+         &lt;/p&gt;
+         &lt;p&gt;
+         Also new in this version is a configuration dialog to manage the 
+         settings in torchat.ini.
+         &lt;/p&gt;
+         </description>
+      </item>
+      <item>
          <title>All Debian and Ubuntu users must change their ID</title>
          <link>http://code.google.com/p/torchat/?openssl-debian-bug</link>
          <description>
