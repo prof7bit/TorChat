@@ -1,7 +1,8 @@
-svn trunk
+version 0.9.9.191
 - implemented configuration dialog
-- added dutch translation
-- added french translation
+- added german translation
+- added (partial) dutch translation
+- added (partial) french translation
 - let the user specify a path for temporary files, change the default
   to be the data directory (the torchat folder in portable mode)
 
