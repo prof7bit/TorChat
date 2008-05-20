@@ -930,7 +930,7 @@ class ProtocolMsg_version(ProtocolMsg):
         
     def execute(self):
         if self.buddy:
-            print "(3) %s has version %s" % (self.buddy.address, self.version)
+            print "(2) %s has version %s" % (self.buddy.address, self.version)
             self.buddy.version = self.version
 
 
