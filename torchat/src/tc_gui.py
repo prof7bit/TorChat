@@ -37,12 +37,16 @@ ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
               tc_client.STATUS_AWAY : "away.png",
               tc_client.STATUS_XA : "xa.png"}
 
+_icon_bitmaps = {} #this is a cache for getStatusBitmap()
 
 def isWindows():
     return "win" in sys.platform
 
 def getStatusBitmap(status):
-    return wx.Bitmap(os.path.join(config.ICON_DIR, ICON_NAMES[status]), wx.BITMAP_TYPE_PNG)
+    global _icon_bitmaps
+    if not status in _icon_bitmaps:
+        _icon_bitmaps[status] = wx.Bitmap(os.path.join(config.ICON_DIR, ICON_NAMES[status]), wx.BITMAP_TYPE_PNG)
+    return _icon_bitmaps[status]
 
 class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
@@ -699,7 +703,7 @@ class ChatWindow(wx.Frame):
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
-        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.txt_in.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
         
         self.drop_target_in = FileDropTarget(self)
         self.drop_target_out = FileDropTarget(self)
