@@ -1,3 +1,8 @@
+svn / trunk
+- "edit contact" in chat window context menu
+- "send file" in chat window context menu
+- meaningful titles for file open and save dialogs
+
 version 0.9.9.191
 - implemented configuration dialog
 - added german translation

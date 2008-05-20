@@ -174,6 +174,18 @@ class Buddy(object):
         else:
             pass
 
+    def getDisplayNameOrAddress(self):
+        if self.name == "":
+            return self.address
+        else:
+            return self.name
+        
+    def getAddressAndDisplayName(self):
+        if self.name == "":
+            return self.address
+        else:
+            return self.address + " (" + self.name + ")"
+
     def sendFile(self, filename, gui_callback):
         sender = FileSender(self, filename, gui_callback)
         return sender

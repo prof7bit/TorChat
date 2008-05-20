@@ -290,6 +290,8 @@ class PopupMenu(wx.Menu):
     def onSendFile(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
         dialog = wx.FileDialog ( None, style = wx.OPEN )
+        name = buddy.getAddressAndDisplayName()
+        dialog.SetTitle(lang.DFT_FILE_OPEN_TITLE % name)
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
             transfer_window = FileTransferWindow(self.mw, buddy, file_name)
@@ -686,6 +688,8 @@ class ChatWindow(wx.Frame):
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        
         self.mw.chat_windows.append(self)
         
     def updateTitle(self):
@@ -794,7 +798,58 @@ class ChatWindow(wx.Frame):
             else:
                 #FIXME: is this the way to go? better make it a config option.
                 subprocess.Popen(("/etc/alternatives/x-www-browser %s" % url).split())
+        else:
+            evt.Skip()
 
+    def OnContextMenu(self, evt):
+        menu = wx.Menu()
+
+        id = wx.NewId()
+        item = wx.MenuItem(menu, id, lang.CPOP_COPY)
+        self.Bind(wx.EVT_MENU, self.onCopy, id=id)
+        menu.AppendItem(item)
+        sel_from, sel_to = self.txt_in.GetSelection()
+        empty = (sel_from == sel_to)
+        if empty:
+            item.Enable(False)
+        
+        id = wx.NewId()
+        item = wx.MenuItem(menu, id, lang.MPOP_SEND_FILE)
+        self.Bind(wx.EVT_MENU, self.onSendFile, id=id)
+        menu.AppendItem(item)
+        
+        id = wx.NewId()
+        item = wx.MenuItem(menu, id, lang.MPOP_EDIT_CONTACT)
+        self.Bind(wx.EVT_MENU, self.onEditBuddy, id=id)
+        menu.AppendItem(item)
+        
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def onCopy(self, evt):
+        sel_from, sel_to = self.txt_in.GetSelection()
+        if sel_from == sel_to:
+            return
+        text = self.txt_in.GetRange(sel_from, sel_to)
+        clipdata = wx.TextDataObject()
+        clipdata.SetText(text)
+        wx.TheClipboard.Open()
+        wx.TheClipboard.SetData(clipdata)
+        wx.TheClipboard.Close()
+
+    def onSendFile(self, evt):
+        dialog = wx.FileDialog ( None, style = wx.OPEN )
+        name = self.buddy.getAddressAndDisplayName()
+        dialog.SetTitle(lang.DFT_FILE_OPEN_TITLE % name)
+        if dialog.ShowModal() == wx.ID_OK:
+            file_name = dialog.GetPath()
+            transfer_window = FileTransferWindow(self.mw, self.buddy, file_name)
+
+    def onEditBuddy(self, evt):
+        dialog = DlgEditContact(self.mw, self.buddy)
+        dialog.ShowModal()
+
+    
 
 class FileTransferWindow(wx.Frame):
     def __init__(self, main_window, buddy, file_name, receiver=None):
@@ -920,6 +975,8 @@ class FileTransferWindow(wx.Frame):
         
     def onSave(self, evt):
         dialog = wx.FileDialog(None, defaultFile=self.file_name, style=wx.SAVE)
+        name = self.buddy.getAddressAndDisplayName()
+        dialog.SetTitle(lang.DFT_FILE_SAVE_TITLE % name)
         if dialog.ShowModal() == wx.ID_OK:
             self.file_name_save = dialog.GetPath()
             self.transfer_object.setFileNameSave(self.file_name_save)
