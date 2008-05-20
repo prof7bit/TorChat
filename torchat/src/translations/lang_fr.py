@@ -41,6 +41,9 @@ MPOP_ABOUT = u"À propos..."
 MPOP_ASK_AUTHOR = u"Demandez %s"
 MPOP_SETTINGS = u"Paramètres..."
 
+# #chat window popup menu
+# CPOP_COPY = u"Copy"
+
 #confirm delete message box
 D_CONFIRM_DELETE_TITLE = u"Confirmez la supression"
 D_CONFIRM_DELETE_MESSAGE = u"Êtes-vous sûr de vouloir supprimer le contact?\n(%s %s)"
@@ -64,6 +67,8 @@ DEC_MSG_ONLY_ALPANUM = u"L'adresse doit seulement contenir des nombres et des le
 DEC_MSG_ALREADY_ON_LIST = u"%s est déjà sur votre liste."
 
 #file transfer window
+# DFT_FILE_OPEN_TITLE = u"Send file to %s"
+# DFT_FILE_SAVE_TITLE = u"Save file from %s"
 DFT_SEND = u"Envoyer %s\nà %s\n%04.1f%% (%i de %i bytes)"
 DFT_RECEIVE = u"Recevoir %s\nde %s\n%04.1f%% (%i de %i bytes)"
 

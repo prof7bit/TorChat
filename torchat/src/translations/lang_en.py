@@ -41,6 +41,9 @@ MPOP_ABOUT = u"About TorChat"
 MPOP_ASK_AUTHOR = u"Ask %s"
 MPOP_SETTINGS = u"Settings..."
 
+#chat window popup menu
+CPOP_COPY = u"Copy"
+
 #confirm delete message box
 D_CONFIRM_DELETE_TITLE = u"Confirm deletion"
 D_CONFIRM_DELETE_MESSAGE = u"Really delete this contact?\n(%s %s)"
@@ -64,6 +67,8 @@ DEC_MSG_ONLY_ALPANUM = u"The address must only contain numbers and lowercase let
 DEC_MSG_ALREADY_ON_LIST = u"%s is already on your list"
 
 #file transfer window
+DFT_FILE_OPEN_TITLE = u"Send file to %s"
+DFT_FILE_SAVE_TITLE = u"Save file from %s"
 DFT_SEND = u"Sending %s\nto %s\n%04.1f%% (%i of %i bytes)"
 DFT_RECEIVE = u"Receiving %s\nfrom %s\n%04.1f%% (%i of %i bytes)"
 

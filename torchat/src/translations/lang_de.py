@@ -41,6 +41,9 @@ MPOP_ABOUT = u"Über TorChat"
 MPOP_ASK_AUTHOR = u"%s fragen"
 MPOP_SETTINGS = u"Einstellungen..."
 
+# #chat window popup menu
+# CPOP_COPY = u"Copy"
+
 #confirm delete message box
 D_CONFIRM_DELETE_TITLE = u"Löschen bestätigen"
 D_CONFIRM_DELETE_MESSAGE = u"Soll dieser Kontakt wirklich gelöscht werden?\n(%s %s)"
@@ -55,7 +58,7 @@ D_WARN_UNREAD_MESSAGE = u"Es liegen noch ungelesene Nachrichten vor. Diese würd
 
 #dialog: add/edit contact
 DEC_TITLE_ADD = u"Neuen Kontakt anlegen"
-DEC_TITLE_EDIT = u"Kontakt bearbeiteh"
+DEC_TITLE_EDIT = u"Kontakt bearbeiten"
 DEC_TORCHAT_ID = u"TorChat ID"
 DEC_DISPLAY_NAME = u"Angezeigter Name"
 DEC_INTRODUCTION = u"Kurze Vorstellung"
@@ -64,6 +67,8 @@ DEC_MSG_ONLY_ALPANUM = u"Die Adresse kann nur as Ziffern und Kleinbuchstaben ohn
 DEC_MSG_ALREADY_ON_LIST = u"%s ist bereits auf Ihrer Liste"
 
 #file transfer window
+DFT_FILE_OPEN_TITLE = u"Sende Datei an %s"
+DFT_FILE_SAVE_TITLE = u"Speichere Datei von %s"
 DFT_SEND = u"Sende %s\nan %s\n%04.1f%% (%i von %i Bytes)"
 DFT_RECEIVE = u"Empfange %s\nvon %s\n%04.1f%% (%i von %i Bytes)"
 
