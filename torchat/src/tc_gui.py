@@ -287,6 +287,14 @@ class PopupMenu(wx.Menu):
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onAskAuthor, item)
 
+        #exit program
+
+        self.AppendSeparator()
+        item = wx.MenuItem(self, wx.NewId(), lang.MTB_QUIT)
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onQuit, item)
+        
+
     def onSendFile(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
         dialog = wx.FileDialog ( None, style = wx.OPEN )
@@ -352,6 +360,9 @@ class PopupMenu(wx.Menu):
         else:
             dialog = DlgEditContact(self.mw, add_author=True)
             dialog.ShowModal()
+
+    def onQuit(self, evt):
+        self.mw.exitProgram()
 
 
 class DlgEditContact(wx.Dialog):
