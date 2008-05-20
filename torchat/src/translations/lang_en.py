@@ -108,7 +108,7 @@ NOTICE_DELAYED = u"delayed"
 
 #about box
 ABOUT_TITLE = u"About TorChat"
-ABOUT_TEXT = u"""TorChat %(version)s
+ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
   %(copyright)s
 
 Translations: 

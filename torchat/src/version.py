@@ -41,3 +41,4 @@ else:
         f.close()
                     
 VERSION = VERSION_MAJOR + "." + str(svn - SVN_OFFSET)
+VERSION_SVN = svn
