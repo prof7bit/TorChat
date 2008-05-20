@@ -679,9 +679,6 @@ class ChatWindow(wx.Frame):
         self.panel.SetSizer(sizer)
         sizer.FitInside(self)
         
-        if not hidden:
-            self.Show()
-        
         om = self.buddy.getOfflineMessages()
         if om:
             om = "[%s]\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
@@ -709,6 +706,9 @@ class ChatWindow(wx.Frame):
         self.drop_target_out = FileDropTarget(self)
         self.txt_in.SetDropTarget(self.drop_target_in)
         self.txt_out.SetDropTarget(self.drop_target_out)
+        
+        if not hidden:
+            self.Show()
         
         self.mw.chat_windows.append(self)
         
@@ -958,7 +958,7 @@ class FileTransferWindow(wx.Frame):
         peer_name = self.buddy.address
         if self.buddy.name != "":
             peer_name += " (%s)" % self.buddy.name
-        title = "%04.1f%% - %s" % (percent, self.file_name)
+        title = "%04.1f%% - %s" % (percent, os.path.basename(self.file_name))
         self.SetTitle(title)
         self.progress_bar.SetValue(percent)
         
@@ -1013,7 +1013,7 @@ class FileTransferWindow(wx.Frame):
         self.Close()
         
     def onSave(self, evt):
-        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_SAVE_TITLE % self.buddy.getAddressAndDisplayName()
         dialog = wx.FileDialog(self, title, defaultFile=self.file_name, style=wx.SAVE)
         if dialog.ShowModal() == wx.ID_OK:
             self.file_name_save = dialog.GetPath()
