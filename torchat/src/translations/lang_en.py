@@ -38,7 +38,7 @@ MPOP_SHOW_OFFLINE_MESSAGES = u"Show queued offline messages"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Clear queued offline messages"
 MPOP_ADD_CONTACT = u"Add contact..."
 MPOP_ABOUT = u"About TorChat"
-MPOP_ASK_AUTHOR = u"Ask %s"
+MPOP_ASK_AUTHOR = u"Ask %s..."
 MPOP_SETTINGS = u"Settings..."
 
 #chat window popup menu

@@ -248,14 +248,6 @@ class PopupMenu(wx.Menu):
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onSendFile, item)
 
-            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_EDIT_CONTACT)
-            self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onEdit, item)
-
-            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_DELETE_CONTACT)
-            self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onDelete, item)
-
             item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SHOW_OFFLINE_MESSAGES)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onShowOffline, item)
@@ -264,10 +256,27 @@ class PopupMenu(wx.Menu):
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onClearOffline, item)
 
-        if type == "empty": 
-            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ADD_CONTACT)
+            self.AppendSeparator()
+
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_EDIT_CONTACT)
             self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onAdd, item)
+            self.Bind(wx.EVT_MENU, self.onEdit, item)
+
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_DELETE_CONTACT)
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onDelete, item)
+
+            self.AppendSeparator()
+
+        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ADD_CONTACT)
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onAdd, item)
+
+        #ask bernd
+        
+        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ASK_AUTHOR % config.AUTHORS_NAME)
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onAskAuthor, item)
 
         self.AppendSeparator()
         
@@ -283,13 +292,6 @@ class PopupMenu(wx.Menu):
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAbout, item)
 
-        #ask bernd
-        
-        if type == "empty": 
-            self.AppendSeparator()
-            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ASK_AUTHOR % config.AUTHORS_NAME)
-            self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onAskAuthor, item)
 
         #exit program
 
@@ -298,19 +300,17 @@ class PopupMenu(wx.Menu):
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onQuit, item)
         
-
     def onSendFile(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
-        dialog = wx.FileDialog ( None, style = wx.OPEN )
-        name = buddy.getAddressAndDisplayName()
-        dialog.SetTitle(lang.DFT_FILE_OPEN_TITLE % name)
+        title = lang.DFT_FILE_OPEN_TITLE % buddy.getAddressAndDisplayName()
+        dialog = wx.FileDialog(self.mw, title, style=wx.OPEN)
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
             transfer_window = FileTransferWindow(self.mw, buddy, file_name)
 
     def onEdit(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
-        dialog = DlgEditContact(self.mw, buddy)
+        dialog = DlgEditContact(self.mw, self.mw, buddy)
         dialog.ShowModal()
 
     def onDelete(self, evt):
@@ -343,7 +343,7 @@ class PopupMenu(wx.Menu):
             pass
 
     def onAdd(self, evt):
-        dialog = DlgEditContact(self.mw)
+        dialog = DlgEditContact(self.mw, self.mw)
         dialog.ShowModal()
         
     def onSettings(self, evt):
@@ -362,7 +362,7 @@ class PopupMenu(wx.Menu):
         if self.mw.buddy_list.getBuddyFromAddress(config.AUTHORS_ID):
             wx.MessageBox(lang.DEC_MSG_ALREADY_ON_LIST % config.AUTHORS_NAME)
         else:
-            dialog = DlgEditContact(self.mw, add_author=True)
+            dialog = DlgEditContact(self.mw, self.mw, add_author=True)
             dialog.ShowModal()
 
     def onQuit(self, evt):
@@ -370,8 +370,8 @@ class PopupMenu(wx.Menu):
 
 
 class DlgEditContact(wx.Dialog):
-    def __init__(self, main_window, buddy=None, add_author=False): #no buddy -> Add new
-        wx.Dialog.__init__(self, main_window, -1)
+    def __init__(self, parent, main_window, buddy=None, add_author=False): #no buddy -> Add new
+        wx.Dialog.__init__(self, parent, -1)
         self.mw = main_window
         self.bl = self.mw.buddy_list
         self.buddy = buddy
@@ -859,15 +859,14 @@ class ChatWindow(wx.Frame):
 
     
     def onSendFile(self, evt):
-        dialog = wx.FileDialog ( None, style = wx.OPEN )
-        name = self.buddy.getAddressAndDisplayName()
-        dialog.SetTitle(lang.DFT_FILE_OPEN_TITLE % name)
+        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
+        dialog = wx.FileDialog(self, title, style=wx.OPEN)
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
             transfer_window = FileTransferWindow(self.mw, self.buddy, file_name)
 
     def onEditBuddy(self, evt):
-        dialog = DlgEditContact(self.mw, self.buddy)
+        dialog = DlgEditContact(self, self.mw, self.buddy)
         dialog.ShowModal()
 
 
@@ -1014,9 +1013,8 @@ class FileTransferWindow(wx.Frame):
         self.Close()
         
     def onSave(self, evt):
-        dialog = wx.FileDialog(None, defaultFile=self.file_name, style=wx.SAVE)
-        name = self.buddy.getAddressAndDisplayName()
-        dialog.SetTitle(lang.DFT_FILE_SAVE_TITLE % name)
+        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
+        dialog = wx.FileDialog(self, title, defaultFile=self.file_name, style=wx.SAVE)
         if dialog.ShowModal() == wx.ID_OK:
             self.file_name_save = dialog.GetPath()
             self.transfer_object.setFileNameSave(self.file_name_save)

@@ -38,7 +38,7 @@ MPOP_SHOW_OFFLINE_MESSAGES = u"Montrer les messages hors-ligne"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Effacer les messages hors-ligne"
 MPOP_ADD_CONTACT = u"Ajouter un contact..."
 MPOP_ABOUT = u"À propos..."
-MPOP_ASK_AUTHOR = u"Demandez %s"
+MPOP_ASK_AUTHOR = u"Demandez %s..."
 MPOP_SETTINGS = u"Paramètres..."
 
 # #chat window popup menu
