@@ -50,6 +50,7 @@ def getStatusBitmap(status):
 
 class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
+        self.icon_cache = {}
         wx.TaskBarIcon.__init__(self)
         self.mw = main_window
         self.showStatus(self.mw.buddy_list.own_status)
@@ -59,18 +60,26 @@ class TaskbarIcon(wx.TaskBarIcon):
         self.Bind(wx.EVT_TIMER, self.onTimer)
 
     def showEvent(self):
-        img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
-        img.ConvertAlphaToMask()
-        bmp = img.ConvertToBitmap()
-        icon = wx.IconFromBitmap(bmp)
+        try:
+            icon = self.icon_cache["event.png"]
+        except:
+            img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
+            img.ConvertAlphaToMask()
+            bmp = img.ConvertToBitmap()
+            icon = wx.IconFromBitmap(bmp)
+            self.icon_cache["event.png"] = icon
         self.SetIcon(icon, self.getToolTipText())
         
     def showStatus(self, status):
         icon_name = ICON_NAMES[status]
-        img = wx.Image(os.path.join(config.ICON_DIR, icon_name))
-        img.ConvertAlphaToMask()
-        bmp = img.ConvertToBitmap()
-        icon = wx.IconFromBitmap(bmp)
+        try:
+            icon = self.icon_cache[icon_name]
+        except:
+            img = wx.Image(os.path.join(config.ICON_DIR, icon_name))
+            img.ConvertAlphaToMask()
+            bmp = img.ConvertToBitmap()
+            icon = wx.IconFromBitmap(bmp)
+            self.icon_cache[icon_name] = icon
         self.SetIcon(icon, self.getToolTipText())
 
     def onLeftClick(self, evt):
