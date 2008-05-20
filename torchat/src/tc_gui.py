@@ -690,6 +690,11 @@ class ChatWindow(wx.Frame):
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
         
+        self.drop_target_in = FileDropTarget(self)
+        self.drop_target_out = FileDropTarget(self)
+        self.txt_in.SetDropTarget(self.drop_target_in)
+        self.txt_out.SetDropTarget(self.drop_target_out)
+        
         self.mw.chat_windows.append(self)
         
     def updateTitle(self):
@@ -763,7 +768,7 @@ class ChatWindow(wx.Frame):
         
     def onClose(self, evt):
         self.mw.chat_windows.remove(self)
-        evt.Skip()
+        self.Destroy()
         
     def onSend(self, evt):
         evt.Skip()
@@ -837,6 +842,7 @@ class ChatWindow(wx.Frame):
         wx.TheClipboard.SetData(clipdata)
         wx.TheClipboard.Close()
 
+    
     def onSendFile(self, evt):
         dialog = wx.FileDialog ( None, style = wx.OPEN )
         name = self.buddy.getAddressAndDisplayName()
@@ -849,7 +855,26 @@ class ChatWindow(wx.Frame):
         dialog = DlgEditContact(self.mw, self.buddy)
         dialog.ShowModal()
 
-    
+
+class FileDropTarget(wx.FileDropTarget):
+    def __init__(self, window):
+       wx.FileDropTarget.__init__(self)
+       self.window = window
+ 
+    def OnDropFiles(self, x, y, filenames):
+       if len(filenames) != 1:
+           wx.MessageBox(lang.D_WARN_FILE_ONLY_ONE_MESSAGE, 
+                         lang.D_WARN_FILE_ONLY_ONE_TITLE)
+           return
+       
+       if not self.window.buddy.conn_in:
+           wx.MessageBox(lang.D_WARN_BUDDY_OFFLINE_MESSAGE,
+                         lang.D_WARN_BUDDY_OFFLINE_TITLE)
+           return
+       
+       file_name = filenames[0]
+       transfer_window = FileTransferWindow(self.window, self.window.buddy, file_name)
+        
 
 class FileTransferWindow(wx.Frame):
     def __init__(self, main_window, buddy, file_name, receiver=None):

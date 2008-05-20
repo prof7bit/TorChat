@@ -56,6 +56,14 @@ D_LOG_WARNING_MESSAGE = u"L'archivage au fichier est activé!!\n\nFicher d'archi
 D_WARN_UNREAD_TITLE = u"TorChat: Messages non lus"
 D_WARN_UNREAD_MESSAGE = u"Il y a des messages non lus.\nIls seront perdus pour toujours!\n\nVoulez-vous vraiment sortir maintenant?"
 
+# #warning about multiple files
+# D_WARN_BUDDY_OFFLINE_TITLE = u"TorChat: Buddy is offline"
+# D_WARN_BUDDY_OFFLINE_MESSAGE = u"This operation is not possible with offline buddies"
+
+# #warning about multiple files
+# D_WARN_FILE_ONLY_ONE_TITLE = u"TorChat: Multiple files"
+# D_WARN_FILE_ONLY_ONE_MESSAGE = u"You may not start multiple file transfers with one operation. Start the transfers individually or send a zip-file instead"
+
 #dialog: add/edit contact
 DEC_TITLE_ADD = u"Ajouter un nouveau contact"
 DEC_TITLE_EDIT = u"Modifier le contact"

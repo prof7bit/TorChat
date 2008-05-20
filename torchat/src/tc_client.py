@@ -1174,6 +1174,10 @@ class InConnection:
     
     def close(self):
         try:
+            self.socket.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
+        try:
             self.socket.close()
         except:
             pass
@@ -1224,6 +1228,10 @@ class OutConnection(threading.Thread):
     def close(self):
         self.running = False
         try:
+            self.socket.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
+        try:
             self.socket.close()
         except:
             pass
@@ -1243,17 +1251,15 @@ class Listener(threading.Thread):
         self.socket.bind((config.get("client", "listen_interface"), 
                           config.getint("client", "listen_port")))
         self.socket.listen(1)
-        try:
-            while self.running:
-                try:
-                    conn, address = self.socket.accept()
-                    self.conns.append(InConnection(conn, self.buddy_list))
-                except:
-                    tb()
-                    self.running = False
+        while self.running:
+            try:
+                conn, address = self.socket.accept()
+                self.conns.append(InConnection(conn, self.buddy_list))
+            except:
+                print "socket listener error!"
+                tb()
+                self.running = False
                     
-        except TypeError:
-            pass
 
     def close(self):
         self.running = False
