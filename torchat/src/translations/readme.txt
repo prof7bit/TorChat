@@ -33,13 +33,17 @@ So if you want to start a new translation, do the following:
 If you want to update an existing  translation because it is 
 outdated and missing some strings:
 
-- run TorChat with loglevel 2 to get a list of the missing strings. 
+- run TorChat with loglevel 2 to get a list of the missing strings.
+  (if the file has been processed by insert_miissing.py as it should
+  be with files from regular releases, then there will be already all
+  missing strings inserted but commented out in the file)
 
 - Begin with a copy of the language file in question, add the missing 
-  strings and watch the output of the log to see when you are done. 
+  strings (just remove the # before the untranslated definition and 
+  translate) and watch the output of the log to see when you are done. 
   
-- Add your name to the header of the file, send it to me and I will 
-  include it in the next release.
+- Add your name to the header of the file, to receive fame and immortality, 
+  send it to me and I will include it in the next release.
 
 You can always work with a copy of the lang_xx file outside of
 this folder, language files in the script directory take precedence
