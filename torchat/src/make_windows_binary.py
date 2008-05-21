@@ -9,6 +9,7 @@ import version
 import wx
 
 wx_path = wx.__path__[0]
+py_path = "c:\python25"
 
 app_name = "TorChat" 
 app_descr = "Messenger on top of the TOR-network" 
@@ -52,7 +53,8 @@ manifest = '''
 setup(
     options = {
         "py2exe": {
-            "bundle_files": 1, # create singlefile exe
+#            "bundle_files": 1, # create singlefile exe
+            "bundle_files": 3, # windows 9x needs this
             "compressed": 1, # compress the library archive
             "excludes": [],
             "dll_excludes": ["w9xpopen.exe"]
@@ -79,6 +81,7 @@ setup(
 
 os.system("copy %s\gdiplus.dll dist" % wx_path)
 os.system("copy %s\msvcp71.dll dist" % wx_path)
+os.system("copy %s\unicows.dll dist" % py_path)
 os.system("upx dist\\*.*")
 
 os.system("copy dist\\*.* ..\\bin")
