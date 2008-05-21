@@ -81,7 +81,7 @@ setup(
 
 os.system("copy %s\gdiplus.dll dist" % wx_path)
 os.system("copy %s\msvcp71.dll dist" % wx_path)
-os.system("copy %s\unicows.dll dist" % py_path)
+os.system("copy %s\unicows.dll dist" % py_path) #needed for win9x
 os.system("upx dist\\*.*")
 
 os.system("copy dist\\*.* ..\\bin")
