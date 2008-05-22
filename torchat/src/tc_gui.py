@@ -108,6 +108,16 @@ class TaskbarIcon(wx.TaskBarIcon):
             self.showStatus(self.mw.buddy_list.own_status)
         else:
             self.showEvent()
+        
+        #stop blinking, if there are no more hidden windows    
+        found = False
+        for window in self.mw.chat_windows:
+            if not window.IsShown():
+                found = True
+                break
+        
+        if not found:
+            self.blink(False)
 
 
 class TaskbarMenu(wx.Menu):
