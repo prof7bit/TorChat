@@ -1138,20 +1138,10 @@ class MainWindow(wx.Frame):
             if answer == wx.NO:
                 return
         
-        for buddy in self.buddy_list.list:
-            if buddy.conn_out != None:
-                buddy.conn_out.close()
-                
         self.taskbar_icon.RemoveIcon()
-        
         self.buddy_list.stopClient() #this will also stop portable Tor
         
         # All my threads wouldn't join properly. Don't know why.
         # sys.exit() would spew lots of tracebacks *sometimes*,
         # so let's do it the easy way and just kill ourself:
-        pid = os.getpid()
-        if isWindows():
-            tc_client.w32Kill(pid)
-        else:
-            os.kill(pid, 9)
-
+        tc_client.killProcess(os.getpid())

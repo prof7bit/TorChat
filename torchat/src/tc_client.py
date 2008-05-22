@@ -57,15 +57,18 @@ def isWindows98():
         return sys.getwindowsversion()[0] == 4
     else:
         return False
-    
-def w32Kill(pid):
-    PROCESS_TERMINATE = 1
-    handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
-                                                False, 
-                                                pid)
-    print handle
-    ctypes.windll.kernel32.TerminateProcess(handle, -1)
-    ctypes.windll.kernel32.CloseHandle(handle)
+
+def killProcess(pid):
+    if isWindows():
+        PROCESS_TERMINATE = 1
+        handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
+                                                    False, 
+                                                    pid)
+        print handle
+        ctypes.windll.kernel32.TerminateProcess(handle, -1)
+        ctypes.windll.kernel32.CloseHandle(handle)
+    else:
+        os.kill(pid, 9)
 
 def splitLine(text):
     sp = text.split(" ")
@@ -1311,43 +1314,65 @@ def startPortableTor():
         #        os.rmdir(os.path.join(root, name))
         
         # now start tor with the supplied config file
-        print "(1) trying to start tor.exe"
-        tor = subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
-        tor_pid = tor.pid
-        print "(1) started tor.exe (pid=%i)" % _tor_pid
+        print "(1) trying to start Tor"
         
-        # we now assume the existence of our hostname file
-        # it WILL be created after the first start
-        # if not, something must be totally wrong.
-        cnt = 0
-        found = False
-        while cnt <= 20:
-            try:
-                print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
-                f = open("hidden_service\\hostname", "r")
-                hostname = f.read().rstrip()[:-6]
-                print "(1) found hostname: %s" % hostname
-                print "(1) writing own_hostname to torchat.ini"
-                config.set("client", "own_hostname", hostname)
-                found = True
-                f.close()
-                break
-            except:
-                # we wait 20 seconds for the file to appear
-                time.sleep(1)
-                cnt += 1
-
-        if not found:
-            print "(0) very strange: portable tor started but hostname could not be read"
-            print "(0) will use section [tor] and not [tor_portable]"
+        if isWindows():
+            if os.path.exists("tor.exe"):
+                #start the process without opening a console window
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                tor = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
+                tor_pid = tor.pid
+            else:
+                print "(1) there is no portable tor.exe"
+                tor_pid = False
         else:
-            #in portable mode we run Tor on some non-standard ports:
-            #so we switch to the other set of config-options
-            print "(1) switching active config section from [tor] to [tor_portable]"
-            TOR_CONFIG = "tor_portable"
+            if os.path.exists("tor.sh"):
+                #let our shell script start a tor instance 
+                tor = subprocess.Popen("tor.sh".split())
+                tor_pid = tor.pid
+            else:
+                print "(1) there is no Tor starter script (tor.sh)"
+                tor_pid = False
+
+        if tor_pid:
+            #tor = subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
+            print "(1) successfully started Tor (pid=%i)" % tor_pid
+            
+            # we now assume the existence of our hostname file
+            # it WILL be created after the first start
+            # if not, something must be totally wrong.
+            cnt = 0
+            found = False
+            while cnt <= 20:
+                try:
+                    print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
+                    f = open("hidden_service\\hostname", "r")
+                    hostname = f.read().rstrip()[:-6]
+                    print "(1) found hostname: %s" % hostname
+                    print "(1) writing own_hostname to torchat.ini"
+                    config.set("client", "own_hostname", hostname)
+                    found = True
+                    f.close()
+                    break
+                except:
+                    # we wait 20 seconds for the file to appear
+                    time.sleep(1)
+                    cnt += 1
+    
+            if not found:
+                print "(0) very strange: portable tor started but hostname could not be read"
+                print "(0) will use section [tor] and not [tor_portable]"
+            else:
+                #in portable mode we run Tor on some non-standard ports:
+                #so we switch to the other set of config-options
+                print "(1) switching active config section from [tor] to [tor_portable]"
+                TOR_CONFIG = "tor_portable"
+        else:
+            print "(1) no own Tor instance. Settings in [tor] will be used"
         
     except:
-        print "(1) could not start tor, traceback is shown below"
+        print "(1) an error occured while starting tor, see traceback:"
         tb(1)
         
     print "(1) changing working directory back to %s" % old_dir
@@ -1357,7 +1382,5 @@ def startPortableTor():
 def stopPortableTor():
     if not tor_pid:
         return
-    if isWindows():
-        w32Kill(tor_pid)
     else:
-        os.kill(tor_pid, 9)
+        killProcess(tor_pid)
