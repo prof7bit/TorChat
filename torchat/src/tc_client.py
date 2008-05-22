@@ -501,8 +501,8 @@ class FileSender(threading.Thread):
             #to get us connected again and we just wait
             self.timeout_count += 1
             
-        if self.timeout_count == 600: 
-            #one minute without filedata_ok
+        if self.timeout_count == 6000: 
+            #ten minutes without filedata_ok
             new_start = self.start_ok + self.block_size
             self.restart(new_start)
             #enforce a new connection
