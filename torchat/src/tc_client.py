@@ -26,6 +26,7 @@ import sys
 import os
 import shutil
 import subprocess
+import ctypes
 import tempfile
 import md5
 import traceback
@@ -46,9 +47,25 @@ CB_TYPE_FILE = 2
 CB_TYPE_OFFLINE_SENT = 3
 
 tb = config.tb # the traceback function has moved to config
+tor_pid = False
 
 def isWindows():
     return "win" in sys.platform
+
+def isWindows98():
+    if isWindows():
+        return sys.getwindowsversion()[0] == 4
+    else:
+        return False
+    
+def w32Kill(pid):
+    PROCESS_TERMINATE = 1
+    handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
+                                                False, 
+                                                pid)
+    print handle
+    ctypes.windll.kernel32.TerminateProcess(handle, -1)
+    ctypes.windll.kernel32.CloseHandle(handle)
 
 def splitLine(text):
     sp = text.split(" ")
@@ -441,6 +458,12 @@ class BuddyList(object):
     def onFileReceive(self, file_receiver):
         self.guiCallback(CB_TYPE_FILE, file_receiver)
 
+    def stopClient(self):
+        stopPortableTor()
+        self.listener.close() #FIXME: does this really work?
+        for buddy in self.list + self.incoming_buddies:
+            buddy.disconnect()
+            
 
 class FileSender(threading.Thread):
     def __init__(self, buddy, file_name, guiCallback):
@@ -1273,6 +1296,7 @@ def startPortableTor():
     print "(1) entering function startPortableTor()"
     global tor_in, tor_out
     global TOR_CONFIG
+    global tor_pid
     old_dir = os.getcwd()
     print "(1) current working directory is %s" % os.getcwd()
     try:
@@ -1288,8 +1312,9 @@ def startPortableTor():
         
         # now start tor with the supplied config file
         print "(1) trying to start tor.exe"
-        subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
-        print "(1) started tor.exe"
+        tor = subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
+        tor_pid = tor.pid
+        print "(1) started tor.exe (pid=%i)" % _tor_pid
         
         # we now assume the existence of our hostname file
         # it WILL be created after the first start
@@ -1328,4 +1353,11 @@ def startPortableTor():
     print "(1) changing working directory back to %s" % old_dir
     os.chdir(old_dir)    
     print "(1) current working directory is %s" % os.getcwd()
-        
+
+def stopPortableTor():
+    if not tor_pid:
+        return
+    if isWindows():
+        w32Kill(tor_pid)
+    else:
+        os.kill(tor_pid, 9)

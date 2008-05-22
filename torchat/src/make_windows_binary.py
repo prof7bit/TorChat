@@ -79,12 +79,21 @@ setup(
     ]
 )
 
+def deleteDirectory(dir):
+    if sys.getwindowsversion()[0] == 4:
+        #windows 98
+        os.system("deltree /Y %s" % dir)
+    else:
+        #all other windows
+        os.system("rmdir /S /Q %s" % dir)
+
 os.system("copy %s\gdiplus.dll dist" % wx_path)
 os.system("copy %s\msvcp71.dll dist" % wx_path)
 os.system("copy %s\unicows.dll dist" % py_path) #needed for win9x
 os.system("upx dist\\*.*")
 
 os.system("copy dist\\*.* ..\\bin")
-os.system("rmdir /S /Q dist build")
+deleteDirectory("dist")
+deleteDirectory("build")
 
 time.sleep(2)
