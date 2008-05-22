@@ -339,15 +339,15 @@ class BuddyList(object):
         if len(self.list) > 0:
             random_index = random.randrange(0, len(self.list))
             random_buddy = self.list[random_index]
-            print "(3) random buddy %s.keepAlive()" % random_buddy.address
+            print "(4) random buddy %s.keepAlive()" % random_buddy.address
             random_buddy.keepAlive()
         
             interval = float(average_time)/len(self.list)
         else:
-            print "(3) buddy-list is empty"
+            print "(4) buddy-list is empty"
             interval = 15
         
-        print "(3) next buddy-list timer event in %f seconds" % interval
+        print "(4) next buddy-list timer event in %f seconds" % interval
         self.timer = threading.Timer(interval, self.onTimer)
         self.timer.start()
         
@@ -805,9 +805,14 @@ class ProtocolMsg(object):
         #a generic message of this class will be automatically instantiated 
         #if an incoming message with an unknown command is received 
         #do nothing and just reply with "not_implemented"
-        print "(2) received unimplemented msg (%s) from %s" % (self.command, self.buddy.address)
-        message = ProtocolMsg(self.bl, None, "not_implemented", self.command)
-        message.send(self.buddy)
+        if self.buddy:
+            print "(2) received unimplemented msg (%s) from %s" % (self.command, self.buddy.address)
+            message = ProtocolMsg(self.bl, None, "not_implemented", self.command)
+            message.send(self.buddy)
+        else:
+            print "(2) received unknown command on unknown connection. closing."
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
 
     def getLine(self):
         #bring the message into a form we can transmit over the socket
@@ -874,6 +879,21 @@ class ProtocolMsg_ping(ProtocolMsg):
                 return
         else:
             self.connection.last_ping_address = self.address
+        
+        #another check for faked pings: we search all our already
+        #*connected* buddies and if there is one with the same address
+        #but another incoming connection then this one must be a fake.
+        found = False
+        for buddy in self.bl.list + self.bl.incoming_buddies:
+            if buddy.conn_in:
+                if buddy.address == self.address:
+                    if buddy.conn_in != self.connection:
+                        found = True
+                        break
+        if found:
+            print "(2) detected fake ping with address %s." % self.address
+            self.connection.close()
+            return        
         
         #ping messages must be answered with pong messages
         #the pong must contain the same random string as the ping.
@@ -946,8 +966,9 @@ class ProtocolMsg_pong(ProtocolMsg):
                 self.buddy.sendOfflineMessages()
         else:
             #there is no buddy for this pong. nothing to do.
-            print "(3) strange: unknown incoming 'pong': %s" % (self.text[:30])
-
+            print "(2) strange: unknown incoming 'pong': %s" % (self.text[:30])
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
 
 class ProtocolMsg_version(ProtocolMsg):
     command = "version"
@@ -958,6 +979,10 @@ class ProtocolMsg_version(ProtocolMsg):
         if self.buddy:
             print "(2) %s has version %s" % (self.buddy.address, self.version)
             self.buddy.version = self.version
+        else:
+            print "(2) received 'version' on unknown connection."
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
 
 
 class ProtocolMsg_status(ProtocolMsg):
@@ -974,8 +999,9 @@ class ProtocolMsg_status(ProtocolMsg):
             if self.text == "xa":
                 self.buddy.status = STATUS_XA
         else:
-            print "(3) received status %s from unknown buddy" % self.text
-            print "(3) unknown buddy had '%s' in his ping" % self.connection.last_ping_address
+            print "(2) received status %s from unknown buddy" % self.text
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
 
 #--- buddy list
 
@@ -1001,6 +1027,10 @@ class ProtocolMsg_remove_me(ProtocolMsg):
             if self.buddy in self.bl.list:
                 print "(2) removing %s from list" % self.buddy.address
                 self.bl.removeBuddy(self.buddy)
+        else:
+            print "(2) received 'remove_me' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
                 
 #--- Chat
                 
@@ -1020,6 +1050,10 @@ class ProtocolMsg_message(ProtocolMsg):
                 msg += "Make sure you have the latest version of TorChat. "
                 self.buddy.sendChatMessage(msg)
                 self.buddy.sendRemoveMe()
+        else:
+            print "(2) received 'message' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
 
 #--- File transfer
 
@@ -1035,6 +1069,12 @@ class ProtocolMsg_filename(ProtocolMsg):
         self.file_name = self.file_name.decode("utf-8")
 
     def execute(self):
+        if not self.buddy:
+            print "(2) received 'filename' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
+            return
+            
         #we create a file receiver instance which can deal with the
         #file data we expect to receive now
         FileReceiver(self.buddy, 
@@ -1057,6 +1097,12 @@ class ProtocolMsg_filedata(ProtocolMsg):
         self.start = int(start)
 
     def execute(self):
+        if not self.buddy:
+            print "(2) received 'filedata' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
+            return
+
         #there should already be a receiver, because there should have been
         #a "filename"-message at the very beginning of the transfer.
         receiver = self.bl.getFileReceiver(self.buddy.address, self.id)
@@ -1089,6 +1135,10 @@ class ProtocolMsg_filedata_ok(ProtocolMsg):
                 #to stop receiving  
                 msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
                 msg.send(self.buddy)
+        else:
+            print "(2) received 'filedata_ok' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
       
       
 class ProtocolMsg_filedata_error(ProtocolMsg):
@@ -1105,6 +1155,10 @@ class ProtocolMsg_filedata_error(ProtocolMsg):
             else:        
                 msg = ProtocolMsg(self.bl, None, "file_stop_receiving", self.id)
                 msg.send(self.buddy)
+        else:
+            print "(2) received 'filedata_error' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
 
 
 class ProtocolMsg_file_stop_sending(ProtocolMsg):
@@ -1121,6 +1175,10 @@ class ProtocolMsg_file_stop_sending(ProtocolMsg):
                 #close the sender (if not already closed)
                 #otherwise just ignore it
                 sender.close()
+        else:
+            print "(2) received 'file_stop_sending' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
         
 
 class ProtocolMsg_file_stop_receiving(ProtocolMsg):
@@ -1137,6 +1195,10 @@ class ProtocolMsg_file_stop_receiving(ProtocolMsg):
                 #close the receiver (if not already closed)
                 #otherwise just ignore it
                 receiver.closeForced()
+        else:
+            print "(2) received 'file_stop_receiving' on unknown connection"
+            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
+            self.connection.close()
 
 
             
