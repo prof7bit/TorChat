@@ -12,10 +12,10 @@ wx_path = wx.__path__[0]
 py_path = "c:\python25"
 
 app_name = "TorChat" 
-app_descr = "Messenger on top of the TOR-network" 
+app_descr = "Messenger on top of the Tor-network" 
 app_version = version.VERSION
 app_company = "Bernd Kreuﬂ"
-app_copyright = "© 2007 Bernd Kreuﬂ"
+app_copyright = "© 2007, 2008 Bernd Kreuﬂ"
 
 script_name = "torchat.py"
 icon_name = "icons/torchat.ico"
