@@ -42,5 +42,5 @@ else:
                     
 VERSION = VERSION_MAJOR + "." + str(svn - SVN_OFFSET)
 if EXPERIMENTAL:
-    VERSION += "-Experimental"
+    VERSION += "-experimental"
 VERSION_SVN = svn
