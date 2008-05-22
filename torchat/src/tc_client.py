@@ -500,6 +500,8 @@ class FileSender(threading.Thread):
             #otherwise other mechanisms are responsible and trying
             #to get us connected again and we just wait
             self.timeout_count += 1
+        else:
+            self.timeout_count = 0
             
         if self.timeout_count == 6000: 
             #ten minutes without filedata_ok

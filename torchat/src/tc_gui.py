@@ -907,7 +907,7 @@ class FileDropTarget(wx.FileDropTarget):
            return
        
        file_name = filenames[0]
-       transfer_window = FileTransferWindow(self.window, self.window.buddy, file_name)
+       transfer_window = FileTransferWindow(self.window.mw, self.window.buddy, file_name)
         
 
 class FileTransferWindow(wx.Frame):
