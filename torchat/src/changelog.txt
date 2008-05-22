@@ -5,6 +5,7 @@ svn / trunk
 - "quit" in main popup menu
 - meaningful titles for file open and save dialogs
 - removed the "bitmap not found" errors
+- the program now runs on Windows 98 SE
 
 version 0.9.9.191
 - implemented configuration dialog
