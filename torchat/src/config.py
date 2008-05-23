@@ -247,9 +247,10 @@ class LogWriter:
             try:
                 frame = inspect.getframeinfo(inspect.currentframe(1))
                 module = os.path.basename(frame[0])
+                module = module.split(".")[0]
                 line = frame[1]
                 func = frame[2]
-                pos = "%s line %i in %s -" % (module, line, func)
+                pos = "[%s,%i,%s]" % (module, line, func)
                 text = text[0:4] + pos + text[3:]
             except:
                 pass

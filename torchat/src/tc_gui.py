@@ -45,7 +45,10 @@ def isWindows():
 def getStatusBitmap(status):
     global _icon_bitmaps
     if not status in _icon_bitmaps:
-        _icon_bitmaps[status] = wx.Bitmap(os.path.join(config.ICON_DIR, ICON_NAMES[status]), wx.BITMAP_TYPE_PNG)
+        image = wx.Image(os.path.join(config.ICON_DIR, ICON_NAMES[status]), wx.BITMAP_TYPE_PNG)
+        image.ConvertAlphaToMask()
+        bitmap = wx.BitmapFromImage(image)
+        _icon_bitmaps[status] = bitmap 
     return _icon_bitmaps[status]
 
 class TaskbarIcon(wx.TaskBarIcon):
@@ -61,25 +64,21 @@ class TaskbarIcon(wx.TaskBarIcon):
 
     def showEvent(self):
         try:
-            icon = self.icon_cache["event.png"]
+            icon = self.icon_event
         except:
             img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
             img.ConvertAlphaToMask()
             bmp = img.ConvertToBitmap()
             icon = wx.IconFromBitmap(bmp)
-            self.icon_cache["event.png"] = icon
+            self.icon_event = icon
         self.SetIcon(icon, self.getToolTipText())
         
     def showStatus(self, status):
-        icon_name = ICON_NAMES[status]
         try:
-            icon = self.icon_cache[icon_name]
+            icon = self.icon_cache[status]
         except:
-            img = wx.Image(os.path.join(config.ICON_DIR, icon_name))
-            img.ConvertAlphaToMask()
-            bmp = img.ConvertToBitmap()
-            icon = wx.IconFromBitmap(bmp)
-            self.icon_cache[icon_name] = icon
+            icon = wx.IconFromBitmap(getStatusBitmap(status))
+            self.icon_cache[status] = icon
         self.SetIcon(icon, self.getToolTipText())
 
     def onLeftClick(self, evt):
