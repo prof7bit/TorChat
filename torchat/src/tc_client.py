@@ -898,6 +898,16 @@ class ProtocolMsg_ping(ProtocolMsg):
             self.connection.close()
             return        
         
+        #if someone is pinging us with our own address and the
+        #random value is not from us, then someone is definitely 
+        #trying to fake and we can close.
+        if self.address == config.get("client", "own_hostname"):
+            own_buddy = self.bl.getBuddyFromAddress(self.address)
+            if own_buddy.random1 != self.answer:
+                print "(2) faked ping with our own address. closing."
+                self.connection.close()
+                return
+                
         #ping messages must be answered with pong messages
         #the pong must contain the same random string as the ping.
         #note that we will NOT yet assign buddy.conn_in
@@ -966,8 +976,8 @@ class ProtocolMsg_pong(ProtocolMsg):
                 self.connection.buddy = self.buddy
         else:
             #there is no buddy for this pong. nothing to do.
-            print "(2) strange: unknown incoming 'pong': %s" % (self.text[:30])
-            print "(2) unknown connection had '%s' in last ping. ignoring." % self.connection.last_ping_address
+            print "(2) strange: unknown incoming 'pong'. Someone trying to fake."
+            print "(2) %s answered a fake ping with our address. ignoring." % self.connection.last_ping_address
 
 class ProtocolMsg_version(ProtocolMsg):
     command = "version"
@@ -978,10 +988,6 @@ class ProtocolMsg_version(ProtocolMsg):
         if self.buddy:
             print "(2) %s has version %s" % (self.buddy.address, self.version)
             self.buddy.version = self.version
-        else:
-            print "(2) received 'version' on unknown connection."
-            print "(2) unknown connection had '%s' in last ping. ignoring." % self.connection.last_ping_address
-
 
 class ProtocolMsg_status(ProtocolMsg):
     command = "status"
@@ -1004,10 +1010,6 @@ class ProtocolMsg_status(ProtocolMsg):
             if self.text == "xa":
                 self.buddy.setStatus(STATUS_XA)
         
-        else:
-            print "(2) received status %s from unknown buddy" % self.text
-            print "(2) unknown connection had '%s' in last ping. ignoring." % self.connection.last_ping_address
-
 
 #--- buddy list
 
