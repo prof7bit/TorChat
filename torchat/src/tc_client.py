@@ -124,6 +124,9 @@ class Buddy(object):
         self.status = STATUS_OFFLINE
         self.can_send = False
         self.version = ""
+        self.timer = False
+        self.startTimer()
+        self.last_status_time = 0
     
     def connect(self):
         if self.conn_out == None:
@@ -137,7 +140,7 @@ class Buddy(object):
         if self.conn_in != None:
             self.conn_in.close()
             self.conn_in = None
-        self.status = STATUS_OFFLINE
+        self.setStatus(STATUS_OFFLINE)
         self.can_send = False
         
     def sendLine(self, line, conn=0):
@@ -170,6 +173,10 @@ class Buddy(object):
         file = open(self.getOfflineFileName(), "a")
         file.write("[delayed] " + text + "\n")
         file.close()
+        
+    def setStatus(self, status):
+        self.status = status
+        self.last_status_time = time.time()
 
     def getOfflineMessages(self):
         try:
@@ -209,6 +216,24 @@ class Buddy(object):
     def sendFile(self, filename, gui_callback):
         sender = FileSender(self, filename, gui_callback)
         return sender
+    
+    def startTimer(self):
+        if not self.timer:
+            t = random.randrange(0, 30000) / 1000.0
+        else:
+            t = random.randrange(30000, 60000) / 1000.0
+        self.timer = threading.Timer(t, self.onTimer)
+        self.timer.start()
+    
+    def onTimer(self):
+        print "(4) timer event for %s" % self.address
+        self.keepAlive()
+        if self.status != STATUS_OFFLINE and time.time() - self.last_status_time > 120:
+            #two minutes without status is indicating a broken link
+            #disconnect to give it a chance to reconnect
+            print "(2) %s reveived no status update for a long time. disconnecting" % self.address
+            self.disconnect()
+        self.startTimer()
     
     def keepAlive(self):
         if self.conn_out == None:
@@ -317,7 +342,6 @@ class BuddyList(object):
                                     self, 
                                     "myself"))
         
-        self.onTimer()
         print "(1) buddy list initialized"
 
     def save(self):
@@ -327,29 +351,6 @@ class BuddyList(object):
             f.write("%s\r\n" % line.rstrip())
         f.close()
         print "(2) buddy list saved"
-
-    def onTimer(self):
-        average_time = 15.0
-        #every 15/<number of buddies> seconds we select a random
-        #buddy and try to connect or send status. This should
-        #smoothly spread all network activity over time and
-        #give all buddies the same chance of being connected
-        #in environments where concurrent connection attempts 
-        #are limited like in recent windows versions.
-        if len(self.list) > 0:
-            random_index = random.randrange(0, len(self.list))
-            random_buddy = self.list[random_index]
-            print "(4) random buddy %s.keepAlive()" % random_buddy.address
-            random_buddy.keepAlive()
-        
-            interval = float(average_time)/len(self.list)
-        else:
-            print "(4) buddy-list is empty"
-            interval = 15
-        
-        print "(4) next buddy-list timer event in %f seconds" % interval
-        self.timer = threading.Timer(interval, self.onTimer)
-        self.timer.start()
         
     def addBuddy(self, buddy):
         if self.getBuddyFromAddress(buddy.address) == None:
@@ -453,7 +454,7 @@ class BuddyList(object):
             connection.buddy.disconnect()
 
     def onConnected(self, connection):
-        connection.buddy.status = STATUS_HANDSHAKE
+        connection.buddy.setStatus(STATUS_HANDSHAKE)
 
     def onChatMessage(self, buddy, message):
         self.guiCallback(CB_TYPE_CHAT, (buddy, message))
@@ -893,7 +894,7 @@ class ProtocolMsg_ping(ProtocolMsg):
                         found = True
                         break
         if found:
-            print "(2) detected fake ping with address %s." % self.address
+            print "(2) detected fake ping with address %s. closing." % self.address
             self.connection.close()
             return        
         
@@ -958,19 +959,15 @@ class ProtocolMsg_pong(ProtocolMsg):
         if self.buddy:
             print "(3) received pong from %s" % self.buddy.address
             #never *change* a buddies existing in-connection
-            #only if it was empty.
+            #only if it was empty before!
             if self.buddy.conn_in == None:
-                print "(2) setting %s to online" % self.buddy.address
-                #and set it to online (authenticated)
+                print "(2) in-connection belongs to %s" % self.buddy.address
                 self.buddy.conn_in = self.connection
-                self.buddy.status = STATUS_ONLINE
                 self.connection.buddy = self.buddy
-                self.buddy.sendOfflineMessages()
         else:
             #there is no buddy for this pong. nothing to do.
             print "(2) strange: unknown incoming 'pong': %s" % (self.text[:30])
-            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
-            self.connection.close()
+            print "(2) unknown connection had '%s' in last ping. ignoring." % self.connection.last_ping_address
 
 class ProtocolMsg_version(ProtocolMsg):
     command = "version"
@@ -983,8 +980,7 @@ class ProtocolMsg_version(ProtocolMsg):
             self.buddy.version = self.version
         else:
             print "(2) received 'version' on unknown connection."
-            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
-            self.connection.close()
+            print "(2) unknown connection had '%s' in last ping. ignoring." % self.connection.last_ping_address
 
 
 class ProtocolMsg_status(ProtocolMsg):
@@ -994,16 +990,24 @@ class ProtocolMsg_status(ProtocolMsg):
         #set the status flag of the corresponding buddy
         if self.buddy:
             print "(3) received status %s from %s" % (self.text, self.buddy.address)
+            
+            #send offline messages if buddy was previously offline
+            if self.buddy.status == STATUS_HANDSHAKE:
+                print "(2) %s came online, sending delayed messages" % self.buddy.address
+                self.buddy.sendOfflineMessages()
+            
+            #set buddy status
             if self.text == "available":
-                self.buddy.status = STATUS_ONLINE
+                self.buddy.setStatus(STATUS_ONLINE)
             if self.text == "away":
-                self.buddy.status = STATUS_AWAY
+                self.buddy.setStatus(STATUS_AWAY)
             if self.text == "xa":
-                self.buddy.status = STATUS_XA
+                self.buddy.setStatus(STATUS_XA)
+        
         else:
             print "(2) received status %s from unknown buddy" % self.text
-            print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
-            self.connection.close()
+            print "(2) unknown connection had '%s' in last ping. ignoring." % self.connection.last_ping_address
+
 
 #--- buddy list
 
