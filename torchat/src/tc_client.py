@@ -504,7 +504,8 @@ class BuddyList(object):
                 print "(2) removing buddy instance %s" % buddy.address
                 buddy.setActive(False)
                 buddy.disconnect()
-                self.incoming_buddies.remove(buddy)
+                if buddy in self.incoming_buddies:
+                    self.incoming_buddies.remove(buddy)
                 break
             
         for buddy in self.list:
@@ -520,7 +521,8 @@ class BuddyList(object):
                 print "(2) out-connection of temporary buddy %s failed" % buddy.address
                 print "(2) removing buddy instance %s" % buddy.address
                 buddy.setActive(False)
-                self.incoming_buddies.remove(buddy)
+                if buddy in self.incoming_buddies:
+                    self.incoming_buddies.remove(buddy)
             
             buddy.disconnect()
             buddy.onOutConnectionFail()
@@ -968,7 +970,8 @@ class ProtocolMsg_ping(ProtocolMsg):
                         break
         if found:
             print "(2) detected fake ping with address %s. closing." % self.address
-            self.connection.close()
+            self.connection.send("message %s is already connected to me!\n" % self.address)
+            #self.connection.close()
             return        
         
         #if someone is pinging us with our own address and the
@@ -978,7 +981,8 @@ class ProtocolMsg_ping(ProtocolMsg):
             own_buddy = self.bl.getBuddyFromAddress(self.address)
             if own_buddy.random1 != self.answer:
                 print "(2) faked ping with our own address. closing."
-                self.connection.close()
+                self.connection.send("message you are trying to use my ID!\n")
+                #self.connection.close()
                 return
                 
         #ping messages must be answered with pong messages
