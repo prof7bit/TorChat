@@ -112,8 +112,8 @@ def createTemporaryFile(file_name):
 #--- ### Client API        
     
 class Buddy(object):
-    def __init__(self, address, buddy_list, name=""):
-        print "(2) initializing buddy %s" % address
+    def __init__(self, address, buddy_list, name="", temporary=False):
+        print "(2) initializing buddy %s, temporary=%s" % (address, temporary)
         self.bl = buddy_list
         self.address = address
         self.name = name
@@ -127,6 +127,8 @@ class Buddy(object):
         self.timer = False
         self.last_status_time = 0
         self.count_failed_connects = 0
+        self.active = True
+        self.temporary = temporary
         self.startTimer()
     
     def connect(self):
@@ -155,8 +157,20 @@ class Buddy(object):
     def onOutConnectionSuccess(self):
         self.startTimer()
 
+    def onInConnectionFound(self, connection):
+        print "(2) found incoming connection for %s" % self.address
+        self.conn_in = connection
+        connection.buddy = self
+
     def resetConnectionFailCounter(self):
         self.count_failed_connects = 0
+    
+    def setActive(self, active):
+        print "(2) %s.active = %s" % (self.address, active)
+        self.active = active
+
+    def setTemporary(self, temporary):
+        self.temporary = temporary
     
     def setStatus(self, status):
         if status != STATUS_OFFLINE or self.status != STATUS_OFFLINE:
@@ -235,6 +249,10 @@ class Buddy(object):
         return sender
     
     def startTimer(self):
+        if not self.active:
+            print "(2) %s is not active. Will not start a new timer" % self.address
+            return
+        
         if self.status == STATUS_OFFLINE:
             if self.count_failed_connects < 4:
                 t = random.randrange(0, 10000) / 1000.0
@@ -255,6 +273,10 @@ class Buddy(object):
     
     def onTimer(self):
         print "(4) timer event for %s" % self.address
+        if not self.active:
+            print "(2) %s is not active, onTimer() won't do anything"
+            return
+        
         self.keepAlive()
         if self.status != STATUS_OFFLINE and time.time() - self.last_status_time > 120:
             #two minutes without status is indicating a broken link
@@ -465,6 +487,7 @@ class BuddyList(object):
             if buddy.conn_in == connection:
                 print "(2) in-connection of temporary buddy %s failed" % buddy.address
                 print "(2) removing buddy instance %s" % buddy.address
+                buddy.setActive(False)
                 buddy.disconnect()
                 self.incoming_buddies.remove(buddy)
                 break
@@ -476,16 +499,15 @@ class BuddyList(object):
                 break
             
     def onErrorOut(self, connection):
-        for buddy in self.incoming_buddies:
-            if buddy.conn_out == connection:
-                print "(2) out-connection of temporary buddy %s failed" % buddy.address
-                print "(2) removing buddy instance %s" % buddy.address
-                self.incoming_buddies.remove(buddy)
-                break
+        buddy = connection.buddy
+        if buddy.temporary:
+            print "(2) out-connection of temporary buddy %s failed" % buddy.address
+            print "(2) removing buddy instance %s" % buddy.address
+            buddy.setActive(False)
+            self.incoming_buddies.remove(buddy)
         
-        if connection.buddy:
-            connection.buddy.disconnect()
-            connection.buddy.onOutConnectionFail()
+        buddy.disconnect()
+        buddy.onOutConnectionFail()
 
     def onConnected(self, connection):
         connection.buddy.setStatus(STATUS_HANDSHAKE)
@@ -957,7 +979,7 @@ class ProtocolMsg_ping(ProtocolMsg):
             if not self.buddy:
                 #create it and put it in the temporary list
                 print "(2) %s is new. creating a temporary buddy instance" % self.address
-                self.buddy = Buddy(self.address, self.bl, "")
+                self.buddy = Buddy(self.address, self.bl, temporary=True)
                 self.bl.incoming_buddies.append(self.buddy)
             else:
                 print "(2) %s is already in the incoming list" % self.address
@@ -1005,9 +1027,7 @@ class ProtocolMsg_pong(ProtocolMsg):
             #never *change* a buddies existing in-connection
             #only if it was empty before!
             if self.buddy.conn_in == None:
-                print "(2) in-connection belongs to %s" % self.buddy.address
-                self.buddy.conn_in = self.connection
-                self.connection.buddy = self.buddy
+                self.buddy.onInConnectionFound(self.connection)
         else:
             #there is no buddy for this pong. nothing to do.
             print "(2) strange: unknown incoming 'pong'. Someone trying to fake."
@@ -1054,6 +1074,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
                 print "(2) received add_me from new buddy %s" % self.buddy.address
                 self.bl.addBuddy(self.buddy)
                 self.bl.incoming_buddies.remove(self.buddy)
+                self.buddy.setTemporary(False)
                 msg = "[notification] %s has added you" % self.buddy.address
                 self.bl.onChatMessage(self.buddy, msg)
                 time.sleep(1)
