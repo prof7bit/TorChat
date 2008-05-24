@@ -135,7 +135,7 @@ class Buddy(object):
         print "(2) %s.connect()" % self.address
         if self.conn_out == None:
             self.conn_out = OutConnection(self.address + ".onion", self.bl, self)
-        self.keepAlive()
+            self.sendPing()
         
     def disconnect(self):
         print "(2) %s.disconnect()" % self.address
@@ -265,7 +265,7 @@ class Buddy(object):
         
         if self.status == STATUS_OFFLINE:
             if self.count_failed_connects < 4:
-                t = random.randrange(0, 10000) / 1000.0
+                t = random.randrange(0, 15000) / 1000.0
             else:
                 if self.count_failed_connects < 15:
                     t = random.randrange(30000, 60000) / 1000.0
@@ -288,11 +288,12 @@ class Buddy(object):
             return
         
         self.keepAlive()
+        
         if self.status != STATUS_OFFLINE and time.time() - self.last_status_time > 120:
             #two minutes without status is indicating a broken link
             #disconnect to give it a chance to reconnect
             print "(2) %s reveived no status update for a long time. disconnecting" % self.address
-            self.disconnect()
+            self.disconnect() #this will trigger outConnectionFail()
         
         #only restart the timer automatically if we are connected (or handshaking).
         #else it will be restarted by outConnectionFail() / outConnectionSuccess()    
@@ -303,9 +304,7 @@ class Buddy(object):
         if self.conn_out == None:
             self.connect()
         else:
-            if not self.conn_in:
-                self.sendPing()
-            else:
+            if self.conn_in:
                 self.sendStatus()
     
     def sendPing(self):
