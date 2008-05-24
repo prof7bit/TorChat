@@ -132,11 +132,13 @@ class Buddy(object):
         self.startTimer()
     
     def connect(self):
+        print "(2) %s.connect()" % self.address
         if self.conn_out == None:
             self.conn_out = OutConnection(self.address + ".onion", self.bl, self)
         self.keepAlive()
         
     def disconnect(self):
+        print "(2) %s.disconnect()" % self.address
         if self.conn_out != None:
             self.conn_out.close()
             self.conn_out = None
@@ -147,18 +149,21 @@ class Buddy(object):
         self.can_send = False
         
     def onOutConnectionFail(self):
+        print "(2) %s.onOutConnectionFail()" % self.address
         self.count_failed_connects += 1
         self.startTimer()
         
     def onInConnectionFail(self):
+        print "(2) %s.onInConnectionFail()" % self.address
         self.resetConnectionFailCounter()
         self.startTimer()
 
     def onOutConnectionSuccess(self):
+        print "(2) %s.onOutConnectionSuccess()" % self.address
         self.startTimer()
 
     def onInConnectionFound(self, connection):
-        print "(2) found incoming connection for %s" % self.address
+        print "(2) %s.onInConnectionFound()" % self.address
         self.conn_in = connection
         connection.buddy = self
 
@@ -166,10 +171,11 @@ class Buddy(object):
         self.count_failed_connects = 0
     
     def setActive(self, active):
-        print "(2) %s.active = %s" % (self.address, active)
+        print "(2) %s.setActive(%s)" % (self.address, active)
         self.active = active
 
     def setTemporary(self, temporary):
+        print "(2) %s.setTemporary(%s)" % (self.address, temporary)
         self.temporary = temporary
     
     def setStatus(self, status):
@@ -177,6 +183,10 @@ class Buddy(object):
             self.resetConnectionFailCounter()
         self.status = status
         self.last_status_time = time.time()
+
+    def addToList(self):
+        print "(2) %s.addToList()" % self.address
+        self.bl.addBuddy(self)
 
     def sendLine(self, line, conn=0):
         #conn: use outgiong or incoming connection
@@ -409,13 +419,18 @@ class BuddyList(object):
     def addBuddy(self, buddy):
         if self.getBuddyFromAddress(buddy.address) == None:
             self.list.append(buddy)
+            buddy.setTemporary(False)
+            buddy.setActive(True)
+            if buddy in self.incoming_buddies:
+                self.incoming_buddies.remove(buddy)
             self.save()
-            buddy.connect()
+            buddy.keepAlive()
             return buddy
         else:
             return False
         
     def removeBuddy(self, buddy_to_remove, disconnect=True):
+        buddy_to_remove.setActive(False)
         if not disconnect:
             #send remove_me and leave the connections open
             #but remove them from this buddy.
@@ -500,14 +515,17 @@ class BuddyList(object):
             
     def onErrorOut(self, connection):
         buddy = connection.buddy
-        if buddy.temporary:
-            print "(2) out-connection of temporary buddy %s failed" % buddy.address
-            print "(2) removing buddy instance %s" % buddy.address
-            buddy.setActive(False)
-            self.incoming_buddies.remove(buddy)
-        
-        buddy.disconnect()
-        buddy.onOutConnectionFail()
+        if buddy:
+            if buddy.temporary:
+                print "(2) out-connection of temporary buddy %s failed" % buddy.address
+                print "(2) removing buddy instance %s" % buddy.address
+                buddy.setActive(False)
+                self.incoming_buddies.remove(buddy)
+            
+            buddy.disconnect()
+            buddy.onOutConnectionFail()
+        else:
+            print "(2) out-connection without buddy failed"
 
     def onConnected(self, connection):
         connection.buddy.setStatus(STATUS_HANDSHAKE)
@@ -1072,9 +1090,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
             print "(2) add me from %s" % self.buddy.address
             if not self.buddy in self.bl.list:
                 print "(2) received add_me from new buddy %s" % self.buddy.address
-                self.bl.addBuddy(self.buddy)
-                self.bl.incoming_buddies.remove(self.buddy)
-                self.buddy.setTemporary(False)
+                self.buddy.addToList()
                 msg = "[notification] %s has added you" % self.buddy.address
                 self.bl.onChatMessage(self.buddy, msg)
                 time.sleep(1)
@@ -1326,6 +1342,8 @@ class InConnection:
             self.socket.close()
         except:
             pass
+        print "(3) in-connection closing"
+        self.bl.conns.remove(self)
     
 
 class OutConnection(threading.Thread):
@@ -1380,6 +1398,7 @@ class OutConnection(threading.Thread):
             self.socket.close()
         except:
             pass
+        print "(2) out-connection closing (%s)" % self.buddy.address
         
 
 class Listener(threading.Thread):
@@ -1400,6 +1419,7 @@ class Listener(threading.Thread):
             try:
                 conn, address = self.socket.accept()
                 self.conns.append(InConnection(conn, self.buddy_list))
+                print "(2) new incoming connection"
             except:
                 print "socket listener error!"
                 tb()
