@@ -1001,6 +1001,7 @@ class ProtocolMsg_ping(ProtocolMsg):
                 self.bl.incoming_buddies.append(self.buddy)
             else:
                 print "(2) %s is already in the incoming list" % self.address
+                print "(2) %s status is %i" % (self.address, self.buddy.status)
                 
             #this will connect if necessary
             print "(2) %s.keepAlive()" % self.buddy.address
@@ -1328,10 +1329,14 @@ class InConnection:
         try:
             self.socket.send(text)
         except:
+            print "(2) in-connection send error."
             self.bl.onErrorIn(self)
+            self.close()
         
     def onReceiverError(self):
+        print "(2) in-connection receive error."
         self.bl.onErrorIn(self)
+        self.close()
     
     def close(self):
         try:
@@ -1342,8 +1347,9 @@ class InConnection:
             self.socket.close()
         except:
             pass
-        print "(3) in-connection closing"
-        self.bl.conns.remove(self)
+        print "(2) in-connection closing"
+        if self in self.bl.listener.conns:
+            self.bl.listener.conns.remove(self)
     
 
 class OutConnection(threading.Thread):
@@ -1371,12 +1377,18 @@ class OutConnection(threading.Thread):
             while self.running:
                 if len(self.send_buffer) > 0:
                     text = self.send_buffer.pop(0)
-                    self.socket.send(text)
-                    print "(4) conn-out to %s sent %s..." % (self.address, text[:40])
+                    try:
+                        self.socket.send(text)
+                        print "(4) conn-out to %s sent %s..." % (self.address, text[:40])
+                    except:
+                        print "(2) out-connection send error"
+                        self.bl.onErrorOut(self)
+                        self.close()
+                        
                 time.sleep(0.05)
                 
         except:
-            print "(2) outgoing connection to %s failed: %s" % (self.address, sys.exc_info()[1])
+            print "(2) out-connection to %s failed: %s" % (self.address, sys.exc_info()[1])
             self.bl.onErrorOut(self)
             self.close()
             
@@ -1385,6 +1397,7 @@ class OutConnection(threading.Thread):
         self.send_buffer.append(text)
         
     def onReceiverError(self):
+        print "(2) out-connection receiver error"
         self.bl.onErrorOut(self)
         self.close()
     
@@ -1398,7 +1411,7 @@ class OutConnection(threading.Thread):
             self.socket.close()
         except:
             pass
-        print "(2) out-connection closing (%s)" % self.buddy.address
+        print "(2) out-connection closing"
         
 
 class Listener(threading.Thread):
@@ -1420,6 +1433,7 @@ class Listener(threading.Thread):
                 conn, address = self.socket.accept()
                 self.conns.append(InConnection(conn, self.buddy_list))
                 print "(2) new incoming connection"
+                print "(2) have now %i incoming connections" % len(self.conns)
             except:
                 print "socket listener error!"
                 tb()
