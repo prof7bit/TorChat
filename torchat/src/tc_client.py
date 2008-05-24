@@ -125,8 +125,9 @@ class Buddy(object):
         self.can_send = False
         self.version = ""
         self.timer = False
-        self.startTimer()
         self.last_status_time = 0
+        self.count_failed_connects = 0
+        self.startTimer()
     
     def connect(self):
         if self.conn_out == None:
@@ -143,6 +144,26 @@ class Buddy(object):
         self.setStatus(STATUS_OFFLINE)
         self.can_send = False
         
+    def onOutConnectionFail(self):
+        self.count_failed_connects += 1
+        self.startTimer()
+        
+    def onInConnectionFail(self):
+        self.resetConnectionFailCounter()
+        self.startTimer()
+
+    def onOutConnectionSuccess(self):
+        self.startTimer()
+
+    def resetConnectionFailCounter(self):
+        self.count_failed_connects = 0
+    
+    def setStatus(self, status):
+        if status != STATUS_OFFLINE or self.status != STATUS_OFFLINE:
+            self.resetConnectionFailCounter()
+        self.status = status
+        self.last_status_time = time.time()
+
     def sendLine(self, line, conn=0):
         #conn: use outgiong or incoming connection
         if self.conn_out == None:
@@ -174,10 +195,6 @@ class Buddy(object):
         file.write("[delayed] " + text + "\n")
         file.close()
         
-    def setStatus(self, status):
-        self.status = status
-        self.last_status_time = time.time()
-
     def getOfflineMessages(self):
         try:
             file = open(self.getOfflineFileName(), "r")
@@ -218,10 +235,21 @@ class Buddy(object):
         return sender
     
     def startTimer(self):
-        if not self.timer:
-            t = random.randrange(0, 30000) / 1000.0
+        if self.status == STATUS_OFFLINE:
+            if self.count_failed_connects < 4:
+                t = random.randrange(0, 10000) / 1000.0
+            else:
+                if self.count_failed_connects < 15:
+                    t = random.randrange(30000, 60000) / 1000.0
+                else:
+                    t = random.randrange(300000, 600000) / 1000.0
+            print "(2) %s had %i failed connections. Setting timer to %f seconds" \
+                % (self.address, self.count_failed_connects, t)
         else:
             t = random.randrange(30000, 60000) / 1000.0
+        
+        if self.timer:
+            self.timer.cancel()
         self.timer = threading.Timer(t, self.onTimer)
         self.timer.start()
     
@@ -233,7 +261,11 @@ class Buddy(object):
             #disconnect to give it a chance to reconnect
             print "(2) %s reveived no status update for a long time. disconnecting" % self.address
             self.disconnect()
-        self.startTimer()
+        
+        #only restart the timer automatically if we are connected (or handshaking).
+        #else it will be restarted by outConnectionFail() / outConnectionSuccess()    
+        if self.status != STATUS_OFFLINE:
+            self.startTimer()
     
     def keepAlive(self):
         if self.conn_out == None:
@@ -440,6 +472,7 @@ class BuddyList(object):
         for buddy in self.list:
             if buddy.conn_in == connection:
                 buddy.disconnect()
+                buddy.onInConnectionFail()
                 break
             
     def onErrorOut(self, connection):
@@ -452,9 +485,11 @@ class BuddyList(object):
         
         if connection.buddy:
             connection.buddy.disconnect()
+            connection.buddy.onOutConnectionFail()
 
     def onConnected(self, connection):
         connection.buddy.setStatus(STATUS_HANDSHAKE)
+        connection.buddy.onOutConnectionSuccess()
 
     def onChatMessage(self, buddy, message):
         self.guiCallback(CB_TYPE_CHAT, (buddy, message))
@@ -856,8 +891,6 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
     def execute(self):
         print "(3) %s says it can't handle '%s'" % (self.buddy.address, self.text)
 
-#--- Connection handshake and authenticaton
- 
 class ProtocolMsg_ping(ProtocolMsg):
     command = "ping"
     #a ping message consists of sender address and a random string
@@ -934,6 +967,7 @@ class ProtocolMsg_ping(ProtocolMsg):
             self.buddy.keepAlive()           
         
         print "(3) sending pong and status to %s" % self.address    
+        self.buddy.resetConnectionFailCounter()
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
         self.buddy.can_send = True
@@ -1011,8 +1045,6 @@ class ProtocolMsg_status(ProtocolMsg):
                 self.buddy.setStatus(STATUS_XA)
         
 
-#--- buddy list
-
 class ProtocolMsg_add_me(ProtocolMsg):
     command = "add_me"
     def execute(self):
@@ -1040,8 +1072,6 @@ class ProtocolMsg_remove_me(ProtocolMsg):
             print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
             self.connection.close()
                 
-#--- Chat
-                
 class ProtocolMsg_message(ProtocolMsg):
     command = "message"
     #this is a normal text chat message.
@@ -1062,8 +1092,6 @@ class ProtocolMsg_message(ProtocolMsg):
             print "(2) received 'message' on unknown connection"
             print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
             self.connection.close()
-
-#--- File transfer
 
 class ProtocolMsg_filename(ProtocolMsg):
     command = "filename"
