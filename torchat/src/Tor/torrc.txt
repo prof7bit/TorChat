@@ -1,21 +1,40 @@
-SocksPort 11109
-SocksListenAddress 127.0.0.1
-ControlPort 11119
+## torrc.txt
+##
+## This is the configuration file for the portable instance of Tor.
+## You will only have to make changes here if you want to run a second
+## instance of TorChat on the same machine. See the HowTo.
 
+## If you want to run multiple instances, change all the port numbers.
+## Remember to change them in torchat.ini [tor_portable] and [client] too.
+## IMPORTANT: Don't change the FIRST 11009 in HiddenServicePort,
+## this is the port INSIDE the tunnel. You must change the second one. 
+SocksPort 11109
+ControlPort 11119
 HiddenServiceDir hidden_service
 HiddenServicePort 11009 127.0.0.1:11009
 
-
+## where should tor store it's cache files
 DataDirectory tor_data
 
-# the following is a dirty workaround for the 15 minutes problem:
-# hidden service descriptors are cached 15 minutes, so after
-# a restart of tor we are not reachable for 15 minutes.
-# Using always the same introduction points makes even old 
-# and stale descriptors still work. I am still searching
-# for a better solution.
-HiddenServiceNodes moria,moria1,moria2
+AvoidDiskWrites 1
+TunnelDirConns 1
+PreferTunneledDirConns 1
+LongLivedPorts 11009
 
-#logging. only used for debugging purposes
+## this short timeout results in avoiding extremely slow nodes
+CircuitBuildTimeout 10
+
+## the following is a dirty workaround for the 15 minutes problem:
+## hidden service descriptors are cached 15 minutes, so after
+## a restart of tor we are not reachable for 15 minutes.
+## Using always the same introduction points makes even old 
+## and stale descriptors still work. I am still searching
+## for a better solution.
+HiddenServiceNodes moria1,moria2,tor26
+
+## turning off SaveLogging will leave sensitive information on your disk
+## the built in default is save logging turned on (set to 1).
+## so don't remove the # from that line unless you need it
+## and remember to put it in again, after you are done.
 #Log info File tor.log
 #SafeLogging 0

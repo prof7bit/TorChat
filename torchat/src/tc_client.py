@@ -314,7 +314,7 @@ class Buddy(object):
     
     def sendPing(self):
         print "(2) %s.sendPing()" % self.address
-        self.random1 = str(random.getrandbits(256))
+        #self.random1 = str(random.getrandbits(256))
         ping = ProtocolMsg(self.bl, 
                            None, 
                            "ping", 
@@ -1365,7 +1365,7 @@ class InConnection:
             self.socket.close()
         except:
             pass
-        print "(2) in-connection closing"
+        print "(2) in-connection closing (%s)" % self.last_ping_address
         if self in self.bl.listener.conns:
             self.bl.listener.conns.remove(self)
     
@@ -1429,7 +1429,11 @@ class OutConnection(threading.Thread):
             self.socket.close()
         except:
             pass
-        print "(2) out-connection closing"
+        if self.buddy:
+            print "(2) out-connection closing (%s)" % self.buddy.address
+        else:
+            print "(2) out-connection closing (without buddy)"
+            
         
 
 class Listener(threading.Thread):
@@ -1500,7 +1504,11 @@ def startPortableTor():
         else:
             if os.path.exists("tor.sh"):
                 #let our shell script start a tor instance 
-                tor = subprocess.Popen("tor.sh".split())
+                try:
+                    os.system("chmod +x tor.sh")
+                except:
+                    pass
+                tor = subprocess.Popen("./tor.sh".split())
                 tor_pid = tor.pid
             else:
                 print "(1) there is no Tor starter script (tor.sh)"
@@ -1518,7 +1526,7 @@ def startPortableTor():
             while cnt <= 20:
                 try:
                     print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
-                    f = open("hidden_service\\hostname", "r")
+                    f = open(os.path.join("hidden_service", "hostname"), "r")
                     hostname = f.read().rstrip()[:-6]
                     print "(1) found hostname: %s" % hostname
                     print "(1) writing own_hostname to torchat.ini"
