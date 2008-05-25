@@ -42,7 +42,7 @@ MPOP_ASK_AUTHOR = u"%s fragen..."
 MPOP_SETTINGS = u"Einstellungen..."
 
 # #chat window popup menu
-# CPOP_COPY = u"Copy"
+CPOP_COPY = u"Kopieren"
 
 #confirm delete message box
 D_CONFIRM_DELETE_TITLE = u"Löschen bestätigen"
