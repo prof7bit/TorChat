@@ -285,7 +285,7 @@ class Buddy(object):
     def onTimer(self):
         print "(4) timer event for %s" % self.address
         if not self.active:
-            print "(2) %s is not active, onTimer() won't do anything"
+            print "(2) %s is not active, onTimer() won't do anything" % self.address
             return
         
         self.keepAlive()
@@ -335,8 +335,9 @@ class Buddy(object):
         msg.send(self)
         
     def sendRemoveMe(self):
-        msg = ProtocolMsg(self.bl, None, "remove_me", "")
-        msg.send(self)
+        if self.conn_in:
+            msg = ProtocolMsg(self.bl, None, "remove_me", "")
+            msg.send(self)
         
     def sendVersion(self):
         msg = ProtocolMsg(self.bl, None, "version", version.VERSION)
@@ -431,6 +432,7 @@ class BuddyList(object):
             return False
         
     def removeBuddy(self, buddy_to_remove, disconnect=True):
+        print "(2) removeBuddy(%s, %s)" % (buddy_to_remove, disconnect)
         buddy_to_remove.setActive(False)
         if not disconnect:
             #send remove_me and leave the connections open
