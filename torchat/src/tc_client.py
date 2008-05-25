@@ -432,7 +432,7 @@ class BuddyList(object):
             return False
         
     def removeBuddy(self, buddy_to_remove, disconnect=True):
-        print "(2) removeBuddy(%s, %s)" % (buddy_to_remove, disconnect)
+        print "(2) removeBuddy(%s, %s)" % (buddy_to_remove.address, disconnect)
         buddy_to_remove.setActive(False)
         if not disconnect:
             #send remove_me and leave the connections open
