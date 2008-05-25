@@ -11,7 +11,7 @@
 LANGUAGE_CODE = u"pl"
 LANGUAGE_NAME = u"Polski"
 LANGUAGE_NAME_ENGLISH = u"Polish"
-TRANSLATOR_NAMES = [yloadkvbhaychvtj]
+TRANSLATOR_NAMES = [u"yloadkvbhaychvtj"]
 
 #buttons
 BTN_CANCEL = u"Anuluj"
