@@ -308,8 +308,12 @@ class Buddy(object):
         else:
             if self.conn_in:
                 self.sendStatus()
+            else:
+                if self.status == STATUS_HANDSHAKE:
+                    self.sendPing()
     
     def sendPing(self):
+        print "(2) %s.sendPing()" % self.address
         self.random1 = str(random.getrandbits(256))
         ping = ProtocolMsg(self.bl, 
                            None, 
@@ -1052,14 +1056,14 @@ class ProtocolMsg_pong(ProtocolMsg):
             print "(3) received pong from %s" % self.buddy.address
             #assign the in-connection to this buddy
             if self.buddy.conn_in:
-                print "(2) NEW in-connection for %s." % self.buddy.address
+                print "(2) changing in-connection for %s." % self.buddy.address
                 self.buddy.conn_in.buddy = None
                 self.buddy.conn_in.close()
             self.buddy.onInConnectionFound(self.connection)
         else:
             #there is no buddy for this pong. nothing to do.
-            print "(2) strange: unknown incoming 'pong'. Someone trying to fake."
-            print "(2) %s answered a fake ping with our address. ignoring." % self.connection.last_ping_address
+            print "(2) unknown incoming 'pong'. ignoring."
+
 
 class ProtocolMsg_version(ProtocolMsg):
     command = "version"
@@ -1070,6 +1074,7 @@ class ProtocolMsg_version(ProtocolMsg):
         if self.buddy:
             print "(2) %s has version %s" % (self.buddy.address, self.version)
             self.buddy.version = self.version
+
 
 class ProtocolMsg_status(ProtocolMsg):
     command = "status"
@@ -1118,6 +1123,7 @@ class ProtocolMsg_remove_me(ProtocolMsg):
             print "(2) received 'remove_me' on unknown connection"
             print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
             self.connection.close()
+
                 
 class ProtocolMsg_message(ProtocolMsg):
     command = "message"
@@ -1142,6 +1148,7 @@ class ProtocolMsg_message(ProtocolMsg):
             print "(2) received 'message' on unknown connection"
             print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
             self.connection.close()
+
 
 class ProtocolMsg_filename(ProtocolMsg):
     command = "filename"
@@ -1285,7 +1292,6 @@ class ProtocolMsg_file_stop_receiving(ProtocolMsg):
             print "(2) received 'file_stop_receiving' on unknown connection"
             print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
             self.connection.close()
-
 
             
 #--- ### Low level network stuff

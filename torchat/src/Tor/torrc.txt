@@ -1,0 +1,21 @@
+SocksPort 11109
+SocksListenAddress 127.0.0.1
+ControlPort 11119
+
+HiddenServiceDir hidden_service
+HiddenServicePort 11009 127.0.0.1:11009
+
+
+DataDirectory tor_data
+
+# the following is a dirty workaround for the 15 minutes problem:
+# hidden service descriptors are cached 15 minutes, so after
+# a restart of tor we are not reachable for 15 minutes.
+# Using always the same introduction points makes even old 
+# and stale descriptors still work. I am still searching
+# for a better solution.
+HiddenServiceNodes moria,moria1,moria2
+
+#logging. only used for debugging purposes
+#Log info File tor.log
+#SafeLogging 0
