@@ -236,7 +236,8 @@ class Buddy(object):
             os.unlink(self.getOfflineFileName())
             print "(2) sending offline messages to %s" % self.address
             #we send it without checking online status. because we have sent 
-            #a pong before, the receiver will have set the status to online. 
+            #a pong before, the receiver will have set the status to online.
+            #text is unicode, so we must encode it to UTF-8 again. 
             message = ProtocolMsg(self.bl, None, "message", text.encode("UTF-8"))
             message.send(self)
             self.bl.guiCallback(CB_TYPE_OFFLINE_SENT, self)
@@ -1376,7 +1377,7 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            self.socket.settimeout(60)
+            #self.socket.settimeout(60)
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4, 
                                  config.get(TOR_CONFIG, "tor_server"), 
                                  config.getint(TOR_CONFIG, "tor_server_socks_port"))
