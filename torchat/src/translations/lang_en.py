@@ -57,10 +57,6 @@ D_WARN_UNREAD_TITLE = u"TorChat: Unread messages"
 D_WARN_UNREAD_MESSAGE = u"There are unread messages.\nThey will be lost forever!\n\nDo you really want to exit TorChat now?"
 
 #warning about multiple files
-D_WARN_BUDDY_OFFLINE_TITLE = u"TorChat: Buddy is offline"
-D_WARN_BUDDY_OFFLINE_MESSAGE = u"This operation is not possible with offline buddies"
-
-#warning about multiple files
 D_WARN_FILE_ONLY_ONE_TITLE = u"TorChat: Multiple files"
 D_WARN_FILE_ONLY_ONE_MESSAGE = u"You may not start multiple file transfers with one operation. Start the transfers individually or send a zip-file instead"
 
