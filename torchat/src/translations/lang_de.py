@@ -56,11 +56,11 @@ D_LOG_WARNING_MESSAGE = u"Logging in Datei ist aktiviert!\n\nLogdatei: %s\n\nVer
 D_WARN_UNREAD_TITLE = u"TorChat: Ungelesene Nachrichten"
 D_WARN_UNREAD_MESSAGE = u"Es liegen noch ungelesene Nachrichten vor. Diese würden unwiderruflich verloren gehen!\n\nMöchten sie TorChat dennoch jetzt beenden?"
 
-# #warning about multiple files
+#warning about offline buddy
 D_WARN_BUDDY_OFFLINE_TITLE = u"TorChat: Buddy ist offline"
 D_WARN_BUDDY_OFFLINE_MESSAGE = u"Diese Operation ist nicht möglich mit Offline-Buddies"
 
-# #warning about multiple files
+#warning about multiple files
 D_WARN_FILE_ONLY_ONE_TITLE = u"TorChat: Mehrere Dateien"
 D_WARN_FILE_ONLY_ONE_MESSAGE = u"Sie können nicht mit einer Operation mehrere Dateitransfers gleichzeitig auslösen. Starten Sie die Transfers einzeln, oder senden Sie eine Zip-Datei."
 

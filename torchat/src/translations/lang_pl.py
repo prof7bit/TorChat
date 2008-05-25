@@ -56,7 +56,7 @@ D_LOG_WARNING_MESSAGE = u"Rejestracja została aktywowana!\n\nLog Plik: %s\n\nPa
 D_WARN_UNREAD_TITLE = u"TorChat: Nieprzeczytane wiadomosci"
 D_WARN_UNREAD_MESSAGE = u"Częśc wiadomości została nieprzeczytana.\nZostana one usunięte!\n\nNaprawdę chcesz wyjść ?"
 
-#warning about multiple files
+# #warning about offline buddy
 D_WARN_BUDDY_OFFLINE_TITLE = u"TorChat: Kontakt znajduje się poza siecią"
 D_WARN_BUDDY_OFFLINE_MESSAGE = u"Nie można wykonac tej operacji z kontaktami pozostającymi poza siecią"
 
@@ -111,13 +111,13 @@ ABOUT_TITLE = u"O programie TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
   %(copyright)s
 
-Translations: 
+Translations:
   %(translators)s
 
 Runtime environment:
   Python: %(python)s
   wx: %(wx)s
-    
+
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
 License as published by the Free Software Foundation, \
