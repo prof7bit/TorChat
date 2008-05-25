@@ -202,9 +202,9 @@ class Buddy(object):
                 pass
 
     def sendChatMessage(self, text):
-        #text must be UTF-8 encoded
+        #text must be unicode
         if self.can_send:
-            message = ProtocolMsg(self.bl, None, "message", text)
+            message = ProtocolMsg(self.bl, None, "message", text.encode("UTF-8"))
             message.send(self)
         else:
             self.storeOfflineChatMessage(text)
@@ -213,18 +213,19 @@ class Buddy(object):
         return os.path.join(config.getDataDir(),self.address + "_offline.txt")
             
     def storeOfflineChatMessage(self, text):
-        #text must be UTF-8 encoded
+        #text must be unicode
         print "(2) storing offline message to %s" % self.address
         file = open(self.getOfflineFileName(), "a")
-        file.write("[delayed] " + text + "\n")
+        file.write("[delayed] " + text.encode("UTF-8") + "\n")
         file.close()
         
     def getOfflineMessages(self):
+        #will return the string as unicode
         try:
             file = open(self.getOfflineFileName(), "r")
             text = file.read().rstrip()
             file.close()
-            return text
+            return text.decode("UTF-8")
         except:
             return ""
         
@@ -236,7 +237,7 @@ class Buddy(object):
             print "(2) sending offline messages to %s" % self.address
             #we send it without checking online status. because we have sent 
             #a pong before, the receiver will have set the status to online. 
-            message = ProtocolMsg(self.bl, None, "message", text)
+            message = ProtocolMsg(self.bl, None, "message", text.encode("UTF-8"))
             message.send(self)
             self.bl.guiCallback(CB_TYPE_OFFLINE_SENT, self)
         else:
@@ -289,8 +290,8 @@ class Buddy(object):
         
         self.keepAlive()
         
-        if self.status != STATUS_OFFLINE and time.time() - self.last_status_time > 120:
-            #two minutes without status is indicating a broken link
+        if self.status != STATUS_OFFLINE and time.time() - self.last_status_time > 180:
+            #three minutes without status is indicating a broken link
             #disconnect to give it a chance to reconnect
             print "(2) %s reveived no status update for a long time. disconnecting" % self.address
             self.disconnect() #this will trigger outConnectionFail()
@@ -1118,6 +1119,9 @@ class ProtocolMsg_remove_me(ProtocolMsg):
 class ProtocolMsg_message(ProtocolMsg):
     command = "message"
     #this is a normal text chat message.
+    def parse(self):
+        self.text = self.text.decode("UTF-8")
+    
     def execute(self):
         #give buddy and text to bl. bl will then call into the gui
         #to open a chat window and/or display the text.

@@ -346,7 +346,7 @@ class PopupMenu(wx.Menu):
 
     def onShowOffline(self, event):
         buddy = self.mw.gui_bl.getSelectedBuddy()
-        om = buddy.getOfflineMessages().decode("UTF-8")
+        om = buddy.getOfflineMessages()
         if om:
             om = ("queued offline messages for %s:\n\n" % buddy.address) + om
         else:
@@ -479,7 +479,7 @@ class DlgEditContact(wx.Dialog):
             if res == False:
                 wx.MessageBox(lang.DEC_MSG_ALREADY_ON_LIST % address)
             else:
-                buddy.storeOfflineChatMessage(self.txt_intro.GetValue().encode("UTF-8"))
+                buddy.storeOfflineChatMessage(self.txt_intro.GetValue())
         else:
             address_old = self.buddy.address
             offline_file_name_old = self.buddy.getOfflineFileName()
@@ -701,7 +701,7 @@ class ChatWindow(wx.Frame):
         om = self.buddy.getOfflineMessages()
         if om:
             om = "[%s]\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
-            self.writeColored((0,0,192), "myself", om.decode("UTF-8"))
+            self.writeColored((0,0,192), "myself", om)
         
         if message != "":
             self.process(message)
@@ -764,6 +764,7 @@ class ChatWindow(wx.Frame):
         self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
     
     def notify(self, name, message):
+        #needs unicode
         if not self.IsActive():
             if config.getint("gui", "notification_flash_window"):
                 self.RequestUserAttention(wx.USER_ATTENTION_INFO)
@@ -771,7 +772,7 @@ class ChatWindow(wx.Frame):
             self.updateTitle()
 
             if config.getint("gui", "notification_popup"):
-                nt = textwrap.fill("%s:\n%s" % (name, message.decode("utf-8")), 40)
+                nt = textwrap.fill("%s:\n%s" % (name, message), 40)
                 try:
                     NotificationWindow(self.mw, nt)
                 except:
@@ -783,16 +784,18 @@ class ChatWindow(wx.Frame):
             self.mw.taskbar_icon.blink()
     
     def notifyOfflineSent(self):
+        #all should be unicode here
         message = "[%s]" % lang.NOTICE_DELAYED_MSG_SENT
         self.writeColored((0,0,192), "myself", message)
         self.notify("to %s" % self.buddy.address, message)
     
     def process(self, message):
+        #message must be unicode
         if self.buddy.name != "":
             name = self.buddy.name
         else:
             name = self.buddy.address
-        self.writeColored((192,0,0), name, message.decode("utf-8"))
+        self.writeColored((192,0,0), name, message)
         self.notify(name, message)
         
     def onActivate(self, evt):
@@ -809,12 +812,12 @@ class ChatWindow(wx.Frame):
         text = self.txt_out.GetValue().rstrip().lstrip()
         wx.CallAfter(self.txt_out.SetValue, "")
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
-            self.buddy.sendChatMessage(text.encode("UTF-8"))
+            self.buddy.sendChatMessage(text)
             self.writeColored((0,0,192), 
                               "myself", 
                               text)
         else:
-            self.buddy.storeOfflineChatMessage(text.encode("UTF-8"))
+            self.buddy.storeOfflineChatMessage(text)
             self.writeColored((0,0,192), 
                               "myself", 
                               "[%s] %s" % (lang.NOTICE_DELAYED, text))
