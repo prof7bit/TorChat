@@ -308,6 +308,7 @@ class Buddy(object):
                 self.sendStatus()
     
     def sendPing(self):
+        self.random1 = str(random.getrandbits(256))
         ping = ProtocolMsg(self.bl, 
                            None, 
                            "ping", 
@@ -968,9 +969,9 @@ class ProtocolMsg_ping(ProtocolMsg):
                         found = True
                         break
         if found:
-            print "(2) detected fake ping with address %s. closing." % self.address
-            self.connection.send("message %s is already connected to me!\n" % self.address)
-            #self.connection.close()
+            print "(2) detected ping from %s on other connection." % self.address
+            print "(2) sending a ping to %s to find correct in-connection." % self.address
+            buddy.sendPing()
             return        
         
         #if someone is pinging us with our own address and the
@@ -981,7 +982,6 @@ class ProtocolMsg_ping(ProtocolMsg):
             if own_buddy.random1 != self.answer:
                 print "(2) faked ping with our own address. closing."
                 self.connection.send("message you are trying to use my ID!\n")
-                #self.connection.close()
                 return
                 
         #ping messages must be answered with pong messages
@@ -1046,10 +1046,10 @@ class ProtocolMsg_pong(ProtocolMsg):
         #regard the handshake as completed.
         if self.buddy:
             print "(3) received pong from %s" % self.buddy.address
-            #never *change* a buddies existing in-connection
-            #only if it was empty before!
-            if self.buddy.conn_in == None:
-                self.buddy.onInConnectionFound(self.connection)
+            #assign the in-connection to this buddy
+            if self.buddy.conn_in:
+                print "(2) NEW in-connection for %s." % self.buddy.address
+            self.buddy.onInConnectionFound(self.connection)
         else:
             #there is no buddy for this pong. nothing to do.
             print "(2) strange: unknown incoming 'pong'. Someone trying to fake."
