@@ -37,23 +37,22 @@ ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
               tc_client.STATUS_AWAY : "away.png",
               tc_client.STATUS_XA : "xa.png"}
 
-_icon_bitmaps = {} #this is a cache for getStatusBitmap()
+_icon_images = {} #this is a cache for getStatusBitmap()
 
 def isWindows():
     return "win" in sys.platform
 
 def getStatusBitmap(status):
-    global _icon_bitmaps
-    if not status in _icon_bitmaps:
+    global _icon_images
+    if not status in _icon_images:
         image = wx.Image(os.path.join(config.ICON_DIR, ICON_NAMES[status]), wx.BITMAP_TYPE_PNG)
         image.ConvertAlphaToMask()
-        bitmap = wx.BitmapFromImage(image)
-        _icon_bitmaps[status] = bitmap 
-    return _icon_bitmaps[status]
+        _icon_images[status] = image
+    bitmap = _icon_images[status].ConvertToBitmap()
+    return bitmap
 
 class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
-        self.icon_cache = {}
         wx.TaskBarIcon.__init__(self)
         self.mw = main_window
         self.showStatus(self.mw.buddy_list.own_status)
@@ -64,21 +63,16 @@ class TaskbarIcon(wx.TaskBarIcon):
 
     def showEvent(self):
         try:
-            icon = self.icon_event
+            icon = wx.IconFromBitmap(self.img_event.ConvertToBitmap())
         except:
             img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
             img.ConvertAlphaToMask()
-            bmp = img.ConvertToBitmap()
-            icon = wx.IconFromBitmap(bmp)
-            self.icon_event = icon
+            self.img_event = img
+            icon = wx.IconFromBitmap(self.img_event.ConvertToBitmap())
         self.SetIcon(icon, self.getToolTipText())
         
     def showStatus(self, status):
-        try:
-            icon = self.icon_cache[status]
-        except:
-            icon = wx.IconFromBitmap(getStatusBitmap(status))
-            self.icon_cache[status] = icon
+        icon = wx.IconFromBitmap(getStatusBitmap(status))
         self.SetIcon(icon, self.getToolTipText())
 
     def onLeftClick(self, evt):
