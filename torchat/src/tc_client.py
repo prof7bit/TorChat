@@ -1049,6 +1049,8 @@ class ProtocolMsg_pong(ProtocolMsg):
             #assign the in-connection to this buddy
             if self.buddy.conn_in:
                 print "(2) NEW in-connection for %s." % self.buddy.address
+                self.buddy.conn_in.buddy = None
+                self.buddy.conn_in.close()
             self.buddy.onInConnectionFound(self.connection)
         else:
             #there is no buddy for this pong. nothing to do.
