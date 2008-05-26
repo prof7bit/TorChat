@@ -48,6 +48,8 @@ AUTHORS_ID = "utvrla6mjdypbyw6"
 AUTHORS_NAME = "Bernd"
 COPYRIGHT = u"Copyright (c) 2007, 2008 Bernd Kreuß <prof7bit@gmail.com>"
 
+DEAD_CONNECTION_TIMEOUT = 180
+
 def getScriptDir():
     #must be called at least once before working dir is changed
     #because after that abspath won't work correctly anymore.

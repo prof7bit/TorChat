@@ -164,8 +164,18 @@ class Buddy(object):
 
     def onInConnectionFound(self, connection):
         print "(2) %s.onInConnectionFound()" % self.address
+        conn_old = self.conn_in
+        if conn_old == connection:
+            print "(2) this connection is already the current conn_in. doing nothing."
+            return
+        
         self.conn_in = connection
         connection.buddy = self
+        if conn_old:
+            print "(2) closing old connection of %s, %s" % (self.address, conn_old)
+            print "(2) new connection is %s" % connection
+            conn_old.buddy = None
+            conn_old.close()
 
     def resetConnectionFailCounter(self):
         self.count_failed_connects = 0
@@ -291,8 +301,9 @@ class Buddy(object):
         
         self.keepAlive()
         
-        if self.status != STATUS_OFFLINE and time.time() - self.last_status_time > 180:
-            #three minutes without status is indicating a broken link
+        if self.status != STATUS_OFFLINE and \
+            time.time() - self.last_status_time > config.DEAD_CONNECTION_TIMEOUT:
+            #long time without status is indicating a broken link
             #disconnect to give it a chance to reconnect
             print "(2) %s reveived no status update for a long time. disconnecting" % self.address
             self.disconnect() #this will trigger outConnectionFail()
@@ -508,7 +519,7 @@ class BuddyList(object):
     def onErrorIn(self, connection):
         for buddy in self.incoming_buddies:
             if buddy.conn_in == connection:
-                print "(2) in-connection of temporary buddy %s failed" % buddy.address
+                print "(2) in-connection %s of temporary buddy %s failed" % (connection, buddy.address)
                 print "(2) removing buddy instance %s" % buddy.address
                 buddy.setActive(False)
                 buddy.disconnect()
@@ -939,7 +950,8 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
     #"not_implemented"-message for every protocol message.
     #I have to meditate over this for a while.
     def execute(self):
-        print "(3) %s says it can't handle '%s'" % (self.buddy.address, self.text)
+        if self.buddy:
+            print "(3) %s says it can't handle '%s'" % (self.buddy.address, self.text)
 
 class ProtocolMsg_ping(ProtocolMsg):
     command = "ping"
@@ -980,7 +992,7 @@ class ProtocolMsg_ping(ProtocolMsg):
             print "(2) detected ping from %s on other connection." % self.address
             print "(2) sending a ping to %s to find correct in-connection." % self.address
             buddy.sendPing()
-            return        
+            
         
         #if someone is pinging us with our own address and the
         #random value is not from us, then someone is definitely 
@@ -1055,10 +1067,6 @@ class ProtocolMsg_pong(ProtocolMsg):
         if self.buddy:
             print "(3) received pong from %s" % self.buddy.address
             #assign the in-connection to this buddy
-            if self.buddy.conn_in:
-                print "(2) changing in-connection for %s." % self.buddy.address
-                self.buddy.conn_in.buddy = None
-                self.buddy.conn_in.close()
             self.buddy.onInConnectionFound(self.connection)
         else:
             #there is no buddy for this pong. nothing to do.
@@ -1306,9 +1314,10 @@ class Receiver(threading.Thread):
 
     def run(self):
         readbuffer = ""
+        self.socket.settimeout(5)
         while self.running:
             try:
-                recv = self.socket.recv(1024)
+                recv = self.socket.recv(256)
                 if recv != "":
                     readbuffer = readbuffer + recv
                     temp = readbuffer.split("\n")
@@ -1331,6 +1340,7 @@ class Receiver(threading.Thread):
                 pass
             
             except socket.error:
+                tb(2)
                 self.running = False
                 self.conn.onReceiverError()
                                
@@ -1342,7 +1352,9 @@ class InConnection:
         self.socket = socket
         self.receiver = Receiver(self)
         self.last_ping_address = "" #used to detect mass pings with fake adresses
-    
+        self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
+        self.timer.start()
+        
     def send(self, text):
         try:
             self.socket.send(text)
@@ -1352,7 +1364,7 @@ class InConnection:
             self.close()
         
     def onReceiverError(self):
-        print "(2) in-connection receive error."
+        print "(2) in-connection receive error. %s" % self
         self.bl.onErrorIn(self)
         self.close()
     
@@ -1365,10 +1377,21 @@ class InConnection:
             self.socket.close()
         except:
             pass
-        print "(2) in-connection closing (%s)" % self.last_ping_address
+        print "(2) in-connection closing (%s, %s)" % (self.last_ping_address, self)
         if self in self.bl.listener.conns:
             self.bl.listener.conns.remove(self)
-    
+
+    def onTimeout(self):
+        #if after this long time the connection is still unused, close it.
+        if self.buddy and self.buddy.conn_in == self:
+            self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
+            self.timer.start()
+        else:
+            print "(2) closing unused in-connection (%s, %s)" % (self.last_ping_address, self)
+            self.buddy = None
+            self.close()
+            print "(2) have now %i incoming connections" % len(self.bl.listener.conns)
+
 
 class OutConnection(threading.Thread):
     def __init__(self, address, buddy_list, buddy):
@@ -1449,7 +1472,7 @@ class Listener(threading.Thread):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((config.get("client", "listen_interface"), 
                           config.getint("client", "listen_port")))
-        self.socket.listen(1)
+        self.socket.listen(5)
         while self.running:
             try:
                 conn, address = self.socket.accept()
@@ -1502,7 +1525,7 @@ def startPortableTor():
                 print "(1) there is no portable tor.exe"
                 tor_pid = False
         else:
-            if os.path.exists("tor.sh"):
+            if os.path.exists("tor.sh_"):
                 #let our shell script start a tor instance 
                 try:
                     os.system("chmod +x tor.sh")
