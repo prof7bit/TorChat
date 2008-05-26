@@ -47,7 +47,9 @@ CB_TYPE_FILE = 2
 CB_TYPE_OFFLINE_SENT = 3
 
 tb = config.tb # the traceback function has moved to config
-tor_pid = False
+tor_pid = None
+tor_proc = None
+tor_timer = None
 
 def isWindows():
     return "win" in sys.platform
@@ -1353,6 +1355,7 @@ class InConnection:
         self.receiver = Receiver(self)
         self.last_ping_address = "" #used to detect mass pings with fake adresses
         self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
+        self.started = True
         self.timer.start()
         
     def send(self, text):
@@ -1369,6 +1372,8 @@ class InConnection:
         self.close()
     
     def close(self):
+        if not self.started:
+            return
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
@@ -1377,6 +1382,7 @@ class InConnection:
             self.socket.close()
         except:
             pass
+        self.started = False
         print "(2) in-connection closing (%s, %s)" % (self.last_ping_address, self)
         if self in self.bl.listener.conns:
             self.bl.listener.conns.remove(self)
@@ -1443,6 +1449,8 @@ class OutConnection(threading.Thread):
         self.close()
     
     def close(self):
+        if not self.running:
+            return
         self.running = False
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
@@ -1456,7 +1464,6 @@ class OutConnection(threading.Thread):
             print "(2) out-connection closing (%s)" % self.buddy.address
         else:
             print "(2) out-connection closing (without buddy)"
-            
         
 
 class Listener(threading.Thread):
@@ -1498,6 +1505,7 @@ def startPortableTor():
     global tor_in, tor_out
     global TOR_CONFIG
     global tor_pid
+    global tor_proc
     old_dir = os.getcwd()
     print "(1) current working directory is %s" % os.getcwd()
     try:
@@ -1519,8 +1527,8 @@ def startPortableTor():
                 #start the process without opening a console window
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                tor = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
-                tor_pid = tor.pid
+                tor_proc = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
+                tor_pid = tor_proc.pid
             else:
                 print "(1) there is no portable tor.exe"
                 tor_pid = False
@@ -1531,8 +1539,8 @@ def startPortableTor():
                     os.system("chmod +x tor.sh")
                 except:
                     pass
-                tor = subprocess.Popen("./tor.sh".split())
-                tor_pid = tor.pid
+                tor_proc = subprocess.Popen("./tor.sh".split())
+                tor_pid = tor_proc.pid
             else:
                 print "(1) there is no Tor starter script (tor.sh)"
                 tor_pid = False
@@ -1570,6 +1578,8 @@ def startPortableTor():
                 #so we switch to the other set of config-options
                 print "(1) switching active config section from [tor] to [tor_portable]"
                 TOR_CONFIG = "tor_portable"
+                #start the timer that will periodically check that tor is still running
+                startPortableTorTimer()
         else:
             print "(1) no own Tor instance. Settings in [tor] will be used"
         
@@ -1586,3 +1596,15 @@ def stopPortableTor():
         return
     else:
         killProcess(tor_pid)
+
+def startPortableTorTimer():
+    global tor_timer
+    tor_timer = threading.Timer(10, onPortableTorTimer)
+    tor_timer.start()
+    
+def onPortableTorTimer():
+    if tor_proc.poll() != None:
+        print "(1) Tor stopped running. Will restart it now"
+        startPortableTor()
+    else:
+        startPortableTorTimer()
