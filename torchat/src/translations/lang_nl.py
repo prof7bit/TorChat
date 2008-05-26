@@ -106,6 +106,11 @@ NOTICE_DELAYED_MSG_WAITING = u"vertraagde berichten, wachtend om verzonden te wo
 NOTICE_DELAYED_MSG_SENT = u"vertraagde berichten zijn verzonden"
 NOTICE_DELAYED = u"vertraagd"
 
+# #messagebox for offline messages
+# MSG_OFFLINE_TITLE = u"TorChat: queued messages"
+# MSG_OFFLINE_EMPTY = u"there are no (more) queued messages for %s"
+# MSG_OFFLINE_QUEUED = u"queued offline messages for %s:\n\n%s"
+
 #about box
 ABOUT_TITLE = u"Over TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)

@@ -106,6 +106,11 @@ NOTICE_DELAYED_MSG_WAITING = u"Verzögerte Nachrichten in der Sendewarteschlange
 NOTICE_DELAYED_MSG_SENT = u"Verzögerte Nachrichten wurden gesendet"
 NOTICE_DELAYED = u"Verzögert"
 
+# #messagebox for offline messages
+MSG_OFFLINE_TITLE = u"TorChat: Ungesendete Nachrichten"
+MSG_OFFLINE_EMPTY = u"Es liegen keine ungesendeten Nachrichten (mehr) für %s vor"
+MSG_OFFLINE_QUEUED = u"Ungesendete Nachrichten für %s:\n\n%s"
+
 #about box
 ABOUT_TITLE = u"Über TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
