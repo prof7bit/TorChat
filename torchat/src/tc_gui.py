@@ -342,10 +342,10 @@ class PopupMenu(wx.Menu):
         buddy = self.mw.gui_bl.getSelectedBuddy()
         om = buddy.getOfflineMessages()
         if om:
-            om = ("queued offline messages for %s:\n\n" % buddy.address) + om
+            om = lang.MSG_OFFLINE_QUEUED % (buddy.address, om)
         else:
-            om = "there are no (more) queued messages for %s" % buddy.address
-        wx.MessageBox(om, "offline messages", wx.ICON_INFORMATION)
+            om = lang.MSG_OFFLINE_EMPTY % buddy.address
+        wx.MessageBox(om, lang.MSG_OFFLINE_TITLE, wx.ICON_INFORMATION)
 
     def onClearOffline(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()

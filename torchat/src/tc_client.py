@@ -61,16 +61,20 @@ def isWindows98():
         return False
 
 def killProcess(pid):
-    if isWindows():
-        PROCESS_TERMINATE = 1
-        handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
-                                                    False, 
-                                                    pid)
-        print handle
-        ctypes.windll.kernel32.TerminateProcess(handle, -1)
-        ctypes.windll.kernel32.CloseHandle(handle)
-    else:
-        os.kill(pid, 9)
+    try:
+        if isWindows():
+            PROCESS_TERMINATE = 1
+            handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
+                                                        False, 
+                                                        pid)
+            print handle
+            ctypes.windll.kernel32.TerminateProcess(handle, -1)
+            ctypes.windll.kernel32.CloseHandle(handle)
+        else:
+            os.kill(pid, 15)
+    except:
+        print "(1) could not kill process %i" % pid
+        tb()
 
 def splitLine(text):
     sp = text.split(" ")
@@ -1533,7 +1537,7 @@ def startPortableTor():
                 print "(1) there is no portable tor.exe"
                 tor_pid = False
         else:
-            if os.path.exists("tor.sh_"):
+            if os.path.exists("tor.sh"):
                 #let our shell script start a tor instance 
                 try:
                     os.system("chmod +x tor.sh")
@@ -1541,6 +1545,7 @@ def startPortableTor():
                     pass
                 tor_proc = subprocess.Popen("./tor.sh".split())
                 tor_pid = tor_proc.pid
+                print "(1) tor pid is %i" % tor_pid
             else:
                 print "(1) there is no Tor starter script (tor.sh)"
                 tor_pid = False
@@ -1595,6 +1600,7 @@ def stopPortableTor():
     if not tor_pid:
         return
     else:
+        print "(1) tor has pid %i, terminating." % tor_pid
         killProcess(tor_pid)
 
 def startPortableTorTimer():

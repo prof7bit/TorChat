@@ -1,3 +1,6 @@
 #!/bin/sh
 
-tor -f torrc.txt
+trap 'kill -15 `cat tor.pid`' 15
+
+tor -f torrc.txt --PidFile tor.pid &
+wait
