@@ -21,6 +21,7 @@ import wx
 import tc_gui
         
 def main():
+    config.main() 
     app = wx.App(redirect=False)
     print "(1) start initializing main window"
     app.mw = tc_gui.MainWindow()

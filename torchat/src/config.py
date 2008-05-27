@@ -215,12 +215,11 @@ class LogWriter:
         sys.stdout = self
         sys.stderr = self
         self.level = getint("logging", "log_level")
-        if  self.level and self.file_name:
+        if  self.level and get("logging", "log_file"):
             try:
                 self.logfile = open(self.file_name, 'w')
                 print "(1) started logging to file '%s'" % self.file_name
             except:
-                tb(0)
                 print "(0) could not open logfile '%s'" % self.file_name
                 print "(0) logging only to stdout"
         print "(1) current log level is %i" % self.level
@@ -268,16 +267,20 @@ class LogWriter:
         self.stdout.close()
         self.logfile.close()
 
-#many things are relative to the script directory, so set is as the cwd
-os.chdir(getScriptDir())
-readConfig()
-log_writer = LogWriter()
-
-#make a backup of all strings that are in the standard language file
-#because we could need them when switching between incomplete languages
-standard_dict = {}
-for key in translations.lang_en.__dict__:
-    standard_dict[key] = translations.lang_en.__dict__[key]
-
-#now switch to the configured translation
-importLanguage()
+def main():
+    global standard_dict
+    global log_writer
+    
+    #many things are relative to the script directory, so set is as the cwd
+    os.chdir(getScriptDir())
+    readConfig()
+    log_writer = LogWriter()
+    
+    #make a backup of all strings that are in the standard language file
+    #because we could need them when switching between incomplete languages
+    standard_dict = {}
+    for key in translations.lang_en.__dict__:
+        standard_dict[key] = translations.lang_en.__dict__[key]
+    
+    #now switch to the configured translation
+    importLanguage()
