@@ -31,7 +31,7 @@ files = [("translations/*.py", "usr/share/torchat/translations"),
          ]
 
 control_file = """Package: torchat
-Version: 1
+Version: %s
 Section: internet
 Priority: optional
 Architecture: all
@@ -41,25 +41,47 @@ Pre-Depends: python2.5
 Maintainer: Bernd Kreuss <prof7bit@cooglemail.com>
 Provides: torchat
 Description: Instant Messenger for Tor
+""" % version.VERSION_ONLY
+
+start_script = """#!/bin/sh
+
+cd /usr/share/torchat
+./torchat.py
 """
+
+def chmod(mode, dest):
+    dest_full = os.path.join(TMP_ROOT, dest)
+    os.system("chmod %s %s" % (mode, dest_full))
 
 def mkdir(dir):
     path = os.path.join(TMP_ROOT, dir)
     os.system("mkdir %s" % path)
+    chmod(755, dir)
 
 def copy(file, dest):
     dest_full = os.path.join(TMP_ROOT, dest)
     os.system("cp %s %s" % (file, dest_full))
+    chmod(644, os.path.join(dest, os.path.basename(file)))
+    
+def create(content, dest):
+    dest_full = os.path.join(TMP_ROOT, dest)
+    os.system("echo '%s' > %s" % (content, dest_full))
+    chmod(644, dest)
 
-os.system("mkdir %s" % TMP_ROOT)
+os.system("rm -r %s" % TMP_ROOT)
+mkdir("") #create empty TMP_ROOT
+
 for dir in dirs:
     mkdir(dir)
 
 for file, dest in files:
     copy(file, dest)
 
-os.system("echo '%s' > %s/DEBIAN/control" % (control_file, TMP_ROOT))
+create(control_file, "DEBIAN/control")
+create(start_script, "usr/bin/torchat")
+chmod(755, "usr/bin/torchat")
+chmod(755, "usr/share/torchat/torchat.py")
+chmod(755, "usr/share/torchat/Tor/tor.sh")
 
-os.system("dpkg -b %s %s" % (TMP_ROOT, "torchat-%s.deb" % version.VERSION))
-
-os.system("rm -r %s" % TMP_ROOT)
+os.system("dpkg -b %s %s" % (TMP_ROOT, "torchat-%s.deb" % version.VERSION_ONLY))
+#os.system("rm -r %s" % TMP_ROOT)

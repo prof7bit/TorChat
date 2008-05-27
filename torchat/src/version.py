@@ -41,6 +41,7 @@ else:
         f.close()
                     
 VERSION = VERSION_MAJOR + "." + str(svn - SVN_OFFSET)
+VERSION_ONLY = VERSION
 if EXPERIMENTAL:
     VERSION += "-experimental"
 VERSION_SVN = svn
