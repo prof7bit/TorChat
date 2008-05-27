@@ -61,14 +61,13 @@ ln -s /usr/share/pixmaps/torchat icons
 echo compiling to bytecode...
 python -OOc "import torchat"
 
-echo done.
+echo TorChat installed.
 """
 
 prerm = """#!/bin/sh
 
 rm -rf  /usr/share/torchat
 
-echo done
 """
 
 start_script = """#!/bin/sh
@@ -133,4 +132,5 @@ chmod(755, "usr/share/torchat/torchat.py")
 chmod(755, "usr/share/torchat/Tor/tor.sh")
 
 os.system("dpkg -b %s %s" % (TMP_ROOT, deb_name))
+os.system("mv %s ../release" % deb_name)
 os.system("rm -rf %s" % TMP_ROOT)
