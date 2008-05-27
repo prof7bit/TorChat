@@ -105,11 +105,6 @@ def copy(file, dest):
     os.system("cp %s %s" % (file, dest_full))
     chmod(644, os.path.join(dest, os.path.basename(file)))
 
-def link(target, dest):
-    target_full = os.path.join(TMP_ROOT, target)
-    dest_full = os.path.join(TMP_ROOT, dest)
-    os.system("ln -s %s %s" % (target_full, dest_full))
-
 def create(content, dest):
     dest_full = os.path.join(TMP_ROOT, dest)
     os.system("echo '%s' > %s" % (content, dest_full))
