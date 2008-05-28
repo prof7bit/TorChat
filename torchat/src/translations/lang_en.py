@@ -64,6 +64,14 @@ D_WARN_BUDDY_OFFLINE_MESSAGE = u"This operation is not possible with offline bud
 D_WARN_FILE_ONLY_ONE_TITLE = u"TorChat: Multiple files"
 D_WARN_FILE_ONLY_ONE_MESSAGE = u"You may not start multiple file transfers with one operation. Start the transfers individually or send a zip-file instead"
 
+#warning about file save error
+D_WARN_FILE_SAVE_ERROR_TITLE = u"TorChat: Error saving file"
+D_WARN_FILE_SAVE_ERROR_MESSAGE = u"The file '%s' could not be created.\n\n%s"
+
+#warning about file already exists
+D_WARN_FILE_ALREADY_EXISTS_TITLE = u"TorChat: File exists"
+D_WARN_FILE_ALREADY_EXISTS_MESSAGE = u"The file '%s' already exists.\nOverwrite it?"
+
 #dialog: add/edit contact
 DEC_TITLE_ADD = u"Add new contact"
 DEC_TITLE_EDIT = u"Edit contact"

@@ -753,6 +753,7 @@ class FileReceiver:
     def __init__(self, buddy, id, block_size, file_size, file_name):
         self.buddy = buddy
         self.id = id
+        self.closed = False
         self.block_size = block_size
         self.file_name = file_name
         self.file_name_save = ""
@@ -812,9 +813,16 @@ class FileReceiver:
             #an error already because of the wrong hash
             self.wrong_block_number_count = 1
             
-    
     def setFileNameSave(self, file_name_save):
         self.file_name_save = file_name_save
+        try:
+            self.file_handle_save = open(file_name_save, "w")
+            print "(2) created and opened placeholder file %s" % self.file_name_save
+        except:
+            self.file_handle_save = None
+            self.file_name_save = None
+            self.file_save_error = str(sys.exc_info()[1])
+            print "(2) %s could not be created: %s" % (self.file_name_save, self.file_save_error)
             
     def sendStopMessage(self):
         msg = ProtocolMsg(self.buddy.bl, None, "file_stop_sending", self.id)
@@ -830,31 +838,22 @@ class FileReceiver:
         self.close()
     
     def close(self):
+        if self.closed:
+            return
         try:
             self.file_handle_tmp.close()
             if self.file_name_save:
-                #FIXME: this will always overwrite 
-                #an existing file without any warning
-                try:
-                    os.unlink(self.file_name_save)
-                except:
-                    pass
-                try:
-                    shutil.move(self.file_name_tmp, self.file_name_save)
-                    print "(2) moved temporary file to %s" % self.file_name_save
-                except:
-                    pass
+                self.file_handle_save.close()
+                shutil.move(self.file_name_tmp, self.file_name_save)
+                print "(2) moved temporary file to %s" % self.file_name_save
             else:
-                try:
-                    os.unlink(self.file_name_tmp)
-                    print "(2) deleted temporary file %s" % self.file_name_tmp
-                except:
-                    pass
+                os.unlink(self.file_name_tmp)
+                print "(2) deleted temporary file %s" % self.file_name_tmp
             del self.buddy.bl.file_receiver[self.buddy.address, self.id]
         except:
             pass
 
-        pass #Pydev/Eclipse parser (comments in outline) needs this "pass"
+        self.closed = True
 
 
 #--- ### Protocol messages

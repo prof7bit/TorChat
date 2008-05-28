@@ -1007,9 +1007,11 @@ class FileTransferWindow(wx.Frame):
         
         if self.bytes_complete == self.bytes_total:
             self.completed = True
+            self.progress_bar.SetValue(100)
             if self.is_receiver:
                 if self.file_name_save != "":
                     self.btn_cancel.SetLabel(lang.BTN_CLOSE)
+                    self.transfer_object.close() #this will actually save the file
             else:
                 self.btn_cancel.SetLabel(lang.BTN_CLOSE)
         
@@ -1039,7 +1041,23 @@ class FileTransferWindow(wx.Frame):
         dialog = wx.FileDialog(self, title, defaultFile=self.file_name, style=wx.SAVE)
         if dialog.ShowModal() == wx.ID_OK:
             self.file_name_save = dialog.GetPath()
+            
+            if os.path.exists(self.file_name_save):
+                overwrite = wx.MessageBox(lang.D_WARN_FILE_ALREADY_EXISTS_MESSAGE % self.file_name_save,
+                                          lang.D_WARN_FILE_ALREADY_EXISTS_TITLE,
+                                          wx.YES_NO)
+                if overwrite != wx.YES:
+                    self.file_name_save = ""
+                    return
+
             self.transfer_object.setFileNameSave(self.file_name_save)
+            if not self.transfer_object.file_handle_save:
+                error = self.transfer_object.file_save_error
+                wx.MessageBox(lang.D_WARN_FILE_SAVE_ERROR_MESSAGE % (self.file_name_save, error),
+                              lang.D_WARN_FILE_SAVE_ERROR_TITLE)
+                self.file_name_save = ""
+                return
+            
             self.btn_save.Enable(False)
             if self.completed:
                 self.onCancel(evt)

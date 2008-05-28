@@ -7,8 +7,8 @@ svn / trunk
 - removed the "bitmap not found" errors
 - the program now runs on Windows 98 SE
 - added polish translation
-- Fixed issue#19: Enter-Key inserted newline before sending
-
+- fixed issue 19: Enter-Key inserted newline before sending
+- fixed issue 20: Ask before overwriting files
 
 version 0.9.9.191
 - implemented configuration dialog
