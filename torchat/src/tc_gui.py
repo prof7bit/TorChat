@@ -512,7 +512,13 @@ class BuddyList(wx.ListCtrl):
                        tc_client.STATUS_AWAY,
                        tc_client.STATUS_XA]:
             self.il_idx[status] = self.il.Add(getStatusBitmap(status))
+        
+        img_event = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
+        img_event.ConvertAlphaToMask()
+        self.il_idx[100] = self.il.Add(img_event.ConvertToBitmap())
+        
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+        self.blink_phase = False
         
         self.timer = wx.Timer(self, -1)
         self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
@@ -523,36 +529,59 @@ class BuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
         
+    def blinkBuddy(self, buddy, blink=True):
+        name = buddy.getDisplayName()
+        for index in xrange(0, self.GetItemCount()):
+            if name == self.GetItemText(index):
+                if blink:
+                    if self.blink_phase:
+                        self.SetItemImage(index, self.il_idx[100])
+                    else:
+                        self.SetItemImage(index, self.il_idx[buddy.status])
+                else:
+                    self.SetItemImage(index, self.il_idx[buddy.status])
+        
     def onTimer(self, evt):
         #first check if there have been any changes to the buddy list
         sum = ""
         for buddy in self.bl.list:
             sum += buddy.address + buddy.name + str(buddy.status)
-        if sum == self.old_sum:
-            return
-        self.old_sum = sum
-        
-        #remove items which are not in list anymore
-        for index in xrange(0, self.GetItemCount()):
-            found = False
+        if sum != self.old_sum:
+            #FIXME: This whole method is more than ugly
+            #remove items which are not in list anymore
+            for index in xrange(0, self.GetItemCount()):
+                found = False
+                for buddy in self.bl.list:
+                    if buddy.getDisplayName() == self.GetItemText(index):
+                        found = True
+                        break
+                if not found:
+                    self.DeleteItem(index)
+                    break
+            
+            #add new items to the list or change status icons
             for buddy in self.bl.list:
-                if buddy.getDisplayName() == self.GetItemText(index):
+                line = buddy.getDisplayName()
+                index = self.FindItem(0, line)
+                if index == -1:
+                    index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
+                    self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+                self.SetItemImage(index, self.il_idx[buddy.status])  
+            
+            self.old_sum = sum
+
+        #always: show unread messages
+        self.blink_phase = not self.blink_phase
+        for buddy in self.bl.list:
+            found = False
+            for window in self.mw.chat_windows:
+                if not window.IsShown() and window.buddy == buddy:
                     found = True
                     break
-            if not found:
-                self.DeleteItem(index)
-                break
-        
-        #add new items to the list or change status icons
-        for buddy in self.bl.list:
-            line = buddy.getDisplayName()
-            index = self.FindItem(0, line)
-            if index == -1:
-                index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
-            self.SetItemImage(index, self.il_idx[buddy.status])  
-        
-        self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self.Refresh()
+            if found:
+                self.blinkBuddy(buddy, True)
+            else:
+                self.blinkBuddy(buddy, False)
     
     def onDClick(self, evt):
         i = self.GetFirstSelected()
