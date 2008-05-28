@@ -1,3 +1,6 @@
+next
+- issue 27: indication of messages in main window
+
 svn / trunk
 - implemented drag 'n' drop file transfer
 - "edit contact" in chat window context menu
