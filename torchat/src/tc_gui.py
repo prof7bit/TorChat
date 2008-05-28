@@ -681,7 +681,6 @@ class ChatWindow(wx.Frame):
         self.txt_out = wx.TextCtrl(self.panel,
                                    -1,
                                    style=wx.TE_MULTILINE |
-                                   wx.TE_PROCESS_ENTER |
                                    wx.TE_RICH2 |
                                    wx.BORDER_SUNKEN)
         
@@ -709,7 +708,7 @@ class ChatWindow(wx.Frame):
         
         self.Bind(wx.EVT_TIMER, self.onTimer)
         self.Bind(wx.EVT_CLOSE, self.onClose)
-        self.txt_out.Bind(wx.EVT_TEXT_ENTER, self.onSend)
+        self.txt_out.Bind(wx.EVT_KEY_DOWN, self.onKey)
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
@@ -720,11 +719,12 @@ class ChatWindow(wx.Frame):
         self.txt_in.SetDropTarget(self.drop_target_in)
         self.txt_out.SetDropTarget(self.drop_target_out)
         
+        
         if not hidden:
             self.Show()
         
         self.mw.chat_windows.append(self)
-        
+ 
     def updateTitle(self):
         if self.unread == 1:
             title = "* "
@@ -800,6 +800,12 @@ class ChatWindow(wx.Frame):
     def onClose(self, evt):
         self.mw.chat_windows.remove(self)
         self.Destroy()
+        
+    def onKey(self, evt):
+        if evt.GetKeyCode() == 13 and not evt.ShiftDown():
+            self.onSend(evt)
+        else:
+            evt.Skip()
         
     def onSend(self, evt):
         evt.Skip()
