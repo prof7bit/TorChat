@@ -79,7 +79,7 @@ class TaskbarIcon(wx.TaskBarIcon):
         return TaskbarMenu(self.mw)
 
     def getToolTipText(self):
-        text = "TorChat %s" % config.getProfileLongName()
+        text = "TorChat: %s" % config.getProfileLongName()
         for window in self.mw.chat_windows:
             if not window.IsShown():
                 text += "\n" + window.getTitleShort()

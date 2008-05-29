@@ -127,14 +127,13 @@ def getDataDir():
         else:
             os.system('cp -r Tor "%s"' % data_dir)
         
-    print "(1) data directory is %s" % data_dir
     return data_dir
 
 def getProfileLongName():
     try:
-        return "[%s: %s]" % (sys.argv[1], get("client", "own_hostname"))
+        return "%s - %s" % (sys.argv[1], get("client", "own_hostname"))
     except:
-        return "[%s]" % get("client", "own_hostname")
+        return get("client", "own_hostname")
 
 
 def readConfig():
@@ -256,6 +255,7 @@ class LogWriter:
     def __init__(self):
         old_dir = os.getcwd()
         os.chdir(getDataDir())
+
         #if log_file is a relative path then let it be relative to DataDir()
         self.file_name = os.path.abspath(get("logging", "log_file"))
         os.chdir(old_dir)
@@ -323,6 +323,9 @@ def main():
     os.chdir(getScriptDir())
     readConfig()
     log_writer = LogWriter()
+
+    print "(1) script directory is %s" % getScriptDir()
+    print "(1) data directory is %s" % getDataDir()
     
     #make a backup of all strings that are in the standard language file
     #because we could need them when switching between incomplete languages
