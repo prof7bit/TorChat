@@ -73,7 +73,7 @@ rm -rf  /usr/share/torchat
 start_script = """#!/bin/sh
 
 cd /usr/share/torchat
-./torchat.py
+./torchat.py $*
 """
 
 desktop = """[Desktop Entry]
@@ -95,20 +95,24 @@ def chmod(mode, dest):
     os.system("chmod %s %s" % (mode, dest_full))
 
 def mkdir(dir):
+    print "creating directory %s" % dir
     path = os.path.join(TMP_ROOT, dir)
     os.system("mkdir %s" % path)
     chmod(755, dir)
 
 def copy(file, dest):
+    print "copying %s to %s" % (file, dest)
     dest_full = os.path.join(TMP_ROOT, dest)
     os.system("cp %s %s" % (file, dest_full))
     chmod(644, os.path.join(dest, os.path.basename(file)))
 
 def create(content, dest):
+    print "creating file %s" % (dest)
     dest_full = os.path.join(TMP_ROOT, dest)
     os.system("echo '%s' > %s" % (content, dest_full))
     chmod(644, dest)
 
+print "creating temporary root dir"
 os.system("rm -rf %s" % TMP_ROOT)
 mkdir("") #create empty TMP_ROOT
 
@@ -134,3 +138,4 @@ chmod(755, "usr/share/torchat/Tor/tor.sh")
 os.system("dpkg -b %s %s" % (TMP_ROOT, deb_name))
 os.system("mv %s ../release" % deb_name)
 os.system("rm -rf %s" % TMP_ROOT)
+print "done."

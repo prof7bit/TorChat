@@ -1,7 +1,3 @@
-next
-- detect second instance on same port
-- allow multiple profiles (for permanent installation)
-
 svn / trunk
 - implemented drag 'n' drop file transfer
 - "edit contact" in chat window context menu
@@ -14,6 +10,8 @@ svn / trunk
 - fixed issue 19: Enter-Key inserted newline before sending
 - fixed issue 20: Ask before overwriting files
 - fixed issue 27: indication of messages in main window
+- detect second instance on same port
+- allow multiple profiles (for permanent installation)
 
 version 0.9.9.191
 - implemented configuration dialog

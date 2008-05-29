@@ -19,6 +19,7 @@ import ConfigParser
 import traceback
 import inspect
 import translations
+import socket
 
 config_defaults = {
     ("tor", "tor_server") : "127.0.0.1",
@@ -50,6 +51,10 @@ COPYRIGHT = u"Copyright (c) 2007, 2008 Bernd Kreuß <prof7bit@gmail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 180
 
+def isWindows():
+    return "win" in sys.platform
+
+
 def getScriptDir():
     #must be called at least once before working dir is changed
     #because after that abspath won't work correctly anymore.
@@ -75,7 +80,7 @@ def isPortable():
     
 def getDataDir():
     if isPortable():
-        data_dir = getScriptDir()
+        return getScriptDir()
     else:
         if "win" in sys.platform:
             appdata = os.environ["APPDATA"]
@@ -84,9 +89,24 @@ def getDataDir():
             home = os.path.expanduser("~")
             data_dir = os.path.join(home, ".torchat")
     
+    #test for optional profile name in command line
+    try:
+        data_dir += "_" + sys.argv[1]
+    except:
+        pass
+    
+    #create it if necessary
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
         
+    #and copy 'Tor' into it if necessary
+    if not os.path.exists(os.path.join(data_dir, "Tor")):
+        if isWindows():
+            os.system('copy Tor "%s"' % data_dir)
+        else:
+            os.system('cp -r Tor "%s"' % data_dir)
+        
+    print "(1) data directory is %s" % data_dir
     return data_dir
 
 def readConfig():
@@ -266,7 +286,7 @@ class LogWriter:
     def close(self):
         self.stdout.close()
         self.logfile.close()
-
+        
 def main():
     global standard_dict
     global log_writer

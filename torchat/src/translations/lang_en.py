@@ -52,6 +52,10 @@ D_CONFIRM_DELETE_MESSAGE = u"Really delete this contact?\n(%s %s)"
 D_LOG_WARNING_TITLE = u"TorChat: Logging is active"
 D_LOG_WARNING_MESSAGE = u"Logging to file is activated!\n\nLog File: %s\n\nRemember to delete the log file if you have finished debugging because the log file may contain sensitive information."
 
+#warning about used port
+D_WARN_USED_PORT_TITLE = u"TorChat: Port already in use"
+D_WARN_USED_PORT_MESSAGE = u"Something, probably another TorChat instance, is already listening at %s:%s. You must create another profile using different ports to be able to start TorChat a second time."
+
 #warnig about unread messages
 D_WARN_UNREAD_TITLE = u"TorChat: Unread messages"
 D_WARN_UNREAD_MESSAGE = u"There are unread messages.\nThey will be lost forever!\n\nDo you really want to exit TorChat now?"

@@ -379,12 +379,11 @@ class BuddyList(object):
     #be possible with it's methods. Most other objects carry
     #a reference to the one and only BuddyList object around 
     #to be able to find and interact with other objects.
-    def __init__(self, guiCallback):
+    def __init__(self, guiCallback, socket=None):
         print "(1) initializing buddy list"
         self.guiCallback = guiCallback
         
-        if config.isPortable():
-            startPortableTor()
+        startPortableTor()
         
         self.file_sender = {}
         self.file_receiver = {}
@@ -394,7 +393,7 @@ class BuddyList(object):
         #answer and authenticate on the first try they will be deleted
         self.incoming_buddies = []  
         
-        self.listener = Listener(self)
+        self.listener = Listener(self, socket)
         self.own_status = STATUS_ONLINE
         
         filename = os.path.join(config.getDataDir(), "buddy-list.txt")
@@ -1470,18 +1469,19 @@ class OutConnection(threading.Thread):
         
 
 class Listener(threading.Thread):
-    def __init__(self, buddy_list):
+    def __init__(self, buddy_list, socket=None):
         threading.Thread.__init__(self)
         self.buddy_list = buddy_list
         self.conns = []
+        self.socket = socket
         self.start()
 
     def run(self):
         self.running = True
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((config.get("client", "listen_interface"), 
-                          config.getint("client", "listen_port")))
+        if not self.socket:
+            interface = config.get("client", "listen_interface")
+            port = config.getint("client", "listen_port")
+            self.socket = tryBindPort(interface, port)
         self.socket.listen(5)
         while self.running:
             try:
@@ -1503,6 +1503,17 @@ class Listener(threading.Thread):
             pass
 
 
+def tryBindPort(interface, port):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((interface, port))
+        s.listen(5)
+        return s
+    except:
+        tb()
+        return False
+
 def startPortableTor():
     print "(1) entering function startPortableTor()"
     global tor_in, tor_out
@@ -1513,6 +1524,7 @@ def startPortableTor():
     print "(1) current working directory is %s" % os.getcwd()
     try:
         print "(1) changing working directory"
+        os.chdir(config.getDataDir())
         os.chdir("Tor")
         print "(1) current working directory is %s" % os.getcwd()
         # completely remove all cache files from the previous run
@@ -1538,10 +1550,7 @@ def startPortableTor():
         else:
             if os.path.exists("tor.sh"):
                 #let our shell script start a tor instance 
-                try:
-                    os.system("chmod +x tor.sh")
-                except:
-                    pass
+                os.system("chmod +x tor.sh")
                 tor_proc = subprocess.Popen("./tor.sh".split())
                 tor_pid = tor_proc.pid
                 print "(1) tor pid is %i" % tor_pid

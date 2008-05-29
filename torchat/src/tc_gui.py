@@ -1095,12 +1095,12 @@ class FileTransferWindow(wx.Frame):
     
     
 class MainWindow(wx.Frame):
-    def __init__(self):
+    def __init__(self, socket=None):
         wx.Frame.__init__(self, None, -1, "TorChat", size=(250,350))
         self.conns = []
         self.chat_windows = []
         self.notification_window = None
-        self.buddy_list = tc_client.BuddyList(self.callbackMessage)
+        self.buddy_list = tc_client.BuddyList(self.callbackMessage, socket)
 
         self.SetTitle("TorChat: %s" % config.get("client", "own_hostname"))
 
