@@ -130,6 +130,13 @@ def getDataDir():
     print "(1) data directory is %s" % data_dir
     return data_dir
 
+def getProfileLongName():
+    try:
+        return "[%s: %s]" % (sys.argv[1], get("client", "own_hostname"))
+    except:
+        return "[%s]" % get("client", "own_hostname")
+
+
 def readConfig():
     global file_name
     global config

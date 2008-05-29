@@ -79,7 +79,7 @@ class TaskbarIcon(wx.TaskBarIcon):
         return TaskbarMenu(self.mw)
 
     def getToolTipText(self):
-        text = "TorChat [%s]" % config.get("client", "own_hostname")
+        text = "TorChat %s" % config.getProfileLongName()
         for window in self.mw.chat_windows:
             if not window.IsShown():
                 text += "\n" + window.getTitleShort()
@@ -763,7 +763,7 @@ class ChatWindow(wx.Frame):
         if self.buddy.name != "":
             title += " (%s)" % self.buddy.name
         
-        self.SetTitle(title + " [%s]" % config.get("client", "own_hostname"))
+        self.SetTitle(title + " %s" % config.getProfileLongName())
     
     def getTitleShort(self):
         t = self.GetTitle()
@@ -1099,7 +1099,7 @@ class MainWindow(wx.Frame):
         self.notification_window = None
         self.buddy_list = tc_client.BuddyList(self.callbackMessage, socket)
 
-        self.SetTitle("TorChat: %s" % config.get("client", "own_hostname"))
+        self.SetTitle("TorChat: %s" % config.getProfileLongName()
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
