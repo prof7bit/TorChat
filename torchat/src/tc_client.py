@@ -51,31 +51,6 @@ tor_pid = None
 tor_proc = None
 tor_timer = None
 
-def isWindows():
-    return "win" in sys.platform
-
-def isWindows98():
-    if isWindows():
-        return sys.getwindowsversion()[0] == 4
-    else:
-        return False
-
-def killProcess(pid):
-    try:
-        if isWindows():
-            PROCESS_TERMINATE = 1
-            handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
-                                                        False, 
-                                                        pid)
-            print handle
-            ctypes.windll.kernel32.TerminateProcess(handle, -1)
-            ctypes.windll.kernel32.CloseHandle(handle)
-        else:
-            os.kill(pid, 15)
-    except:
-        print "(1) could not kill process %i" % pid
-        tb()
-
 def splitLine(text):
     sp = text.split(" ")
     try:
@@ -1537,7 +1512,7 @@ def startPortableTor():
         # now start tor with the supplied config file
         print "(1) trying to start Tor"
         
-        if isWindows():
+        if config.isWindows():
             if os.path.exists("tor.exe"):
                 #start the process without opening a console window
                 startupinfo = subprocess.STARTUPINFO()
@@ -1609,7 +1584,7 @@ def stopPortableTor():
         return
     else:
         print "(1) tor has pid %i, terminating." % tor_pid
-        killProcess(tor_pid)
+        config.killProcess(tor_pid)
 
 def startPortableTorTimer():
     global tor_timer

@@ -54,6 +54,27 @@ DEAD_CONNECTION_TIMEOUT = 180
 def isWindows():
     return "win" in sys.platform
 
+def isWindows98():
+    if isWindows():
+        return sys.getwindowsversion()[0] == 4
+    else:
+        return False
+
+def killProcess(pid):
+    try:
+        if isWindows():
+            PROCESS_TERMINATE = 1
+            handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
+                                                        False, 
+                                                        pid)
+            print handle
+            ctypes.windll.kernel32.TerminateProcess(handle, -1)
+            ctypes.windll.kernel32.CloseHandle(handle)
+        else:
+            os.kill(pid, 15)
+    except:
+        print "(1) could not kill process %i" % pid
+        tb()
 
 def getScriptDir():
     #must be called at least once before working dir is changed

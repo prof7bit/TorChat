@@ -39,9 +39,6 @@ ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
 
 _icon_images = {} #this is a cache for getStatusBitmap()
 
-def isWindows():
-    return "win" in sys.platform
-
 def getStatusBitmap(status):
     global _icon_images
     if not status in _icon_images:
@@ -863,7 +860,7 @@ class ChatWindow(wx.Frame):
             start = evt.GetURLStart()
             end = evt.GetURLEnd()
             url = self.txt_in.GetRange(start, end)
-            if isWindows():
+            if config.isWindows():
                 #this works very reliable 
                 subprocess.Popen(("cmd /c start %s" % url).split(), creationflags=0x08000000)
             else:
@@ -1203,4 +1200,4 @@ class MainWindow(wx.Frame):
         # All my threads wouldn't join properly. Don't know why.
         # sys.exit() would spew lots of tracebacks *sometimes*,
         # so let's do it the easy way and just kill ourself:
-        tc_client.killProcess(os.getpid())
+        config.killProcess(os.getpid())
