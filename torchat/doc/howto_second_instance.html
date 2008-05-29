@@ -12,7 +12,7 @@
    How to run more than on instance of TorChat
   </h1>
   <p>
-   <span style="color: #ff0000">This howto will <b>not</b> work with versions <b>below 0.9.9.109</b></span>
+   <span style="color: #ff0000">This howto will <b>not</b> work with versions <b>below 0.9.9.260</b></span>
   </p>
   <p>
    First I will explain how torchat.ini and portable mode are working and
@@ -42,29 +42,39 @@
    I will now try to explain how this all works together.
   </p>
   <h3>
-   portable mode or fixed installation
+   portable mode or permanent installation
   </h3>
    <p>
-    <b>Full Portable Mode</b> means that all that is needed is contained in one folder
+    <b>Portable Mode</b> means that all that is needed is contained in one folder
     which you can carry around on an usb drive and run it wherever you
-    happen to be. Therefore TorChat comes bundled with its own tor.exe
-    which it will try to start and all settings and data files remain inside
-    this folder. Nothing will be copied or installed outside this folder
-    to the computer's hard drive. Full Portable Mode is currently only available
-    for the Windows version of TorChat and the windows version you can download 
-    is already preconfigured for Full Portable Mode out of the box.
+    happen to be. Therefore TorChat (for windows) comes bundled with its own 
+    tor.exe which it will try to start and all settings and data files remain 
+    inside this folder. Nothing will be copied or installed outside this folder
+    to the computer's hard drive. The windows version you can download 
+    is already preconfigured for Portable Mode out of the box. TorChat
+    for *ix systems (including OS-X) has a little shell script "tor.sh" that 
+    will do exactly the same thing as the windows "tor.exe" by starting a
+    second instance of the Tor that is already installed on this machine, but
+    with a special TorChat configuration (torrc.txt). The only difference on *ix
+    is that you will have to install Tor yourself in order to be able to use 
+    TorChat.
    </p>
    <p>
-    There is a second form of the portable mode, the <b>Half Portable Mode</b> 
-    which is much like the first one except that it uses an already existing 
-    Tor service on your computer or somewhere in your local network. This mode 
-    is useful if you want to run more than one instance of TorChat over the 
-    same (already existing) Tor proxy
-   </p>  
-   <p>
-    Finally there is the <b>Permanent Installation</b>. TorChat can be installed 
+    Then there is the <b>Permanent Installation</b>. TorChat can be installed 
     to a read-only folder like c:\programs\ or /usr/* and all of it's data and
     configuration will be in %APPDATA%\torchat\ or ~/.torchat/
+    In This mode TorChat will create a copy of the "Tor" folder in the data
+    directory and use that instead just as it would use it in portable mode. 
+    On *ix systems this Tor folder will contain the torrc.txt with the port 
+    settings for this profile and the tor.sh to start an already installed
+    tor service with this settings. On Windows systems it will contain it's
+    own tor.exe instead of the shell script.
+   </p>  
+   <p>
+    Finally there is another variant of operation, the <b>Client Mode</b> 
+    This mode is only useful in rare special cases if you want to run TorChat 
+    over some already running (and correctly configured) Tor proxy
+    in your network or on your machine. This mode is for experts only.
    </p>  
    <p>
     The next few sections will explain how the mode is selected and how
@@ -78,13 +88,10 @@
    irrelevant, in fact it could be empty, only it's <b>existance is an
    indicator</b> wether TorChat should run in portable mode or not. If you delete
    this file, TorChat will store all it's data like the buddy-list and the
-   configuration file in the user's <b>home directory</b> and it will not even 
-   try to start the Tor\tor.exe, you must then have a separate
-   Tor service already running on this machine or somewhere in your network
-   and tell TorChat via torchat.ini about your Tor installation. 
-   If there is a file called portable.txt TorChat will look for all
+   configuration file in the user's <b>home directory</b>
+   If the file portable.txt exists TorChat will look for all
    it's configuration and data in the same folder where torchat.exe 
-   (or .py on *ix systems) is located and try to start Tor\tor.exe
+   (or .py on *ix systems) is located.
   </p>
   <h4>
    torchat.ini
@@ -95,23 +102,32 @@
    Depending on wether the portable.txt is found or not TorChat
    will look for torchat.ini in the current directory or in the
    user's home directory. torchat.ini contains two sections
-   <b>[tor]</b> and <b>[tor_portable]</b>. Only if we are in portable mode
-   (portable.txt) <b>and</b> TorChat was able to successfully start the
-   bundled Tor\tor.exe we are in Full Portable Mode, 
-   and the section [tor_portable] is used, in all other cases 
-   (Half Portable or Permanent Installation) the settings in [tor] are used.
+   <b>[tor]</b> and <b>[tor_portable]</b>. If TorChat was able to 
+   successfully start the bundled tor.exe (or the tor.sh script on *ix)
+   the section [tor_portable] is used, else it will use the settings in [tor]
+   and you will have to configure the settings of your tor service yourself
+   <b>including the hostname of the hidden service</b>.
   </p>
   <h4>
    The folder Tor
   </h4>
   <p>
-   If we are in portable mode (portable.txt) TorChat will <b>try</b> to start
-   Tor\tor.exe with the Tor configuration in Tor\torrc.txt.
-   If this all succeeds we are in <b>Full Portable Mode</b>.
-   It is perfectly ok to have a portable.txt but no Tor\tor.exe.
-   In this case all configuration and data files are kept in the installation
-   folder (which then must be writeable of course) and still an already existing
-   Tor service can be used (<b>Half Portable Mode</b>). 
+   If we are in portable mode (portable.txt) TorChat will use the the Tor 
+   folder that is in the TorChat directory and try to start
+   Tor\tor.exe (or Tor/tor.sh) with the Tor configuration in Tor\torrc.txt.
+  </p>
+  <p>
+   If we are not in portable mode TorChat will look for this Tor folder in
+   the user's data directory (~/.torchat or %APPDATA%\torchat) and start it's
+   tor service from within there.
+  </p>
+  <p>
+   If you delete the tor.exe (or tor.sh on *ix) you can force TorChat into
+   using an already installed Tor service on your network. This is the 
+   <b>Client Mode</b>. It is not recommended for normal users. TorChat will 
+   use the settings in [tor] instead of those in [tor_portable] and you
+   <b>must</b> configure your Tor service manually <b>and</b> find the correct
+   hostname (.onion address) and put it into torchat.ini <b>yourself</b>!
   </p>
   <h4>
    Summary
@@ -123,16 +139,18 @@
     if found portable.txt:
         -> Portable Mode
         -> use current folder for all data
-        if can start tor.exe:
-            -> Full Portable Mode
-            -> use settings in [tor_portable]
-        else:
-            -> Half portable Mode
-            ->use settings in [tor]
     else:
         -> Permanent Installation
         -> use home folder for all data
+        
+    if can start tor.exe (or tor.sh):
+        -> normal mode of operation
+        -> use settings in torchat.ini/[tor_portable] and torrc.txt
+    else:
+        -> Client Mode
         -> use settings in [tor]
+        -> all must be configured manually!
+
   </pre>
   <p>
    	or if you are more attracted to tables we can summarize it in a tabular way:
@@ -144,35 +162,44 @@
     <th>what will happen</th>
    </tr>
    <tr>
-    <td>present</td>
-    <td>present and working</td>
-    <td><b>Full Portable Mode</b><br />
+    <td><b>present</b></td>
+    <td><b>present and working</b></td>
+    <td><b>Portable Mode</b><br />
      all data and config in installation folder<br />
      settings in [tor_portable] are used</td>
    </tr>
    <tr>
-    <td>present</td>
-    <td>not present or not working</td>
-    <td><b>Half Portable Mode</b><br />
-     all data and config in installation folder<br />
-     settings in [tor] are used</td>
-   </tr>
-   <tr>
-    <td>-</td>
-    <td>no matter</td>
+    <td>missing</td>
+    <td><b>present and working</b> (in profile folder)</td>
     <td><b>Permanent Installation</b><br />
      all data and config in home folder (~/.torchat or %APPDATA%\torchat)<br />
-     settings in [tor] are used</td>
+     settings in [tor_portable] are used</td>
+   </tr>
+   <tr>
+    <td><b>present</b></td>
+    <td>missing</td>
+    <td><b>Client Mode (portable)</b><br />
+     like Portable Mode<br />
+     but settings in [tor] are used.<br />
+     Only experienced users should use this, all has to be configured manually</td>
+   </tr>
+   <tr>
+    <td>missing</td>
+    <td>missing</td>
+    <td><b>Client mode (permanent installation)</b><br />
+     like Permanent Installaton<br />
+     but settings in [tor] are used.<br />
+     Only experienced users should use this, all has to be configured manually</td>
    </tr>
   </table>
   <h3>
    The configuration of Tor
   </h3>
   <h4>
-   Full Portable Mode
+   Normal operation, Portable Mode
   </h4>
   <p>
-   In Full Portable Mode normally you don't have to configure anything. The
+   In this Mode normally you don't have to configure anything. The
    Tor binary which is bundled with TorChat will be started with /Tor/torrc.txt
    as it's configuration file. Out of the box it is configured to listen on
    port 11109 (socks) and port 11119 (control) and to forward the hidden 
@@ -180,21 +207,42 @@
    port numbers as configured in torchat.ini section [tor_portable]
   </p>
   <p>
-   The hidden service directory in Full Portable Mode is hidden_service
+   The hidden service directory is hidden_service
    inside the Tor folder. You may not change this.
   </p> 
   <p>
-   If you plan to run a second Full Portable instance on the same computer
+   If you plan to run a second portable instance on the same computer
    you will have to change all this port numbers and also the corresponding
    settings in torchat.ini section [tor_portable] and [client] in the
    <b>second copy</b> of the whole TorChat folder.
   </p>
   <h4>
-   Half Portable and Permanent Installation
+   Normal operation, Permanent Installation
   </h4>
   <p>
+   Everything is like in portable mode except for the location of the 
+   configuration files torchat.ini and Tor/torrx.txt. They are inside your 
+   profile folder (%APPDATA%\torchat\ on windows and ~/.torchat/ on *ix systems)
+  </p>
+  <p>
+   Additionally you can use different profiles, if you start torchat with the
+   name of a profile at the commandline. If you start TorChat with the 
+   commandline</br>
+  </p>
+  <pre>
+   torchat HansFranz
+  </pre>
+  <p>
+   it will use the folder ~/.torchat_HansFranz/ or %APPDATA%\torchat_HansFranz\
+   and have a copy of it's Tor folder in this directory, so you can change the
+   port numbers only for this profile and will be able to run as much different
+   profiles on the same machine as you want as long as you avoid conflicting
+   port numbers.
+  </p>
+  <h4>Client Mode (not recommended)</h4>
+  <p>
    You need to configure a hidden service in your existing Tor installation.
-   To do this simply create a folder somewhere on your harddisk.
+   To do this create a folder somewhere on your harddisk.
    For simplicity we just assume the full path to this folder is 
   </p>
   <pre>
@@ -215,6 +263,9 @@
    Inside this file (open it with notepad) you will find your <b>.onion address</b>.
    It will be something like <b>16crypticletters.onion</b>. Later on in this 
    document i will refer to this 16 cryptic letters as your .onion address.
+   <span style="color: #ff0000">Put this .onion address (without the .onion at the end) 
+   into your torchat.ini under own_hostname <b>or it will not work</b>. Otherwise 
+   TorChat has no way of finding out what his own hidden hostname is.</span>
   </p>
   <p>
    Note: In the example above we have forwarded the hidden service 11009 to the
@@ -227,20 +278,25 @@
   <p>
    Torchat ist configured with torchat.ini. Where this file is located depends
    on the mode (portable or permanent, see above). Two sections in this 
-   configuration file are of interest here: [tor] and [client]. If you use
-   the Full Portable Mode it is [tor_portable] instead of [tor], all the rest 
-   stays the same.
+   configuration file are of interest here: [tor_portable] and [client]. 
   </p>
   <p>
-   The options in [tor] or [tor_portable] tell TorChat how to reach your 
-   tor proxy. They must be identical to SocksPort and ControlPort in the
-   torrc of your Tor installation.
+   The options in [tor_portable] tell TorChat how to reach your 
+   tor proxy. They must correspond to SocksPort and ControlPort in the
+   torrc.txt.
   </p>
   <p>
    The options in [client] tell TorChat where to listen for incoming
    connections. They correspond to the last part of the HiddenServicePort
    setting in your torrc.
   </p>
+  <p>
+   If you are running in Client Mode (delete tor.exe or tor.sh), which is
+   not recommended for unexperienced users, then the settings in [tor] are
+   used instead of those in [tor_portable]. In this mode you are rsponsable
+   for configuring a hidden service manually and finding out the correct 
+   setting for own_hostname <b>yourself</b>, which otherwise would be done 
+   automatically.
   <h2>
    Part 2 - Some common scenarios
   </h2>
@@ -249,25 +305,24 @@
    Following are a few common scenarios and how to configure them
   </p>
   <h3>
-   A second instance in Full Portable Mode
+   A second instance in portable mode
   </h3>
   <p>
    I recommend that you start experimenting with this scenario until you
    feel confident with all the settings. You can always start out with a
    fresh copy of the bin folder if you think you have screwed it all up,
    you don't need to make any changes to files or configurations outside 
-   this folder. All other scenarios involve changes to the torrc of your
-   permanent installation of the Tor service (vidalia, etc.), so the 
-   Full Portable configuration is a great place to get used to the 
-   Tor configuration without the danger of screwing up your whole system.
+   this folder. The portable mode configuration is a great place to get 
+   used to the Tor configuration without the danger of screwing up your 
+   whole system.
   </p>
   <p>
-   Scenario: You already have TorChat running in Full Portable Mode and you 
+   Scenario: You already have TorChat running in portable mode and you 
    want another instance of it running on the same computer with it's own 
    settings and buddy list.
   </p>
   <p>
-   <b>Step 1:</b> Take your existing and already workink copy and make a 
+   <b>Step 1:</b> Take your existing and already working copy and make a 
    second copy of the bin folder. This will become your second Full Portable
    instance.
   </p>
@@ -335,6 +390,48 @@
    are configured correctly.
   </p>
   <h3>
+   A permanent installation with more than one profile
+  </h3>
+  <p>
+   There is no windows installer yet, so if you are on windows, please
+   always use portable mode instead and follow the instructions above.
+  </p>
+  <p>
+   If you have installed the .deb package on debian, ubuntu or similar
+   operating systems, and started TorChat for the first time then there
+   sould be a folder ~/.torchat/ in your home directory. Inside this folder
+   there is your torchat.ini and another folder 'Tor' with torrc.txt 
+  </p>
+  <p>
+   Now quit this instance of TorChat. <span style="color: #ff0000">Never
+   quit TorChat by hitting Ctrl-C in the terminal, always use "quit" from
+   the menu, because TorChat must be able to properly stop it's child 
+   process (tor.sh with tor) or you will have a tor process hanging around
+   that will still provide it's hidden service and is bound to the ports
+   it was configured to use.</span>
+  </p>
+  <p>
+   Open a commandline window and type for example (use whatever name you want):
+  </p>
+  <pre>
+   torchat JoeSixpack
+  </pre>
+  <p>
+   TorChat will start again, but with a different ID and if you have a look
+   into your home directory there will now be a second torchat folder named
+   ~/.torchat_JoeSixpack. This is the profile folder of your alter ego
+   Joe Sixpack, but if you try to start both instances at the same time it 
+   will complain, you need to edit two files to make it work.
+  </p>
+  <p>
+   See above under "A second instance in portable mode" and apply the steps
+   3 to 5 to one of the two profiles to make sure that no port numbers are
+   used twice. This way you should be able to configure and run as many
+   instances as you like.
+  </p>
+
+
+  <h3>
    Using your already installed Tor service
   </h3>
   <p>
@@ -342,12 +439,6 @@
   </p>
   <h3>
    More than one instance using the same Tor service
-  </h3>
-  <p>
-   yet to be written...
-  </p>
-  <h3>
-   A permanent installation
   </h3>
   <p>
    yet to be written...
