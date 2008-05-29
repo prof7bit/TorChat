@@ -1099,7 +1099,7 @@ class MainWindow(wx.Frame):
         self.notification_window = None
         self.buddy_list = tc_client.BuddyList(self.callbackMessage, socket)
 
-        self.SetTitle("TorChat: %s" % config.getProfileLongName()
+        self.SetTitle("TorChat: %s" % config.getProfileLongName())
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
