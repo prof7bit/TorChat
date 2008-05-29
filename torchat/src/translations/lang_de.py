@@ -52,6 +52,10 @@ D_CONFIRM_DELETE_MESSAGE = u"Soll dieser Kontakt wirklich gelöscht werden?\n(%s
 D_LOG_WARNING_TITLE = u"TorChat: Logging ist aktiviert"
 D_LOG_WARNING_MESSAGE = u"Logging in Datei ist aktiviert!\n\nLogdatei: %s\n\nVergessen Sie nicht, die Logdatei nach Beendingung der Fehlersuche wieder zu löschen, da diese Datei vertrauliche Informationen enthalten könnte."
 
+# #warning about used port
+D_WARN_USED_PORT_TITLE = u"TorChat: Port ist bereits belegt"
+D_WARN_USED_PORT_MESSAGE = u"Eine Anwendung, wahrscheinlich eine andere TorChat-Instanz, verwendet bereits den Port %s:%s. Sie müssen andere Profile mit anderen Ports verwenden, um TorChat mehrmals starten zu können."
+
 #warnig about unread messages
 D_WARN_UNREAD_TITLE = u"TorChat: Ungelesene Nachrichten"
 D_WARN_UNREAD_MESSAGE = u"Es liegen noch ungelesene Nachrichten vor. Diese würden unwiderruflich verloren gehen!\n\nMöchten sie TorChat dennoch jetzt beenden?"
@@ -63,6 +67,14 @@ D_WARN_BUDDY_OFFLINE_MESSAGE = u"Diese Operation ist nicht möglich mit Offline-
 #warning about multiple files
 D_WARN_FILE_ONLY_ONE_TITLE = u"TorChat: Mehrere Dateien"
 D_WARN_FILE_ONLY_ONE_MESSAGE = u"Sie können nicht mit einer Operation mehrere Dateitransfers gleichzeitig auslösen. Starten Sie die Transfers einzeln, oder senden Sie eine Zip-Datei."
+
+# #warning about file save error
+D_WARN_FILE_SAVE_ERROR_TITLE = u"TorChat: Fehler beim Anlegen der Datei"
+D_WARN_FILE_SAVE_ERROR_MESSAGE = u"Die Datei '%s' konnte nicht erzeugt werden.\n\n%s"
+
+# #warning about file already exists
+D_WARN_FILE_ALREADY_EXISTS_TITLE = u"TorChat: Datei existiert bereits"
+D_WARN_FILE_ALREADY_EXISTS_MESSAGE = u"Die Datei '%s' existiert bereits.\nÜberschreiben?"
 
 #dialog: add/edit contact
 DEC_TITLE_ADD = u"Neuen Kontakt anlegen"
