@@ -7,6 +7,23 @@
       <language>en-us</language>
       <ttl>10</ttl>
       <item>
+         <title>TorChat 0.9.9.269 released</title>
+         <pubDate>Fri, 30 May 2008 00:00:00 GMT</pubDate>
+         <guid>0.9.9.269</guid>
+         <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.269.zip</link>
+         <description>
+         &lt;p&gt;
+         TorChat 0.9.9.269 released. This version runs on windows 98, and many 
+         new features have been implemented and old bugs been fixed. You can
+         now send files if you drag them into the chat window, the popup menus
+         have been completely reorganized, a polish translation is now available,
+         TorChat has now support for multiple profiles, and finally there is
+         now a debian archive that will let you use TorChat on Debian and Ubuntu
+         without any manual configuration, just as comfortable as the windows
+         version. See the changelog for more improvements.
+         &lt;/p&gt;
+         </description>
+      <item>
          <title>TorChat 0.9.9.191 released</title>
          <pubDate>Sun, 18 May 2008 00:00:00 GMT</pubDate>
          <guid>0.9.9.191</guid>

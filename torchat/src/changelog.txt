@@ -1,4 +1,4 @@
-svn / trunk
+version 0.9.9.191
 - implemented drag 'n' drop file transfer
 - "edit contact" in chat window context menu
 - "send file" in chat window context menu
