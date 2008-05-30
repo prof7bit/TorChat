@@ -10,8 +10,12 @@ svn / trunk
 - fixed issue 19: Enter-Key inserted newline before sending
 - fixed issue 20: Ask before overwriting files
 - fixed issue 27: indication of messages in main window
+- fixed: find application data folder on windows 98
+- fixed: don't open two chat windows for the same buddy
 - detect second instance on same port
 - allow multiple profiles (for permanent installation)
+- zero configuration now also on *ix platforms
+- implemented (experimental) debian package
 
 version 0.9.9.191
 - implemented configuration dialog
