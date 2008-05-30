@@ -4,7 +4,7 @@ import version_cached
 VERSION_MAJOR = "0.9.9"
 SVN_OFFSET = 0
 
-EXPERIMENTAL = True
+EXPERIMENTAL = False
 
 def getDirMaxSvn(dir):
     try:

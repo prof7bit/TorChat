@@ -520,7 +520,7 @@ class BuddyList(wx.ListCtrl):
         self.timer = wx.Timer(self, -1)
         self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
         self.old_sum = ""
-        self.timer.Start(milliseconds=1000, oneShot=False)
+        self.timer.Start(milliseconds=500, oneShot=False)
         
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDClick)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRClick)
