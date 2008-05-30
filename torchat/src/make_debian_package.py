@@ -105,6 +105,8 @@ files = [("translations/*.py", "usr/share/torchat/translations"),
          ("tc_*.py", "usr/share/torchat"),
          ("dlg*.py", "usr/share/torchat"),
          ("LICENSE", "usr/share/torchat"),
+         ("changelog.txt", "usr/share/doc/torchat"),
+         ("../doc/howto_second_instance.html", "usr/share/doc/torchat/html"),
          ]
 
 postinst = """#!/bin/sh
