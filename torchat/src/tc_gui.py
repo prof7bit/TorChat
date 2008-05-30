@@ -1148,6 +1148,16 @@ class MainWindow(wx.Frame):
             #no window found, so we create a new one
             hidden = config.getint("gui", "open_chat_window_hidden")
             wx.CallAfter(ChatWindow, self, buddy, message, hidden)
+            
+            #we let this thread block until the window
+            #shows up in our chat window list
+            found = False
+            while not found:
+                time.sleep(1)
+                for window in self.chat_windows:
+                    if window.buddy == buddy:
+                        found = True
+                        break         
 
         if callback_type == tc_client.CB_TYPE_OFFLINE_SENT:
             buddy = callback_data

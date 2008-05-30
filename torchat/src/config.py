@@ -20,6 +20,9 @@ import traceback
 import inspect
 import translations
 import socket
+import ctypes
+import shutil
+
 
 config_defaults = {
     ("tor", "tor_server") : "127.0.0.1",
@@ -104,7 +107,10 @@ def getDataDir():
         return getScriptDir()
     else:
         if "win" in sys.platform:
-            appdata = os.environ["APPDATA"]
+            CSIDL_APPDATA = 0x001a
+            buf = ctypes.create_unicode_buffer(256)
+            ctypes.windll.shell32.SHGetSpecialFolderPathW(None, buf, CSIDL_APPDATA, 0)
+            appdata = buf.value
             data_dir = os.path.join(appdata, "torchat")
         else:
             home = os.path.expanduser("~")
@@ -120,12 +126,16 @@ def getDataDir():
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
         
-    #and copy 'Tor' into it if necessary
-    if not os.path.exists(os.path.join(data_dir, "Tor")):
+    #and create the folder 'Tor' with tor.exe and torrc.txt in it if necessary
+    data_dir_tor = os.path.join(data_dir, "Tor")
+    if not os.path.exists(data_dir_tor):
+        os.mkdir(data_dir_tor)
         if isWindows():
-            os.system('copy Tor "%s"' % data_dir)
+            tor_exe =  "tor.exe"
         else:
-            os.system('cp -r Tor "%s"' % data_dir)
+            tor_exe = "tor.sh"
+        shutil.copy(os.path.join("Tor", tor_exe), data_dir_tor)
+        shutil.copy(os.path.join("Tor", "torrc.txt"), data_dir_tor)
         
     return data_dir
 

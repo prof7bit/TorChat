@@ -26,7 +26,6 @@ import sys
 import os
 import shutil
 import subprocess
-import ctypes
 import tempfile
 import md5
 import traceback
@@ -1093,9 +1092,8 @@ class ProtocolMsg_add_me(ProtocolMsg):
             if not self.buddy in self.bl.list:
                 print "(2) received add_me from new buddy %s" % self.buddy.address
                 self.buddy.addToList()
-                msg = "[notification] %s has added you" % self.buddy.address
+                msg = "<- has added you"
                 self.bl.onChatMessage(self.buddy, msg)
-                time.sleep(1)
 
 
 class ProtocolMsg_remove_me(ProtocolMsg):
