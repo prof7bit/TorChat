@@ -1401,7 +1401,6 @@ class OutConnection(threading.Thread):
                     text = self.send_buffer.pop(0)
                     try:
                         self.socket.send(text)
-                        print "(4) conn-out to %s sent %s..." % (self.address, text[:40])
                     except:
                         print "(2) out-connection send error"
                         self.bl.onErrorOut(self)
@@ -1415,7 +1414,6 @@ class OutConnection(threading.Thread):
             self.close()
             
     def send(self, text):
-        print "(4) %s.conn_out.send(%s...)" % (self.buddy.address, text[:30].rstrip())
         self.send_buffer.append(text)
         
     def onReceiverError(self):
