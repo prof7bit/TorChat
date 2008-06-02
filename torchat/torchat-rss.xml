@@ -7,6 +7,19 @@
       <language>en-us</language>
       <ttl>10</ttl>
       <item>
+         <title>TorChat 0.9.9.277 released</title>
+         <pubDate>Mon, 02 Jun 2008 00:00:00 GMT</pubDate>
+         <guid>0.9.9.277</guid>
+         <link>http://code.google.com/p/torchat/downloads/detail?name=torchat-windows-0.9.9.277.zip</link>
+         <description>
+          Two things that already worked stopped working in in 0.9.9.269: File
+          transfer on Windows98 and sending of messages with non-ascii characters,
+          because i made a little mistake a week ago and did not enough testing.
+          &lt;br&gt;
+          Please download version 0.9.9.277
+         </description>
+      </item>
+      <item>
          <title>TorChat 0.9.9.269 released</title>
          <pubDate>Fri, 30 May 2008 00:00:00 GMT</pubDate>
          <guid>0.9.9.269</guid>
