@@ -918,24 +918,44 @@ class ChatWindow(wx.Frame):
         dialog.ShowModal()
 
 
+
 class FileDropTarget(wx.FileDropTarget):
     def __init__(self, window):
        wx.FileDropTarget.__init__(self)
        self.window = window
- 
+
     def OnDropFiles(self, x, y, filenames):
-       if len(filenames) != 1:
-           wx.MessageBox(lang.D_WARN_FILE_ONLY_ONE_MESSAGE, 
-                         lang.D_WARN_FILE_ONLY_ONE_TITLE)
-           return
+        if len(filenames) != 1:
+            wx.MessageBox(lang.D_WARN_FILE_ONLY_ONE_MESSAGE, 
+                          lang.D_WARN_FILE_ONLY_ONE_TITLE)
+            return
+
+        file_name = filenames[0]
+        
+        # --- begin evel hack
+        if not os.path.exists(file_name):
+            #sometimes the file name is in utf8
+            #but inside a unicode object! 
+            #FIXME: must report this bug to wx
+            try:
+                file_name_utf8 = ""
+                for c in file_name:
+                    file_name_utf8 += chr(ord(c))
+                file_name = file_name_utf8.decode("utf-8")
+            except:
+                tb()
+                wx.MessageBox("there is a strange bug in wx for your platform with wx.FileDropTarget and non-ascii characters in file names")
+                return
+        # --- end evel hack
+        
+        print "(2) file dropped: %s" % file_name
        
-       if not self.window.buddy.conn_in:
-           wx.MessageBox(lang.D_WARN_BUDDY_OFFLINE_MESSAGE,
-                         lang.D_WARN_BUDDY_OFFLINE_TITLE)
-           return
+        if not self.window.buddy.conn_in:
+            wx.MessageBox(lang.D_WARN_BUDDY_OFFLINE_MESSAGE,
+                          lang.D_WARN_BUDDY_OFFLINE_TITLE)
+            return
        
-       file_name = filenames[0]
-       transfer_window = FileTransferWindow(self.window.mw, self.window.buddy, file_name)
+        transfer_window = FileTransferWindow(self.window.mw, self.window.buddy, file_name)
         
 
 class FileTransferWindow(wx.Frame):

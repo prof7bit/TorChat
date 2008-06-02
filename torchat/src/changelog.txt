@@ -1,5 +1,6 @@
-version 0.9.9.275
-- hotfix: sometimes messages with non-ascii characters could not be sent
+version 0.9.9.276
+- fix: non ascii characters in messages and filenames
+- added hungarian translation
 
 version 0.9.9.269
 - implemented drag 'n' drop file transfer

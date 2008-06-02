@@ -313,10 +313,10 @@ class LogWriter:
                 text = text[0:4] + pos + text[3:]
             except:
                 pass
-            self.stdout.write(text)
+            self.stdout.write(text.encode("ascii", "replace"))
             self.stdout.flush()
             try:
-                self.logfile.write(text)
+                self.logfile.write(text.encode("ascii", "replace"))
                 self.logfile.flush()
             except:
                 pass
