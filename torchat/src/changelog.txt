@@ -1,5 +1,6 @@
-version 0.9.9.276
-- fix: non ascii characters in messages and filenames
+version 0.9.9.277
+- fix (regression): non ascii characters in messages and filenames
+- fix (regression): sending files on win98 immediately disconnected buddy
 - added hungarian translation
 
 version 0.9.9.269

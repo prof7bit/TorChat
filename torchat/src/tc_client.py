@@ -1291,10 +1291,10 @@ class Receiver(threading.Thread):
 
     def run(self):
         readbuffer = ""
-        self.socket.settimeout(5)
+        #self.socket.settimeout(5)
         while self.running:
             try:
-                recv = self.socket.recv(256)
+                recv = self.socket.recv(4096)
                 if recv != "":
                     readbuffer = readbuffer + recv
                     temp = readbuffer.split("\n")
@@ -1337,6 +1337,7 @@ class InConnection:
         try:
             self.socket.send(text)
         except:
+            tb()
             print "(2) in-connection send error."
             self.bl.onErrorIn(self)
             self.close()
