@@ -3,7 +3,6 @@ version 0.9.9.277
 - fix (regression): sending files on win98 immediately disconnected buddy
 - added hungarian translation
 
-
 version 0.9.9.269
 - implemented drag 'n' drop file transfer
 - "edit contact" in chat window context menu
