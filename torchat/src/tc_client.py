@@ -266,7 +266,10 @@ class Buddy(object):
             print "(2) %s had %i failed connections. Setting timer to %f seconds" \
                 % (self.address, self.count_failed_connects, t)
         else:
-            t = random.randrange(30000, 60000) / 1000.0
+            #whenever we are connected to someone we use a fixed timer.
+            #otherwise we would create a unique pattern of activity
+            #over time that could be identified at the other side
+            t = 60
         
         if self.timer:
             self.timer.cancel()
