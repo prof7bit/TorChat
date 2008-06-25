@@ -21,9 +21,6 @@ TunnelDirConns 1
 PreferTunneledDirConns 1
 LongLivedPorts 11009
 
-## this short timeout results in avoiding extremely slow nodes
-CircuitBuildTimeout 10
-
 ## the following is a dirty workaround for the 15 minutes problem:
 ## hidden service descriptors are cached 15 minutes, so after
 ## a restart of tor we are not reachable for 15 minutes.
