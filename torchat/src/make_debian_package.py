@@ -196,7 +196,7 @@ chmod(755, "usr/share/torchat/torchat.py")
 chmod(755, "usr/share/torchat/Tor/tor.sh")
 
 #now build the package using dpkg -b
-os.system("dpkg -b %s %s" % (TMP_ROOT, deb_name))
+os.system("fakeroot dpkg -b %s %s" % (TMP_ROOT, deb_name))
 
 os.system("mv %s ../release" % deb_name)
 os.system("rm -rf %s" % TMP_ROOT)
