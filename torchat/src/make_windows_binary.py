@@ -1,5 +1,14 @@
 # -*- coding: cp1252 -*-
 
+# THIS WHOLE MESS IS DEPRECATED AND OBSOLETE!
+#
+# I don't use this anymore. I now use pyinstaller.
+# There is a .spec file and the .exe is built
+# directly from within make_release_zip.py
+#
+# this script here is not used anymore and 
+# will soon be removed
+
 from distutils.core import setup
 import py2exe
 import sys
