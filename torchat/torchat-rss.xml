@@ -7,6 +7,16 @@
       <language>en-us</language>
       <ttl>10</ttl>
       <item>
+         <title>Still alive</title>
+         <pubDate>Mon, 13 Dec 2010 00:00:00 GMT</pubDate>
+         <guid>0.9.9.289</guid>
+         <link>http://code.google.com/p/torchat/</link>
+         <description>
+         I'm still alive and searching for co-developers to help me maintain the builds and keep
+         it all up to date.
+         </description>
+      </item>
+      <item>
          <title>TorChat 0.9.9.277 released</title>
          <pubDate>Mon, 02 Jun 2008 00:00:00 GMT</pubDate>
          <guid>0.9.9.277</guid>
