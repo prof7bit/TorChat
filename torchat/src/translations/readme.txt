@@ -34,7 +34,7 @@ If you want to update an existing  translation because it is
 outdated and missing some strings:
 
 - run TorChat with loglevel 2 to get a list of the missing strings.
-  (if the file has been processed by insert_miissing.py as it should
+  (if the file has been processed by insert_missing.py as it should
   be with files from regular releases, then there will be already all
   missing strings inserted but commented out in the file)
 
