@@ -2,7 +2,7 @@
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007-2008 Bernd Kreuss <prof7bit@gmail.com>                  #
+# Copyright (c) 2007-2010 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # This program is licensed under the GNU General Public License V3,          #
 # the full source code is included in the binary distribution.               #
@@ -257,7 +257,7 @@ class Buddy(object):
         
         if self.status == STATUS_OFFLINE:
             if self.count_failed_connects < 4:
-                t = random.randrange(0, 15000) / 1000.0
+                t = random.randrange(5000, 15000) / 1000.0
             else:
                 if self.count_failed_connects < 15:
                     t = random.randrange(30000, 60000) / 1000.0
@@ -1034,11 +1034,22 @@ class ProtocolMsg_pong(ProtocolMsg):
         #we search all our known buddies for the corresponding random
         #string to identify which buddy is replying here.
         
+
         #first we search the buddy-list
-        self.buddy = self.bl.getBuddyFromRandom(self.text)
-        if not self.buddy:
+        buddy = self.bl.getBuddyFromRandom(self.text)
+        if not buddy:
             #we also try to find it in the temporary buddies list
-            self.buddy = self.bl.getIncomingBuddyFromRandom(self.text)
+            buddy = self.bl.getIncomingBuddyFromRandom(self.text)
+
+        if buddy:
+            if self.connection.last_ping_address == buddy.address:
+                self.buddy = buddy
+            else:
+                #MITM protection:
+                #this pong is an answer to a ping we have sent to a different address.
+                #we will simply ignore this pong to make any mitm attacks that
+                #simply try to forward original pings to other clients impossilbe
+                print "(2) ignoring pong from %s which should have come from %s" % (self.connection.last_ping_address, buddy.address)
 
 
     def execute(self):
@@ -1285,9 +1296,10 @@ class ProtocolMsg_file_stop_receiving(ProtocolMsg):
 #--- ### Low level network stuff
 
 class Receiver(threading.Thread):
-    def __init__(self, conn):
+    def __init__(self, conn, is_incoming=False):
         threading.Thread.__init__(self)
         self.conn = conn
+        self.is_incoming = is_incoming
         self.socket = conn.socket
         self.running = True
         self.start()
@@ -1306,10 +1318,19 @@ class Receiver(threading.Thread):
                     for line in temp:
                         if self.running:
                             try:
-                                message = ProtocolMsgFromLine(self.conn.bl, 
+                                # on outgoing connections we do not allow any
+                                # incoming messages other than file*
+                                # this prevents an attacker from messaging
+                                # or sending commands before the handshake is
+                                # completed or pong on the wrong connection
+                                if (self.is_incoming or line[:4] == "file"):
+                                    message = ProtocolMsgFromLine(self.conn.bl, 
                                                               self.conn, 
                                                               line)
-                                message.execute()
+                                    message.execute()
+                                else:
+                                    # this is an outgoing connection. Incoming protocol messages are ignored
+                                    print "(2) ignoring received %s on outgoing connection to %" % (line, self.conn.buddy.address)
                             except:
                                 tb()
                 else:
@@ -1330,7 +1351,7 @@ class InConnection:
         self.buddy = None
         self.bl = buddy_list
         self.socket = socket
-        self.receiver = Receiver(self)
+        self.receiver = Receiver(self, True)
         self.last_ping_address = "" #used to detect mass pings with fake adresses
         self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
         self.started = True
@@ -1399,7 +1420,7 @@ class OutConnection(threading.Thread):
             self.socket.connect((str(self.address), TORCHAT_PORT))
             print "(2) connected to %s" % self.address
             self.bl.onConnected(self)
-            self.receiver = Receiver(self)
+            self.receiver = Receiver(self, False) # this Receiver will only accept file* messages
             while self.running:
                 if len(self.send_buffer) > 0:
                     text = self.send_buffer.pop(0)
@@ -1516,7 +1537,7 @@ def startPortableTor():
             if os.path.exists("tor.exe"):
                 #start the process without opening a console window
                 startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.dwFlags |= 1 #STARTF_USESHOWWINDOW
                 tor_proc = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
                 tor_pid = tor_proc.pid
             else:
