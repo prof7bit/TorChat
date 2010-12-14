@@ -46,6 +46,7 @@ CB_TYPE_FILE = 2
 CB_TYPE_OFFLINE_SENT = 3
 
 tb = config.tb # the traceback function has moved to config
+tb1 = config.tb1
 tor_pid = None
 tor_proc = None
 tor_timer = None
@@ -277,7 +278,7 @@ class Buddy(object):
         self.timer.start()
     
     def onTimer(self):
-        print "(4) timer event for %s" % self.address
+        print "(2) %s.onTimer()" % self.address
         if not self.active:
             print "(2) %s is not active, onTimer() won't do anything" % self.address
             return
@@ -297,6 +298,7 @@ class Buddy(object):
             self.startTimer()
     
     def keepAlive(self):
+        print "(2) %s.keepAlive()" % self.address
         if self.conn_out == None:
             self.connect()
         else:
@@ -305,6 +307,8 @@ class Buddy(object):
             else:
                 if self.status == STATUS_HANDSHAKE:
                     self.sendPing()
+                else:
+                    print "(2) %s.keepAlive(): FIXME: WTF???" % self.address
     
     def sendPing(self):
         print "(2) %s.sendPing()" % self.address
@@ -317,6 +321,7 @@ class Buddy(object):
         ping.send(self)
     
     def sendStatus(self):
+        print "(2) %s.sendStatus()" % self.address
         if self.conn_out != None:
             status = ""
             if self.bl.own_status == STATUS_ONLINE:
@@ -328,6 +333,11 @@ class Buddy(object):
             if status != "":
                 msg = ProtocolMsg(self.bl, None, "status", status)
                 msg.send(self)
+            else:
+                print "(2) %s.sendStatus(): still handshaking, not sending status" % self.address
+        else:
+            print "(2) %s.sendStatus(): not connected!" % self.address
+            
         
     def sendAddMe(self):
         msg = ProtocolMsg(self.bl, None, "add_me", "")
@@ -944,7 +954,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         self.buddy = self.bl.getBuddyFromAddress(self.address)
 
     def execute(self):
-        print "(3) received ping from %s" % self.address
+        print "(2) received ping from %s" % self.address
         
         #first a little security check to detect mass pings
         #with faked host names over the same connection
@@ -962,6 +972,9 @@ class ProtocolMsg_ping(ProtocolMsg):
         #another check for faked pings: we search all our already
         #*connected* buddies and if there is one with the same address
         #but another incoming connection then this one must be a fake.
+        #
+        # FIXME: Might this check disrupt legitimate conditions?
+        #
         found = False
         for buddy in self.bl.list + self.bl.incoming_buddies:
             if buddy.conn_in:
@@ -981,7 +994,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         if self.address == config.get("client", "own_hostname"):
             own_buddy = self.bl.getBuddyFromAddress(self.address)
             if own_buddy.random1 != self.answer:
-                print "(2) faked ping with our own address. closing."
+                print "(1) faked ping with our own address. closing."
                 self.connection.send("message you are trying to use my ID!\n")
                 return
                 
@@ -1011,7 +1024,7 @@ class ProtocolMsg_ping(ProtocolMsg):
             print "(2) %s.keepAlive()" % self.buddy.address
             self.buddy.keepAlive()           
         
-        print "(3) sending pong and status to %s" % self.address    
+        print "(2) sending pong and status to %s" % self.address    
         self.buddy.resetConnectionFailCounter()
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
@@ -1057,7 +1070,7 @@ class ProtocolMsg_pong(ProtocolMsg):
         #safely assign this incoming connection to this buddy and 
         #regard the handshake as completed.
         if self.buddy:
-            print "(3) received pong from %s" % self.buddy.address
+            print "(2) received pong from %s" % self.buddy.address
             #assign the in-connection to this buddy
             self.buddy.onInConnectionFound(self.connection)
         else:
@@ -1338,7 +1351,9 @@ class Receiver(threading.Thread):
                     self.conn.onReceiverError()     
             
             except socket.timeout:
-                pass
+                tb(2)
+                self.running = False
+                self.conn.onReceiverError()
             
             except socket.error:
                 tb(2)
@@ -1386,6 +1401,8 @@ class InConnection:
         print "(2) in-connection closing (%s, %s)" % (self.last_ping_address, self)
         if self in self.bl.listener.conns:
             self.bl.listener.conns.remove(self)
+        if self.buddy:
+            self.buddy.conn_in = None
 
     def onTimeout(self):
         #if after this long time the connection is still unused, close it.
@@ -1422,16 +1439,17 @@ class OutConnection(threading.Thread):
             self.bl.onConnected(self)
             self.receiver = Receiver(self, False) # this Receiver will only accept file* messages
             while self.running:
-                if len(self.send_buffer) > 0:
+                while len(self.send_buffer) > 0:
                     text = self.send_buffer.pop(0)
                     try:
+                        print "(2) %s out-connection sending buffer" % self.address
                         self.socket.send(text)
                     except:
                         print "(2) out-connection send error"
                         self.bl.onErrorOut(self)
                         self.close()
                         
-                time.sleep(0.05)
+                time.sleep(0.2)
                 
         except:
             print "(2) out-connection to %s failed: %s" % (self.address, sys.exc_info()[1])
@@ -1450,6 +1468,7 @@ class OutConnection(threading.Thread):
         if not self.running:
             return
         self.running = False
+        self.send_buffer = []
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
@@ -1459,6 +1478,7 @@ class OutConnection(threading.Thread):
         except:
             pass
         if self.buddy:
+            self.buddy.conn_out = None
             print "(2) out-connection closing (%s)" % self.buddy.address
         else:
             print "(2) out-connection closing (without buddy)"

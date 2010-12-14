@@ -197,6 +197,11 @@ def set(section, option, value):
 def tb(level=0):
     print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
 
+def tb1():
+    print "---- BEGIN DEBUG STACKFRAME"
+    traceback.print_stack()
+    print "---- END DEBUG STACKFRAME"
+
 def getTranslators():
     translators = []
     for mname in translations.__dict__:
