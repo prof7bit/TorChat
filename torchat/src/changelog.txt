@@ -5,6 +5,7 @@ version 0.9.9.292
 - make it work with Python 2.7.1
 - (windows) use current version of Tor.exe (0.2.2.19-alpha)
 - (windows) changed build process to use pyinstaller instead of py2exe 
+- added chinese translation
 
 version 0.9.9.277
 - fix (regression): non ascii characters in messages and filenames
