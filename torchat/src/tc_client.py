@@ -170,8 +170,6 @@ class Buddy(object):
         self.temporary = temporary
     
     def setStatus(self, status):
-        if status != STATUS_OFFLINE or self.status != STATUS_OFFLINE:
-            self.resetConnectionFailCounter()
         self.status = status
         self.last_status_time = time.time()
 
@@ -258,12 +256,14 @@ class Buddy(object):
         
         if self.status == STATUS_OFFLINE:
             if self.count_failed_connects < 4:
-                t = random.randrange(5000, 15000) / 1000.0
+                t = random.randrange(50, 150) / 10.0
             else:
                 if self.count_failed_connects < 15:
-                    t = random.randrange(30000, 60000) / 1000.0
+                    t = random.randrange(300, 400)
                 else:
-                    t = random.randrange(300000, 600000) / 1000.0
+                    # more than an hour. The other one will ping us if it comes
+                    # online which will immediately connect and reset the counting
+                    t = random.randrange(5000, 6000)
             print "(2) %s had %i failed connections. Setting timer to %f seconds" \
                 % (self.address, self.count_failed_connects, t)
         else:
