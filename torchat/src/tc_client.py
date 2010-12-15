@@ -983,9 +983,12 @@ class ProtocolMsg_ping(ProtocolMsg):
                         found = True
                         break
         if found:
-            print "(2) detected ping from %s on other connection." % self.address
-            print "(2) sending a ping to %s to find correct in-connection." % self.address
+            print "(1) detected ping from %s on other connection." % self.address
+            print "(1) sending a ping to %s to find correct in-connection." % self.address
             buddy.sendPing()
+            print "(1) ***** sending double connection warning to %s" %self.address
+            buddy.sendAddMe()
+            buddy.sendChatMessage("Received more than one connection with your ID! Possible attack!")
             
         
         #if someone is pinging us with our own address and the
@@ -1064,7 +1067,6 @@ class ProtocolMsg_pong(ProtocolMsg):
                 #simply try to forward original pings to other clients impossilbe
                 print "(2) ignoring pong from %s which should have come from %s" % (self.connection.last_ping_address, buddy.address)
 
-
     def execute(self):
         #if the pong is found to belong to a known buddy we can now
         #safely assign this incoming connection to this buddy and 
@@ -1075,7 +1077,9 @@ class ProtocolMsg_pong(ProtocolMsg):
             self.buddy.onInConnectionFound(self.connection)
         else:
             #there is no buddy for this pong. nothing to do.
-            print "(2) unknown incoming 'pong'. ignoring."
+            print "(1) ignoring pong with unknown cookie. Sender: %s" % self.connection.last_ping_address
+            print "(1) !!! There might be another client sending pings with OUR address!"
+            print "(1) !!! Are we trying to run a second instance with the same ID?"
 
 
 class ProtocolMsg_version(ProtocolMsg):
@@ -1150,12 +1154,16 @@ class ProtocolMsg_message(ProtocolMsg):
             if self.buddy in self.bl.list:
                 self.bl.onChatMessage(self.buddy, self.text)
             else:
-                print "(2) ***** wrong version reply to %s" % self.buddy.address
-                msg = "This is an automatic reply. "
-                msg += "Your version seems to be out of date."
-                msg += "Make sure you have the latest version of TorChat. "
+                print "(1) ***** protocol violation reply to %s" % self.buddy.address
+                msg = "This is an automatic reply."
+                msg += "Your version might be out of date or some"
+                msg += "other reason caused this unexpected protocol violation."
+                msg += "Make sure you have the latest version of TorChat"
+                msg += "and everything is configured correctly."
                 self.buddy.sendChatMessage(msg)
-                self.buddy.sendRemoveMe()
+                time.sleep(5)
+                self.buddy.disconnect()
+                
         else:
             print "(2) received 'message' on unknown connection"
             print "(2) unknown connection had '%s' in last ping. closing" % self.connection.last_ping_address
