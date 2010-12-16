@@ -968,6 +968,7 @@ class ProtocolMsg_ping(ProtocolMsg):
                 return
         else:
             self.connection.last_ping_address = self.address
+            self.connection.last_ping_cookie = self.answer
         
         #another check for faked pings: we search all our already
         #*connected* buddies and if there is one with the same address
@@ -984,12 +985,17 @@ class ProtocolMsg_ping(ProtocolMsg):
                         break
         if found:
             print "(1) detected ping from %s on other connection." % self.address
-            print "(1) sending a ping to %s to find correct in-connection." % self.address
-            buddy.sendPing()
-            print "(1) ***** sending double connection warning to %s" %self.address
-            buddy.sendAddMe()
-            buddy.sendChatMessage("Received more than one connection with your ID! Possible attack!")
+            print "(1) last cookie %s" %buddy.conn_in.last_ping_cookie
+            print "(1) this cookie %s" %self.answer
+            print "(1) simply ignoring it" %self.answer
+
+            ## #warn the victim
+            ## print "(1) ***** sending double connection warning to %s" %self.address
+            ## buddy.sendAddMe() #might only be on his temporary list
+            ## #buddy.sendChatMessage("Received more than one connection with your ID!")
             
+            self.connection.send("not_implemented double connection\n")
+            return
         
         #if someone is pinging us with our own address and the
         #random value is not from us, then someone is definitely 
@@ -997,8 +1003,8 @@ class ProtocolMsg_ping(ProtocolMsg):
         if self.address == config.get("client", "own_hostname"):
             own_buddy = self.bl.getBuddyFromAddress(self.address)
             if own_buddy.random1 != self.answer:
-                print "(1) faked ping with our own address. closing."
-                self.connection.send("message you are trying to use my ID!\n")
+                print "(1) faked ping with our own address. closing"
+                self.connection.close() #close this possibly faked incoming connection
                 return
                 
         #ping messages must be answered with pong messages
@@ -1351,7 +1357,7 @@ class Receiver(threading.Thread):
                                     message.execute()
                                 else:
                                     # this is an outgoing connection. Incoming protocol messages are ignored
-                                    print "(2) ignoring received %s on outgoing connection to %" % (line, self.conn.buddy.address)
+                                    print "(1) received unexpected '%s' on outgoing connection to %" % (line, self.conn.buddy.address)
                             except:
                                 tb()
                 else:
@@ -1376,6 +1382,7 @@ class InConnection:
         self.socket = socket
         self.receiver = Receiver(self, True)
         self.last_ping_address = "" #used to detect mass pings with fake adresses
+        self.last_ping_cookie = "" #used to detect pings with fake cookies
         self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
         self.started = True
         self.timer.start()
