@@ -987,7 +987,7 @@ class ProtocolMsg_ping(ProtocolMsg):
             print "(1) detected ping from %s on other connection." % self.address
             print "(1) last cookie %s" %buddy.conn_in.last_ping_cookie
             print "(1) this cookie %s" %self.answer
-            print "(1) simply ignoring it" %self.answer
+            print "(1) simply ignoring it"
 
             ## #warn the victim
             ## print "(1) ***** sending double connection warning to %s" %self.address
