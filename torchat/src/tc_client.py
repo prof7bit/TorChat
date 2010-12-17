@@ -1380,9 +1380,9 @@ class InConnection:
         self.buddy = None
         self.bl = buddy_list
         self.socket = socket
-        self.receiver = Receiver(self, True)
         self.last_ping_address = "" #used to detect mass pings with fake adresses
         self.last_ping_cookie = "" #used to detect pings with fake cookies
+        self.receiver = Receiver(self, True)
         self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
         self.started = True
         self.timer.start()

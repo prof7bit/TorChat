@@ -26,5 +26,5 @@ RendPostPeriod 600 seconds
 ## so don't remove the # from that line unless you need it
 ## and remember to put it in again, after you are done.
 #Log info File tor.log
-Log info stdout
+#Log info stdout
 SafeLogging 0
