@@ -3,7 +3,7 @@
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007-2008 Bernd Kreuss <prof7bit@gmail.com>                  #
+# Copyright (c) 2007-2010 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # This program is licensed under the GNU General Public License V3,          #
 # the full source code is included in the binary distribution.               #

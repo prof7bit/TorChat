@@ -2,7 +2,7 @@
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007-2008 Bernd Kreuss <prof7bit@gmail.com>                  #
+# Copyright (c) 2007-2010 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # This program is licensed under the GNU General Public License V3,          #
 # the full source code is included in the binary distribution.               #
@@ -50,7 +50,7 @@ ICON_DIR = "icons" #can be absolute or relative to script dir
 
 AUTHORS_ID = "utvrla6mjdypbyw6"
 AUTHORS_NAME = "Bernd"
-COPYRIGHT = u"Copyright (c) 2007, 2008 Bernd Kreuß <prof7bit@gmail.com>"
+COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 180
 

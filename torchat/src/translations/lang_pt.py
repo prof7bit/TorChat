@@ -2,7 +2,7 @@
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007-2008 Bernd Kreuss <prof7bit@gmail.com>                  #
+# Copyright (c) 2007-2010 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # Translation file for TorChat                                               #
 #                                                                            #
