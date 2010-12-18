@@ -83,29 +83,30 @@ dirs = ["DEBIAN",
         "usr/share/applications",
         "usr/share/pixmaps",
         "usr/share/pixmaps/torchat",
-        "usr/share/torchat",
-        "usr/share/torchat/Tor",
+        "usr/lib",
+        "usr/lib/torchat",
+        "usr/lib/torchat/Tor",
         ]
 
 files = [("icons/*", "usr/share/pixmaps/torchat"),
-         ("Tor/tor.sh", "usr/share/torchat/Tor"),
-         ("Tor/torrc.txt", "usr/share/torchat/Tor"),
-         ("dist/torchat", "usr/share/torchat"),
-         ("LICENSE", "usr/share/torchat"),
+         ("Tor/tor.sh", "usr/lib/torchat/Tor"),
+         ("Tor/torrc.txt", "usr/lib/torchat/Tor"),
+         ("dist/torchat", "usr/lib/torchat"),
+         ("LICENSE", "usr/lib/torchat"),
          ("changelog.txt", "usr/share/doc/torchat"),
          ("../doc/howto_second_instance.html", "usr/share/doc/torchat/html"),
          ]
 
 postinst = """#!/bin/sh
 
-cd /usr/share/torchat
+cd /usr/lib/torchat
 echo creating symbolic links...
 ln -s /usr/share/pixmaps/torchat icons
 """
 
 prerm = """#!/bin/sh
 
-rm -rf  /usr/share/torchat
+rm -rf  /usr/lib/torchat
 rm -rf  /usr/share/pixmaps/torchat
 rm -rf  /usr/share/doc/torchat
 
@@ -113,7 +114,7 @@ rm -rf  /usr/share/doc/torchat
 
 start_script = """#!/bin/sh
 
-cd /usr/share/torchat
+cd /usr/lib/torchat
 ./torchat $*
 """
 
@@ -123,7 +124,7 @@ Name=TorChat Instant Messenger
 Comment=Anonymous Instant Messenger for Tor
 Version=%s
 Exec=/usr/bin/torchat
-Path=/usr/share/torchat/
+Path=/usr/lib/torchat/
 Icon=/usr/share/pixmaps/torchat/torchat.png
 StartupNotify=true
 StartupWMClass=TorChat
@@ -180,8 +181,8 @@ create(desktop, "usr/share/applications/torchat.desktop")
 
 create(start_script, "usr/bin/torchat")
 chmod(755, "usr/bin/torchat")
-chmod(755, "usr/share/torchat/torchat")
-chmod(755, "usr/share/torchat/Tor/tor.sh")
+chmod(755, "usr/lib/torchat/torchat")
+chmod(755, "usr/lib/torchat/Tor/tor.sh")
 
 #now build the package using dpkg -b
 os.system("fakeroot dpkg -b %s %s" % (TMP_ROOT, deb_name))
