@@ -1,3 +1,8 @@
+svn trunk
+- fixed a possible race condition when incoming connection detected
+  (not critical and happens only once a week, but still annoying)
+- added some more logging
+
 version 0.9.9.292
 - prevent possible MITM attack by better verifying incoming pong messages
 - prevent possible attack by disallowing most incoming messages 
