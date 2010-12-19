@@ -952,9 +952,23 @@ class ProtocolMsg_ping(ProtocolMsg):
         #and see if we can find a buddy in our list with that address.
         self.address, self.answer = splitLine(self.text)
         self.buddy = self.bl.getBuddyFromAddress(self.address)
+        
+    def isValidAddress(self):
+        if len(self.address) <> 16:
+            return False
+        for c in self.address:
+            if not c in "234567890abcdefghijklmnopqrstuvwxyz":
+                return False
+        return True
 
     def execute(self):
         print "(2) received ping from %s" % self.address
+        
+        #is sender a valid onion address?
+        if not self.isValidAddress():
+            print "(1) ping sender '%s' not a valid onion ID. closing conection."
+            self.connection.close()
+            return
         
         #first a little security check to detect mass pings
         #with faked host names over the same connection
@@ -1365,12 +1379,10 @@ class Receiver(threading.Thread):
                     self.conn.onReceiverError()     
             
             except socket.timeout:
-                tb(2)
                 self.running = False
                 self.conn.onReceiverError()
             
             except socket.error:
-                tb(2)
                 self.running = False
                 self.conn.onReceiverError()
                                
