@@ -14,8 +14,7 @@ Section: internet
 Priority: optional
 Architecture: all
 Essential: no
-Depends: tor
-Pre-Depends: python2.5
+Depends: tor, libgtk2.0-0 (>= 2.12.0)
 Maintainer: Bernd Kreuss <prof7bit@cooglemail.com>
 Provides: torchat
 Description: Instant Messenger for Tor
