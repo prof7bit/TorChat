@@ -43,7 +43,7 @@ License, version 3, can be found in /usr/share/common-licenses/GPL-3.
 
 --
 
-The files in /usr/share/torchat/SocksiPy are 
+The files in /usr/lib/torchat/SocksiPy are 
 Copyright 2006 Dan-Haim. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -83,35 +83,36 @@ dirs = ["DEBIAN",
         "usr/share/applications",
         "usr/share/pixmaps",
         "usr/share/pixmaps/torchat",
-        "usr/share/torchat",
-        "usr/share/torchat/SocksiPy",
-        "usr/share/torchat/translations",
-        "usr/share/torchat/Tor",
+        "usr/lib",
+        "usr/lib/torchat",
+        "usr/lib/torchat/SocksiPy",
+        "usr/lib/torchat/translations",
+        "usr/lib/torchat/Tor",
         ]
 
-files = [("translations/*.py", "usr/share/torchat/translations"),
-         ("translations/*.txt", "usr/share/torchat/translations"),
+files = [("translations/*.py", "usr/lib/torchat/translations"),
+         ("translations/*.txt", "usr/lib/torchat/translations"),
          ("icons/*", "usr/share/pixmaps/torchat"),
-         ("SocksiPy/__init__.py", "usr/share/torchat/SocksiPy"),
-         ("SocksiPy/socks.py", "usr/share/torchat/SocksiPy"),
-         ("SocksiPy/BUGS", "usr/share/torchat/SocksiPy"),
-         ("SocksiPy/LICENSE", "usr/share/torchat/SocksiPy"),
-         ("SocksiPy/README", "usr/share/torchat/SocksiPy"),
-         ("Tor/tor.sh", "usr/share/torchat/Tor"),
-         ("Tor/torrc.txt", "usr/share/torchat/Tor"),
-         ("torchat.py", "usr/share/torchat"),
-         ("config.py", "usr/share/torchat"),
-         ("version*.py", "usr/share/torchat"),
-         ("tc_*.py", "usr/share/torchat"),
-         ("dlg*.py", "usr/share/torchat"),
-         ("LICENSE", "usr/share/torchat"),
+         ("SocksiPy/__init__.py", "usr/lib/torchat/SocksiPy"),
+         ("SocksiPy/socks.py", "usr/lib/torchat/SocksiPy"),
+         ("SocksiPy/BUGS", "usr/lib/torchat/SocksiPy"),
+         ("SocksiPy/LICENSE", "usr/lib/torchat/SocksiPy"),
+         ("SocksiPy/README", "usr/lib/torchat/SocksiPy"),
+         ("Tor/tor.sh", "usr/lib/torchat/Tor"),
+         ("Tor/torrc.txt", "usr/lib/torchat/Tor"),
+         ("torchat.py", "usr/lib/torchat"),
+         ("config.py", "usr/lib/torchat"),
+         ("version*.py", "usr/lib/torchat"),
+         ("tc_*.py", "usr/lib/torchat"),
+         ("dlg*.py", "usr/lib/torchat"),
+         ("LICENSE", "usr/share/doc/torchat"),
          ("changelog.txt", "usr/share/doc/torchat"),
          ("../doc/howto_second_instance.html", "usr/share/doc/torchat/html"),
          ]
 
 postinst = """#!/bin/sh
 
-cd /usr/share/torchat
+cd /usr/lib/torchat
 echo creating symbolic links...
 ln -s /usr/share/pixmaps/torchat icons
 
@@ -123,13 +124,13 @@ echo TorChat installed.
 
 prerm = """#!/bin/sh
 
-rm -rf  /usr/share/torchat
+rm -rf  /usr/lib/torchat
 
 """
 
 start_script = """#!/bin/sh
 
-cd /usr/share/torchat
+cd /usr/lib/torchat
 ./torchat.py $*
 """
 
@@ -139,7 +140,7 @@ Name=TorChat Instant Messenger
 Comment=Anonymous Instant Messenger for Tor
 Version=%s
 Exec=/usr/bin/torchat
-Path=/usr/share/torchat/
+Path=/usr/lib/torchat/
 Icon=/usr/share/pixmaps/torchat/torchat.png
 StartupNotify=true
 StartupWMClass=TorChat
@@ -192,8 +193,8 @@ create(desktop, "usr/share/applications/torchat.desktop")
 
 create(start_script, "usr/bin/torchat")
 chmod(755, "usr/bin/torchat")
-chmod(755, "usr/share/torchat/torchat.py")
-chmod(755, "usr/share/torchat/Tor/tor.sh")
+chmod(755, "usr/lib/torchat/torchat.py")
+chmod(755, "usr/lib/torchat/Tor/tor.sh")
 
 #now build the package using dpkg -b
 os.system("fakeroot dpkg -b %s %s" % (TMP_ROOT, deb_name))
