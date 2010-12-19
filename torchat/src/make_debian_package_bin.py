@@ -14,14 +14,13 @@ Section: internet
 Priority: optional
 Architecture: all
 Essential: no
-Depends: tor, python2.5, python-wxgtk2.8
-Pre-Depends: python2.5
+Depends: tor, libgtk2.0-0 (>= 2.12.0)
 Maintainer: Bernd Kreuss <prof7bit@cooglemail.com>
 Provides: torchat
 Description: Instant Messenger for Tor
 """ % version
 
-copyright="""TorChat is copyright (C) 2007, 2008 Bernd Kreuss <prof7bit@googlemail.com>
+copyright="""TorChat is copyright (C) 2007-2010 Bernd Kreuss <prof7bit@googlemail.com>
 
 TorChat is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -43,7 +42,7 @@ License, version 3, can be found in /usr/share/common-licenses/GPL-3.
 
 --
 
-The files in /usr/lib/torchat/SocksiPy are 
+The files in /usr/share/torchat/SocksiPy are 
 Copyright 2006 Dan-Haim. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -85,27 +84,14 @@ dirs = ["DEBIAN",
         "usr/share/pixmaps/torchat",
         "usr/lib",
         "usr/lib/torchat",
-        "usr/lib/torchat/SocksiPy",
-        "usr/lib/torchat/translations",
         "usr/lib/torchat/Tor",
         ]
 
-files = [("translations/*.py", "usr/lib/torchat/translations"),
-         ("translations/*.txt", "usr/lib/torchat/translations"),
-         ("icons/*", "usr/share/pixmaps/torchat"),
-         ("SocksiPy/__init__.py", "usr/lib/torchat/SocksiPy"),
-         ("SocksiPy/socks.py", "usr/lib/torchat/SocksiPy"),
-         ("SocksiPy/BUGS", "usr/lib/torchat/SocksiPy"),
-         ("SocksiPy/LICENSE", "usr/lib/torchat/SocksiPy"),
-         ("SocksiPy/README", "usr/lib/torchat/SocksiPy"),
+files = [("icons/*", "usr/share/pixmaps/torchat"),
          ("Tor/tor.sh", "usr/lib/torchat/Tor"),
          ("Tor/torrc.txt", "usr/lib/torchat/Tor"),
-         ("torchat.py", "usr/lib/torchat"),
-         ("config.py", "usr/lib/torchat"),
-         ("version*.py", "usr/lib/torchat"),
-         ("tc_*.py", "usr/lib/torchat"),
-         ("dlg*.py", "usr/lib/torchat"),
-         ("LICENSE", "usr/share/doc/torchat"),
+         ("dist/torchat", "usr/lib/torchat"),
+         ("LICENSE", "usr/lib/torchat"),
          ("changelog.txt", "usr/share/doc/torchat"),
          ("../doc/howto_second_instance.html", "usr/share/doc/torchat/html"),
          ]
@@ -115,23 +101,20 @@ postinst = """#!/bin/sh
 cd /usr/lib/torchat
 echo creating symbolic links...
 ln -s /usr/share/pixmaps/torchat icons
-
-echo compiling to bytecode...
-python -OOc "import torchat"
-
-echo TorChat installed.
 """
 
 prerm = """#!/bin/sh
 
 rm -rf  /usr/lib/torchat
+rm -rf  /usr/share/pixmaps/torchat
+rm -rf  /usr/share/doc/torchat
 
 """
 
 start_script = """#!/bin/sh
 
 cd /usr/lib/torchat
-./torchat.py $*
+./torchat $*
 """
 
 desktop = """[Desktop Entry]
@@ -170,6 +153,10 @@ def create(content, dest):
     os.system("echo '%s' > %s" % (content, dest_full))
     chmod(644, dest)
 
+
+print "running pyinstaller to create binary"
+os.system("python ~/pyinstaller/Build.py torchat_linux.spec")
+
 print "creating temporary root dir"
 os.system("rm -rf %s" % TMP_ROOT)
 mkdir("") #create empty TMP_ROOT
@@ -193,7 +180,7 @@ create(desktop, "usr/share/applications/torchat.desktop")
 
 create(start_script, "usr/bin/torchat")
 chmod(755, "usr/bin/torchat")
-chmod(755, "usr/lib/torchat/torchat.py")
+chmod(755, "usr/lib/torchat/torchat")
 chmod(755, "usr/lib/torchat/Tor/tor.sh")
 
 #now build the package using dpkg -b
