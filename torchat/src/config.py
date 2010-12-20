@@ -50,13 +50,16 @@ config_defaults = {
     ("gui", "time_stamp_format") : "(%H:%M:%S)",
 }
 
-ICON_DIR = "icons" #can be absolute or relative to script dir
 
 AUTHORS_ID = "utvrla6mjdypbyw6"
 AUTHORS_NAME = "Bernd"
 COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 180
+
+SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
+ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
+
 
 def isWindows98():
     if isWindows():
@@ -80,22 +83,11 @@ def killProcess(pid):
         print "(1) could not kill process %i" % pid
         tb()
 
-def getScriptDir():
-    #must be called at least once before working dir is changed
-    #because after that abspath won't work correctly anymore.
-    #this is the reason why this function uses a cache.
-    global _script_dir
-    try:
-        return _script_dir
-    except:
-        #first call, _script_dir not yet defined
-        _script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
-        return _script_dir
 
 def isPortable():
     #if the file portable.txt exists in the same directory
     #then we know that we are running in portable mode.
-    dir = getScriptDir()
+    dir = SCRIPT_DIR
     try:
         f = open(os.path.join(dir, "portable.txt"), "r")
         f.close()
@@ -105,7 +97,7 @@ def isPortable():
     
 def getDataDir():
     if isPortable():
-        return getScriptDir()
+        return SCRIPT_DIR
     else:
         if isWindows():
             CSIDL_APPDATA = 0x001a
@@ -234,10 +226,10 @@ def importLanguage():
         #lang_en is the standard translation. nothing to replace.
         return
     
-    if not getScriptDir() in sys.path:
+    if not SCRIPT_DIR in sys.path:
         #make sure that script dir is in sys.path (py2exe etc.)
         print "(1) putting script directory into module search path"
-        sys.path.insert(0, getScriptDir())
+        sys.path.insert(0, SCRIPT_DIR)
 
     dict_std = translations.lang_en.__dict__
     print "(1) trying to import language module %s" % lang_xx
@@ -336,11 +328,11 @@ def main():
     global log_writer
     
     #many things are relative to the script directory, so set is as the cwd
-    os.chdir(getScriptDir())
+    os.chdir(SCRIPT_DIR)
     readConfig()
     log_writer = LogWriter()
 
-    print "(1) script directory is %s" % getScriptDir()
+    print "(1) script directory is %s" % SCRIPT_DIR
     print "(1) data directory is %s" % getDataDir()
     
     #make a backup of all strings that are in the standard language file

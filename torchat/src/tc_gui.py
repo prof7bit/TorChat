@@ -222,7 +222,7 @@ class NotificationWindow(wx.PopupWindow):
         sizer = wx.BoxSizer()
         self.panel.SetSizer(sizer)
 
-        bitmap = wx.Bitmap(config.ICON_DIR + "/torchat.png", wx.BITMAP_TYPE_PNG)
+        bitmap = wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
         static_image = wx.StaticBitmap(self.panel, -1, bitmap)
         sizer.Add(static_image, 0, wx.ALL, 5 )
         
