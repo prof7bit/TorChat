@@ -20,9 +20,13 @@ import traceback
 import inspect
 import translations
 import socket
-import ctypes
 import shutil
 
+def isWindows():
+    return sys.platform.startswith("win")
+
+if isWindows():
+    import ctypes
 
 config_defaults = {
     ("tor", "tor_server") : "127.0.0.1",
@@ -53,9 +57,6 @@ AUTHORS_NAME = "Bernd"
 COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 180
-
-def isWindows():
-    return sys.platform.startswith("win")
 
 def isWindows98():
     if isWindows():
@@ -106,7 +107,7 @@ def getDataDir():
     if isPortable():
         return getScriptDir()
     else:
-        if "win" in sys.platform:
+        if isWindows():
             CSIDL_APPDATA = 0x001a
             buf = ctypes.create_unicode_buffer(256)
             ctypes.windll.shell32.SHGetSpecialFolderPathW(None, buf, CSIDL_APPDATA, 0)

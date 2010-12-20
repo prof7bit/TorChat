@@ -14,7 +14,7 @@ Section: internet
 Priority: optional
 Architecture: all
 Essential: no
-Depends: tor, python2.5, python-wxgtk2.8
+Depends: tor, python2.5, python2.5-wxgtk2.8
 Maintainer: Bernd Kreuss <prof7bit@cooglemail.com>
 Provides: torchat
 Description: Instant Messenger for Tor
@@ -116,7 +116,7 @@ echo creating symbolic links...
 ln -s /usr/share/pixmaps/torchat icons
 
 echo compiling to bytecode...
-python -OOc "import torchat"
+python2.5 -OOc "import torchat"
 
 echo TorChat installed.
 """
