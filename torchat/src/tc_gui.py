@@ -187,34 +187,6 @@ class TaskbarMenu(wx.Menu):
         self.mw.status_switch.setStatus(tc_client.STATUS_XA)
 
 
-class NotificationWindowAnimation(threading.Thread):
-    def __init__(self, win):
-        threading.Thread.__init__(self)
-        self.win = win
-        self.start()
-        
-    def run(self):
-        cx, cy, maxx, maxy = wx.ClientDisplayRect()
-        w, h = self.win.GetSize()
-        self.x_end = maxx - w - 20
-        self.y_end = maxy - h - 20
-        wx.CallAfter(self.win.SetPosition, (-w, self.y_end))
-        wx.CallAfter(self.win.Show)
-        for x in range(-w, self.x_end, 20):
-            wx.CallAfter(self.win.SetPosition, (x, self.y_end))
-            time.sleep(0.01)
-        wx.CallAfter(self.win.SetPosition, (self.x_end, self.y_end))
-
-        time.sleep(5)
-                
-        w, h = self.win.GetSize()
-        for y in reversed(range(-h, self.y_end, 20)):
-            wx.CallAfter(self.win.SetPosition, (self.x_end, y))
-            time.sleep(0.01)
-        wx.CallAfter(self.win.Hide)
-        wx.CallAfter(self.win.Close)
-                
-
 class NotificationWindow(wx.PopupWindow):
     def __init__(self, mw, text):
         wx.PopupWindow.__init__(self, mw)
@@ -236,9 +208,55 @@ class NotificationWindow(wx.PopupWindow):
         wsizer = wx.BoxSizer()
         wsizer.Add(self.panel, 0, wx.ALL, 0)
         self.SetSizerAndFit(wsizer)
-        self.Layout()        
-           
-        self.a = NotificationWindowAnimation(self)
+        self.Layout()
+
+        # initialize animation
+        cx, cy, maxx, maxy = wx.ClientDisplayRect()
+        self.w, self.h = self.GetSize()
+        self.x_end = maxx - self.w - 20
+        self.y_end = maxy - self.h - 20
+        
+        self.x_pos = -self.w
+        self.y_pos = self.y_end
+        self.phase = 0
+        
+        self.SetPosition((self.x_pos, self.y_pos))
+        self.Show()
+        
+        self.timer = wx.Timer(self, -1)
+        self.Bind(wx.EVT_TIMER, self.onTimer)
+        
+        # start animation
+        self.timer.Start(10, True)
+        
+    
+    def onTimer(self, evt):
+        if self.phase == 0:
+            if self.x_pos < self.x_end:
+                # move right and restart timer
+                self.x_pos += 20
+                self.SetPosition((self.x_pos, self.y_pos))
+                self.timer.Start(10, True)
+                return
+            else:
+                # we are at the right border.
+                # now switch phase and wait a bit
+                self.phase = 1
+                self.timer.Start(5000, True)
+                return
+            
+        if self.phase == 1:
+            if self.y_pos > -self.h:
+                # move upwards and restart timer
+                self.y_pos -= 20
+                self.SetPosition((self.x_pos, self.y_pos))
+                self.timer.Start(10, True)
+                return
+            else:
+                # we reached the end of the animation
+                self.Hide()
+                self.Close()
+        
         
 
 class PopupMenu(wx.Menu):
