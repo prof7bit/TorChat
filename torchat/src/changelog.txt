@@ -1,8 +1,10 @@
 svn trunk
 - fixed a possible race condition when incoming connection detected
   (not critical and happens only once a week, but still annoying)
-- added some more logging
 - check incoming ping sender address for length and allowed characters
+- make the .deb package allow more different python versions (2.5 .. 2.7)
+- added some more logging
+- added Bulgarian translation
 
 version 0.9.9.292
 - prevent possible MITM attack by better verifying incoming pong messages
