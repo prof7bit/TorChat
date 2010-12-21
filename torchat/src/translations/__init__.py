@@ -6,3 +6,4 @@ import lang_fr
 import lang_pl
 import lang_pt
 import lang_cn
+import lang_bg
