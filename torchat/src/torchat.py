@@ -15,9 +15,11 @@
 #                                                                            #
 ##############################################################################
 
+import wxversion
+wxversion.select('2.8')
+import wx
 import config
 import os
-import wx
 import tc_client
 import tc_gui
         
