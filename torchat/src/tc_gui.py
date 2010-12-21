@@ -198,7 +198,7 @@ class NotificationWindowAnimation(threading.Thread):
         w, h = self.win.GetSize()
         self.x_end = maxx - w - 20
         self.y_end = maxy - h - 20
-        self.win.SetPosition((-w, self.y_end))
+        wx.CallAfter(self.win.SetPosition, (-w, self.y_end))
         wx.CallAfter(self.win.Show)
         for x in range(-w, self.x_end, 20):
             wx.CallAfter(self.win.SetPosition, (x, self.y_end))
