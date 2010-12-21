@@ -14,7 +14,7 @@ Section: internet
 Priority: optional
 Architecture: all
 Essential: no
-Depends: tor, python2.5, python2.5-wxgtk2.8
+Depends: tor, python (>= 2.5), python (<< 3.0), python-wxgtk2.8
 Maintainer: Bernd Kreuss <prof7bit@cooglemail.com>
 Provides: torchat
 Description: Instant Messenger for Tor
@@ -129,8 +129,28 @@ rm -rf  /usr/lib/torchat
 
 start_script = """#!/bin/sh
 
-cd /usr/lib/torchat
-./torchat.py $*
+tryStartWith(){
+    echo "searching for "$1
+    if [ -f /usr/bin/$1 ]
+    then
+        echo "starting torchat with "$1
+        echo "command line arguments: "$args
+        cd /usr/lib/torchat
+        /usr/bin/$1 torchat.py $args
+        exit
+    fi
+}
+
+args=$*
+
+echo "trying to find suitable python version"
+
+tryStartWith "python2"
+tryStartWith "python2.7"
+tryStartWith "python2.6"
+tryStartWith "python2.5"
+
+echo "no suitable python version found, you need one of them listed above"
 """
 
 desktop = """[Desktop Entry]

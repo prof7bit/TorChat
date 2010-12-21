@@ -331,9 +331,16 @@ def main():
     os.chdir(SCRIPT_DIR)
     readConfig()
     log_writer = LogWriter()
+    
+    print "(0) python version %s" % sys.version.replace("\n", "").replace("\r", "")
 
-    print "(1) script directory is %s" % SCRIPT_DIR
-    print "(1) data directory is %s" % getDataDir()
+    if isPortable():
+        print "(0) running in portable mode, all data is kept inside the bin folder."
+        if (len(sys.argv) > 1):
+            print "(0) ignoring requested profile '%s' because profiles do not exist in portable mode" % sys.argv[1]
+        
+    print "(0) script directory is %s" % SCRIPT_DIR
+    print "(0) data directory is %s" % getDataDir()
     
     #make a backup of all strings that are in the standard language file
     #because we could need them when switching between incomplete languages
