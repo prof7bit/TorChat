@@ -115,8 +115,8 @@ cd /usr/lib/torchat
 echo creating symbolic links...
 ln -s /usr/share/pixmaps/torchat icons
 
-echo compiling to bytecode...
-python2.5 -OOc "import torchat"
+#echo compiling to bytecode...
+#python2.5 -OOc "import torchat"
 
 echo TorChat installed.
 """
