@@ -98,10 +98,10 @@ DSET_NET_TITLE = u"Мрежа"
 DSET_NET_ACTIVE = u"Активна"
 DSET_NET_INACTIVE = u"Неактивна"
 DSET_NET_TOR_ADDRESS = u"Адрес на Tor прокси"
-DSET_NET_TOR_SOCKS = u"Socks port"
-DSET_NET_TOR_CONTROL = u"Control порт"
+DSET_NET_TOR_SOCKS = u"Socks порт"
+DSET_NET_TOR_CONTROL = u"Контролен порт"
 DSET_NET_OWN_HOSTNAME = u"Собствено TorChat-ID"
-DSET_NET_LISTEN_INTERFACE = u"Интерфейс на прослушване"
+DSET_NET_LISTEN_INTERFACE = u"Интерфейс за прослушване"
 DSET_NET_LISTEN_PORT = u"Порт за прослушване"
 DSET_GUI_TITLE = u"Потребителски интерфейс"
 DSET_GUI_LANGUAGE = u"Език"
@@ -125,8 +125,8 @@ MSG_OFFLINE_QUEUED = u"офлайн съобщения на опашка за %s
 
 #about box
 ABOUT_TITLE = u"Относно TorChat"
-ABOUT_TEXT = u"""TorChat %(версия/и) (svn: r%(svn)s)
-  %(авторско/и право/а)
+ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
+  %(copyright)s
 
 Превод: 
   %(translators)s
