@@ -16,7 +16,15 @@
 ##############################################################################
 
 import wxversion
-wxversion.select('2.8')
+try:
+    wxversion.select('2.8')
+except:
+    # continue anyways. 
+    # the pyinstaller binary has problems with wxversion's 
+    # way of searching though the (non-existing) directories.
+    # so just try to use the wx version that is there.
+    pass
+
 import wx
 import config
 import os
