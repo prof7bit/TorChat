@@ -1,4 +1,6 @@
-svn trunk
+version 0.9.9.324
+- (windows) updated tor.exe to version 0.2.2.20-alpha
+- fixed crash bug on Ubuntu Karmic and later
 - fixed a possible race condition when incoming connection detected
   (not critical and happens only once a week, but still annoying)
 - check incoming ping sender address for length and allowed characters
