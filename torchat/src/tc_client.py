@@ -270,7 +270,7 @@ class Buddy(object):
             #whenever we are connected to someone we use a fixed timer.
             #otherwise we would create a unique pattern of activity
             #over time that could be identified at the other side
-            t = 60
+            t = config.KEEPALIVE_INTERVAL
         
         if self.timer:
             self.timer.cancel()
