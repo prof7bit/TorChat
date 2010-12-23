@@ -1,3 +1,6 @@
+svn trunk
+- fixed a flaw in the PING-PONG-sequence, considerably increasing connection speed
+
 version 0.9.9.324
 - (windows) updated tor.exe to version 0.2.2.20-alpha
 - fixed crash bug on Ubuntu Karmic and later

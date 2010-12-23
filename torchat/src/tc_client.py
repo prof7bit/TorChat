@@ -304,14 +304,11 @@ class Buddy(object):
         else:
             if self.conn_in:
                 self.sendStatus()
-            else:
-                if self.status == STATUS_HANDSHAKE:
-                    self.sendPing()
-                else:
-                    print "(2) %s.keepAlive(): FIXME: WTF???" % self.address
+            #else:
+            #    self.sendPing()
     
     def sendPing(self):
-        print "(2) %s.sendPing()" % self.address
+        print "(2) PING >>> %s" % self.address
         #self.random1 = str(random.getrandbits(256))
         ping = ProtocolMsg(self.bl, 
                            None, 
@@ -951,7 +948,6 @@ class ProtocolMsg_ping(ProtocolMsg):
         #the sender address is in the text. we take it for granted
         #and see if we can find a buddy in our list with that address.
         self.address, self.answer = splitLine(self.text)
-        self.buddy = self.bl.getBuddyFromAddress(self.address)
         
     def isValidAddress(self):
         if len(self.address) <> 16:
@@ -962,7 +958,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         return True
 
     def execute(self):
-        print "(2) received ping from %s" % self.address
+        print "(2) <<< PING %s" % self.address
         
         #is sender a valid onion address?
         if not self.isValidAddress():
@@ -1025,6 +1021,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         #the pong must contain the same random string as the ping.
         #note that we will NOT yet assign buddy.conn_in
         #this can only be done in reaction to a pong message
+        self.buddy = self.bl.getBuddyFromAddress(self.address)
         if not self.buddy:
             print "(2) %s is not on the buddy-list" % self.address
             #we have received a ping, but there is no buddy with
@@ -1042,23 +1039,30 @@ class ProtocolMsg_ping(ProtocolMsg):
             else:
                 print "(2) %s is already in the incoming list" % self.address
                 print "(2) %s status is %i" % (self.address, self.buddy.status)
-                
-            #this will connect if necessary
-            print "(2) %s.keepAlive()" % self.buddy.address
-            self.buddy.keepAlive()           
         
-        print "(2) sending pong and status to %s" % self.address    
+        #connect
+        if not self.buddy.conn_out:
+            self.buddy.connect()
+        else:
+            if not self.buddy.conn_in:
+                #the buddies last pong might have been lost
+                #so we send another ping, to be on the safe side
+                self.buddy.sendPing()
+        
+        #now we can finally send our pong
+        print "(2) PONG >>> %s" % self.address    
         self.buddy.resetConnectionFailCounter()
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
-        self.buddy.can_send = True
         self.buddy.sendStatus()
-        
         if self.buddy in self.bl.list:
             self.buddy.sendAddMe()
-        
         self.buddy.sendVersion()
-
+        
+        #after ou pong the buddy should be 
+        #able to receive messages
+        self.buddy.can_send = True
+        
 
 class ProtocolMsg_pong(ProtocolMsg):
     command = "pong"
@@ -1092,7 +1096,7 @@ class ProtocolMsg_pong(ProtocolMsg):
         #safely assign this incoming connection to this buddy and 
         #regard the handshake as completed.
         if self.buddy:
-            print "(2) received pong from %s" % self.buddy.address
+            print "(2) <<< PONG %s" % self.buddy.address
             #assign the in-connection to this buddy
             self.buddy.onInConnectionFound(self.connection)
         else:
