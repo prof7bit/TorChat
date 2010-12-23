@@ -1,5 +1,8 @@
-svn trunk
-- fixed a flaw in the PING-PONG-sequence, considerably increasing connection speed
+version 0.9.9.328
+- fixed a flaw in the PING-PONG-sequence, where pong messages went missing 
+  and got stuck in the middle of the handshake, this fix now dramatically 
+  increases connection speed
+- fix error in Bulgarian translation
 
 version 0.9.9.324
 - (windows) updated tor.exe to version 0.2.2.20-alpha
