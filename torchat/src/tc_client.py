@@ -91,17 +91,18 @@ def createTemporaryFile(file_name):
     return (file_name_tmp, file_handle_tmp)
     
 def wipeFile(name):
-    print "(2) wiping file %s" % name
+    print "(2) wiping %s" % name
     handle = open(name, mode="r+b")
     handle.seek(0, 2) #SEEK_END
     size = handle.tell()    
     handle.seek(0)
     for i in range (0, size):
         handle.write(chr(random.getrandbits(8)))
+    print "(2) sync to disk"
     handle.flush()
     os.fsync(handle.fileno())
     handle.close()
-    print "(2) deleting file %s" % name
+    print "(2) deleting wiped file"
     os.unlink(name)
     
 
@@ -237,7 +238,7 @@ class Buddy(object):
         #this will be called after the answer to the ping message
         text = self.getOfflineMessages()
         if text:
-            os.unlink(self.getOfflineFileName())
+            wipeFile(self.getOfflineFileName())
             print "(2) sending offline messages to %s" % self.address
             #we send it without checking online status. because we have sent 
             #a pong before, the receiver will have set the status to online.
@@ -469,7 +470,7 @@ class BuddyList(object):
         self.list.remove(buddy_to_remove)
         file_name = buddy_to_remove.getOfflineFileName()
         try:
-            os.unlink(file_name)
+            wipeFile(file_name)
         except:
             pass
         self.save()

@@ -365,7 +365,7 @@ class PopupMenu(wx.Menu):
     def onClearOffline(self, evt):
         buddy = self.mw.gui_bl.getSelectedBuddy()
         try:
-            os.unlink(buddy.getOfflineFileName())
+            tc_client.wipeFile(buddy.getOfflineFileName())
         except:
             pass
 
