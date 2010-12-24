@@ -1082,11 +1082,9 @@ class ProtocolMsg_ping(ProtocolMsg):
         #connect
         if not self.buddy.conn_out:
             self.buddy.connect()
+            needed_connect = True
         else:
-            if not self.buddy.conn_in:
-                #the buddies last pong might have been lost
-                #so we send another ping, to be on the safe side
-                self.buddy.sendPing()
+            needed_connect = False
         
         #now we can finally send our pong
         print "(2) PONG >>> %s" % self.address    
@@ -1098,6 +1096,11 @@ class ProtocolMsg_ping(ProtocolMsg):
             self.buddy.sendAddMe()
         self.buddy.sendVersion()
         
+        if not needed_connect and not self.buddy.conn_in:
+            #the buddies last pong might have been lost
+            #so we send another ping, to be on the safe side
+            self.buddy.sendPing()
+
         #after ou pong the buddy should be 
         #able to receive messages
         self.buddy.can_send = True
