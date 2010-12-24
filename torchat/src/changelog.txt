@@ -1,4 +1,5 @@
 svn trunk
+- (security) wipe temporaray files before deleting
 - (security) properly sanitize incoming file names
 - fix receiving of very small files (sometimes got stuck at 0%) 
 

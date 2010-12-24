@@ -89,6 +89,21 @@ def createTemporaryFile(file_name):
     file_handle_tmp = os.fdopen(fd, "w+b")
     print "(2) created temporary file  %s" % file_name_tmp    
     return (file_name_tmp, file_handle_tmp)
+    
+def wipeFile(name):
+    print "(2) wiping file %s" % name
+    handle = open(name, mode="r+b")
+    handle.seek(0, 2) #SEEK_END
+    size = handle.tell()    
+    handle.seek(0)
+    for i in range (0, size):
+        handle.write(chr(random.getrandbits(8)))
+    handle.flush()
+    os.fsync(handle.fileno())
+    handle.close()
+    print "(2) deleting file %s" % name
+    os.unlink(name)
+    
 
 #--- ### Client API        
     
@@ -851,11 +866,10 @@ class FileReceiver:
             self.file_handle_tmp.close()
             if self.file_name_save:
                 self.file_handle_save.close()
-                shutil.move(self.file_name_tmp, self.file_name_save)
-                print "(2) moved temporary file to %s" % self.file_name_save
-            else:
-                os.unlink(self.file_name_tmp)
-                print "(2) deleted temporary file %s" % self.file_name_tmp
+                shutil.copy(self.file_name_tmp, self.file_name_save)
+                print "(2) copied file to %s" % self.file_name_save
+                
+            wipeFile(self.file_name_tmp)
             del self.buddy.bl.file_receiver[self.buddy.address, self.id]
         except:
             pass
