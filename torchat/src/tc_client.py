@@ -801,11 +801,7 @@ class FileReceiver:
             msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
                                                                start))
             msg.send(self.buddy)
-            try:
-                self.guiCallback(self.file_size, start + len(data))
-            except:            
-                # The GUI has not (yet) provided a callback function
-                print "(2) FileReceiver cannot call the GUI"
+            self.guiCallback(self.file_size, start + len(data))
 
         else:
             print "(3) receiver wrong hash %i len: %i" % (start, len(data))
