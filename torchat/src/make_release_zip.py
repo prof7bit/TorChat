@@ -11,7 +11,7 @@ import os
 
 def zipSource(zip_filename, zip_options):
     os.system("zip %s %s doc\\*" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\* -x *offline.txt *.ini *.pyc *.pyo *.log src/buddy-list.txt src/test*" % (zip_options, zip_filename))
+    os.system("zip %s %s src\\* -x torchat_incoming* *offline.txt *.ini *.pyc *.pyo *.log src/buddy-list.txt src/test*" % (zip_options, zip_filename))
     os.system("zip %s %s src\\icons\\*" % (zip_options, zip_filename))
     os.system("zip %s %s src\\Tor\\tor.sh" % (zip_options, zip_filename))
     os.system("zip %s %s src\\Tor\\torrc.txt" % (zip_options, zip_filename))

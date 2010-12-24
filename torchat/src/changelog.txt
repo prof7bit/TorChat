@@ -1,3 +1,7 @@
+svn trunk
+- (security) properly sanitize incoming file names
+- fix receiving of very small files (sometimes got stuck at 0%) 
+
 version 0.9.9.328
 - fixed a flaw in the PING-PONG-sequence, where pong messages went missing 
   and got stuck in the middle of the handshake, this fix now dramatically 

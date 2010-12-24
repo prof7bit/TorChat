@@ -255,10 +255,10 @@ class Buddy(object):
             return
         
         if self.status == STATUS_OFFLINE:
-            if self.count_failed_connects < 4:
+            if self.count_failed_connects < 10:
                 t = random.randrange(50, 150) / 10.0
             else:
-                if self.count_failed_connects < 15:
+                if self.count_failed_connects < 20:
                     t = random.randrange(300, 400)
                 else:
                     # more than an hour. The other one will ping us if it comes
@@ -742,18 +742,39 @@ class FileReceiver:
         self.file_name_save = ""
         tmp = createTemporaryFile(self.file_name)
         self.file_name_tmp, self.file_handle_tmp = tmp
+        print "(2) FileReceiver: created temp file: %s" % self.file_name_tmp
         self.file_size = file_size
         self.next_start = 0
         self.wrong_block_number_count = 0
         self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
         
-        #this will (optionally) point to the file transfer GUI callback
+        #this will (MUST) point to the file transfer GUI callback
         self.guiCallback = None
         
         #the following will result in a call into the GUI
+        #the GUI will then give us a callback function
+        print "(2) FileReceiver: notifying GUI about new file transfer"
         self.buddy.bl.onFileReceive(self)
         
+        #we cannot receive without a GUI (or other piece of code
+        #that provides the callback) because this other code
+        #(usually the GUI) will decide what to do with the file
+        #and will be responsible to close this FileReceiver object
+        #again after it is done. 
+        
+        #therefore now we wait for the callback
+        #function to be provided before we continue.
+        #It CANNOT get stuck in this loop unless the GUI
+        #code is broken. The GUI WILL provide this callback!
+        while self.guiCallback == None:
+            time.sleep(0.1)
+        
+        print "(2) FileReceiver: attached GUI seems ready, initialization done"
+        
     def setCallbackFunction(self, callback):
+        # this must be called from the GUI
+        # to set the callback function so we can notify
+        # the GUI about the progress (or errors)
         self.guiCallback = callback
         
     def data(self, start, hash, data):
@@ -821,6 +842,13 @@ class FileReceiver:
         self.close()
     
     def close(self):
+        # this is called from the GUI (or its replacement)
+        # therefore this FileReceiver object cannot work without
+        # a GUI attached to it (or some other piece of code) that
+        # properly provides and reacts to the callback function
+        # and closes this obect after it is done 
+        # (user clicked save or whatever this GUI or GUI-replacement does)        
+        
         if self.closed:
             return
         try:
@@ -1203,7 +1231,22 @@ class ProtocolMsg_filename(ProtocolMsg):
         block_size, self.file_name = splitLine(text)
         self.file_size = int(file_size)
         self.block_size = int(block_size)
-        self.file_name = self.file_name.decode("utf-8")
+        
+        # the filename is tansmitted in UTF-8 encoding
+        # so we decode the name to unicode (widestring)
+        name = self.file_name.decode("utf-8")
+        # remove all occurences 0x0000
+        name = u"".join([c for c in name if c <> "\u0000"])
+        # remove all path manipulations in front of the name
+        name = os.path.basename(name)
+        # the filename may not start with .
+        # or be completely empty
+        root, ext = os.path.splitext(name)
+        if root == u"":
+            root = u"unnamed"
+            
+        self.file_name = root + ext
+
 
     def execute(self):
         if not self.buddy:

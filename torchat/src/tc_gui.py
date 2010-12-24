@@ -1081,7 +1081,7 @@ class FileTransferWindow(wx.Frame):
         
     def onDataChange(self, total, complete, error_msg=""):
         #will be called from the FileSender/FileReceiver-object in the
-        #protocol module to update gui
+        #protocol module to update gui (called from a non-GUI thread!)
         self.bytes_total = total
         self.bytes_complete = complete
         self.error_msg = error_msg
