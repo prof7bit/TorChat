@@ -3,6 +3,7 @@ svn trunk
 - (security) properly sanitize incoming file names
 - fix receiving of very small files (sometimes got stuck at 0%)
 - remove some CPU hogging in the GUI, also removed annoying flickering
+- configurable fonts and colors (in the .ini file, no GUI config yet)
 
 version 0.9.9.328
 - fixed a flaw in the PING-PONG-sequence, where pong messages went missing 
