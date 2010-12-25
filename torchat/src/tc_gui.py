@@ -732,6 +732,8 @@ class ChatWindow(wx.Frame):
                                    wx.TE_RICH2 |
                                    wx.BORDER_SUNKEN)
         
+        self.setFont()
+        
         sizer.Add(self.txt_out, 0, wx.EXPAND | wx.ALL, 0)
         
         sizer.SetItemMinSize(self.txt_out, (-1,50))
@@ -758,17 +760,30 @@ class ChatWindow(wx.Frame):
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
         self.txt_in.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
         
-        self.drop_target_in = FileDropTarget(self)
-        self.drop_target_out = FileDropTarget(self)
-        self.txt_in.SetDropTarget(self.drop_target_in)
-        self.txt_out.SetDropTarget(self.drop_target_out)
-        
+        # file drop target
+        self.txt_in.SetDropTarget(DropTarget(self))
+
+        # Only the upper part of the chat window will
+        # accept files. The lower part only text and URLs
+        self.txt_out.DragAcceptFiles(False)
         
         if not hidden:
             self.Show()
         
         self.mw.chat_windows.append(self)
         self.onBuddyStatusChanged()
+ 
+    def setFont(self):
+        font = wx.Font(
+            config.getint("gui", "chat_font_size"), 
+            wx.SWISS, 
+            wx.NORMAL,
+            wx.NORMAL, 
+            False, 
+            config.get("gui", "chat_font_name")
+        )
+        self.txt_out.SetFont(font)
+        self.txt_in.SetFont(font)
  
     def updateTitle(self):
         if self.unread == 1:
@@ -937,23 +952,26 @@ class ChatWindow(wx.Frame):
         self.SetIcon(icon)
 
 
-class FileDropTarget(wx.FileDropTarget):
+class DropTarget(wx.FileDropTarget):
     def __init__(self, window):
-       wx.FileDropTarget.__init__(self)
-       self.window = window
+        wx.FileDropTarget.__init__(self)
+        self.window = window
 
     def OnDropFiles(self, x, y, filenames):
-        if len(filenames) != 1:
+        if len(filenames) == 0:
+            return
+        
+        if len(filenames) > 1:
             wx.MessageBox(lang.D_WARN_FILE_ONLY_ONE_MESSAGE, 
                           lang.D_WARN_FILE_ONLY_ONE_TITLE)
             return
 
         file_name = filenames[0]
         
-        # --- begin evel hack
+        # --- begin evil hack
         if not os.path.exists(file_name):
             #sometimes the file name is in utf8
-            #but inside a unicode object! 
+            #but inside a unicode string! 
             #FIXME: must report this bug to wx
             try:
                 file_name_utf8 = ""
@@ -964,7 +982,7 @@ class FileDropTarget(wx.FileDropTarget):
                 tb()
                 wx.MessageBox("there is a strange bug in wx for your platform with wx.FileDropTarget and non-ascii characters in file names")
                 return
-        # --- end evel hack
+        # --- end evil hack
         
         print "(2) file dropped: %s" % file_name
        
@@ -973,8 +991,8 @@ class FileDropTarget(wx.FileDropTarget):
                           lang.D_WARN_BUDDY_OFFLINE_TITLE)
             return
        
-        transfer_window = FileTransferWindow(self.window.mw, self.window.buddy, file_name)
-        
+        FileTransferWindow(self.window.mw, self.window.buddy, file_name)
+
 
 class FileTransferWindow(wx.Frame):
     def __init__(self, main_window, buddy, file_name, receiver=None):

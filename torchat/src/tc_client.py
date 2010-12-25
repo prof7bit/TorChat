@@ -102,7 +102,7 @@ def wipeFile(name):
     handle.flush()
     os.fsync(handle.fileno())
     handle.close()
-    print "(2) deleting wiped file"
+    print "(2) unlinking wiped file"
     os.unlink(name)
     
 

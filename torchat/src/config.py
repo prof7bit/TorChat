@@ -47,6 +47,8 @@ config_defaults = {
     ("gui", "open_main_window_hidden") : 0,
     ("gui", "open_chat_window_hidden") : 0,
     ("gui", "time_stamp_format") : "(%H:%M:%S)",
+    ("gui", "chat_font_name") : "Arial",
+    ("gui", "chat_font_size") : 10,
 }
 
 
