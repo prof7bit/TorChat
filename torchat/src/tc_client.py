@@ -28,8 +28,6 @@ import shutil
 import subprocess
 import tempfile
 import md5
-import traceback
-import inspect
 import config
 import version
 
@@ -44,6 +42,8 @@ STATUS_XA = 4
 CB_TYPE_CHAT = 1
 CB_TYPE_FILE = 2
 CB_TYPE_OFFLINE_SENT = 3
+CB_TYPE_STATUS = 4
+CB_TYPE_LIST_CHANGED = 5
 
 tb = config.tb # the traceback function has moved to config
 tb1 = config.tb1
@@ -110,6 +110,7 @@ def wipeFile(name):
     
 class Buddy(object):
     def __init__(self, address, buddy_list, name="", temporary=False):
+        assert isinstance(buddy_list, BuddyList) #type hint for PyDev
         print "(2) initializing buddy %s, temporary=%s" % (address, temporary)
         self.bl = buddy_list
         self.address = address
@@ -186,8 +187,11 @@ class Buddy(object):
         self.temporary = temporary
     
     def setStatus(self, status):
+        old_status = self.status
         self.status = status
         self.last_status_time = time.time()
+        if status <> old_status:
+            self.bl.onBuddyStatusChange(self)
 
     def addToList(self):
         print "(2) %s.addToList()" % self.address
@@ -439,6 +443,9 @@ class BuddyList(object):
         f.close()
         print "(2) buddy list saved"
         
+        # this is the optimal spot to notify the GUI to redraw the list
+        self.guiCallback(CB_TYPE_LIST_CHANGED, None)
+        
     def addBuddy(self, buddy):
         if self.getBuddyFromAddress(buddy.address) == None:
             self.list.append(buddy)
@@ -562,6 +569,9 @@ class BuddyList(object):
         
     def onFileReceive(self, file_receiver):
         self.guiCallback(CB_TYPE_FILE, file_receiver)
+        
+    def onBuddyStatusChange(self, buddy):
+        self.guiCallback(CB_TYPE_STATUS, buddy)
 
     def stopClient(self):
         stopPortableTor()

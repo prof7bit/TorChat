@@ -1,7 +1,8 @@
 svn trunk
-- (security) wipe temporaray files and sent offline messages before deleting
+- (security) wipe temporary files and sent offline messages before deleting
 - (security) properly sanitize incoming file names
-- fix receiving of very small files (sometimes got stuck at 0%) 
+- fix receiving of very small files (sometimes got stuck at 0%)
+- remove some CPU hogging in the GUI, also removed annoying flickering
 
 version 0.9.9.328
 - fixed a flaw in the PING-PONG-sequence, where pong messages went missing 

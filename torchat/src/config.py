@@ -19,7 +19,6 @@ import ConfigParser
 import traceback
 import inspect
 import translations
-import socket
 import shutil
 
 def isWindows():
@@ -61,6 +60,7 @@ KEEPALIVE_INTERVAL = 120
 SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
 ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
 
+log_writer = None
 
 def isWindows98():
     if isWindows():

@@ -24,7 +24,6 @@ import os
 import time
 import subprocess
 import textwrap
-import threading
 import version
 import dlg_settings
 import translations
@@ -544,6 +543,8 @@ class BuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
         
+        self.onListChanged()
+        
     def blinkBuddy(self, buddy, blink=True):
         name = buddy.getDisplayName()
         for index in xrange(0, self.GetItemCount()):
@@ -557,46 +558,14 @@ class BuddyList(wx.ListCtrl):
                     self.SetItemImage(index, self.il_idx[buddy.status])
         
     def onTimer(self, evt):
-        #first check if there have been any changes to the buddy list
-        sum = ""
-        for buddy in self.bl.list:
-            sum += buddy.address + buddy.name + str(buddy.status)
-        if sum != self.old_sum:
-            #FIXME: This whole method is more than ugly
-            #remove items which are not in list anymore
-            for index in xrange(0, self.GetItemCount()):
-                found = False
-                for buddy in self.bl.list:
-                    if buddy.getDisplayName() == self.GetItemText(index):
-                        found = True
-                        break
-                if not found:
-                    self.DeleteItem(index)
-                    break
-            
-            #add new items to the list or change status icons
-            for buddy in self.bl.list:
-                line = buddy.getDisplayName()
-                index = self.FindItem(0, line)
-                if index == -1:
-                    index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
-                    self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-                self.SetItemImage(index, self.il_idx[buddy.status])  
-            
-            self.old_sum = sum
-
-        #always: show unread messages
         self.blink_phase = not self.blink_phase
-        for buddy in self.bl.list:
-            found = False
-            for window in self.mw.chat_windows:
-                if not window.IsShown() and window.buddy == buddy:
-                    found = True
-                    break
-            if found:
-                self.blinkBuddy(buddy, True)
+        # blink all buddies with hidden chat windows
+        for window in self.mw.chat_windows:
+            if not window.IsShown():
+                self.blinkBuddy(window.buddy, True)
             else:
-                self.blinkBuddy(buddy, False)
+                self.blinkBuddy(window.buddy, False)
+                
     
     def onDClick(self, evt):
         i = self.GetFirstSelected()
@@ -636,6 +605,40 @@ class BuddyList(wx.ListCtrl):
         index = self.GetFirstSelected()
         addr = self.GetItemText(index)[0:16]
         return self.bl.getBuddyFromAddress(addr)
+    
+    def onBuddyStatusChanged(self, buddy):
+        assert isinstance(buddy, tc_client.Buddy)
+        line = buddy.getDisplayName()
+        index = self.FindItem(0, line)
+        self.SetItemImage(index, self.il_idx[buddy.status])        
+        for window in self.mw.chat_windows:
+            if window.buddy == buddy:
+                window.onBuddyStatusChanged()
+                
+    def onListChanged(self):
+        # usually called via callback from the client
+        # whenever the client has saved the changed list
+        
+        # FIXME: This whole method seems a bit ugly
+        
+        # remove items which are not in list anymore
+        for index in xrange(0, self.GetItemCount()):
+            found = False
+            for buddy in self.bl.list:
+                if buddy.getDisplayName() == self.GetItemText(index):
+                    found = True
+                    break
+            if not found:
+                self.DeleteItem(index)
+                break
+        
+        #add new items to the list
+        for buddy in self.bl.list:
+            line = buddy.getDisplayName()
+            index = self.FindItem(0, line)
+            if index == -1:
+                index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
+                self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
 
 
 class StatusSwitchList(wx.Menu):
@@ -746,11 +749,7 @@ class ChatWindow(wx.Frame):
         if notify_offline_sent:
             self.notifyOfflineSent()
             
-        self.timer = wx.Timer(self, -1)
-        self.timer.Start(1000, False)
-        self.onTimer(None)
         
-        self.Bind(wx.EVT_TIMER, self.onTimer)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.txt_out.Bind(wx.EVT_KEY_DOWN, self.onKey)
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
@@ -768,6 +767,7 @@ class ChatWindow(wx.Frame):
             self.Show()
         
         self.mw.chat_windows.append(self)
+        self.onBuddyStatusChanged()
  
     def updateTitle(self):
         if self.unread == 1:
@@ -866,11 +866,6 @@ class ChatWindow(wx.Frame):
                               "myself", 
                               "[%s] %s" % (lang.NOTICE_DELAYED, text))
 
-    def onTimer(self, evt):
-        bmp = getStatusBitmap(self.buddy.status)
-        icon = wx.IconFromBitmap(bmp)
-        self.SetIcon(icon)
-        
     def onURL(self, evt):
         #all URL mouse events trigger this
         if evt.GetMouseEvent().GetEventType() == wx.wxEVT_LEFT_DOWN:
@@ -934,7 +929,11 @@ class ChatWindow(wx.Frame):
     def onEditBuddy(self, evt):
         dialog = DlgEditContact(self, self.mw, self.buddy)
         dialog.ShowModal()
-
+        
+    def onBuddyStatusChanged(self):
+        bmp = getStatusBitmap(self.buddy.status)
+        icon = wx.IconFromBitmap(bmp)
+        self.SetIcon(icon)
 
 
 class FileDropTarget(wx.FileDropTarget):
@@ -1222,6 +1221,14 @@ class MainWindow(wx.Frame):
                                              buddy, 
                                              file_name, 
                                              receiver)
+        
+        if callback_type == tc_client.CB_TYPE_STATUS:
+            # this is called when the status of one of the
+            # buddies has changed. callback_data is the buddy
+            wx.CallAfter(self.gui_bl.onBuddyStatusChanged, callback_data)
+            
+        if callback_type == tc_client.CB_TYPE_LIST_CHANGED:
+            wx.CallAfter(self.gui_bl.onListChanged)
             
     
     def onClose(self, evt):
