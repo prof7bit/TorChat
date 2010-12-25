@@ -639,6 +639,7 @@ class BuddyList(wx.ListCtrl):
             if index == -1:
                 index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
                 self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+                self.onBuddyStatusChanged(buddy)
 
 
 class StatusSwitchList(wx.Menu):
