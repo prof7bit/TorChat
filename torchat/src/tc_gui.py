@@ -543,8 +543,9 @@ class BuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
         
-        self.SetBackgroundColour(config.get("gui", "color_text_back"))
-        self.SetForegroundColour(config.get("gui", "color_text_fore"))
+        if config.getint("gui", "color_text_use_system_colors") == 0:
+            self.SetBackgroundColour(config.get("gui", "color_text_back"))
+            self.SetForegroundColour(config.get("gui", "color_text_fore"))
         
         self.onListChanged()
         
@@ -789,10 +790,11 @@ class ChatWindow(wx.Frame):
         )
         self.txt_out.SetFont(font)
         self.txt_in.SetFont(font)
-        self.txt_out.SetBackgroundColour(config.get("gui", "color_text_back"))
-        self.txt_in.SetBackgroundColour(config.get("gui", "color_text_back"))
-        self.txt_out.SetForegroundColour(config.get("gui", "color_text_fore"))
-        self.txt_out.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
+        if config.getint("gui", "color_text_use_system_colors") == 0:
+            self.txt_out.SetBackgroundColour(config.get("gui", "color_text_back"))
+            self.txt_in.SetBackgroundColour(config.get("gui", "color_text_back"))
+            self.txt_out.SetForegroundColour(config.get("gui", "color_text_fore"))
+            self.txt_out.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
  
     def updateTitle(self):
         if self.unread == 1:
@@ -817,7 +819,10 @@ class ChatWindow(wx.Frame):
         self.txt_in.write("%s " % time.strftime(config.get("gui", "time_stamp_format")))
         self.txt_in.SetDefaultStyle(wx.TextAttr(color))    
         self.txt_in.write("%s: " % name)
-        self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
+        if config.getint("gui", "color_text_use_system_colors") == 0:
+            self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
+        else:
+            self.txt_in.SetDefaultStyle(wx.TextAttr(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)))
         self.txt_in.write("%s\n" % text)
         
         # workaround scroll bug on windows 

@@ -52,6 +52,7 @@ config_defaults = {
     ("gui", "color_nick_buddy") : "#c00000",
     ("gui", "color_text_back") : "#ffffff",
     ("gui", "color_text_fore") : "#000000",
+    ("gui", "color_text_use_system_colors") : 1,
     ("gui", "chat_font_name") : "Arial",
     ("gui", "chat_font_size") : 10,
 }
