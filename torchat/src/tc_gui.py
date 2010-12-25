@@ -543,6 +543,9 @@ class BuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
         
+        self.SetBackgroundColour(config.get("gui", "color_text_back"))
+        self.SetForegroundColour(config.get("gui", "color_text_fore"))
+        
         self.onListChanged()
         
     def blinkBuddy(self, buddy, blink=True):
@@ -732,8 +735,8 @@ class ChatWindow(wx.Frame):
                                    wx.TE_RICH2 |
                                    wx.BORDER_SUNKEN)
         
-        self.setFont()
-        
+        self.setFontAndColor()
+
         sizer.Add(self.txt_out, 0, wx.EXPAND | wx.ALL, 0)
         
         sizer.SetItemMinSize(self.txt_out, (-1,50))
@@ -744,7 +747,7 @@ class ChatWindow(wx.Frame):
         om = self.buddy.getOfflineMessages()
         if om:
             om = "[%s]\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
-            self.writeColored((0,0,192), "myself", om)
+            self.writeColored(config.get("gui", "color_nick_myself"), "myself", om)
         
         if message != "":
             self.process(message)
@@ -767,13 +770,15 @@ class ChatWindow(wx.Frame):
         # accept files. The lower part only text and URLs
         self.txt_out.DragAcceptFiles(False)
         
+        
+        
         if not hidden:
             self.Show()
         
         self.mw.chat_windows.append(self)
         self.onBuddyStatusChanged()
  
-    def setFont(self):
+    def setFontAndColor(self):
         font = wx.Font(
             config.getint("gui", "chat_font_size"), 
             wx.SWISS, 
@@ -784,6 +789,10 @@ class ChatWindow(wx.Frame):
         )
         self.txt_out.SetFont(font)
         self.txt_in.SetFont(font)
+        self.txt_out.SetBackgroundColour(config.get("gui", "color_text_back"))
+        self.txt_in.SetBackgroundColour(config.get("gui", "color_text_back"))
+        self.txt_out.SetForegroundColour(config.get("gui", "color_text_fore"))
+        self.txt_out.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
  
     def updateTitle(self):
         if self.unread == 1:
@@ -804,12 +813,11 @@ class ChatWindow(wx.Frame):
         return t[:-19]
     
     def writeColored(self, color, name, text):
-        self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(128, 128, 128)))    
+        self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_time_stamp")))    
         self.txt_in.write("%s " % time.strftime(config.get("gui", "time_stamp_format")))
-        red, green, blue = color
-        self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(red, green, blue)))    
+        self.txt_in.SetDefaultStyle(wx.TextAttr(color))    
         self.txt_in.write("%s: " % name)
-        self.txt_in.SetDefaultStyle(wx.TextAttr(wx.Color(0, 0, 0)))
+        self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
         self.txt_in.write("%s\n" % text)
         
         # workaround scroll bug on windows 
@@ -840,7 +848,7 @@ class ChatWindow(wx.Frame):
     def notifyOfflineSent(self):
         #all should be unicode here
         message = "[%s]" % lang.NOTICE_DELAYED_MSG_SENT
-        self.writeColored((0,0,192), "myself", message)
+        self.writeColored(config.get("gui", "color_nick_myself"), "myself", message)
         self.notify("to %s" % self.buddy.address, message)
     
     def process(self, message):
@@ -849,7 +857,7 @@ class ChatWindow(wx.Frame):
             name = self.buddy.name
         else:
             name = self.buddy.address
-        self.writeColored((192,0,0), name, message)
+        self.writeColored(config.get("gui", "color_nick_buddy"), name, message)
         self.notify(name, message)
         
     def onActivate(self, evt):
@@ -873,12 +881,12 @@ class ChatWindow(wx.Frame):
         wx.CallAfter(self.txt_out.SetValue, "")
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
             self.buddy.sendChatMessage(text)
-            self.writeColored((0,0,192), 
+            self.writeColored(config.get("gui", "color_nick_myself"), 
                               "myself", 
                               text)
         else:
             self.buddy.storeOfflineChatMessage(text)
-            self.writeColored((0,0,192), 
+            self.writeColored(config.get("gui", "color_nick_myself"), 
                               "myself", 
                               "[%s] %s" % (lang.NOTICE_DELAYED, text))
 

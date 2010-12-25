@@ -47,6 +47,11 @@ config_defaults = {
     ("gui", "open_main_window_hidden") : 0,
     ("gui", "open_chat_window_hidden") : 0,
     ("gui", "time_stamp_format") : "(%H:%M:%S)",
+    ("gui", "color_time_stamp") : "#808080",
+    ("gui", "color_nick_myself") : "#0000c0",
+    ("gui", "color_nick_buddy") : "#c00000",
+    ("gui", "color_text_back") : "#ffffff",
+    ("gui", "color_text_fore") : "#000000",
     ("gui", "chat_font_name") : "Arial",
     ("gui", "chat_font_size") : 10,
 }
