@@ -61,8 +61,8 @@ config_defaults = {
 
 COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
 
-DEAD_CONNECTION_TIMEOUT = 360
-KEEPALIVE_INTERVAL = 120
+DEAD_CONNECTION_TIMEOUT = 90
+KEEPALIVE_INTERVAL = 60
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
 ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
