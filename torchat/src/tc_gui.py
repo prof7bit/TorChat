@@ -298,9 +298,9 @@ class PopupMenu(wx.Menu):
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAdd, item)
 
-        #ask bernd
+        #ask support
         
-        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ASK_AUTHOR % config.AUTHORS_NAME)
+        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ASK_AUTHOR % config.get("branding", "support_name"))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAskAuthor, item)
 
@@ -386,8 +386,8 @@ class PopupMenu(wx.Menu):
                       lang.ABOUT_TITLE)
 
     def onAskAuthor(self, evt):
-        if self.mw.buddy_list.getBuddyFromAddress(config.AUTHORS_ID):
-            wx.MessageBox(lang.DEC_MSG_ALREADY_ON_LIST % config.AUTHORS_NAME)
+        if self.mw.buddy_list.getBuddyFromAddress(config.get("branding", "support_id")):
+            wx.MessageBox(lang.DEC_MSG_ALREADY_ON_LIST % config.get("branding", "support_name"))
         else:
             dialog = DlgEditContact(self.mw, self.mw, add_author=True)
             dialog.ShowModal()
@@ -447,8 +447,8 @@ class DlgEditContact(wx.Dialog):
             sizer.Add(self.txt_intro, (row, 1), (1, 2))
         
         if add_author:
-            self.txt_address.SetValue(config.AUTHORS_ID)
-            self.txt_name.SetValue(config.AUTHORS_NAME)
+            self.txt_address.SetValue(config.get("branding", "support_id"))
+            self.txt_name.SetValue(config.get("branding", "support_name"))
         
         #buttons
         row += 1
@@ -1162,7 +1162,7 @@ class FileTransferWindow(wx.Frame):
     
 class MainWindow(wx.Frame):
     def __init__(self, socket=None):
-        wx.Frame.__init__(self, None, -1, "TorChat", size=(250,350))
+        wx.Frame.__init__(self, None, -1, "TorChat", size=(260,350))
         self.conns = []
         self.chat_windows = []
         self.notification_window = None
@@ -1260,8 +1260,13 @@ class MainWindow(wx.Frame):
             wx.CallAfter(self.gui_bl.onBuddyStatusChanged, callback_data)
             
         if callback_type == tc_client.CB_TYPE_LIST_CHANGED:
-            wx.CallAfter(self.gui_bl.onListChanged)
-            
+            try:
+                wx.CallAfter(self.gui_bl.onListChanged)
+            except:
+                # might be too early and there is no gui_bl object yet.
+                # But this does not matter because gui_bl itself will
+                # call this at least once after initialization.
+                pass
     
     def onClose(self, evt):
         self.Show(False)

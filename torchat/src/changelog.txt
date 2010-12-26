@@ -4,6 +4,8 @@ svn trunk
 - fix receiving of very small files (sometimes got stuck at 0%)
 - remove some CPU hogging in the GUI, also removed annoying flickering
 - configurable fonts and colors (in the .ini file, no GUI config yet)
+- configurable branding ("Ask Bernd" name and ID can now be pre-configured
+  in torchat.ini for easier adaption to different usage scenarios)
 
 version 0.9.9.328
 - fixed a flaw in the PING-PONG-sequence, where pong messages went missing 

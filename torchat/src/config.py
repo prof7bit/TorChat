@@ -55,11 +55,10 @@ config_defaults = {
     ("gui", "color_text_use_system_colors") : 1,
     ("gui", "chat_font_name") : "Arial",
     ("gui", "chat_font_size") : 10,
+    ("branding", "support_id") : "utvrla6mjdypbyw6",
+    ("branding", "support_name") : "Bernd, author of TorChat",
 }
 
-
-AUTHORS_ID = "utvrla6mjdypbyw6"
-AUTHORS_NAME = "Bernd"
 COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 360
