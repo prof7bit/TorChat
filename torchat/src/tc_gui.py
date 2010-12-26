@@ -549,6 +549,13 @@ class BuddyList(wx.ListCtrl):
         
         self.onListChanged()
 
+    def setStatusIcon(self, index, image_idx):
+        # we also store the image index in the ItemData because
+        # we can then avoid setting it twice and avoid flickering
+        old = self.GetItemData(index)
+        if image_idx <> old:
+            self.SetItemImage(index, image_idx)
+            self.SetItemData(index, image_idx)
 
     def blinkBuddy(self, buddy, blink=True):
         name = buddy.getDisplayName()
@@ -556,12 +563,12 @@ class BuddyList(wx.ListCtrl):
             if name == self.GetItemText(index):
                 if blink:
                     if self.blink_phase:
-                        self.SetItemImage(index, self.il_idx[100])
+                        self.setStatusIcon(index, self.il_idx[100])
                     else:
-                        self.SetItemImage(index, self.il_idx[buddy.status])
+                        self.setStatusIcon(index, self.il_idx[buddy.status])
                 else:
                     # FIXME: this one line causes constant flickering
-                    self.SetItemImage(index, self.il_idx[buddy.status])
+                    self.setStatusIcon(index, self.il_idx[buddy.status])
         
     def onTimer(self, evt):
         self.blink_phase = not self.blink_phase
