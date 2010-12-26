@@ -30,7 +30,7 @@ def clean(dir):
     os.system ("del %s\\*.log" % dir)
     os.system ("del %s\\*.tmp" % dir)
     os.system ("del %s\\*~" % dir)
-    os.system ("del %s\\DEADOE" % dir)
+    os.system ("del %s\\DEADJOE" % dir)
 
 dir = os.getcwd()
 try:
