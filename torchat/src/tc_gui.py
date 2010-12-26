@@ -548,7 +548,8 @@ class BuddyList(wx.ListCtrl):
             self.SetForegroundColour(config.get("gui", "color_text_fore"))
         
         self.onListChanged()
-        
+
+
     def blinkBuddy(self, buddy, blink=True):
         name = buddy.getDisplayName()
         for index in xrange(0, self.GetItemCount()):
@@ -559,6 +560,7 @@ class BuddyList(wx.ListCtrl):
                     else:
                         self.SetItemImage(index, self.il_idx[buddy.status])
                 else:
+                    # FIXME: this one line causes constant flickering
                     self.SetItemImage(index, self.il_idx[buddy.status])
         
     def onTimer(self, evt):
@@ -1056,6 +1058,8 @@ class FileTransferWindow(wx.Frame):
             self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, lang.BTN_SAVE_AS)
             grid_sizer.Add(self.btn_save, (2, 3))
             self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
+            self.SetDefaultItem(self.btn_save)
+            self.btn_save.SetFocus()
         else:
             grid_sizer.Add(self.btn_cancel, (2, 3))
             
