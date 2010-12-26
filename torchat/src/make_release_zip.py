@@ -23,11 +23,25 @@ def zipWindowsBin(zip_filename, zip_options):
     os.system("zip %s %s bin\\Tor\\* -x *.log" % (zip_options, zip_filename))
     os.system("zip %s %s bin\\icons\\*" % (zip_options, zip_filename))
 
+def clean(dir):
+    print "cleaning %s" % dir
+    os.system ("del %s\\*.pyo" % dir)
+    os.system ("del %s\\*.pyc" % dir)
+    os.system ("del %s\\*.log" % dir)
+    os.system ("del %s\\*.tmp" % dir)
+    os.system ("del %s\\*~" % dir)
+    os.system ("del %s\\DEADOE" % dir)
+
 dir = os.getcwd()
 try:
     os.mkdir("../release")
 except:
     pass
+
+# clean up the src directory
+clean(".")
+clean("translations")
+clean("SocksiPy")
 
 # build the .exe with pyinstaller
 os.system("c:\\pyinst\\Build.py torchat_windows.spec")
