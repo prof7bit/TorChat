@@ -304,14 +304,7 @@ class Buddy(object):
             return
         
         self.keepAlive()
-        
-        if self.status != STATUS_OFFLINE and \
-            time.time() - self.last_status_time > config.DEAD_CONNECTION_TIMEOUT:
-            #long time without status is indicating a broken link
-            #disconnect to give it a chance to reconnect
-            print "(2) %s reveived no status update for a long time. disconnecting" % self.address
-            self.disconnect() #this will trigger outConnectionFail()
-        
+                
         #only restart the timer automatically if we are connected (or handshaking).
         #else it will be restarted by outConnectionFail() / outConnectionSuccess()    
         if self.status != STATUS_OFFLINE:
@@ -324,8 +317,8 @@ class Buddy(object):
         else:
             if self.conn_in:
                 self.sendStatus()
-            #else:
-            #    self.sendPing()
+            else:
+                self.sendPing()
     
     def sendPing(self):
         print "(2) PING >>> %s" % self.address
@@ -1111,7 +1104,10 @@ class ProtocolMsg_ping(ProtocolMsg):
             #so we send another ping, to be on the safe side
             self.buddy.sendPing()
 
-        #after ou pong the buddy should be 
+        #avoid timeout of inconnection
+        self.connection.last_active = time.time() 
+
+        #after our pong the buddy should be 
         #able to receive messages
         self.buddy.can_send = True
         
@@ -1189,6 +1185,9 @@ class ProtocolMsg_status(ProtocolMsg):
                 self.buddy.setStatus(STATUS_AWAY)
             if self.text == "xa":
                 self.buddy.setStatus(STATUS_XA)
+                
+            #avoid timeout of in-connection
+            self.connection.last_active = time.time()
         
 
 class ProtocolMsg_add_me(ProtocolMsg):
@@ -1465,10 +1464,10 @@ class InConnection:
         self.socket = socket
         self.last_ping_address = "" #used to detect mass pings with fake adresses
         self.last_ping_cookie = "" #used to detect pings with fake cookies
+        self.last_active = time.time()
         self.receiver = Receiver(self, True)
-        self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
         self.started = True
-        self.timer.start()
+        self.startTimer()
         
     def send(self, text):
         try:
@@ -1502,13 +1501,16 @@ class InConnection:
         if self.buddy:
             self.buddy.conn_in = None
 
+    def startTimer(self):
+        self.timer = threading.Timer(30, self.onTimeout)
+        self.timer.start()
+        
     def onTimeout(self):
         #if after this long time the connection is still unused, close it.
-        if self.buddy and self.buddy.conn_in == self:
-            self.timer = threading.Timer(config.DEAD_CONNECTION_TIMEOUT, self.onTimeout)
-            self.timer.start()
+        if time.time() - self.last_active < config.DEAD_CONNECTION_TIMEOUT:
+            self.startTimer()
         else:
-            print "(2) closing unused in-connection (%s, %s)" % (self.last_ping_address, self)
+            print "(2) closing unused in-connection for %s at %i)" % (self.last_ping_address, time.time())
             self.buddy = None
             self.close()
             print "(2) have now %i incoming connections" % len(self.bl.listener.conns)

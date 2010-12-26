@@ -61,7 +61,7 @@ config_defaults = {
 
 COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
 
-DEAD_CONNECTION_TIMEOUT = 90
+DEAD_CONNECTION_TIMEOUT = 150
 KEEPALIVE_INTERVAL = 60
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
