@@ -109,12 +109,15 @@ def wipeFile(name):
 #--- ### Client API        
     
 class Buddy(object):
-    def __init__(self, address, buddy_list, name="", temporary=False):
+    def __init__(self, address, buddy_list, name=u"", temporary=False):
         assert isinstance(buddy_list, BuddyList) #type hint for PyDev
         print "(2) initializing buddy %s, temporary=%s" % (address, temporary)
         self.bl = buddy_list
         self.address = address
         self.name = name
+        self.profile_name = u""
+        self.profile_text = u""
+        self.profile_avatar = None
         self.random1 = str(random.getrandbits(256))
         self.random2 = str(random.getrandbits(256))
         self.conn_out = None
@@ -1188,6 +1191,29 @@ class ProtocolMsg_status(ProtocolMsg):
                 
             #avoid timeout of in-connection
             self.connection.last_active = time.time()
+            
+class ProtocolMsg_profile_name(ProtocolMsg):
+    command = "profile_name"
+    def execute(self):
+        if self.buddy:
+            print "(2) received name from %s: %s" % (self.buddy.address, self.text)
+            self.buddy.profile_name = self.text.decode("UTF-8")
+        
+
+class ProtocolMsg_profile_text(ProtocolMsg):
+    command = "profile_text"
+    def execute(self):
+        if self.buddy:
+            print "(2) received profile text from %s: %s" % (self.buddy.address, self.text)
+            self.buddy.profile_text = self.text.decode("UTF-8")
+        
+
+class ProtocolMsg_profile_avatar(ProtocolMsg):
+    command = "profile_avatar"
+    def execute(self):
+        if self.buddy:
+            print "(2) received avatar from %s" % self.buddy.address
+            # not yet implemented, ignoring
         
 
 class ProtocolMsg_add_me(ProtocolMsg):
