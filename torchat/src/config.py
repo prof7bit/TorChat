@@ -159,13 +159,17 @@ def readConfig():
     config = ConfigParser.ConfigParser()
     
     #remove the BOM (notepad saves with BOM)
-    f = file(file_name,'r+b')
-    header = f.read(3)
-    if header == "\xef\xbb\xbf":   
-        print "found UTF8 BOM in torchat.ini, removing it"
-        f.seek(0)
-        f.write("\x20\x0d\x0a")
-    f.close()
+    if os.path.exists(file_name):
+        f = file(file_name,'r+b')
+        try:
+            header = f.read(3)
+            if header == "\xef\xbb\xbf":   
+                print "found UTF8 BOM in torchat.ini, removing it"
+                f.seek(0)
+                f.write("\x20\x0d\x0a")
+        except:
+            pass
+        f.close()
     
     try:
         config.read(file_name)
@@ -190,8 +194,19 @@ def get(section, option):
     if not config.has_option(section, option):
         value = config_defaults[section, option]
         set(section, option, value)
-    value = config.get(section, option, True).decode("UTF-8")
-    value = value.rstrip(" \"'").lstrip(" \"'")
+    value = config.get(section, option, True)
+    if type(value) == str:
+        try:
+            value = value.decode("UTF-8")
+            value = value.rstrip(" \"'").lstrip(" \"'")
+        except:
+            print "*** config file torchat.ini is not UTF-8 ***"
+            print "*** this will most likely break things   ***"
+    elif type(value) == int:
+        value = str(value)
+    elif type(value) == float:
+        value = str(value)
+            
     return value
 
 def getint(section, option):

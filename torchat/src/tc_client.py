@@ -997,7 +997,7 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
     #I have to meditate over this for a while.
     def execute(self):
         if self.buddy:
-            print "(3) %s says it can't handle '%s'" % (self.buddy.address, self.text)
+            print "(2) %s says it can't handle '%s'" % (self.buddy.address, self.text)
 
 class ProtocolMsg_ping(ProtocolMsg):
     command = "ping"

@@ -729,7 +729,7 @@ class BuddyToolTip(wx.PopupWindow):
         text =  "%s\n%s" % (self.buddy.address, name)
         
         if self.buddy.profile_text <> u"":
-            text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 40).replace("<br>", os.linesep)) 
+            text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 40)) 
         
         if self.buddy.conn_in:
             text = "%s\n\nClient: %s %s" % (text, self.buddy.client, self.buddy.version)
