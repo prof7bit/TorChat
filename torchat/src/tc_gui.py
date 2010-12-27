@@ -658,6 +658,10 @@ class BuddyList(wx.ListCtrl):
             if window.buddy == buddy:
                 window.onBuddyStatusChanged()
                 
+        # if a tooltip for this buddy is currently shown then refresh it
+        if index == self.tool_tip_index:
+            self.openToolTip(index)
+                
     def onListChanged(self):
         # usually called via callback from the client
         # whenever the client has saved the changed list
@@ -718,7 +722,23 @@ class BuddyToolTip(wx.PopupWindow):
         sizer = wx.BoxSizer()
         self.panel.SetSizer(sizer)
         
-        text = self.buddy.address + "\n" + self.buddy.name
+        name = self.buddy.name
+        if self.buddy.profile_name <> u"":
+            name = self.buddy.profile_name
+        
+        text =  "%s\n%s" % (self.buddy.address, name)
+        
+        if self.buddy.profile_text <> u"":
+            text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 40).replace("<br>", os.linesep)) 
+        
+        if self.buddy.conn_in:
+            text = "%s\n\nClient: %s %s" % (text, self.buddy.client, self.buddy.version)
+        else:
+            if self.buddy.status == tc_client.STATUS_HANDSHAKE:
+                text = "%s\n\nConnected, awaiting return connection..." % text
+            else:
+                text = "%s\n\nBuddy is offline" % text
+        
         
         self.label = wx.StaticText(self.panel)
         self.label.SetLabel(text)
@@ -734,8 +754,7 @@ class BuddyToolTip(wx.PopupWindow):
         self.Show()
     
     def setPos(self, pos):
-        w,h = self.GetSize()
-        self.SetPosition((pos.x - w/3, pos.y + 10))
+        self.SetPosition((pos.x +10, pos.y + 10))
 
 
 class StatusSwitchList(wx.Menu):

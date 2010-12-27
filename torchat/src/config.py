@@ -57,6 +57,8 @@ config_defaults = {
     ("gui", "chat_font_size") : 10,
     ("branding", "support_id") : "utvrla6mjdypbyw6",
     ("branding", "support_name") : "Bernd, author of TorChat",
+    ("profile", "name") : "",
+    ("profile", "text") : "",
 }
 
 COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
@@ -155,7 +157,23 @@ def readConfig():
         os.mkdir(dir)        
     file_name = dir + "/torchat.ini"
     config = ConfigParser.ConfigParser()
-    config.read(file_name)
+    
+    #remove the BOM (notepad saves with BOM)
+    f = file(file_name,'r+b')
+    header = f.read(3)
+    if header == "\xef\xbb\xbf":   
+        print "found UTF8 BOM in torchat.ini, removing it"
+        f.seek(0)
+        f.write("\x20\x0d\x0a")
+    f.close()
+    
+    try:
+        config.read(file_name)
+    except ConfigParser.MissingSectionHeaderError:
+        print ""
+        print "*** torchat.ini must be saved as UTF-8 ***"
+        sys.exit()
+
     #try to read all known options once. This will add 
     #all the missing options to the config file 
     for section, option in config_defaults:
@@ -172,7 +190,7 @@ def get(section, option):
     if not config.has_option(section, option):
         value = config_defaults[section, option]
         set(section, option, value)
-    value = str(config.get(section, option, True))
+    value = config.get(section, option, True).decode("UTF-8")
     value = value.rstrip(" \"'").lstrip(" \"'")
     return value
 
@@ -358,3 +376,4 @@ def main():
     
     #now switch to the configured translation
     importLanguage()
+    

@@ -1,6 +1,7 @@
 import os
 import version_cached
 
+NAME = "TorChat"
 VERSION_MAJOR = "0.9.9"
 SVN_OFFSET = 0
 

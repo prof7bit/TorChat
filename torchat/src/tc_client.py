@@ -124,6 +124,7 @@ class Buddy(object):
         self.conn_in = None
         self.status = STATUS_OFFLINE
         self.can_send = False
+        self.client = ""
         self.version = ""
         self.timer = False
         self.last_status_time = 0
@@ -348,8 +349,18 @@ class Buddy(object):
                 msg.send(self)
             else:
                 print "(2) %s.sendStatus(): still handshaking, not sending status" % self.address
-        else:
-            print "(2) %s.sendStatus(): not connected!" % self.address
+            
+    def sendProfile(self):
+        print "(2) %s.sendProfile()" % self.address
+        if self.conn_out != None:
+            name = config.get("profile", "name")
+            if name <> "":
+                msg = ProtocolMsg(self.bl, None, "profile_name", name.encode("UTF-8"))
+                msg.send(self)
+            text = config.get("profile", "text")
+            if text <> "":
+                msg = ProtocolMsg(self.bl, None, "profile_text", text.encode("UTF-8"))
+                msg.send(self)
             
         
     def sendAddMe(self):
@@ -362,6 +373,8 @@ class Buddy(object):
             msg.send(self)
         
     def sendVersion(self):
+        msg = ProtocolMsg(self.bl, None, "client", version.NAME)
+        msg.send(self)
         msg = ProtocolMsg(self.bl, None, "version", version.VERSION)
         msg.send(self)
 
@@ -1097,10 +1110,15 @@ class ProtocolMsg_ping(ProtocolMsg):
         self.buddy.resetConnectionFailCounter()
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
-        self.buddy.sendStatus()
+        
+        self.buddy.sendVersion()
+        self.buddy.sendProfile()
         if self.buddy in self.bl.list:
             self.buddy.sendAddMe()
-        self.buddy.sendVersion()
+        
+        #send status as the last message because the other 
+        #client will update the GUI only after status messages
+        self.buddy.sendStatus()
         
         if not needed_connect and not self.buddy.conn_in:
             #the buddies last pong might have been lost
@@ -1157,6 +1175,16 @@ class ProtocolMsg_pong(ProtocolMsg):
             print "(1) !!! Are we trying to run a second instance with the same ID?"
 
 
+class ProtocolMsg_client(ProtocolMsg):
+    command = "client"
+    def parse(self):
+        self.client = self.text
+        
+    def execute(self):
+        if self.buddy:
+            print "(2) %s is using %s" % (self.buddy.address, self.client)
+            self.buddy.client = self.client
+
 class ProtocolMsg_version(ProtocolMsg):
     command = "version"
     def parse(self):
@@ -1196,16 +1224,16 @@ class ProtocolMsg_profile_name(ProtocolMsg):
     command = "profile_name"
     def execute(self):
         if self.buddy:
-            print "(2) received name from %s: %s" % (self.buddy.address, self.text)
             self.buddy.profile_name = self.text.decode("UTF-8")
+            print "(2) received name from %s: %s" % (self.buddy.address, self.buddy.profile_name)
         
 
 class ProtocolMsg_profile_text(ProtocolMsg):
     command = "profile_text"
     def execute(self):
         if self.buddy:
-            print "(2) received profile text from %s: %s" % (self.buddy.address, self.text)
             self.buddy.profile_text = self.text.decode("UTF-8")
+            print "(2) received profile text from %s: %s" % (self.buddy.address, self.buddy.profile_text)
         
 
 class ProtocolMsg_profile_avatar(ProtocolMsg):
