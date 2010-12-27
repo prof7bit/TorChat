@@ -1467,7 +1467,6 @@ class InConnection:
         self.last_active = time.time()
         self.receiver = Receiver(self, True)
         self.started = True
-        self.startTimer()
         
     def send(self, text):
         try:
@@ -1495,25 +1494,11 @@ class InConnection:
         except:
             pass
         self.started = False
-        print "(2) in-connection closing (%s, %s)" % (self.last_ping_address, self)
+        print "(2) in-connection closing %s" % self.last_ping_address
         if self in self.bl.listener.conns:
             self.bl.listener.conns.remove(self)
         if self.buddy:
             self.buddy.conn_in = None
-
-    def startTimer(self):
-        self.timer = threading.Timer(30, self.onTimeout)
-        self.timer.start()
-        
-    def onTimeout(self):
-        #if after this long time the connection is still unused, close it.
-        if time.time() - self.last_active < config.DEAD_CONNECTION_TIMEOUT:
-            self.startTimer()
-        else:
-            print "(2) closing unused in-connection for %s at %i)" % (self.last_ping_address, time.time())
-            self.buddy = None
-            self.close()
-            print "(2) have now %i incoming connections" % len(self.bl.listener.conns)
 
 
 class OutConnection(threading.Thread):
@@ -1591,6 +1576,7 @@ class Listener(threading.Thread):
         self.conns = []
         self.socket = socket
         self.start()
+        self.startTimer()
 
     def run(self):
         self.running = True
@@ -1617,6 +1603,22 @@ class Listener(threading.Thread):
             self.socket.close()
         except:
             pass
+
+    def startTimer(self):
+        self.timer = threading.Timer(30, self.onTimer)
+        self.timer.start()
+
+    def onTimer(self):
+        for conn in self.conns:
+            if time.time() - conn.last_active > config.DEAD_CONNECTION_TIMEOUT:
+                if conn.buddy:
+                    print "(2) conn_in timeout: disconnecting %s" % conn.buddy.address
+                    buddy.disconnect()
+                else:
+                    print "(2) closing unused in-connection from %s" % conn.last_ping_address
+                    conn.close()
+                print "(2) have now %i incoming connections" % len(self.conns)
+        self.startTimer()
 
 
 def tryBindPort(interface, port):
