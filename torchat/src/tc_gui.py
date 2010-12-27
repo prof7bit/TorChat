@@ -517,6 +517,10 @@ class BuddyList(wx.ListCtrl):
         self.InsertColumn(0, "buddy")
         
         self.r_down = False
+        self.last_mouse_time = time.time()
+        self.tool_tip = None
+        self.tool_tip_index = -1
+        self.has_mouse = False
         
         self.il = wx.ImageList(16, 16)
         self.il_idx = {}
@@ -542,6 +546,9 @@ class BuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_LEFT_DCLICK, self.onDClick)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.onRDown)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.onMouse)
+        self.Bind(wx.EVT_ENTER_WINDOW, self.onMouseEnter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.onMouseLeave)
         
         if config.getint("gui", "color_text_use_system_colors") == 0:
             self.SetBackgroundColour(config.get("gui", "color_text_back"))
@@ -579,6 +586,29 @@ class BuddyList(wx.ListCtrl):
             else:
                 self.blinkBuddy(window.buddy, False)
                 
+        # tooltips:
+        if time.time() - self.last_mouse_time > 0.5:
+            index, flags = self.HitTest(self.ScreenToClient(wx.GetMousePosition()))
+            if index == -1 or not self.has_mouse:
+                # not over any item (anymore)
+                self.closeToolTip()
+                
+            else:
+                # hovering over item
+                if self.tool_tip == None:
+                    self.openToolTip(index)
+    
+    def closeToolTip(self):
+        if self.tool_tip <> None:
+            self.tool_tip.Hide()
+            self.tool_tip.Close()
+            self.tool_tip = None
+            self.tool_tip_index = -1
+    
+    def openToolTip(self, index):
+        self.closeToolTip()
+        self.tool_tip = BuddyToolTip(self, index)
+        self.tool_tip_index = index
     
     def onDClick(self, evt):
         i = self.GetFirstSelected()
@@ -653,6 +683,59 @@ class BuddyList(wx.ListCtrl):
                 index = self.InsertImageStringItem(sys.maxint, line, self.il_idx[tc_client.STATUS_OFFLINE])
                 self.SetColumnWidth(0, wx.LIST_AUTOSIZE)
                 self.onBuddyStatusChanged(buddy)
+
+    def onMouse(self, evt):
+        self.has_mouse = True
+        self.last_mouse_time = time.time()
+        if self.tool_tip <> None:
+            index, flags = self.HitTest(self.ScreenToClient(wx.GetMousePosition()))
+            if index == -1:
+                self.closeToolTip()
+            elif index <> self.tool_tip_index:
+                self.openToolTip(index)
+            else:
+                self.tool_tip.setPos(wx.GetMousePosition())
+        evt.Skip()
+        
+    def onMouseEnter(self, evt):
+        self.has_mouse = True
+        
+    def onMouseLeave(self, evt):
+        self.has_mouse = False
+        
+    def getBuddyFromIndex(self, index):
+        name = self.GetItemText(index)
+        for buddy in self.bl.list:
+            if buddy.getDisplayName() == name:
+                return buddy
+
+class BuddyToolTip(wx.PopupWindow):
+    def __init__(self, list, index):
+        wx.PopupWindow.__init__(self, list)
+        self.buddy = list.getBuddyFromIndex(index)
+        
+        self.panel = wx.Panel(self, style=wx.RAISED_BORDER)
+        sizer = wx.BoxSizer()
+        self.panel.SetSizer(sizer)
+        
+        text = self.buddy.address + "\n" + self.buddy.name
+        
+        self.label = wx.StaticText(self.panel)
+        self.label.SetLabel(text)
+        sizer.Add(self.label, 0, wx.ALL, 5)
+        
+        # sizer for whole window, containing the panel
+        wsizer = wx.BoxSizer()
+        wsizer.Add(self.panel, 0, wx.ALL, 0)
+        self.SetSizerAndFit(wsizer)
+        self.Layout()
+        
+        self.setPos(wx.GetMousePosition())
+        self.Show()
+    
+    def setPos(self, pos):
+        w,h = self.GetSize()
+        self.SetPosition((pos.x - w/3, pos.y + 10))
 
 
 class StatusSwitchList(wx.Menu):
