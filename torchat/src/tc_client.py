@@ -153,6 +153,7 @@ class Buddy(object):
     def onOutConnectionFail(self):
         print "(2) %s.onOutConnectionFail()" % self.address
         self.count_failed_connects += 1
+        self.can_send = False
         self.startTimer()
         
     def onInConnectionFail(self):
@@ -1117,6 +1118,10 @@ class ProtocolMsg_ping(ProtocolMsg):
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
         
+        #after our pong the buddy should be 
+        #able to receive other messages
+        self.buddy.can_send = True
+        
         self.buddy.sendVersion()
         self.buddy.sendProfile()
         if self.buddy in self.bl.list:
@@ -1131,9 +1136,6 @@ class ProtocolMsg_ping(ProtocolMsg):
             #so we send another ping, to be on the safe side
             self.buddy.sendPing()
 
-        #after our pong the buddy should be 
-        #able to receive messages
-        self.buddy.can_send = True
         
 
 class ProtocolMsg_pong(ProtocolMsg):
