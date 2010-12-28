@@ -44,6 +44,7 @@ CB_TYPE_FILE = 2
 CB_TYPE_OFFLINE_SENT = 3
 CB_TYPE_STATUS = 4
 CB_TYPE_LIST_CHANGED = 5
+CB_TYPE_AVATAR = 6
 
 tb = config.tb # the traceback function has moved to config
 tb1 = config.tb1
@@ -117,7 +118,8 @@ class Buddy(object):
         self.name = name
         self.profile_name = u""
         self.profile_text = u""
-        self.profile_avatar = None
+        self.profile_avatar_data = ""        # raw data like it comes over the network
+        self.profile_avatar_object = None    # the GUI can use this however it wants
         self.random1 = str(random.getrandbits(256))
         self.random2 = str(random.getrandbits(256))
         self.conn_out = None
@@ -147,7 +149,7 @@ class Buddy(object):
         if self.conn_in != None:
             self.conn_in.close()
             self.conn_in = None
-        self.setStatus(STATUS_OFFLINE)
+        self.onStatus(STATUS_OFFLINE)
         self.can_send = False
         
     def onOutConnectionFail(self):
@@ -191,16 +193,18 @@ class Buddy(object):
         print "(2) %s.setTemporary(%s)" % (self.address, temporary)
         self.temporary = temporary
     
-    def setStatus(self, status):
+    def onStatus(self, status):
+        print "(2) %s.onStatus(%s)" % (self.address, status)
         old_status = self.status
         self.status = status
         self.last_status_time = time.time()
         if status <> old_status:
             self.bl.onBuddyStatusChange(self)
-
-    def addToList(self):
-        print "(2) %s.addToList()" % self.address
-        self.bl.addBuddy(self)
+            
+    def onAvatarData(self, data):
+        print "(2) %s.onAvatarData()" % self.address
+        self.profile_avatar_data = data
+        self.bl.onBuddyAvatarChange(self)
 
     def sendLine(self, line, conn=0):
         #conn: use outgiong or incoming connection
@@ -336,7 +340,6 @@ class Buddy(object):
         ping.send(self)
     
     def sendStatus(self):
-        print "(2) %s.sendStatus()" % self.address
         if self.can_send:
             status = ""
             if self.bl.own_status == STATUS_ONLINE:
@@ -346,10 +349,13 @@ class Buddy(object):
             if self.bl.own_status == STATUS_XA:
                 status = "xa"
             if status != "":
+                print "(2) %s.sendStatus(%s)" % (self.address, status)
                 msg = ProtocolMsg(self.bl, None, "status", status)
                 msg.send(self)
             else:
                 print "(2) %s.sendStatus(): still handshaking, not sending status" % self.address
+        else:
+            print "(2) %s.sendStatus(): not connected, not sending status" % self.address
             
     def sendProfile(self):
         print "(2) %s.sendProfile()" % self.address
@@ -362,6 +368,13 @@ class Buddy(object):
             if text <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_text", text.encode("UTF-8"))
                 msg.send(self)
+                
+            # the GUI has put the avatar into the BuddyList object, ready for sending
+            text = self.bl.own_avatar_data
+            if text <> "":
+                msg = ProtocolMsg(self.bl, None, "profile_avatar", text) #send raw binary data
+                msg.send(self)
+                    
             
         
     def sendAddMe(self):
@@ -409,7 +422,7 @@ class BuddyList(object):
         
         self.listener = Listener(self, socket)
         self.own_status = STATUS_ONLINE
-        
+   
         filename = os.path.join(config.getDataDir(), "buddy-list.txt")
         
         #create empty buddy list file if it does not already exist
@@ -443,6 +456,12 @@ class BuddyList(object):
                                     self, 
                                     "myself"))
         
+        # the own avatar is set by the GUI.
+        # Only the GUI knows how to deal with graphics, so we just
+        # provide this variable, if the GUI puts in some raw binary data
+        # here then it will be transmitted as it is.
+        self.own_avatar_data = "" 
+
         print "(1) buddy list initialized"
 
     def save(self):
@@ -571,7 +590,7 @@ class BuddyList(object):
             print "(2) out-connection without buddy failed"
 
     def onConnected(self, connection):
-        connection.buddy.setStatus(STATUS_HANDSHAKE)
+        connection.buddy.onStatus(STATUS_HANDSHAKE)
         connection.buddy.onOutConnectionSuccess()
 
     def onChatMessage(self, buddy, message):
@@ -582,6 +601,9 @@ class BuddyList(object):
         
     def onBuddyStatusChange(self, buddy):
         self.guiCallback(CB_TYPE_STATUS, buddy)
+
+    def onBuddyAvatarChange(self, buddy):
+        self.guiCallback(CB_TYPE_AVATAR, buddy)
 
     def stopClient(self):
         stopPortableTor()
@@ -1216,11 +1238,11 @@ class ProtocolMsg_status(ProtocolMsg):
             
             #set buddy status
             if self.text == "available":
-                self.buddy.setStatus(STATUS_ONLINE)
+                self.buddy.onStatus(STATUS_ONLINE)
             if self.text == "away":
-                self.buddy.setStatus(STATUS_AWAY)
+                self.buddy.onStatus(STATUS_AWAY)
             if self.text == "xa":
-                self.buddy.setStatus(STATUS_XA)
+                self.buddy.onStatus(STATUS_XA)
                 
             #avoid timeout of in-connection
             self.connection.last_active = time.time()
@@ -1246,8 +1268,9 @@ class ProtocolMsg_profile_avatar(ProtocolMsg):
     def execute(self):
         if self.buddy:
             print "(2) received avatar from %s" % self.buddy.address
-            # not yet implemented, ignoring
-        
+             # the buddy obect stores the raw binary data
+            self.buddy.onAvatarData(self.text)
+    
 
 class ProtocolMsg_add_me(ProtocolMsg):
     command = "add_me"
@@ -1256,7 +1279,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
             print "(2) add me from %s" % self.buddy.address
             if not self.buddy in self.bl.list:
                 print "(2) received add_me from new buddy %s" % self.buddy.address
-                self.buddy.addToList()
+                self.bl.addBuddy(self.buddy)
                 msg = "<- has added you"
                 self.bl.onChatMessage(self.buddy, msg)
 
