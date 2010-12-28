@@ -655,6 +655,13 @@ class BuddyList(wx.ListCtrl):
             self.SetForegroundColour(config.get("gui", "color_text_fore"))
         
         self.onListChanged()
+        
+        self.setOwnAvatarData("test")
+        
+    def setOwnAvatarData(self, data):
+        self.bl.own_avatar_data = data
+        for buddy in self.bl.list:
+            buddy.sendProfile()
 
     def setStatusIcon(self, index, image_idx):
         # we also store the image index in the ItemData because

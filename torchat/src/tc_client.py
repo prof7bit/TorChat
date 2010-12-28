@@ -349,17 +349,18 @@ class Buddy(object):
             if self.bl.own_status == STATUS_XA:
                 status = "xa"
             if status != "":
-                print "(2) %s.sendStatus(%s)" % (self.address, status)
+                print "(2) %s.sendStatus(): sending %s" % (self.address, status)
                 msg = ProtocolMsg(self.bl, None, "status", status)
                 msg.send(self)
+                    
             else:
                 print "(2) %s.sendStatus(): still handshaking, not sending status" % self.address
         else:
             print "(2) %s.sendStatus(): not connected, not sending status" % self.address
             
     def sendProfile(self):
-        print "(2) %s.sendProfile()" % self.address
         if self.can_send:
+            print "(2) %s.sendProfile()" % self.address
             name = config.get("profile", "name")
             if name <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_name", name.encode("UTF-8"))
@@ -374,6 +375,8 @@ class Buddy(object):
             if text <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_avatar", text) #send raw binary data
                 msg.send(self)
+        else:
+            print "(2) %s.sendProfile(): not connected, not sending" % self.address
                     
             
         
@@ -1131,9 +1134,12 @@ class ProtocolMsg_ping(ProtocolMsg):
         #connect if needed
         if not self.buddy.conn_out:
             self.buddy.connect()
-            needed_connect = True
         else:
-            needed_connect = False
+            if not self.buddy.conn_in:
+                #the buddie's last pong might have been lost when his first conn-out failed
+                #so we send another ping, just to be on the safe side. This might
+                #cause up to one more ping-pong from each side but it avoids problems. 
+                self.buddy.sendPing()
 
         #now we can finally put our answer into the send queue
         print "(2) PONG >>> %s" % self.address    
@@ -1144,19 +1150,15 @@ class ProtocolMsg_ping(ProtocolMsg):
         #able to receive other messages
         self.buddy.can_send = True
         
-        self.buddy.sendVersion()
-        self.buddy.sendProfile()
         if self.buddy in self.bl.list:
             self.buddy.sendAddMe()
+        self.buddy.sendProfile()
+        self.buddy.sendVersion()
         
         #send status as the last message because the other 
         #client will update the GUI only after status messages
         self.buddy.sendStatus()
         
-        if not needed_connect and not self.buddy.conn_in:
-            #the buddies last pong might have been lost
-            #so we send another ping, to be on the safe side
-            self.buddy.sendPing()
 
         
 
