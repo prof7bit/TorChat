@@ -659,7 +659,7 @@ class BuddyList(wx.ListCtrl):
                 window.onBuddyStatusChanged()
                 
         # if a tooltip for this buddy is currently shown then refresh it
-        if index == self.tool_tip_index:
+        if self.tool_tip <> None and index == self.tool_tip_index:
             self.openToolTip(index)
                 
     def onListChanged(self):
@@ -732,12 +732,12 @@ class BuddyToolTip(wx.PopupWindow):
             text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 40)) 
         
         if self.buddy.conn_in:
-            text = "%s\n\nClient: %s %s" % (text, self.buddy.client, self.buddy.version)
+            text = "%s\n\n%s" % (text, lang.BPOP_CLIENT_SOFTWARE % (self.buddy.client, self.buddy.version))
         else:
             if self.buddy.status == tc_client.STATUS_HANDSHAKE:
-                text = "%s\n\nConnected, awaiting return connection..." % text
+                text = "%s\n\n%s" % (text, lang.BPOP_CONNECTED_AWAITING_RETURN_CONN)
             else:
-                text = "%s\n\nBuddy is offline" % text
+                text = "%s\n\n%s" % (text, lang.BPOP_BUDDY_IS_OFFLINE)
         
         
         self.label = wx.StaticText(self.panel)

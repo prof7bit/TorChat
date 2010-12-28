@@ -68,11 +68,11 @@ D_WARN_BUDDY_OFFLINE_MESSAGE = u"Diese Operation ist nicht möglich mit Offline-
 D_WARN_FILE_ONLY_ONE_TITLE = u"TorChat: Mehrere Dateien"
 D_WARN_FILE_ONLY_ONE_MESSAGE = u"Sie können nicht mit einer Operation mehrere Dateitransfers gleichzeitig auslösen. Starten Sie die Transfers einzeln, oder senden Sie eine Zip-Datei."
 
-# #warning about file save error
+#warning about file save error
 D_WARN_FILE_SAVE_ERROR_TITLE = u"TorChat: Fehler beim Anlegen der Datei"
 D_WARN_FILE_SAVE_ERROR_MESSAGE = u"Die Datei '%s' konnte nicht erzeugt werden.\n\n%s"
 
-# #warning about file already exists
+#warning about file already exists
 D_WARN_FILE_ALREADY_EXISTS_TITLE = u"TorChat: Datei existiert bereits"
 D_WARN_FILE_ALREADY_EXISTS_MESSAGE = u"Die Datei '%s' existiert bereits.\nÜberschreiben?"
 
@@ -118,10 +118,15 @@ NOTICE_DELAYED_MSG_WAITING = u"Verzögerte Nachrichten in der Sendewarteschlange
 NOTICE_DELAYED_MSG_SENT = u"Verzögerte Nachrichten wurden gesendet"
 NOTICE_DELAYED = u"Verzögert"
 
-# #messagebox for offline messages
+#messagebox for offline messages
 MSG_OFFLINE_TITLE = u"TorChat: Ungesendete Nachrichten"
 MSG_OFFLINE_EMPTY = u"Es liegen keine ungesendeten Nachrichten (mehr) für %s vor"
 MSG_OFFLINE_QUEUED = u"Ungesendete Nachrichten für %s:\n\n%s"
+
+#buddy list mouse hover popup
+BPOP_BUDDY_IS_OFFLINE = u"Buddy ist offline"
+BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Verbunden, erwarte Rückverbindung..."
+BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
 
 #about box
 ABOUT_TITLE = u"Über TorChat"

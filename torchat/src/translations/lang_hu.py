@@ -55,6 +55,7 @@ D_LOG_WARNING_MESSAGE = u"Logolás mentése fájlba bekapcsolva!\n\nLog Fájl: %
 #warning about used port
 D_WARN_USED_PORT_TITLE = u"TorChat: A port már használatban van"
 D_WARN_USED_PORT_MESSAGE = u"Valószínűleg már egy másik TorChat fut itt:  %s:%s. Csinálj egy másik profilt más porttal, hogy el tudj indítani egy másik TorChat-et!"
+
 #warnig about unread messages
 D_WARN_UNREAD_TITLE = u"TorChat: Olvasatlan üzenet"
 D_WARN_UNREAD_MESSAGE = u"Olvasatlan üzeneted van.\nEl fog veszni véglegesen!\n\nBiztosan ki akarsz lépni a TorChat-ból?"
@@ -122,18 +123,23 @@ MSG_OFFLINE_TITLE = u"TorChat: várakozó üzenetek"
 MSG_OFFLINE_EMPTY = u"nincs (több) várakozó üzenet %s felöl"
 MSG_OFFLINE_QUEUED = u"várakozó offline üzenet %s felöl:\n\n%s"
 
+# #buddy list mouse hover popup
+# BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
+# BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
+# BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+
 #about box
 ABOUT_TITLE = u"A TorChat-ról"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
   %(copyright)s
 
-Translations: 
+Translations:
   %(translators)s
 
 Runtime environment:
   Python: %(python)s
   wx: %(wx)s
-    
+
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
 License as published by the Free Software Foundation, \

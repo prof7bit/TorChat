@@ -1097,17 +1097,23 @@ class ProtocolMsg_ping(ProtocolMsg):
             else:
                 print "(2) %s is already in the incoming list" % self.address
                 print "(2) %s status is %i" % (self.address, self.buddy.status)
-        
-        #connect
+
+
+        #this ping is valid. We can now reset in-connection timeout
+        #and also reset the out-connection fail counter because now we
+        #assume the buddy is alive and we have a motivation to try harder again.
+        self.connection.last_active = time.time() 
+        self.buddy.resetConnectionFailCounter()
+
+        #connect if needed
         if not self.buddy.conn_out:
             self.buddy.connect()
             needed_connect = True
         else:
             needed_connect = False
-        
-        #now we can finally send our pong
+
+        #now we can finally put our answer into the send queue
         print "(2) PONG >>> %s" % self.address    
-        self.buddy.resetConnectionFailCounter()
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
         
@@ -1124,9 +1130,6 @@ class ProtocolMsg_ping(ProtocolMsg):
             #the buddies last pong might have been lost
             #so we send another ping, to be on the safe side
             self.buddy.sendPing()
-
-        #avoid timeout of inconnection
-        self.connection.last_active = time.time() 
 
         #after our pong the buddy should be 
         #able to receive messages
@@ -1532,7 +1535,11 @@ class InConnection:
             self.close()
         
     def onReceiverError(self):
-        print "(2) in-connection receive error. %s" % self
+        if self.buddy:
+            addr = self.buddy.address
+        else:
+            addr = self.last_ping_address + " (unverified)"
+        print "(2) in-connection receive error: %s" % addr
         self.bl.onErrorIn(self)
         self.close()
     

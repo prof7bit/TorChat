@@ -123,18 +123,23 @@ MSG_OFFLINE_TITLE = u"TorChat：排队的消息"
 MSG_OFFLINE_EMPTY = u"没有（更多）排队的消息的 %s"
 MSG_OFFLINE_QUEUED = u"排队离线消息 %s:\n\n%s"
 
+# #buddy list mouse hover popup
+# BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
+# BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
+# BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+
 #about box
 ABOUT_TITLE = u"关于TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
   %(copyright)s
 
-Translations: 
+Translations:
   %(translators)s
 
 Runtime environment:
   Python: %(python)s
   wx: %(wx)s
-    
+
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
 License as published by the Free Software Foundation, \

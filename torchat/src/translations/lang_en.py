@@ -123,6 +123,11 @@ MSG_OFFLINE_TITLE = u"TorChat: queued messages"
 MSG_OFFLINE_EMPTY = u"there are no (more) queued messages for %s"
 MSG_OFFLINE_QUEUED = u"queued offline messages for %s:\n\n%s"
 
+#buddy list mouse hover popup
+BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
+BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
+BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+
 #about box
 ABOUT_TITLE = u"About TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)

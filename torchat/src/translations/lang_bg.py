@@ -2,7 +2,7 @@
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007-2008 Bernd Kreuss <prof7bit@gmail.com>                  #
+# # Copyright (c) 2007-2010 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # Translation file for TorChat                                               #
 #                                                                            #
@@ -123,18 +123,23 @@ MSG_OFFLINE_TITLE = u"TorChat: съобщения на опашка"
 MSG_OFFLINE_EMPTY = u"няма (повече) съобщения на опашка за %s"
 MSG_OFFLINE_QUEUED = u"офлайн съобщения на опашка за %s:\n\n%s"
 
+# #buddy list mouse hover popup
+# BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
+# BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
+# BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+
 #about box
 ABOUT_TITLE = u"Относно TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
   %(copyright)s
 
-Превод: 
+Превод:
   %(translators)s
 
 Runtime environment:
   Python: %(python)s
   wx: %(wx)s
-    
+
 TorChat е свободен софтуер: можете да го разпространявате и / или \
 модифицирате при условията на GNU General Public License както е публикуван от Free Software Foundation, \
 или версия 3, или (по ваш избор) \

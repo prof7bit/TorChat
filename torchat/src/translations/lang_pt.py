@@ -123,18 +123,23 @@ MSG_OFFLINE_TITLE = u"TorChat: mensagens não lidas"
 MSG_OFFLINE_EMPTY = u"essas não são (mais) mensagens enfileiradas para %s"
 MSG_OFFLINE_QUEUED = u"mensagens enfileiradas offline para %s:\n\n%s"
 
+# #buddy list mouse hover popup
+# BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
+# BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
+# BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+
 #about box
 ABOUT_TITLE = u"Sobre o TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
   %(copyright)s
 
-Traduções: 
+Traduções:
   %(translators)s
 
 Ambiente Runtime:
   Python: %(python)s
   wx: %(wx)s
-    
+
 O TorChat é um software livre: você pode redistribuí-lo e/ou \
 modificá-lo sob os termos da GNU General Public \
 License publicada pela Free Software Foundation, \
