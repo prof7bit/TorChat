@@ -207,7 +207,7 @@ def get(section, option):
     elif type(value) == float:
         value = str(value)
             
-    return value
+    return value # this should now be a unicode string
 
 def getint(section, option):
     value = get(section, option).lower()
@@ -225,6 +225,8 @@ def set(section, option, value):
         config.add_section(section)
     if type(value) == bool:
         value = int(value)
+    if type(value) == unicode:
+        value = value.encode("UTF-8")
     config.set(section, option, value)
     writeConfig()
 

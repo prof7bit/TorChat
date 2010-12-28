@@ -215,8 +215,8 @@ class Buddy(object):
                 pass
 
     def sendChatMessage(self, text):
-        #text must be unicode
-        if self.can_send:
+        #text must be unicode, will be encoded to UTF-8
+        if self.conn_in and self.can_send:
             message = ProtocolMsg(self.bl, None, "message", text.encode("UTF-8"))
             message.send(self)
         else:
@@ -336,7 +336,7 @@ class Buddy(object):
     
     def sendStatus(self):
         print "(2) %s.sendStatus()" % self.address
-        if self.conn_out != None:
+        if self.can_send != None:
             status = ""
             if self.bl.own_status == STATUS_ONLINE:
                 status = "available"
@@ -352,7 +352,7 @@ class Buddy(object):
             
     def sendProfile(self):
         print "(2) %s.sendProfile()" % self.address
-        if self.conn_out != None:
+        if self.can_send != None:
             name = config.get("profile", "name")
             if name <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_name", name.encode("UTF-8"))

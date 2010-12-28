@@ -140,6 +140,12 @@ class TaskbarMenu(wx.Menu):
         if cnt:    
             self.AppendSeparator()
 
+        # edit profile
+        
+        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_EDIT_MY_PROFILE)
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onProfile, item)
+        
         # status
 
         item = wx.MenuItem(self, wx.NewId(), lang.ST_AVAILABLE)
@@ -185,6 +191,9 @@ class TaskbarMenu(wx.Menu):
     def onXA(self, evt):
         self.mw.status_switch.setStatus(tc_client.STATUS_XA)
 
+    def onProfile(self, evt):
+        dialog = DlgEditProfile(self.mw, self.mw)
+        dialog.ShowModal()
 
 class NotificationWindow(wx.PopupWindow):
     def __init__(self, mw, text):
@@ -377,7 +386,8 @@ class PopupMenu(wx.Menu):
         dialog.ShowModal()
         
     def onProfile(self, evt):
-        pass
+        dialog = DlgEditProfile(self.mw, self.mw)
+        dialog.ShowModal()
         
     def onSettings(self, evt):
         dialog = dlg_settings.Dialog(self.mw)
@@ -459,10 +469,10 @@ class DlgEditContact(wx.Dialog):
         
         #buttons
         row += 1
-        self.btn_cancel = wx.Button(self.panel, -1, lang.BTN_CANCEL)
+        self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
         sizer.Add(self.btn_cancel, (row, 1), flag=wx.EXPAND)
         
-        self.btn_ok = wx.Button(self.panel, -1, lang.BTN_OK)
+        self.btn_ok = wx.Button(self.panel, wx.ID_OK, lang.BTN_OK)
         self.btn_ok.SetDefault()
         sizer.Add(self.btn_ok, (row, 2), flag=wx.EXPAND)
         
@@ -514,6 +524,89 @@ class DlgEditContact(wx.Dialog):
     def onCancel(self,evt):
         self.Close()
 
+class DlgEditProfile(wx.Dialog):
+    def __init__(self, parent, main_window):
+        wx.Dialog.__init__(self, parent, -1)
+        self.mw = main_window
+        self.panel = wx.Panel(self)
+        
+        #setup the sizers
+        sizer = wx.GridBagSizer(vgap = 5, hgap = 5)
+        box_sizer = wx.BoxSizer()
+        box_sizer.Add(sizer, 1, wx.EXPAND | wx.ALL, 5)
+        
+        #name
+        row = 0
+        lbl = wx.StaticText(self.panel, -1, "name")
+        sizer.Add(lbl, (row, 0))
+        
+        self.txt_name = wx.TextCtrl(self.panel, -1, 
+            config.get("profile", "name"))
+        self.txt_name.SetMinSize((250, -1))
+        sizer.Add(self.txt_name, (row, 1), (1, 2))
+        
+        #text
+        row += 1
+        lbl = wx.StaticText(self.panel, -1, "text")
+        sizer.Add(lbl, (row, 0))
+
+        self.txt_text = wx.TextCtrl(self.panel, -1, 
+            config.get("profile", "text"), 
+            style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
+        self.txt_text.SetMinSize((250, -1))
+        sizer.Add(self.txt_text, (row, 1), (1, 2))
+        
+        #buttons
+        row += 1
+        self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
+        sizer.Add(self.btn_cancel, (row, 1), flag=wx.EXPAND)
+        
+        self.btn_ok = wx.Button(self.panel, wx.ID_OK, lang.BTN_OK)
+        self.btn_ok.SetDefault()
+        sizer.Add(self.btn_ok, (row, 2), flag=wx.EXPAND)
+        
+        #fit the sizers
+        self.panel.SetSizer(box_sizer)
+        box_sizer.Fit(self)
+
+        #bind the events
+        self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
+        self.btn_ok.Bind(wx.EVT_BUTTON, self.onOk)
+        self.txt_text.Bind(wx.EVT_TEXT_ENTER, self.onEnter)
+        
+        self.txt_text.SetFocus()
+        
+        # position the dialog near the mouse
+        # (yes, I am paying attention to details)
+        w,h = self.GetSize()
+        sx, sy, sx1, sy1 = wx.ClientDisplayRect()
+        (x,y) = wx.GetMousePosition()
+        x = x - w/2
+        y = y - h/2
+        if x < sx:
+            x = sx
+        if y < sy:
+            y = sy
+        if x > sx1 - w:
+            x = sx1 - w
+        if y > sy1 - h:
+            y = sy1 - h
+        self.SetPosition((x,y))
+
+    def onEnter(self, evt):
+        self.onOk(evt)
+
+    def onCancel(self, evt):
+        self.Close()
+        
+    def onOk(self, evt):
+        config.set("profile", "name", self.txt_name.GetValue())
+        config.set("profile", "text", self.txt_text.GetValue())
+        for buddy in self.mw.buddy_list.list:
+            buddy.sendProfile()
+            buddy.sendStatus()
+        self.Close()
+        
 
 class BuddyList(wx.ListCtrl):
     def __init__(self, parent, main_window):
