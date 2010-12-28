@@ -195,16 +195,16 @@ class Buddy(object):
     
     def onStatus(self, status):
         print "(2) %s.onStatus(%s)" % (self.address, status)
-        old_status = self.status
-        self.status = status
         self.last_status_time = time.time()
-        if status <> old_status:
+        if status <> self.status:
+            self.status = status
             self.bl.onBuddyStatusChange(self)
             
     def onAvatarData(self, data):
         print "(2) %s.onAvatarData()" % self.address
-        self.profile_avatar_data = data
-        self.bl.onBuddyAvatarChange(self)
+        if data <> self.profile_avatar_data:
+            self.profile_avatar_data = data
+            self.bl.onBuddyAvatarChange(self)
 
     def sendLine(self, line, conn=0):
         #conn: use outgiong or incoming connection
@@ -1267,7 +1267,7 @@ class ProtocolMsg_profile_avatar(ProtocolMsg):
     command = "profile_avatar"
     def execute(self):
         if self.buddy:
-            print "(2) received avatar from %s" % self.buddy.address
+            print "(2) received avatar from %s (%i bytes)" % (self.buddy.address, len(self.text))
              # the buddy obect stores the raw binary data
             self.buddy.onAvatarData(self.text)
     
