@@ -336,7 +336,7 @@ class Buddy(object):
     
     def sendStatus(self):
         print "(2) %s.sendStatus()" % self.address
-        if self.can_send != None:
+        if self.can_send:
             status = ""
             if self.bl.own_status == STATUS_ONLINE:
                 status = "available"
@@ -352,7 +352,7 @@ class Buddy(object):
             
     def sendProfile(self):
         print "(2) %s.sendProfile()" % self.address
-        if self.can_send != None:
+        if self.can_send:
             name = config.get("profile", "name")
             if name <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_name", name.encode("UTF-8"))
