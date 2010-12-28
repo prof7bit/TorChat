@@ -297,13 +297,17 @@ class PopupMenu(wx.Menu):
         item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ADD_CONTACT)
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAdd, item)
-
+        
         #ask support
         
         item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ASK_AUTHOR % config.get("branding", "support_name"))
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.onAskAuthor, item)
 
+        item = wx.MenuItem(self, wx.NewId(), lang.MPOP_EDIT_MY_PROFILE)
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.onProfile, item)
+        
         self.AppendSeparator()
         
         #settings
@@ -371,6 +375,9 @@ class PopupMenu(wx.Menu):
     def onAdd(self, evt):
         dialog = DlgEditContact(self.mw, self.mw)
         dialog.ShowModal()
+        
+    def onProfile(self, evt):
+        pass
         
     def onSettings(self, evt):
         dialog = dlg_settings.Dialog(self.mw)
