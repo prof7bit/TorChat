@@ -736,11 +736,13 @@ class BuddyList(wx.ListCtrl):
         index, flags = self.HitTest(evt.GetPosition())
         if index != -1:
             self.mw.PopupMenu(PopupMenu(self.mw, "contact"))
+            self.onMouseLeave(evt)
         
     def onRDown(self, evt):
         index, flags = self.HitTest(evt.GetPosition())
         if index == -1:
             self.mw.PopupMenu(PopupMenu(self.mw, "empty"))
+            self.onMouseLeave(evt)
         else:
             evt.Skip()
 
@@ -806,6 +808,7 @@ class BuddyList(wx.ListCtrl):
         
     def onMouseLeave(self, evt):
         self.has_mouse = False
+        self.closeToolTip()
         
     def getBuddyFromIndex(self, index):
         name = self.GetItemText(index)
