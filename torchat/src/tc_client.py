@@ -53,6 +53,9 @@ tor_pid = None
 tor_proc = None
 tor_timer = None
 
+guiCallback = None # callback function provided by the GUI.
+
+
 def splitLine(text):
     sp = text.split(" ")
     try:
@@ -209,17 +212,17 @@ class Buddy(object):
         self.last_status_time = time.time()
         if status <> self.status:
             self.status = status
-            self.bl.onBuddyStatusChange(self)
+            guiCallback(CB_TYPE_STATUS, self)
             
     def onProfileName(self, name):
         print "(2) %s.onProfile" % self.address
         self.profile_name = name
-        self.bl.onBuddyProfileChange(self)
+        guiCallback(CB_TYPE_PROFILE, self)
         
     def onProfileText(self, text):
         print "(2) %s.onProfile" % self.address
         self.profile_text = text
-        self.bl.onBuddyProfileChange(self)
+        guiCallback(CB_TYPE_PROFILE, self)
     
     def onAvatarDataAlpha(self, data):
         print "(2) %s.onAvatarDataAplha()" % self.address
@@ -231,8 +234,11 @@ class Buddy(object):
         print "(2) %s.onAvatarData()" % self.address
         if data <> self.profile_avatar_data:
             self.profile_avatar_data = data
-            self.bl.onBuddyAvatarChange(self)
+            guiCallback(CB_TYPE_AVATAR, self)
 
+    def onChatMessage(self, message):
+        guiCallback(CB_TYPE_CHAT, (self, message))
+        
     def sendLine(self, line, conn=0):
         #conn: use outgiong or incoming connection
         if self.conn_out == None:
@@ -287,7 +293,7 @@ class Buddy(object):
                 #text is unicode, so we must encode it to UTF-8 again. 
                 message = ProtocolMsg(self.bl, None, "message", text.encode("UTF-8"))
                 message.send(self)
-                self.bl.guiCallback(CB_TYPE_OFFLINE_SENT, self)
+                guiCallback(CB_TYPE_OFFLINE_SENT, self)
             else:
                 print "(2) could not send offline messages, not fully connected."
                 pass
@@ -460,9 +466,10 @@ class BuddyList(object):
     #be possible with it's methods. Most other objects carry
     #a reference to the one and only BuddyList object around 
     #to be able to find and interact with other objects.
-    def __init__(self, guiCallback, socket=None):
+    def __init__(self, callback, socket=None):
+        global guiCallback 
         print "(1) initializing buddy list"
-        self.guiCallback = guiCallback
+        guiCallback = callback
         
         startPortableTor()
         
@@ -530,7 +537,7 @@ class BuddyList(object):
         print "(2) buddy list saved"
         
         # this is the optimal spot to notify the GUI to redraw the list
-        self.guiCallback(CB_TYPE_LIST_CHANGED, None)
+        guiCallback(CB_TYPE_LIST_CHANGED, None)
         
     def addBuddy(self, buddy):
         if self.getBuddyFromAddress(buddy.address) == None:
@@ -650,21 +657,6 @@ class BuddyList(object):
         connection.buddy.onStatus(STATUS_HANDSHAKE)
         connection.buddy.onOutConnectionSuccess()
 
-    def onChatMessage(self, buddy, message):
-        self.guiCallback(CB_TYPE_CHAT, (buddy, message))
-        
-    def onFileReceive(self, file_receiver):
-        self.guiCallback(CB_TYPE_FILE, file_receiver)
-        
-    def onBuddyStatusChange(self, buddy):
-        self.guiCallback(CB_TYPE_STATUS, buddy)
-        
-    def onBuddyProfileChange(self, buddy):
-        self.guiCallback(CB_TYPE_PROFILE, buddy)
-
-    def onBuddyAvatarChange(self, buddy):
-        self.guiCallback(CB_TYPE_AVATAR, buddy)
-
     def stopClient(self):
         stopPortableTor()
         self.listener.close() #FIXME: does this really work?
@@ -673,13 +665,13 @@ class BuddyList(object):
             
 
 class FileSender(threading.Thread):
-    def __init__(self, buddy, file_name, guiCallback):
+    def __init__(self, buddy, file_name, callback):
         threading.Thread.__init__(self)
         self.buddy = buddy
         self.bl = buddy.bl
         self.file_name = file_name
         self.file_name_short = os.path.basename(self.file_name)
-        self.guiCallback = guiCallback
+        self.gui = callback
         self.id = str(random.getrandbits(32))
         self.buddy.bl.file_sender[self.buddy.address, self.id] = self
         self.file_size = 0
@@ -774,7 +766,7 @@ class FileSender(threading.Thread):
             self.file_handle = open(self.file_name, mode="rb")
             self.file_handle.seek(0, 2) #SEEK_END
             self.file_size = self.file_handle.tell()
-            self.guiCallback(self.file_size, 0)
+            self.gui(self.file_size, 0)
             filename_utf8 = self.file_name_short.encode("utf-8")
             msg = ProtocolMsg(self.bl, None, "filename", (self.id, 
                                                           self.file_size, 
@@ -800,7 +792,7 @@ class FileSender(threading.Thread):
 
         except:
             try:
-                self.guiCallback(self.file_size, 
+                self.gui(self.file_size, 
                                  -1, 
                                  "error while sending %s" % self.file_name)
             except:
@@ -815,7 +807,7 @@ class FileSender(threading.Thread):
             end = self.file_size
         
         try:    
-            self.guiCallback(self.file_size, end)
+            self.gui(self.file_size, end)
         except:
             #cannot update gui
             tb()
@@ -844,13 +836,15 @@ class FileSender(threading.Thread):
             self.running = False
             self.sendStopMessage()
             try:
-                self.guiCallback(self.file_size, -1, "transfer aborted")
+                self.gui(self.file_size, -1, "transfer aborted")
             except:
                 pass
         del self.buddy.bl.file_sender[self.buddy.address, self.id]
 
 
 class FileReceiver:
+    # ths will be instantiated automatically on an incoming file transfer.
+    # it will then notify the GUI which will open a window and give us a callback to interact
     def __init__(self, buddy, id, block_size, file_size, file_name):
         self.buddy = buddy
         self.id = id
@@ -867,12 +861,12 @@ class FileReceiver:
         self.buddy.bl.file_receiver[self.buddy.address, self.id] = self
         
         #this will (MUST) point to the file transfer GUI callback
-        self.guiCallback = None
+        self.gui = None
         
         #the following will result in a call into the GUI
         #the GUI will then give us a callback function
         print "(2) FileReceiver: notifying GUI about new file transfer"
-        self.buddy.bl.onFileReceive(self)
+        guiCallback(CB_TYPE_FILE, self)
         
         #we cannot receive without a GUI (or other piece of code
         #that provides the callback) because this other code
@@ -884,7 +878,7 @@ class FileReceiver:
         #function to be provided before we continue.
         #It CANNOT get stuck in this loop unless the GUI
         #code is broken. The GUI WILL provide this callback!
-        while self.guiCallback == None:
+        while self.gui == None:
             time.sleep(0.1)
         
         print "(2) FileReceiver: attached GUI seems ready, initialization done"
@@ -893,7 +887,7 @@ class FileReceiver:
         # this must be called from the GUI
         # to set the callback function so we can notify
         # the GUI about the progress (or errors)
-        self.guiCallback = callback
+        self.gui = callback
         
     def data(self, start, hash, data):
         if start > self.next_start:
@@ -919,7 +913,7 @@ class FileReceiver:
             msg = ProtocolMsg(self.buddy.bl, None, "filedata_ok", (self.id, 
                                                                start))
             msg.send(self.buddy)
-            self.guiCallback(self.file_size, start + len(data))
+            self.gui(self.file_size, start + len(data))
 
         else:
             print "(3) receiver wrong hash %i len: %i" % (start, len(data))
@@ -948,7 +942,7 @@ class FileReceiver:
     
     def closeForced(self):
         try:
-            self.guiCallback(self.file_size, -1, "transfer aborted")
+            self.gui(self.file_size, -1, "transfer aborted")
         except:
             pass
         self.sendStopMessage()
@@ -1394,7 +1388,7 @@ class ProtocolMsg_message(ProtocolMsg):
         #to open a chat window and/or display the text.
         if self.buddy:
             if self.buddy in self.bl.list:
-                self.bl.onChatMessage(self.buddy, self.text)
+                self.buddy.onChatMessage(self.text)
             else:
                 print "(1) ***** protocol violation reply to %s" % self.buddy.address
                 msg = "This is an automatic reply."
@@ -1446,7 +1440,8 @@ class ProtocolMsg_filename(ProtocolMsg):
             return
             
         #we create a file receiver instance which can deal with the
-        #file data we expect to receive now
+        #file data we expect to receive now. This obect will then
+        #also notify the GUI and interact with it
         FileReceiver(self.buddy, 
                      self.id, 
                      self.block_size, 
