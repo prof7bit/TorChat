@@ -656,12 +656,18 @@ class BuddyList(wx.ListCtrl):
         
         self.onListChanged()
         
-        self.setOwnAvatarData("test")
+        self.setOwnAvatarData()
         
-    def setOwnAvatarData(self, data):
-        self.bl.own_avatar_data = data
-        for buddy in self.bl.list:
-            buddy.sendProfile()
+    def setOwnAvatarData(self):
+        file_name = os.path.join(config.getDataDir(), "avatar.png")
+        if os.path.exists(file_name):
+            print "(2) reading own avatar file %s" % file_name
+            image = wx.Image(file_name, wx.BITMAP_TYPE_PNG)
+            image.Rescale(64, 64, wx.IMAGE_QUALITY_HIGH)
+            self.bl.own_avatar_data = image.GetData()
+            print "(2) uncompressed image data: %i bytes" % len(self.bl.own_avatar_data)
+            for buddy in self.bl.list:
+                buddy.sendProfile()
 
     def setStatusIcon(self, index, image_idx):
         # we also store the image index in the ItemData because
@@ -770,6 +776,14 @@ class BuddyList(wx.ListCtrl):
         # if a tooltip for this buddy is currently shown then refresh it
         if self.tool_tip <> None and index == self.tool_tip_index:
             self.openToolTip(index)
+            
+    def onBuddyAvatarChanged(self, buddy):
+        print "(2) converting %s avatar data into wx.Bitmap" % buddy.address
+        try:
+            buddy.profile_avatar_object = wx.BitmapFromImage(wx.ImageFromData(64, 64, buddy.profile_avatar_data))
+        except:
+            print "(2)  could not convert %s avatar data" % buddy.address
+            tb()
                 
     def onListChanged(self):
         # usually called via callback from the client
@@ -832,6 +846,13 @@ class BuddyToolTip(wx.PopupWindow):
         sizer = wx.BoxSizer()
         self.panel.SetSizer(sizer)
         
+        if self.buddy.profile_avatar_object <> None:
+            bitmap = self.buddy.profile_avatar_object
+        else:
+            bitmap = wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
+        self.avatar = wx.StaticBitmap(self.panel, -1, bitmap)
+        sizer.Add(self.avatar, 0, wx.ALL, 5)
+        
         name = self.buddy.name
         if self.buddy.profile_name <> u"":
             name = self.buddy.profile_name
@@ -853,7 +874,7 @@ class BuddyToolTip(wx.PopupWindow):
         self.label = wx.StaticText(self.panel)
         self.label.SetLabel(text)
         sizer.Add(self.label, 0, wx.ALL, 5)
-        
+                
         # sizer for whole window, containing the panel
         wsizer = wx.BoxSizer()
         wsizer.Add(self.panel, 0, wx.ALL, 0)
@@ -1479,8 +1500,13 @@ class MainWindow(wx.Frame):
         
         if callback_type == tc_client.CB_TYPE_STATUS:
             # this is called when the status of one of the
-            # buddies has changed. callback_data is the buddy
+            # buddies has changed. callback_data is the Buddy instance
             wx.CallAfter(self.gui_bl.onBuddyStatusChanged, callback_data)
+            
+        if callback_type == tc_client.CB_TYPE_AVATAR:
+            # this is called when the avatar of one of the
+            # buddy has changed. callback_data is the Buddy instance
+            wx.CallAfter(self.gui_bl.onBuddyAvatarChanged, callback_data)
             
         if callback_type == tc_client.CB_TYPE_LIST_CHANGED:
             try:
