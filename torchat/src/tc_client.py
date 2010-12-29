@@ -53,8 +53,6 @@ tor_pid = None
 tor_proc = None
 tor_timer = None
 
-guiCallback = None # callback function provided by the GUI.
-
 
 def splitLine(text):
     sp = text.split(" ")
@@ -212,17 +210,17 @@ class Buddy(object):
         self.last_status_time = time.time()
         if status <> self.status:
             self.status = status
-            guiCallback(CB_TYPE_STATUS, self)
+            self.bl.gui(CB_TYPE_STATUS, self)
             
     def onProfileName(self, name):
         print "(2) %s.onProfile" % self.address
         self.profile_name = name
-        guiCallback(CB_TYPE_PROFILE, self)
+        self.bl.gui(CB_TYPE_PROFILE, self)
         
     def onProfileText(self, text):
         print "(2) %s.onProfile" % self.address
         self.profile_text = text
-        guiCallback(CB_TYPE_PROFILE, self)
+        self.bl.gui(CB_TYPE_PROFILE, self)
     
     def onAvatarDataAlpha(self, data):
         print "(2) %s.onAvatarDataAplha()" % self.address
@@ -234,10 +232,10 @@ class Buddy(object):
         print "(2) %s.onAvatarData()" % self.address
         if data <> self.profile_avatar_data:
             self.profile_avatar_data = data
-            guiCallback(CB_TYPE_AVATAR, self)
+            self.bl.gui(CB_TYPE_AVATAR, self)
 
     def onChatMessage(self, message):
-        guiCallback(CB_TYPE_CHAT, (self, message))
+        self.bl.gui(CB_TYPE_CHAT, (self, message))
         
     def sendLine(self, line, conn=0):
         #conn: use outgiong or incoming connection
@@ -293,7 +291,7 @@ class Buddy(object):
                 #text is unicode, so we must encode it to UTF-8 again. 
                 message = ProtocolMsg(self.bl, None, "message", text.encode("UTF-8"))
                 message.send(self)
-                guiCallback(CB_TYPE_OFFLINE_SENT, self)
+                self.bl.gui(CB_TYPE_OFFLINE_SENT, self)
             else:
                 print "(2) could not send offline messages, not fully connected."
                 pass
@@ -467,9 +465,8 @@ class BuddyList(object):
     #a reference to the one and only BuddyList object around 
     #to be able to find and interact with other objects.
     def __init__(self, callback, socket=None):
-        global guiCallback 
         print "(1) initializing buddy list"
-        guiCallback = callback
+        self.gui = callback
         
         startPortableTor()
         
@@ -537,7 +534,7 @@ class BuddyList(object):
         print "(2) buddy list saved"
         
         # this is the optimal spot to notify the GUI to redraw the list
-        guiCallback(CB_TYPE_LIST_CHANGED, None)
+        self.gui(CB_TYPE_LIST_CHANGED, None)
         
     def addBuddy(self, buddy):
         if self.getBuddyFromAddress(buddy.address) == None:
@@ -866,7 +863,7 @@ class FileReceiver:
         #the following will result in a call into the GUI
         #the GUI will then give us a callback function
         print "(2) FileReceiver: notifying GUI about new file transfer"
-        guiCallback(CB_TYPE_FILE, self)
+        self.buddy.bl.gui(CB_TYPE_FILE, self)
         
         #we cannot receive without a GUI (or other piece of code
         #that provides the callback) because this other code
