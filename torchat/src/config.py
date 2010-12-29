@@ -104,6 +104,15 @@ def isPortable():
         return True
     except:
         return False
+        
+def getHomeDir():
+    if isWindows():
+        CSIDL_PERSONAL = 0x0005
+        buf = ctypes.create_unicode_buffer(256)
+        ctypes.windll.shell32.SHGetSpecialFolderPathW(None, buf, CSIDL_PERSONAL, 0)
+        return buf.value
+    else:
+        return os.path.expanduser("~")
     
 def getDataDir():
     if isPortable():
@@ -234,9 +243,9 @@ def tb(level=0):
     print "(%i) ----- start traceback -----\n%s   ----- end traceback -----\n" % (level, traceback.format_exc())
 
 def tb1():
-    print "---- BEGIN DEBUG STACKFRAME"
+    print "---- BEGIN DEBUG CALLSTACK"
     traceback.print_stack()
-    print "---- END DEBUG STACKFRAME"
+    print "---- END DEBUG CALLSTACK"
 
 def getTranslators():
     translators = []

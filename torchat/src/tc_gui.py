@@ -21,6 +21,7 @@ import wx
 import tc_client
 import sys
 import os
+import shutil
 import time
 import subprocess
 import textwrap
@@ -346,6 +347,7 @@ class PopupMenu(wx.Menu):
         buddy = self.mw.gui_bl.getSelectedBuddy()
         title = lang.DFT_FILE_OPEN_TITLE % buddy.getAddressAndDisplayName()
         dialog = wx.FileDialog(self.mw, title, style=wx.OPEN)
+        dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
             transfer_window = FileTransferWindow(self.mw, buddy, file_name)
@@ -529,7 +531,7 @@ class DlgEditContact(wx.Dialog):
 
 class DlgEditProfile(wx.Dialog):
     def __init__(self, parent, main_window):
-        wx.Dialog.__init__(self, parent, -1)
+        wx.Dialog.__init__(self, parent, -1, title=lang.DEP_TITLE)
         self.mw = main_window
         self.panel = wx.Panel(self)
         
@@ -538,35 +540,40 @@ class DlgEditProfile(wx.Dialog):
         box_sizer = wx.BoxSizer()
         box_sizer.Add(sizer, 1, wx.EXPAND | wx.ALL, 5)
         
+        #avatar
+        row = 0
+        self.avatar = wx.StaticBitmap(self.panel, -1, self.getAvatarBitmap())
+        sizer.Add(self.avatar, (row, 0), (2, 1))
+        
         #name
         row = 0
-        lbl = wx.StaticText(self.panel, -1, "name")
-        sizer.Add(lbl, (row, 0))
+        lbl = wx.StaticText(self.panel, -1, lang.DEP_NAME)
+        sizer.Add(lbl, (row, 1))
         
         self.txt_name = wx.TextCtrl(self.panel, -1, 
             config.get("profile", "name"))
         self.txt_name.SetMinSize((250, -1))
-        sizer.Add(self.txt_name, (row, 1), (1, 2))
+        sizer.Add(self.txt_name, (row, 2), (1, 2))
         
         #text
         row += 1
-        lbl = wx.StaticText(self.panel, -1, "text")
-        sizer.Add(lbl, (row, 0))
+        lbl = wx.StaticText(self.panel, -1, lang.DEP_TEXT)
+        sizer.Add(lbl, (row, 1))
 
         self.txt_text = wx.TextCtrl(self.panel, -1, 
             config.get("profile", "text"), 
             style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
         self.txt_text.SetMinSize((250, -1))
-        sizer.Add(self.txt_text, (row, 1), (1, 2))
+        sizer.Add(self.txt_text, (row, 2), (1, 2))
         
         #buttons
         row += 1
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
-        sizer.Add(self.btn_cancel, (row, 1), flag=wx.EXPAND)
+        sizer.Add(self.btn_cancel, (row, 2), flag=wx.EXPAND)
         
         self.btn_ok = wx.Button(self.panel, wx.ID_OK, lang.BTN_OK)
         self.btn_ok.SetDefault()
-        sizer.Add(self.btn_ok, (row, 2), flag=wx.EXPAND)
+        sizer.Add(self.btn_ok, (row, 3), flag=wx.EXPAND)
         
         #fit the sizers
         self.panel.SetSizer(box_sizer)
@@ -576,6 +583,7 @@ class DlgEditProfile(wx.Dialog):
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
         self.btn_ok.Bind(wx.EVT_BUTTON, self.onOk)
         self.txt_text.Bind(wx.EVT_TEXT_ENTER, self.onEnter)
+        self.avatar.Bind(wx.EVT_LEFT_UP, self.onAvatar)
         
         self.txt_text.SetFocus()
         
@@ -595,19 +603,65 @@ class DlgEditProfile(wx.Dialog):
         if y > sy1 - h:
             y = sy1 - h
         self.SetPosition((x,y))
+    
+    def getAvatarBitmap(self, file_name=None):
+        if file_name:
+            image = wx.Image(file_name, wx.BITMAP_TYPE_PNG)
+            image.Rescale(64, 64, wx.IMAGE_QUALITY_HIGH)
+            return wx.BitmapFromImage(image)
+        else:
+            if self.mw.buddy_list.own_avatar_data:
+                image = wx.ImageFromData(64, 64, self.mw.buddy_list.own_avatar_data)
+                if self.mw.buddy_list.own_avatar_data_alpha:
+                    image.SetAlphaData(self.mw.buddy_list.own_avatar_data_alpha)
+                return wx.BitmapFromImage(image)
+            else:
+                return wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
+
+    def onAvatar(self, evt):
+        title = lang.DEP_AVATAR_SELECT_PNG
+        dialog = wx.FileDialog(self, title, style=wx.OPEN)
+        dialog.SetWildcard("%s (*.png)|*.png|%s (*.*)|*.*" % (lang.DEP_PNG_FILES, lang.DEP_ALL_FILES))
+        dialog.SetDirectory(config.getHomeDir())
+        if dialog.ShowModal() == wx.ID_OK:
+            file_name = dialog.GetPath()
+            avatar_old = os.path.join(config.getDataDir(), "avatar.png")
+            avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
+            if file_name == avatar_old or file_name == avatar_new:
+                wx.MessageBox(lang.DEP_WARN_IS_ALREADY, lang.DEP_WARN_TITLE)
+            else:
+                # onOk() will find the file avatar_new.png and know what to do
+                shutil.copy(file_name, avatar_new)
+                # set the new bitmap (in this dialog only)
+                self.avatar.SetBitmap(self.getAvatarBitmap(avatar_new))
+        pass
 
     def onEnter(self, evt):
         self.onOk(evt)
 
     def onCancel(self, evt):
+        avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
+        if os.path.exists(avatar_new):
+            tc_client.wipeFile(avatar_new)
+        
         self.Close()
         
     def onOk(self, evt):
         config.set("profile", "name", self.txt_name.GetValue())
         config.set("profile", "text", self.txt_text.GetValue())
+        
+        # replace the avatar if a new one has been selected
+        avatar_old = os.path.join(config.getDataDir(), "avatar.png")
+        avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
+        if os.path.exists(avatar_new):
+            shutil.copy(avatar_new, avatar_old)
+            tc_client.wipeFile(avatar_new)
+            self.mw.gui_bl.loadOwnAvatarData() # this will also send it
+        
         for buddy in self.mw.buddy_list.list:
             buddy.sendProfile()
             buddy.sendStatus()
+        
         self.Close()
         
 
@@ -659,9 +713,9 @@ class BuddyList(wx.ListCtrl):
         
         self.onListChanged()
         
-        self.setOwnAvatarData()
+        self.loadOwnAvatarData()
         
-    def setOwnAvatarData(self):
+    def loadOwnAvatarData(self):
         file_name = os.path.join(config.getDataDir(), "avatar.png")
         if os.path.exists(file_name):
             print "(2) reading own avatar file %s" % file_name
@@ -675,7 +729,7 @@ class BuddyList(wx.ListCtrl):
             else:
                 self.bl.own_avatar_data_alpha = ""
             for buddy in self.bl.list:
-                buddy.sendProfile()
+                buddy.sendAvatar()
 
     def setStatusIcon(self, index, image_idx):
         # we also store the image index in the ItemData because
@@ -872,7 +926,7 @@ class BuddyToolTip(wx.PopupWindow):
         text =  "%s\n%s" % (self.buddy.address, name)
         
         if self.buddy.profile_text <> u"":
-            text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 40)) 
+            text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 30)) 
         
         if self.buddy.conn_in:
             text = "%s\n\n%s" % (text, lang.BPOP_CLIENT_SOFTWARE % (self.buddy.client, self.buddy.version))
@@ -1205,6 +1259,7 @@ class ChatWindow(wx.Frame):
     def onSendFile(self, evt):
         title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
         dialog = wx.FileDialog(self, title, style=wx.OPEN)
+        dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
             transfer_window = FileTransferWindow(self.mw, self.buddy, file_name)
@@ -1390,6 +1445,10 @@ class FileTransferWindow(wx.Frame):
     def onSave(self, evt):
         title = lang.DFT_FILE_SAVE_TITLE % self.buddy.getAddressAndDisplayName()
         dialog = wx.FileDialog(self, title, defaultFile=self.file_name, style=wx.SAVE)
+        if config.isPortable():
+            dialog.SetDirectory(config.getDataDir())
+        else:
+            dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
             self.file_name_save = dialog.GetPath()
             

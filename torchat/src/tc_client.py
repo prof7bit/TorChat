@@ -93,18 +93,24 @@ def createTemporaryFile(file_name):
     
 def wipeFile(name):
     print "(2) wiping %s" % name
-    handle = open(name, mode="r+b")
-    handle.seek(0, 2) #SEEK_END
-    size = handle.tell()    
-    handle.seek(0)
-    for i in range (0, size):
-        handle.write(chr(random.getrandbits(8)))
-    print "(2) sync to disk"
-    handle.flush()
-    os.fsync(handle.fileno())
-    handle.close()
-    print "(2) unlinking wiped file"
-    os.unlink(name)
+    if os.path.exists(name):
+        try:
+            handle = open(name, mode="r+b")
+            handle.seek(0, 2) #SEEK_END
+            size = handle.tell()    
+            handle.seek(0)
+            for i in range (0, size):
+                handle.write(chr(random.getrandbits(8)))
+            print "(2) sync to disk"
+            handle.flush()
+            os.fsync(handle.fileno())
+            handle.close()
+            print "(2) unlinking wiped file"
+            os.unlink(name)
+        except:
+            print "(0) could not wipe file %s (file is locked or wrong permissions)" % name
+    else:
+        print "(2) file %s does not exist" % name
     
 
 #--- ### Client API        
@@ -1315,9 +1321,12 @@ class ProtocolMsg_profile_avatar_alpha(ProtocolMsg):
     def execute(self):
         if self.buddy:
             print "(2) received avatar alpha channel from %s (%i bytes)" % (self.buddy.address, len(self.text))
-             # the buddy obect stores the raw binary data
-            self.buddy.onAvatarDataAlpha(self.text)
-    
+            if len(self.text) == 4096 or len(self.text) == 0:
+                # the buddy obect stores the raw binary data
+                self.buddy.onAvatarDataAlpha(self.text)
+            else:
+                print("(1) %s sent invalid avatar alpha data (wrong size)" % self.buddy.address)
+                self.buddy.onAvatarDataAlpha("")
     
 class ProtocolMsg_profile_avatar(ProtocolMsg):
     # the uncompesseed 64*64*24bit image. Avatar messages can be completely omitted but
@@ -1326,8 +1335,12 @@ class ProtocolMsg_profile_avatar(ProtocolMsg):
     def execute(self):
         if self.buddy:
             print "(2) received avatar from %s (%i bytes)" % (self.buddy.address, len(self.text))
-             # the buddy obect stores the raw binary data
-            self.buddy.onAvatarData(self.text)
+            if len(self.text) == 12288 or len(self.text) == 0:
+                # the buddy obect stores the raw binary data
+                self.buddy.onAvatarData(self.text)
+            else:
+                print("(1) %s sent invalid avatar image data (wrong size)" % self.buddy.address)
+                self.buddy.onAvatarData("")
     
 
 class ProtocolMsg_add_me(ProtocolMsg):

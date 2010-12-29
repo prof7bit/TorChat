@@ -87,6 +87,16 @@ DEC_MSG_16_CHARACTERS = u"The address must be 16 characters long, not %i."
 DEC_MSG_ONLY_ALPANUM = u"The address must only contain numbers and lowercase letters"
 DEC_MSG_ALREADY_ON_LIST = u"%s is already on your list"
 
+#dialog: edit my profile
+DEP_TITLE = u"Edit my profile"
+DEP_NAME = u"Name"
+DEP_TEXT = u"Text"
+DEP_AVATAR_SELECT_PNG = u"Select .PNG file to use as your avatar (will be scaled to 64*64, may contain alpha channel)"
+DEP_PNG_FILES = u"PNG files"
+DEP_ALL_FILES = u"All files"
+DEP_WARN_TITLE = u"Avatar selection not possible"
+DEP_WARN_IS_ALREADY = u"This is already the current avatar"
+
 #file transfer window
 DFT_FILE_OPEN_TITLE = u"Send file to %s"
 DFT_FILE_SAVE_TITLE = u"Save file from %s"
