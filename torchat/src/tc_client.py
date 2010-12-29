@@ -1150,7 +1150,7 @@ class ProtocolMsg_ping(ProtocolMsg):
                 #so we send another ping, just to be on the safe side.
                 self.buddy.sendPing()
 
-        if self.buddy.conn_out.pong_sent:
+        if self.buddy.isAlreadyPonged():
             #but we don't need to send more than one pong on the same conn_out
             #only if this is also a new conn_out because the last one failed
             print "(2) not sending another pong over same connection"
