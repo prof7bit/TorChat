@@ -199,7 +199,7 @@ class TaskbarMenu(wx.Menu):
 class NotificationWindow(wx.PopupWindow):
     def __init__(self, mw, text, buddy):
         wx.PopupWindow.__init__(self, mw)
-        self.panel = wx.Panel(self)
+        self.panel = wx.Panel(self, style=wx.RAISED_BORDER)
         sizer = wx.BoxSizer()
         self.panel.SetSizer(sizer)
 
