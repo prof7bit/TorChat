@@ -1220,7 +1220,7 @@ class DropTarget(wx.FileDropTarget):
         
         print "(2) file dropped: %s" % file_name
        
-        if not self.window.buddy.conn_in:
+        if not self.window.buddy.isFullyConnected():
             wx.MessageBox(lang.D_WARN_BUDDY_OFFLINE_MESSAGE,
                           lang.D_WARN_BUDDY_OFFLINE_TITLE)
             return

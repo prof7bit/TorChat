@@ -125,7 +125,6 @@ class Buddy(object):
         self.conn_out = None
         self.conn_in = None
         self.status = STATUS_OFFLINE
-        self.can_send = False
         self.client = ""
         self.version = ""
         self.timer = False
@@ -140,7 +139,10 @@ class Buddy(object):
         if self.conn_out == None:
             self.conn_out = OutConnection(self.address + ".onion", self.bl, self)
             self.sendPing()
-        
+    
+    def isFullyConnected(self):
+        return self.conn_in and self.conn_out and self.conn_out.pong_sent
+
     def disconnect(self):
         print "(2) %s.disconnect()" % self.address
         if self.conn_out != None:
@@ -150,12 +152,10 @@ class Buddy(object):
             self.conn_in.close()
             self.conn_in = None
         self.onStatus(STATUS_OFFLINE)
-        self.can_send = False
         
     def onOutConnectionFail(self):
         print "(2) %s.onOutConnectionFail()" % self.address
         self.count_failed_connects += 1
-        self.can_send = False
         self.startTimer()
         
     def onInConnectionFail(self):
@@ -221,7 +221,7 @@ class Buddy(object):
 
     def sendChatMessage(self, text):
         #text must be unicode, will be encoded to UTF-8
-        if self.conn_in and self.can_send:
+        if self.isFullyConnected():
             message = ProtocolMsg(self.bl, None, "message", text.encode("UTF-8"))
             message.send(self)
         else:
@@ -250,7 +250,7 @@ class Buddy(object):
     def sendOfflineMessages(self):
         #this will be called after the answer to the ping message
         text = self.getOfflineMessages()
-        if text:
+        if text and self.isFullyConnected():
             wipeFile(self.getOfflineFileName())
             print "(2) sending offline messages to %s" % self.address
             #we send it without checking online status. because we have sent 
@@ -260,6 +260,7 @@ class Buddy(object):
             message.send(self)
             self.bl.guiCallback(CB_TYPE_OFFLINE_SENT, self)
         else:
+            print "(2) could not send offline messages, not fully connected."
             pass
 
     def getDisplayNameOrAddress(self):
@@ -340,7 +341,7 @@ class Buddy(object):
         ping.send(self)
     
     def sendStatus(self):
-        if self.can_send:
+        if self.isFullyConnected():
             status = ""
             if self.bl.own_status == STATUS_ONLINE:
                 status = "available"
@@ -352,14 +353,11 @@ class Buddy(object):
                 print "(2) %s.sendStatus(): sending %s" % (self.address, status)
                 msg = ProtocolMsg(self.bl, None, "status", status)
                 msg.send(self)
-                    
-            else:
-                print "(2) %s.sendStatus(): still handshaking, not sending status" % self.address
         else:
             print "(2) %s.sendStatus(): not connected, not sending status" % self.address
             
     def sendProfile(self):
-        if self.can_send:
+        if self.isFullyConnected():
             print "(2) %s.sendProfile()" % self.address
             name = config.get("profile", "name")
             if name <> "":
@@ -376,24 +374,32 @@ class Buddy(object):
                 msg = ProtocolMsg(self.bl, None, "profile_avatar", text) #send raw binary data
                 msg.send(self)
         else:
-            print "(2) %s.sendProfile(): not connected, not sending" % self.address
+            print "(2) %s.sendProfile(): not connected, not sending profile" % self.address
                     
             
         
     def sendAddMe(self):
-        msg = ProtocolMsg(self.bl, None, "add_me", "")
-        msg.send(self)
+        if self.isFullyConnected():
+            msg = ProtocolMsg(self.bl, None, "add_me", "")
+            msg.send(self)
+        else:
+            print "(2) not connected, not sending add_me to %s" % self.address
         
     def sendRemoveMe(self):
-        if self.conn_in:
+        if self.isFullyConnected():
             msg = ProtocolMsg(self.bl, None, "remove_me", "")
             msg.send(self)
+        else:
+            print "(2) not connected, not sending remove_me to %s" % self.address
         
     def sendVersion(self):
-        msg = ProtocolMsg(self.bl, None, "client", version.NAME)
-        msg.send(self)
-        msg = ProtocolMsg(self.bl, None, "version", version.VERSION)
-        msg.send(self)
+        if self.isFullyConnected():
+            msg = ProtocolMsg(self.bl, None, "client", version.NAME)
+            msg.send(self)
+            msg = ProtocolMsg(self.bl, None, "version", version.VERSION)
+            msg.send(self)
+        else:
+            print "(2) not connected, not sending version to %s" % self.address
 
     def getDisplayName(self):
         if self.name != "":
@@ -1137,18 +1143,20 @@ class ProtocolMsg_ping(ProtocolMsg):
         else:
             if not self.buddy.conn_in:
                 #the buddie's last pong might have been lost when his first conn-out failed
-                #so we send another ping, just to be on the safe side. This might
-                #cause up to one more ping-pong from each side but it avoids problems. 
+                #so we send another ping, just to be on the safe side.
                 self.buddy.sendPing()
+
+        if self.buddy.conn_out.pong_sent:
+            #but we don't need to send more than one pong on the same conn_out
+            #only if this is also a new conn_out because the last one failed
+            print "(2) not sending another pong over same connection"
+            return
 
         #now we can finally put our answer into the send queue
         print "(2) PONG >>> %s" % self.address    
         answer = ProtocolMsg(self.bl, None, "pong", self.answer)
         answer.send(self.buddy)
-        
-        #after our pong the buddy should be 
-        #able to receive other messages
-        self.buddy.can_send = True
+        self.buddy.conn_out.pong_sent = True
         
         if self.buddy in self.bl.list:
             self.buddy.sendAddMe()
@@ -1595,6 +1603,7 @@ class OutConnection(threading.Thread):
         self.bl = buddy_list
         self.buddy = buddy
         self.address = address
+        self.pong_sent = False
         self.send_buffer = []
         self.start()
         
