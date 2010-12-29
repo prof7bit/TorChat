@@ -531,7 +531,7 @@ class BuddyList(object):
     def save(self):
         f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
         for buddy in self.list:
-            line = ("%s %s\n" % (buddy.address, buddy.name)).rstrip().encode("UTF-8")
+            line = ("%s %s\r\n" % (buddy.address, buddy.name)).rstrip().encode("UTF-8")
             f.write(line)
         f.close()
         print "(2) buddy list saved"
