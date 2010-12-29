@@ -1781,7 +1781,7 @@ class Listener(threading.Thread):
             if time.time() - conn.last_active > config.DEAD_CONNECTION_TIMEOUT:
                 if conn.buddy:
                     print "(2) conn_in timeout: disconnecting %s" % conn.buddy.address
-                    buddy.disconnect()
+                    conn.buddy.disconnect()
                 else:
                     print "(2) closing unused in-connection from %s" % conn.last_ping_address
                     conn.close()
