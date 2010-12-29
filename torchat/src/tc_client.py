@@ -383,7 +383,10 @@ class Buddy(object):
             if text <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_text", text.encode("UTF-8"))
                 msg.send(self)
-                
+    
+    def sendAvatar(self):
+        if self.isAlreadyPonged():
+            print "(2) %s.sendAvatar()" % self.address
             # the GUI has put our own avatar into the BuddyList object, ready for sending.
             # avatar is optional but if sent then both messages must be in the following order:
             if self.bl.own_avatar_data:
@@ -395,9 +398,11 @@ class Buddy(object):
                 text = self.bl.own_avatar_data
                 msg = ProtocolMsg(self.bl, None, "profile_avatar", text) #send raw binary data
                 msg.send(self)
+            else:
+                print "(2) we have no avatar, sending nothing"
                 
         else:
-            print "(2) %s.sendProfile(): not connected, not sending profile" % self.address
+            print "(2) %s.sendAvatar(): not connected, not sending avatar" % self.address
                     
             
         
@@ -1184,10 +1189,11 @@ class ProtocolMsg_ping(ProtocolMsg):
         answer.send(self.buddy)
         self.buddy.conn_out.pong_sent = True
         
+        self.buddy.sendVersion()
         if self.buddy in self.bl.list:
             self.buddy.sendAddMe()
         self.buddy.sendProfile()
-        self.buddy.sendVersion()
+        self.buddy.sendAvatar()
         
         #send status as the last message because the other 
         #client will update the GUI only after status messages
