@@ -118,8 +118,9 @@ class Buddy(object):
         self.name = name
         self.profile_name = u""
         self.profile_text = u""
-        self.profile_avatar_data = ""        # raw data like it comes over the network
-        self.profile_avatar_object = None    # the GUI can use this however it wants
+        self.profile_avatar_data = ""        # uncompressed 64*64*24 bit RGB.
+        self.profile_avatar_data_alpha = ""  # uncompressed 64*64*8 bit alpha. (optional)
+        self.profile_avatar_object = None    # tc_gui.py will cache a wx.Bitmap here, tc_client will not touch this
         self.random1 = str(random.getrandbits(256))
         self.random2 = str(random.getrandbits(256))
         self.conn_out = None
@@ -202,7 +203,13 @@ class Buddy(object):
         if status <> self.status:
             self.status = status
             self.bl.onBuddyStatusChange(self)
-            
+    
+    def onAvatarDataAlpha(self, data):
+        print "(2) %s.onAvatarDataAplha()" % self.address
+        # just store it, no gui callback because this is always sent first. 
+        # The next message will be the acual image data which will finally notify the GUI
+        self.profile_avatar_data_alpha = data
+    
     def onAvatarData(self, data):
         print "(2) %s.onAvatarData()" % self.address
         if data <> self.profile_avatar_data:
@@ -364,20 +371,31 @@ class Buddy(object):
     def sendProfile(self):
         if self.isAlreadyPonged():
             print "(2) %s.sendProfile()" % self.address
+            
+            # this message is optional
             name = config.get("profile", "name")
             if name <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_name", name.encode("UTF-8"))
                 msg.send(self)
+            
+            # this message is optional
             text = config.get("profile", "text")
             if text <> "":
                 msg = ProtocolMsg(self.bl, None, "profile_text", text.encode("UTF-8"))
                 msg.send(self)
                 
-            # the GUI has put the avatar into the BuddyList object, ready for sending
-            text = self.bl.own_avatar_data
-            if text <> "":
+            # the GUI has put our own avatar into the BuddyList object, ready for sending.
+            # avatar is optional but if sent then both messages must be in the following order:
+            if self.bl.own_avatar_data:
+                # alpha might be empty (0 bytes) but we must always send it.
+                text = self.bl.own_avatar_data_alpha
+                msg = ProtocolMsg(self.bl, None, "profile_avatar_alpha", text) #send raw binary data
+                msg.send(self)
+                
+                text = self.bl.own_avatar_data
                 msg = ProtocolMsg(self.bl, None, "profile_avatar", text) #send raw binary data
                 msg.send(self)
+                
         else:
             print "(2) %s.sendProfile(): not connected, not sending profile" % self.address
                     
@@ -472,9 +490,12 @@ class BuddyList(object):
         
         # the own avatar is set by the GUI.
         # Only the GUI knows how to deal with graphics, so we just
-        # provide this variable, if the GUI puts in some raw binary data
-        # here then it will be transmitted as it is.
+        # provide these variables, if the GUI puts the 64*64*24 RGB bitmaps
+        # here and an optional alpha channel 64*64*8 and then it will be
+        # transmitted as it is. tc_client.py will not interpret or convert it, 
+        # only transmit and receive this raw data and notify the GUI
         self.own_avatar_data = "" 
+        self.own_avatar_data_alpha = "" 
 
         print "(1) buddy list initialized"
 
@@ -1262,6 +1283,7 @@ class ProtocolMsg_status(ProtocolMsg):
             #avoid timeout of in-connection
             self.connection.last_active = time.time()
             
+            
 class ProtocolMsg_profile_name(ProtocolMsg):
     command = "profile_name"
     def execute(self):
@@ -1278,7 +1300,22 @@ class ProtocolMsg_profile_text(ProtocolMsg):
             print "(2) received profile text from %s: %s" % (self.buddy.address, self.buddy.profile_text)
         
 
+class ProtocolMsg_profile_avatar_alpha(ProtocolMsg):
+    # this message has to be sent BEFORE profile_avatar because
+    # only the latter one will trigger the GUI notification
+    # this message must be sent with empty data (0 bytes) if there 
+    # is no alpha, it may not be omitted.
+    command = "profile_avatar_alpha"
+    def execute(self):
+        if self.buddy:
+            print "(2) received avatar alpha channel from %s (%i bytes)" % (self.buddy.address, len(self.text))
+             # the buddy obect stores the raw binary data
+            self.buddy.onAvatarDataAlpha(self.text)
+    
+    
 class ProtocolMsg_profile_avatar(ProtocolMsg):
+    # the uncompesseed 64*64*24bit image. Avatar messages can be completely omitted but
+    # IF they are sent then the correct order is first the alpha and then this one
     command = "profile_avatar"
     def execute(self):
         if self.buddy:

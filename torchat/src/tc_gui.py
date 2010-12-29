@@ -196,13 +196,16 @@ class TaskbarMenu(wx.Menu):
         dialog.ShowModal()
 
 class NotificationWindow(wx.PopupWindow):
-    def __init__(self, mw, text):
+    def __init__(self, mw, text, buddy):
         wx.PopupWindow.__init__(self, mw)
         self.panel = wx.Panel(self)
         sizer = wx.BoxSizer()
         self.panel.SetSizer(sizer)
 
-        bitmap = wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
+        if buddy.profile_avatar_object <> None:
+            bitmap = buddy.profile_avatar_object
+        else:
+            bitmap = wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
         static_image = wx.StaticBitmap(self.panel, -1, bitmap)
         sizer.Add(static_image, 0, wx.ALL, 5 )
         
@@ -666,6 +669,11 @@ class BuddyList(wx.ListCtrl):
             image.Rescale(64, 64, wx.IMAGE_QUALITY_HIGH)
             self.bl.own_avatar_data = image.GetData()
             print "(2) uncompressed image data: %i bytes" % len(self.bl.own_avatar_data)
+            if image.HasAlpha():
+                self.bl.own_avatar_data_alpha = image.GetAlphaData()
+                print "(2) uncompressed aplha data: %i bytes" % len(self.bl.own_avatar_data_alpha)
+            else:
+                self.bl.own_avatar_data_alpha = ""
             for buddy in self.bl.list:
                 buddy.sendProfile()
 
@@ -780,9 +788,13 @@ class BuddyList(wx.ListCtrl):
     def onBuddyAvatarChanged(self, buddy):
         print "(2) converting %s avatar data into wx.Bitmap" % buddy.address
         try:
-            buddy.profile_avatar_object = wx.BitmapFromImage(wx.ImageFromData(64, 64, buddy.profile_avatar_data))
+            image = wx.ImageFromData(64, 64, buddy.profile_avatar_data)
+            if buddy.profile_avatar_data_alpha:
+                print "(2) %s avatar has alpha channel" % buddy.address
+                image.SetAlphaData(buddy.profile_avatar_data_alpha)
+            buddy.profile_avatar_object = wx.BitmapFromImage(image)
         except:
-            print "(2)  could not convert %s avatar data" % buddy.address
+            print "(2)  could not convert %s avatar data to wx.Bitmap" % buddy.address
             tb()
                 
     def onListChanged(self):
@@ -1083,7 +1095,7 @@ class ChatWindow(wx.Frame):
             if config.getint("gui", "notification_popup"):
                 nt = textwrap.fill("%s:\n%s" % (name, message), 40)
                 try:
-                    NotificationWindow(self.mw, nt)
+                    NotificationWindow(self.mw, nt, self.buddy)
                 except:
                     #Some platforms (Mac) dont have wx.PopupWindow
                     #FIXME: need alternative solution
