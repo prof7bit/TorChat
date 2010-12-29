@@ -142,6 +142,9 @@ class Buddy(object):
     
     def isFullyConnected(self):
         return self.conn_in and self.conn_out and self.conn_out.pong_sent
+        
+    def isAlreadyPonged(self):
+        return self.conn_out and self.conn_out.pong_sent
 
     def disconnect(self):
         print "(2) %s.disconnect()" % self.address
@@ -248,7 +251,8 @@ class Buddy(object):
             return ""
         
     def sendOfflineMessages(self):
-        #this will be called after the answer to the ping message
+        #this will be called in the incoming status message
+        #FIXME: call this from onStatus() instead, this would be the ntural place for it
         text = self.getOfflineMessages()
         if text and self.isFullyConnected():
             wipeFile(self.getOfflineFileName())
@@ -341,7 +345,7 @@ class Buddy(object):
         ping.send(self)
     
     def sendStatus(self):
-        if self.isFullyConnected():
+        if self.isAlreadyPonged():
             status = ""
             if self.bl.own_status == STATUS_ONLINE:
                 status = "available"
@@ -357,7 +361,7 @@ class Buddy(object):
             print "(2) %s.sendStatus(): not connected, not sending status" % self.address
             
     def sendProfile(self):
-        if self.isFullyConnected():
+        if self.isAlreadyPonged():
             print "(2) %s.sendProfile()" % self.address
             name = config.get("profile", "name")
             if name <> "":
@@ -379,7 +383,7 @@ class Buddy(object):
             
         
     def sendAddMe(self):
-        if self.isFullyConnected():
+        if self.isAlreadyPonged():
             msg = ProtocolMsg(self.bl, None, "add_me", "")
             msg.send(self)
         else:
@@ -393,7 +397,7 @@ class Buddy(object):
             print "(2) not connected, not sending remove_me to %s" % self.address
         
     def sendVersion(self):
-        if self.isFullyConnected():
+        if self.isAlreadyPonged():
             msg = ProtocolMsg(self.bl, None, "client", version.NAME)
             msg.send(self)
             msg = ProtocolMsg(self.bl, None, "version", version.VERSION)
