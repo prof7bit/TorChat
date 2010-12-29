@@ -45,6 +45,7 @@ CB_TYPE_OFFLINE_SENT = 3
 CB_TYPE_STATUS = 4
 CB_TYPE_LIST_CHANGED = 5
 CB_TYPE_AVATAR = 6
+CB_TYPE_PROFILE = 7
 
 tb = config.tb # the traceback function has moved to config
 tb1 = config.tb1
@@ -209,6 +210,16 @@ class Buddy(object):
         if status <> self.status:
             self.status = status
             self.bl.onBuddyStatusChange(self)
+            
+    def onProfileName(self, name):
+        print "(2) %s.onProfile" % self.address
+        self.profile_name = name
+        self.bl.onBuddyProfileChange(self)
+        
+    def onProfileText(self, text):
+        print "(2) %s.onProfile" % self.address
+        self.profile_text = text
+        self.bl.onBuddyProfileChange(self)
     
     def onAvatarDataAlpha(self, data):
         print "(2) %s.onAvatarDataAplha()" % self.address
@@ -647,6 +658,9 @@ class BuddyList(object):
         
     def onBuddyStatusChange(self, buddy):
         self.guiCallback(CB_TYPE_STATUS, buddy)
+        
+    def onBuddyProfileChange(self, buddy):
+        self.guiCallback(CB_TYPE_PROFILE, buddy)
 
     def onBuddyAvatarChange(self, buddy):
         self.guiCallback(CB_TYPE_AVATAR, buddy)
@@ -1300,16 +1314,16 @@ class ProtocolMsg_profile_name(ProtocolMsg):
     command = "profile_name"
     def execute(self):
         if self.buddy:
-            self.buddy.profile_name = self.text.decode("UTF-8")
-            print "(2) received name from %s: %s" % (self.buddy.address, self.buddy.profile_name)
+            print "(2) received name from %s" % self.buddy.address
+            self.buddy.onProfileName(self.text.decode("UTF-8"))
         
 
 class ProtocolMsg_profile_text(ProtocolMsg):
     command = "profile_text"
     def execute(self):
         if self.buddy:
-            self.buddy.profile_text = self.text.decode("UTF-8")
-            print "(2) received profile text from %s: %s" % (self.buddy.address, self.buddy.profile_text)
+            print "(2) received profile text from %s" % self.buddy.address
+            self.buddy.onProfileText(self.text.decode("UTF-8"))
         
 
 class ProtocolMsg_profile_avatar_alpha(ProtocolMsg):

@@ -830,12 +830,30 @@ class BuddyList(wx.ListCtrl):
         assert isinstance(buddy, tc_client.Buddy)
         line = buddy.getDisplayName()
         index = self.FindItem(0, line)
-        self.SetItemImage(index, self.il_idx[buddy.status])        
+        self.SetItemImage(index, self.il_idx[buddy.status])
+        
+        #notify the chat window
         for window in self.mw.chat_windows:
             if window.buddy == buddy:
                 window.onBuddyStatusChanged()
+                break
                 
         # if a tooltip for this buddy is currently shown then refresh it
+        if self.tool_tip <> None and index == self.tool_tip_index:
+            self.openToolTip(index)
+            
+    def onBuddyProfileChanged(self, buddy):
+        assert isinstance(buddy, tc_client.Buddy)
+        
+        #notify the chat window
+        for window in self.mw.chat_windows:
+            if window.buddy == buddy:
+                window.onBuddyProfileChanged()
+                break
+                
+        # if a tooltip for this buddy is currently shown then refresh it
+        line = buddy.getDisplayName()
+        index = self.FindItem(0, line)
         if self.tool_tip <> None and index == self.tool_tip_index:
             self.openToolTip(index)
             
@@ -847,9 +865,23 @@ class BuddyList(wx.ListCtrl):
                 print "(2) %s avatar has alpha channel" % buddy.address
                 image.SetAlphaData(buddy.profile_avatar_data_alpha)
             buddy.profile_avatar_object = wx.BitmapFromImage(image)
+
         except:
             print "(2)  could not convert %s avatar data to wx.Bitmap" % buddy.address
             tb()
+
+        # notify the chat window
+        for window in self.mw.chat_windows:
+            if window.buddy == buddy:
+                window.onBuddyAvatarChanged()
+                break
+            
+        # if a tooltip for this buddy is currently shown then refresh it
+        line = buddy.getDisplayName()
+        index = self.FindItem(0, line)
+        if self.tool_tip <> None and index == self.tool_tip_index:
+            self.openToolTip(index)
+
                 
     def onListChanged(self):
         # usually called via callback from the client
@@ -1272,6 +1304,14 @@ class ChatWindow(wx.Frame):
         bmp = getStatusBitmap(self.buddy.status)
         icon = wx.IconFromBitmap(bmp)
         self.SetIcon(icon)
+    
+    def onBuddyAvatarChanged(self):
+        # nothing to to yet
+        pass
+
+    def onBuddyProfileChanged(self):
+        # nothing to to yet
+        pass
 
 
 class DropTarget(wx.FileDropTarget):
@@ -1578,6 +1618,11 @@ class MainWindow(wx.Frame):
             # this is called when the avatar of one of the
             # buddy has changed. callback_data is the Buddy instance
             wx.CallAfter(self.gui_bl.onBuddyAvatarChanged, callback_data)
+            
+        if callback_type == tc_client.CB_TYPE_PROFILE:
+            # this is called when the profile of one of the
+            # buddy has changed. callback_data is the Buddy instance
+            wx.CallAfter(self.gui_bl.onBuddyProfileChanged, callback_data)
             
         if callback_type == tc_client.CB_TYPE_LIST_CHANGED:
             try:
