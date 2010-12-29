@@ -215,6 +215,9 @@ class Buddy(object):
     def onProfileName(self, name):
         print "(2) %s.onProfile" % self.address
         self.profile_name = name
+        if self.name == "" and name <> "":
+            self.name = name
+            self.bl.save()
         self.bl.gui(CB_TYPE_PROFILE, self)
         
     def onProfileText(self, text):
@@ -492,13 +495,13 @@ class BuddyList(object):
         f.close
         self.list = []
         for line in l:
-            line = line.rstrip()
+            line = line.rstrip().decode("UTF-8")
             if len(line) > 15:
                 address = line[0:16]
                 if len(line) > 17:
-                    name = line[17:].decode("UTF-8")
+                    name = line[17:]
                 else:
-                    name = ""
+                    name = u""
                 buddy = Buddy(address, self, name)
                 self.list.append(buddy)
         
@@ -528,8 +531,8 @@ class BuddyList(object):
     def save(self):
         f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
         for buddy in self.list:
-            line = "%s %s" % (buddy.address, buddy.name.encode("UTF-8"))
-            f.write("%s\r\n" % line.rstrip())
+            line = ("%s %s\n" % (buddy.address, buddy.name)).rstrip().encode("UTF-8")
+            f.write(line)
         f.close()
         print "(2) buddy list saved"
         
@@ -1201,10 +1204,10 @@ class ProtocolMsg_ping(ProtocolMsg):
         self.buddy.conn_out.pong_sent = True
         
         self.buddy.sendVersion()
-        if self.buddy in self.bl.list:
-            self.buddy.sendAddMe()
         self.buddy.sendProfile()
         self.buddy.sendAvatar()
+        if self.buddy in self.bl.list:
+            self.buddy.sendAddMe()
         
         #send status as the last message because the other 
         #client will update the GUI only after status messages
@@ -1355,6 +1358,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
             print "(2) add me from %s" % self.buddy.address
             if not self.buddy in self.bl.list:
                 print "(2) received add_me from new buddy %s" % self.buddy.address
+                self.buddy.name = self.buddy.profile_name
                 self.bl.addBuddy(self.buddy)
                 msg = "<- has added you"
                 self.bl.onChatMessage(self.buddy, msg)
