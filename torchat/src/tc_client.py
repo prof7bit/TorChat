@@ -510,6 +510,7 @@ class BuddyList(object):
         for buddy in self.list:
             if buddy.address == config.get("client", "own_hostname"):
                 found = True
+                self.own_buddy = buddy
         
         if not found:
             print "(1) adding own hostname %s to list" % config.get("client", "own_hostname")
@@ -517,6 +518,7 @@ class BuddyList(object):
                 self.addBuddy(Buddy(config.get("client", "own_hostname"), 
                                     self, 
                                     "myself"))
+                self.own_buddy = buddy
         
         # the own avatar is set by the GUI.
         # Only the GUI knows how to deal with graphics, so we just
@@ -539,6 +541,9 @@ class BuddyList(object):
         
         # this is the optimal spot to notify the GUI to redraw the list
         self.gui(CB_TYPE_LIST_CHANGED, None)
+        
+    def logMyselfMessage(self, msg):
+        self.own_buddy.onChatMessage("*** %s" % msg)
         
     def addBuddy(self, buddy):
         if self.getBuddyFromAddress(buddy.address) == None:
@@ -1364,7 +1369,7 @@ class ProtocolMsg_add_me(ProtocolMsg):
                 self.buddy.name = self.buddy.profile_name
                 self.bl.addBuddy(self.buddy)
                 msg = "<- has added you"
-                self.bl.onChatMessage(self.buddy, msg)
+                self.buddy.onChatMessage(msg)
 
 
 class ProtocolMsg_remove_me(ProtocolMsg):

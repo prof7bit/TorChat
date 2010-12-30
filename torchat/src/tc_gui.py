@@ -30,6 +30,7 @@ import dlg_settings
 import translations
 lang = translations.lang_en
 tb = config.tb
+tb1 = config.tb1
 
 ICON_NAMES = {tc_client.STATUS_OFFLINE : "offline.png",
               tc_client.STATUS_ONLINE : "online.png",
@@ -509,7 +510,8 @@ class DlgEditContact(wx.Dialog):
             if res == False:
                 wx.MessageBox(lang.DEC_MSG_ALREADY_ON_LIST % address)
             else:
-                buddy.storeOfflineChatMessage(self.txt_intro.GetValue())
+                if self.txt_intro.GetValue() <> "":
+                    buddy.storeOfflineChatMessage(self.txt_intro.GetValue())
         else:
             address_old = self.buddy.address
             offline_file_name_old = self.buddy.getOfflineFileName()
@@ -1050,7 +1052,6 @@ class ChatWindow(wx.Frame):
                           main_window, 
                           -1, 
                           size=(400,400))
-        
         self.mw = main_window
         self.buddy = buddy
         self.unread = 0
@@ -1549,9 +1550,13 @@ class MainWindow(wx.Frame):
         
         if config.get("logging", "log_file") and config.getint("logging", "log_level"):
             print "(0) logging to file may leave sensitive information on disk"
-            wx.MessageBox(lang.D_LOG_WARNING_MESSAGE % config.log_writer.file_name, 
-                          lang.D_LOG_WARNING_TITLE, 
-                          wx.ICON_WARNING)
+            hidden = config.getint("gui", "open_chat_window_hidden")
+            wx.CallAfter(
+                ChatWindow, 
+                self, 
+                self.buddy_list.own_buddy, 
+                lang.D_LOG_WARNING_MESSAGE % config.log_writer.file_name, hidden
+            )
             
     def setStatus(self, status):
         self.buddy_list.setStatus(status)
@@ -1568,7 +1573,6 @@ class MainWindow(wx.Frame):
                 if window.buddy == buddy:
                     wx.CallAfter(window.process, message)
                     return
-            
             #no window found, so we create a new one
             hidden = config.getint("gui", "open_chat_window_hidden")
             wx.CallAfter(ChatWindow, self, buddy, message, hidden)
