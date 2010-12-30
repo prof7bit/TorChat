@@ -288,14 +288,15 @@ class PopupMenu(wx.Menu):
             item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SEND_FILE)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onSendFile, item)
+            
+            if self.buddy.getOfflineMessages():
+                item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SHOW_OFFLINE_MESSAGES)
+                self.AppendItem(item)
+                self.Bind(wx.EVT_MENU, self.onShowOffline, item)
 
-            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_SHOW_OFFLINE_MESSAGES)
-            self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onShowOffline, item)
-
-            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_CLEAR_OFFLINE_MESSAGES)
-            self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onClearOffline, item)
+                item = wx.MenuItem(self, wx.NewId(), lang.MPOP_CLEAR_OFFLINE_MESSAGES)
+                self.AppendItem(item)
+                self.Bind(wx.EVT_MENU, self.onClearOffline, item)
 
             self.AppendSeparator()
             
