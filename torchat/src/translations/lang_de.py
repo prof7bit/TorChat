@@ -44,7 +44,7 @@ MPOP_ADD_CONTACT = u"Kontakt hinzufügen..."
 MPOP_ABOUT = u"Über TorChat"
 MPOP_ASK_AUTHOR = u"%s fragen..."
 MPOP_SETTINGS = u"Einstellungen..."
-# MPOP_EDIT_MY_PROFILE = u"Edit my profile..."
+MPOP_EDIT_MY_PROFILE = u"Eigenes Profil bearbeiten..."
 
 # #chat window popup menu
 CPOP_COPY = u"Kopieren"
