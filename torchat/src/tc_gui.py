@@ -276,6 +276,7 @@ class PopupMenu(wx.Menu):
     def __init__(self, main_window, type):
         wx.Menu.__init__(self)
         self.mw = main_window
+        self.buddy = self.mw.gui_bl.getSelectedBuddy()
 
         # options for buddy
 
@@ -296,6 +297,27 @@ class PopupMenu(wx.Menu):
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.onClearOffline, item)
 
+            self.AppendSeparator()
+            
+            if not self.isCurrentBuddyLoggingActivated():
+                item = wx.MenuItem(self, wx.NewId(), lang.MPOP_ACTIVATE_LOG)
+                self.AppendItem(item)
+                self.Bind(wx.EVT_MENU, self.onActivateLog, item)
+                
+                if self.hasOldLog():
+                    item = wx.MenuItem(self, wx.NewId(), lang.MPOP_DELETE_EXISTING_LOG)
+                    self.AppendItem(item)
+                    self.Bind(wx.EVT_MENU, self.onDeleteLog, item)
+                    
+            else:
+                item = wx.MenuItem(self, wx.NewId(), lang.MPOP_STOP_LOG)
+                self.AppendItem(item)
+                self.Bind(wx.EVT_MENU, self.onStopLog, item)
+                
+                item = wx.MenuItem(self, wx.NewId(), lang.MPOP_DELETE_AND_STOP_LOG)
+                self.AppendItem(item)
+                self.Bind(wx.EVT_MENU, self.onDeleteLog, item)
+            
             self.AppendSeparator()
 
             item = wx.MenuItem(self, wx.NewId(), lang.MPOP_EDIT_CONTACT)
@@ -345,22 +367,19 @@ class PopupMenu(wx.Menu):
         self.Bind(wx.EVT_MENU, self.onQuit, item)
         
     def onSendFile(self, evt):
-        buddy = self.mw.gui_bl.getSelectedBuddy()
-        title = lang.DFT_FILE_OPEN_TITLE % buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
         dialog = wx.FileDialog(self.mw, title, style=wx.OPEN)
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
-            transfer_window = FileTransferWindow(self.mw, buddy, file_name)
+            transfer_window = FileTransferWindow(self.mw, self.buddy, file_name)
 
     def onEdit(self, evt):
-        buddy = self.mw.gui_bl.getSelectedBuddy()
-        dialog = DlgEditContact(self.mw, self.mw, buddy)
+        dialog = DlgEditContact(self.mw, self.mw, self.buddy)
         dialog.ShowModal()
 
     def onDelete(self, evt):
-        buddy = self.mw.gui_bl.getSelectedBuddy()
-        answer = wx.MessageBox(lang.D_CONFIRM_DELETE_MESSAGE % (buddy.address, buddy.name), 
+        answer = wx.MessageBox(lang.D_CONFIRM_DELETE_MESSAGE % (self.buddy.address, self.buddy.name), 
                                lang.D_CONFIRM_DELETE_TITLE, 
                                wx.YES_NO|wx.NO_DEFAULT)
         if answer == wx.YES:
@@ -369,23 +388,50 @@ class PopupMenu(wx.Menu):
             #the other buddy will then disconnect,
             #because there is not much it can do with the
             #connections anymore.
-            self.mw.buddy_list.removeBuddy(buddy, disconnect=False)
+            self.mw.buddy_list.removeBuddy(self.buddy, disconnect=False)
 
     def onShowOffline(self, event):
-        buddy = self.mw.gui_bl.getSelectedBuddy()
-        om = buddy.getOfflineMessages()
+        om = self.buddy.getOfflineMessages()
         if om:
-            om = lang.MSG_OFFLINE_QUEUED % (buddy.address, om)
+            om = lang.MSG_OFFLINE_QUEUED % (self.buddy.address, om)
         else:
-            om = lang.MSG_OFFLINE_EMPTY % buddy.address
+            om = lang.MSG_OFFLINE_EMPTY % self.buddy.address
         wx.MessageBox(om, lang.MSG_OFFLINE_TITLE, wx.ICON_INFORMATION)
 
     def onClearOffline(self, evt):
-        buddy = self.mw.gui_bl.getSelectedBuddy()
         try:
-            tc_client.wipeFile(buddy.getOfflineFileName())
+            tc_client.wipeFile(self.buddy.getOfflineFileName())
         except:
             pass
+            
+
+    def getChatWindow(self):
+        # this is called by the on*Log() functions,
+        # because all logging is done by the chat windows,
+        # logging does not belong to the functionality 
+        # of the Buddy in tc_client.py 
+        for window in self.mw.chat_windows:
+            if window.buddy == self.buddy:
+                print "found"
+                return window
+        
+        #must open a hidden window
+        return ChatWindow(self.mw, self.buddy, "", True)
+
+    def isCurrentBuddyLoggingActivated(self):
+        return os.path.exists(os.path.join(config.getDataDir(), '%s.log' % self.buddy.address))
+        
+    def hasOldLog(self):
+        return os.path.exists(os.path.join(config.getDataDir(), 'disabled_%s.log' % self.buddy.address))
+        
+    def onActivateLog(self, evt):
+        self.getChatWindow().onActivateLog(evt)
+        
+    def onStopLog(self, evt):
+        self.getChatWindow().onStopLog(evt)
+    
+    def onDeleteLog(self, evt):
+        self.getChatWindow().onDeleteLog(evt)
 
     def onAdd(self, evt):
         dialog = DlgEditContact(self.mw, self.mw)
@@ -1085,11 +1131,13 @@ class ChatWindow(wx.Frame):
         
         self.panel.SetSizer(sizer)
         sizer.FitInside(self)
-        
+
+        self.writeBackLog()
+
         om = self.buddy.getOfflineMessages()
         if om:
-            om = "[%s]\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
-            self.writeColored(config.get("gui", "color_nick_myself"), "myself", om)
+            om = "*** %s\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
+            self.writeHintLine(om)
         
         if message != "":
             self.process(message)
@@ -1112,13 +1160,30 @@ class ChatWindow(wx.Frame):
         # accept files. The lower part only text and URLs
         self.txt_out.DragAcceptFiles(False)
         
-        
+        self.txt_in.AppendText("\n") #scroll to end
         
         if not hidden:
             self.Show()
         
         self.mw.chat_windows.append(self)
         self.onBuddyStatusChanged()
+        
+    def writeBackLogContents(self, file_name):
+        file = open(file_name)
+        for line in file:
+            self.writeHintLine(line.rstrip().decode("UTF-8"))
+        file.close()
+        
+    def writeBackLog(self):
+        old = os.path.join(config.getDataDir(), "disabled_%s.log" % self.buddy.address)
+        cur = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
+        if os.path.exists(cur):
+            self.writeBackLogContents(cur)
+            self.writeHintLine("*** " + lang.LOG_IS_ACTIVATED % cur)
+        else:
+            if os.path.exists(old):
+                self.writeBackLogContents(old)
+                self.writeHintLine("*** " + lang.LOG_IS_STOPPED_OLD_LOG_FOUND % old)
  
     def setFontAndColor(self):
         font = wx.Font(
@@ -1166,6 +1231,23 @@ class ChatWindow(wx.Frame):
             self.txt_in.SetDefaultStyle(wx.TextAttr(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)))
         self.txt_in.write("%s\n" % text)
         
+        # workaround scroll bug on windows 
+        # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
+        self.txt_in.ScrollLines(-1)
+        self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
+        
+        if os.path.exists(os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)):
+            logtext = "%s %s: %s" % (time.strftime(config.get("gui", "time_stamp_format")), name, text)
+            self.log(logtext)
+    
+    def writeHintLine(self, line):
+        self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_time_stamp")))
+        self.txt_in.write("%s\n" % line)
+        if config.getint("gui", "color_text_use_system_colors") == 0:
+            self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
+        else:
+            self.txt_in.SetDefaultStyle(wx.TextAttr(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)))
+
         # workaround scroll bug on windows 
         # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
         self.txt_in.ScrollLines(-1)
@@ -1274,6 +1356,27 @@ class ChatWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onEditBuddy, id=id)
         menu.AppendItem(item)
         
+        menu.AppendSeparator()
+        
+        if not self.isLoggingActivated():
+            item = wx.MenuItem(menu, wx.NewId(), lang.MPOP_ACTIVATE_LOG)
+            menu.AppendItem(item)
+            menu.Bind(wx.EVT_MENU, self.onActivateLog, item)
+            
+            if self.hasOldLog():
+                item = wx.MenuItem(menu, wx.NewId(), lang.MPOP_DELETE_EXISTING_LOG)
+                menu.AppendItem(item)
+                menu.Bind(wx.EVT_MENU, self.onDeleteLog, item)
+                
+        else:
+            item = wx.MenuItem(menu, wx.NewId(), lang.MPOP_STOP_LOG)
+            menu.AppendItem(item)
+            menu.Bind(wx.EVT_MENU, self.onStopLog, item)
+            
+            item = wx.MenuItem(menu, wx.NewId(), lang.MPOP_DELETE_AND_STOP_LOG)
+            menu.AppendItem(item)
+            menu.Bind(wx.EVT_MENU, self.onDeleteLog, item)
+        
         self.PopupMenu(menu)
         menu.Destroy()
 
@@ -1313,7 +1416,47 @@ class ChatWindow(wx.Frame):
     def onBuddyProfileChanged(self):
         # nothing to to yet
         pass
+        
+        
+    def isLoggingActivated(self):
+        return os.path.exists(os.path.join(config.getDataDir(), '%s.log' % self.buddy.address))
+        
+    def hasOldLog(self):
+        return os.path.exists(os.path.join(config.getDataDir(), 'disabled_%s.log' % self.buddy.address))
 
+    def onActivateLog(self, evt):
+        old = os.path.join(config.getDataDir(), "disabled_%s.log" % self.buddy.address)
+        cur = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
+        if os.path.exists(old):
+            shutil.move(old, cur)
+        self.log("") # this will create it
+        self.writeColored(config.get("gui", "color_nick_myself"), "***", "[%s]" % lang.LOG_STARTED)
+        
+    def onStopLog(self, evt):
+        old = os.path.join(config.getDataDir(), "disabled_%s.log" % self.buddy.address)
+        cur = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
+        if os.path.exists(cur):
+            self.writeColored(config.get("gui", "color_nick_myself"), "***", "[%s]" % lang.LOG_STOPPED)
+            shutil.move(cur, old)
+        
+    def onDeleteLog(self, evt):
+        old = os.path.join(config.getDataDir(), "disabled_%s.log" % self.buddy.address)
+        cur = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
+        tc_client.wipeFile(old)
+        tc_client.wipeFile(cur)
+        self.writeHintLine("*** %s" % lang.LOG_DELETED)
+
+    def log(self, msg):
+        file_name = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
+        if not os.path.exists(file_name):
+            f = open(file_name, "w")
+            f.write(("*** %s\r\n\r\n" % lang.LOG_HEADER).encode("UTF-8"))
+        else:
+            f = open(file_name, "a")
+        
+        if msg <> "":
+            f.write(("%s\r\n" % msg).encode("UTF-8"))
+        f.close()
 
 class DropTarget(wx.FileDropTarget):
     def __init__(self, window):
