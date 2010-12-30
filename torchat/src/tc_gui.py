@@ -276,11 +276,11 @@ class PopupMenu(wx.Menu):
     def __init__(self, main_window, type):
         wx.Menu.__init__(self)
         self.mw = main_window
-        self.buddy = self.mw.gui_bl.getSelectedBuddy()
 
         # options for buddy
 
         if type == "contact": 
+            self.buddy = self.mw.gui_bl.getSelectedBuddy()
             item = wx.MenuItem(self, wx.NewId(), lang.MPOP_CHAT)
             self.AppendItem(item)
             self.Bind(wx.EVT_MENU, self.mw.gui_bl.onDClick, item)
@@ -836,23 +836,24 @@ class BuddyList(wx.ListCtrl):
     
     def onDClick(self, evt):
         i = self.GetFirstSelected()
-        address = self.GetItemText(i)[0:16]
-        for buddy in self.bl.list:
-            if buddy.address == address:
-                found_window = False
-                for window in self.mw.chat_windows:
-                    if window.buddy == buddy:
-                        found_window = True
-                        break
-                
-                if not found_window:
-                    window = ChatWindow(self.mw, buddy)
-                
-                if not window.IsShown():
-                    window.Show()
+        if i <> -1:
+            address = self.GetItemText(i)[0:16]
+            for buddy in self.bl.list:
+                if buddy.address == address:
+                    found_window = False
+                    for window in self.mw.chat_windows:
+                        if window.buddy == buddy:
+                            found_window = True
+                            break
                     
-                window.txt_out.SetFocus()
-                break
+                    if not found_window:
+                        window = ChatWindow(self.mw, buddy)
+                    
+                    if not window.IsShown():
+                        window.Show()
+                        
+                    window.txt_out.SetFocus()
+                    break
 
         evt.Skip()
         
