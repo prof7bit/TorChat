@@ -4,6 +4,7 @@ svn trunk
 - profile text and avatar (will be shown when mouse over buddy in list)
 - enable the logging for individual buddies and show backlog in opened window
 - fix receiving of very small files (sometimes got stuck at 0%)
+- fix the annoying "list item -1" error on windows once and for all (hopefully)
 - remove some CPU hogging in the GUI, also removed annoying flickering
 - configurable fonts and colors (in the .ini file, no GUI config yet)
 - configurable branding ("Ask Bernd" name and ID can now be pre-configured
