@@ -46,6 +46,7 @@ CB_TYPE_STATUS = 4
 CB_TYPE_LIST_CHANGED = 5
 CB_TYPE_AVATAR = 6
 CB_TYPE_PROFILE = 7
+CB_TYPE_REMOVE = 8
 
 tb = config.tb # the traceback function has moved to config
 tb1 = config.tb1
@@ -554,7 +555,9 @@ class BuddyList(object):
         
     def removeBuddy(self, buddy_to_remove, disconnect=True):
         print "(2) removeBuddy(%s, %s)" % (buddy_to_remove.address, disconnect)
+        self.gui(CB_TYPE_REMOVE, buddy_to_remove)
         buddy_to_remove.setActive(False)
+        
         if not disconnect:
             #send remove_me and leave the connections open
             #but remove them from this buddy.

@@ -1632,7 +1632,14 @@ class MainWindow(wx.Frame):
                 # But this does not matter because gui_bl itself will
                 # call this at least once after initialization.
                 pass
-    
+                
+        if callback_type == tc_client.CB_TYPE_REMOVE:
+            # called when the client is removing the buddy from the list
+            # callback_data is the buddy
+            for window in self.chat_windows:
+                if window.buddy == callback_data:
+                    wx.CallAfter(window.Close)
+                
     def onClose(self, evt):
         self.Show(False)
         
