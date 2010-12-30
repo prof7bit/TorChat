@@ -1141,14 +1141,16 @@ class ChatWindow(wx.Frame):
             om = "\n*** %s\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
             self.writeHintLine(om)
         
+        self.txt_in.AppendText("\n") #scroll to end + 1 empty line
+
+        if notify_offline_sent:
+            self.notifyOfflineSent()
+
         if message != "":
             self.process(message)
         
-        if notify_offline_sent:
-            self.notifyOfflineSent()
-            
-        
         self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.Bind(wx.EVT_SHOW, self.onShow)
         self.txt_out.Bind(wx.EVT_KEY_DOWN, self.onKey)
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
     
@@ -1161,14 +1163,18 @@ class ChatWindow(wx.Frame):
         # Only the upper part of the chat window will
         # accept files. The lower part only text and URLs
         self.txt_out.DragAcceptFiles(False)
-        
-        self.txt_in.AppendText("\n") #scroll to end
-        
+
         if not hidden:
             self.Show()
-        
+
         self.mw.chat_windows.append(self)
         self.onBuddyStatusChanged()
+        
+    def onShow(self, evt):
+        # workaround scroll bug on windows 
+        # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
+        wx.CallAfter(self.txt_in.ScrollLines, -50)
+        wx.CallAfter(self.txt_in.ScrollLines, 50)
         
     def insertBackLogContents(self, file_name):
         file = open(file_name)
