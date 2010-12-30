@@ -1133,11 +1133,11 @@ class ChatWindow(wx.Frame):
         self.panel.SetSizer(sizer)
         sizer.FitInside(self)
 
-        self.writeBackLog()
+        self.insertBackLog()
 
         om = self.buddy.getOfflineMessages()
         if om:
-            om = "*** %s\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
+            om = "\n*** %s\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
             self.writeHintLine(om)
         
         if message != "":
@@ -1169,22 +1169,22 @@ class ChatWindow(wx.Frame):
         self.mw.chat_windows.append(self)
         self.onBuddyStatusChanged()
         
-    def writeBackLogContents(self, file_name):
+    def insertBackLogContents(self, file_name):
         file = open(file_name)
         for line in file:
             self.writeHintLine(line.rstrip().decode("UTF-8"))
         file.close()
         
-    def writeBackLog(self):
+    def insertBackLog(self):
         old = os.path.join(config.getDataDir(), "disabled_%s.log" % self.buddy.address)
         cur = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
         if os.path.exists(cur):
-            self.writeBackLogContents(cur)
-            self.writeHintLine("*** " + lang.LOG_IS_ACTIVATED % cur)
+            self.insertBackLogContents(cur)
+            self.writeHintLine("\n*** " + lang.LOG_IS_ACTIVATED % cur)
         else:
             if os.path.exists(old):
-                self.writeBackLogContents(old)
-                self.writeHintLine("*** " + lang.LOG_IS_STOPPED_OLD_LOG_FOUND % old)
+                self.insertBackLogContents(old)
+                self.writeHintLine("\n*** " + lang.LOG_IS_STOPPED_OLD_LOG_FOUND % old)
  
     def setFontAndColor(self):
         font = wx.Font(
@@ -1222,6 +1222,8 @@ class ChatWindow(wx.Frame):
         return t[:-19]
     
     def writeColored(self, color, name, text):
+        # this method will write to the chat window and 
+        # will also write to the log file if logging is enabled.
         self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_time_stamp")))    
         self.txt_in.write("%s " % time.strftime(config.get("gui", "time_stamp_format")))
         self.txt_in.SetDefaultStyle(wx.TextAttr(color))    
@@ -1238,7 +1240,7 @@ class ChatWindow(wx.Frame):
         self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
         
         if os.path.exists(os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)):
-            logtext = "%s %s: %s" % (time.strftime(config.get("gui", "time_stamp_format")), name, text)
+            logtext = "%s %s: %s" % (time.strftime("(%Y-%m-%d %H:%M)"), name, text)
             self.log(logtext)
     
     def writeHintLine(self, line):
