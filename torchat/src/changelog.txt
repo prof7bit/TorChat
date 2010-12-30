@@ -2,6 +2,7 @@ svn trunk
 - (security) wipe temporary files and sent offline messages before deleting
 - (security) properly sanitize incoming file names
 - profile text and avatar (will be shown when mouse over buddy in list)
+- enable the logging for individual buddies and show backlog in opened window
 - fix receiving of very small files (sometimes got stuck at 0%)
 - remove some CPU hogging in the GUI, also removed annoying flickering
 - configurable fonts and colors (in the .ini file, no GUI config yet)
