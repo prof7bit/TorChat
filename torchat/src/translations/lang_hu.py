@@ -36,10 +36,15 @@ MPOP_EDIT_CONTACT = u"Partner szerkesztése..."
 MPOP_DELETE_CONTACT = u"Partner törlése..."
 MPOP_SHOW_OFFLINE_MESSAGES = u"Offline ki küldött üzenetek mutatása"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Offline kiküldött üzenetek törlése"
+# MPOP_ACTIVATE_LOG = u"Activate logging to file"
+# MPOP_STOP_LOG = u"Stop logging"
+# MPOP_DELETE_EXISTING_LOG = u"Delete existing log file"
+# MPOP_DELETE_AND_STOP_LOG = u"Delete log and stop logging"
 MPOP_ADD_CONTACT = u"Partner hozzáadása..."
 MPOP_ABOUT = u"A TorChat-ról"
 MPOP_ASK_AUTHOR = u"Kérdezd %s..."
 MPOP_SETTINGS = u"Beállítások..."
+# MPOP_EDIT_MY_PROFILE = u"Edit my profile..."
 
 #chat window popup menu
 CPOP_COPY = u"Másolás"
@@ -86,6 +91,16 @@ DEC_MSG_16_CHARACTERS = u"Az azonosító 16 karakter hosszú lehet, nem %i."
 DEC_MSG_ONLY_ALPANUM = u"Az azonosító csak számokat és az angol abc betüit tartalmazhatja"
 DEC_MSG_ALREADY_ON_LIST = u"%s már a listádban van"
 
+# #dialog: edit my profile
+# DEP_TITLE = u"Edit my profile"
+# DEP_NAME = u"Name"
+# DEP_TEXT = u"Text"
+# DEP_AVATAR_SELECT_PNG = u"Select .PNG file to use as your avatar (will be scaled to 64*64, may contain transparency)"
+# DEP_PNG_FILES = u"PNG files"
+# DEP_ALL_FILES = u"All files"
+# DEP_WARN_TITLE = u"Avatar selection not possible"
+# DEP_WARN_IS_ALREADY = u"This is already the current avatar"
+
 #file transfer window
 DFT_FILE_OPEN_TITLE = u"Fájl küldése %s számára"
 DFT_FILE_SAVE_TITLE = u"Fájl mentése %s-től"
@@ -127,6 +142,14 @@ MSG_OFFLINE_QUEUED = u"várakozó offline üzenet %s felöl:\n\n%s"
 # BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
 # BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
 # BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+
+# #logging of conversations to file
+# LOG_HEADER = u"This log file is not signed and has no cogency of proof"
+# LOG_STARTED = u"Logging started"
+# LOG_STOPPED = u"Logging stopped"
+# LOG_DELETED = u"Log files have been deleted"
+# LOG_IS_ACTIVATED = u"Logging to file is activated:\n%s"
+# LOG_IS_STOPPED_OLD_LOG_FOUND = u"Logging is stopped but old log file still exists:\n%s"
 
 #about box
 ABOUT_TITLE = u"A TorChat-ról"

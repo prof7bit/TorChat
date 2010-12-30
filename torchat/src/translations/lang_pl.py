@@ -36,10 +36,15 @@ MPOP_EDIT_CONTACT = u"Edytuj kontakt..."
 MPOP_DELETE_CONTACT = u"Usuń kontakt..."
 MPOP_SHOW_OFFLINE_MESSAGES = u"Pokaż wiadomości oczekujące"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Wyczyść wiadomości oczekujące"
+# MPOP_ACTIVATE_LOG = u"Activate logging to file"
+# MPOP_STOP_LOG = u"Stop logging"
+# MPOP_DELETE_EXISTING_LOG = u"Delete existing log file"
+# MPOP_DELETE_AND_STOP_LOG = u"Delete log and stop logging"
 MPOP_ADD_CONTACT = u"Dodaj kontakt..."
 MPOP_ABOUT = u"O programie TorChat"
 MPOP_ASK_AUTHOR = u"Zapytaj %s..."
 MPOP_SETTINGS = u"Ustawienia..."
+# MPOP_EDIT_MY_PROFILE = u"Edit my profile..."
 
 #chat window popup menu
 CPOP_COPY = u"Kopiuj"
@@ -86,6 +91,16 @@ DEC_MSG_16_CHARACTERS = u"Adres musi mieć 16 znaków, nie %i."
 DEC_MSG_ONLY_ALPANUM = u"Adres musi zawierać tylko małe litery i cyfry"
 DEC_MSG_ALREADY_ON_LIST = u"%s już jest na liście"
 
+# #dialog: edit my profile
+# DEP_TITLE = u"Edit my profile"
+# DEP_NAME = u"Name"
+# DEP_TEXT = u"Text"
+# DEP_AVATAR_SELECT_PNG = u"Select .PNG file to use as your avatar (will be scaled to 64*64, may contain transparency)"
+# DEP_PNG_FILES = u"PNG files"
+# DEP_ALL_FILES = u"All files"
+# DEP_WARN_TITLE = u"Avatar selection not possible"
+# DEP_WARN_IS_ALREADY = u"This is already the current avatar"
+
 #file transfer window
 DFT_FILE_OPEN_TITLE = u"Wyślij plik do %s"
 DFT_FILE_SAVE_TITLE = u"Zapisz plik od %s"
@@ -127,6 +142,14 @@ NOTICE_DELAYED = u"opóźnione"
 # BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
 # BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
 # BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+
+# #logging of conversations to file
+# LOG_HEADER = u"This log file is not signed and has no cogency of proof"
+# LOG_STARTED = u"Logging started"
+# LOG_STOPPED = u"Logging stopped"
+# LOG_DELETED = u"Log files have been deleted"
+# LOG_IS_ACTIVATED = u"Logging to file is activated:\n%s"
+# LOG_IS_STOPPED_OLD_LOG_FOUND = u"Logging is stopped but old log file still exists:\n%s"
 
 #about box
 ABOUT_TITLE = u"O programie TorChat"
