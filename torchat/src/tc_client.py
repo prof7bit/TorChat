@@ -492,7 +492,7 @@ class BuddyList(object):
         f.close()
 
         f = open(filename, "r")
-        l = f.read().split("\n")
+        l = f.read().replace("\r", "\n").replace("\n\n", "\n").split("\n")
         f.close
         self.list = []
         for line in l:
@@ -511,14 +511,15 @@ class BuddyList(object):
             if buddy.address == config.get("client", "own_hostname"):
                 found = True
                 self.own_buddy = buddy
+                break
 
         if not found:
             print "(1) adding own hostname %s to list" % config.get("client", "own_hostname")
             if config.get("client", "own_hostname") != "0000000000000000":
-                self.addBuddy(Buddy(config.get("client", "own_hostname"),
-                                    self,
-                                    "myself"))
-                self.own_buddy = buddy
+                self.own_buddy = Buddy(config.get("client", "own_hostname"),
+                                 self,
+                                 "myself")
+                self.addBuddy(self.own_buddy)
 
         # the own avatar is set by the GUI.
         # Only the GUI knows how to deal with graphics, so we just
