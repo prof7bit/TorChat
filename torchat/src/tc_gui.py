@@ -53,6 +53,12 @@ class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
         wx.TaskBarIcon.__init__(self)
         self.mw = main_window
+
+        #load event icon
+        img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
+        img.ConvertAlphaToMask()
+        self.event_icon = wx.IconFromBitmap(img.ConvertToBitmap())
+
         self.showStatus(self.mw.buddy_list.own_status)
         self.timer = wx.Timer(self, -1)
         self.blink_phase = False
@@ -60,14 +66,7 @@ class TaskbarIcon(wx.TaskBarIcon):
         self.Bind(wx.EVT_TIMER, self.onTimer)
 
     def showEvent(self):
-        try:
-            icon = wx.IconFromBitmap(self.img_event.ConvertToBitmap())
-        except:
-            img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
-            img.ConvertAlphaToMask()
-            self.img_event = img
-            icon = wx.IconFromBitmap(self.img_event.ConvertToBitmap())
-        self.SetIcon(icon, self.getToolTipText())
+        self.SetIcon(self.event_icon, self.getToolTipText())
 
     def showStatus(self, status):
         icon = wx.IconFromBitmap(getStatusBitmap(status))
@@ -373,7 +372,7 @@ class PopupMenu(wx.Menu):
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
-            transfer_window = FileTransferWindow(self.mw, self.buddy, file_name)
+            FileTransferWindow(self.mw, self.buddy, file_name)
 
     def onEdit(self, evt):
         dialog = DlgEditContact(self.mw, self.mw, self.buddy)
@@ -391,7 +390,7 @@ class PopupMenu(wx.Menu):
             #connections anymore.
             self.mw.buddy_list.removeBuddy(self.buddy, disconnect=False)
 
-    def onShowOffline(self, event):
+    def onShowOffline(self, evt):
         om = self.buddy.getOfflineMessages()
         if om:
             om = lang.MSG_OFFLINE_QUEUED % (self.buddy.address, om)
@@ -472,7 +471,7 @@ class DlgEditContact(wx.Dialog):
         self.mw = main_window
         self.bl = self.mw.buddy_list
         self.buddy = buddy
-        if buddy == None:
+        if buddy is None:
             self.SetTitle(lang.DEC_TITLE_ADD)
             address = ""
             name = ""
@@ -549,7 +548,7 @@ class DlgEditContact(wx.Dialog):
                 wx.MessageBox(lang.DEC_MSG_ONLY_ALPANUM)
                 return
 
-        if self.buddy == None:
+        if self.buddy is None:
             buddy = tc_client.Buddy(address,
                           self.bl,
                           self.txt_name.GetValue())
@@ -806,7 +805,6 @@ class BuddyList(wx.ListCtrl):
                     else:
                         self.setStatusIcon(index, self.il_idx[buddy.status])
                 else:
-                    # FIXME: this one line causes constant flickering
                     self.setStatusIcon(index, self.il_idx[buddy.status])
 
     def onTimer(self, evt):
@@ -828,7 +826,7 @@ class BuddyList(wx.ListCtrl):
 
                 else:
                     # hovering over item
-                    if self.tool_tip == None:
+                    if self.tool_tip is None:
                         self.openToolTip(index)
         else:
             self.closeToolTip()
@@ -956,7 +954,7 @@ class BuddyList(wx.ListCtrl):
         # usually called via callback from the client
         # whenever the client has saved the changed list
 
-        # FIXME: This whole method seems a bit ugly
+        # TODO: This whole method seems a bit ugly
 
         # remove items which are not in list anymore
         for index in xrange(0, self.GetItemCount()):
@@ -1296,7 +1294,7 @@ class ChatWindow(wx.Frame):
                     NotificationWindow(self.mw, nt, self.buddy)
                 except:
                     #Some platforms (Mac) dont have wx.PopupWindow
-                    #FIXME: need alternative solution
+                    #TODO: need alternative solution
                     pass
 
         if not self.IsShown():
@@ -1358,7 +1356,7 @@ class ChatWindow(wx.Frame):
                 #this works very reliable
                 subprocess.Popen(("cmd /c start %s" % url).split(), creationflags=0x08000000)
             else:
-                #FIXME: is this the way to go? better make it a config option.
+                #TODO: is this the way to go? better make it a config option.
                 subprocess.Popen(("/etc/alternatives/x-www-browser %s" % url).split())
         else:
             evt.Skip()
@@ -1427,7 +1425,7 @@ class ChatWindow(wx.Frame):
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
             file_name = dialog.GetPath()
-            transfer_window = FileTransferWindow(self.mw, self.buddy, file_name)
+            FileTransferWindow(self.mw, self.buddy, file_name)
 
     def onEditBuddy(self, evt):
         dialog = DlgEditContact(self, self.mw, self.buddy)
@@ -1498,7 +1496,7 @@ class BetterFileDropTarget(wx.FileDropTarget):
         if not os.path.exists(file_name):
             #sometimes the file name is in utf8
             #but inside a unicode string!
-            #FIXME: must report this bug to wx
+            #TODO: must report this bug to wx
             print "(2) dropped file not found with dropped file_name, trying UTF-8 hack"
             try:
                 file_name_utf8 = ""
@@ -1524,11 +1522,11 @@ class DropTarget(BetterFileDropTarget):
         if len(filenames) > 1:
             wx.MessageBox(lang.D_WARN_FILE_ONLY_ONE_MESSAGE,
                           lang.D_WARN_FILE_ONLY_ONE_TITLE)
-            return None
+            return
 
         file_name = self.getFileName(filenames)
 
-        if file_name == None:
+        if file_name is None:
             return
 
         """
@@ -1560,7 +1558,7 @@ class AvatarDropTarget(BetterFileDropTarget):
 
     def OnDropFiles(self, x, y, filenames):
         file_name = self.getFileName(filenames)
-        if file_name == None:
+        if file_name is None:
             return
 
         root, ext = os.path.splitext(file_name)
