@@ -107,6 +107,11 @@ DEC_MSG_ALREADY_ON_LIST = u"%s est déjà sur votre liste."
 # DFT_FILE_SAVE_TITLE = u"Save file from %s"
 DFT_SEND = u"Envoyer %s\nà %s\n%04.1f%% (%i de %i bytes)"
 DFT_RECEIVE = u"Recevoir %s\nde %s\n%04.1f%% (%i de %i bytes)"
+# DFT_WAITING = u"waiting for connection"
+# DFT_STARTING = u"starting transfer"
+# DFT_ABORTED = u"transfer aborted"
+# DFT_COMPLETE = u"transfer complete"
+# DFT_ERROR = u"error"
 
 #settings dialaog
 DSET_TITLE = u"Configuration de TorChat"

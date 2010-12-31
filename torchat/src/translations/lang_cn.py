@@ -107,6 +107,11 @@ DFT_FILE_OPEN_TITLE = u"发送文件 %s"
 DFT_FILE_SAVE_TITLE = u"从保存文件 %s"
 DFT_SEND = u"发送 %s\nto %s\n%04.1f%% (%i of %i bytes)"
 DFT_RECEIVE = u"接收 %s\nfrom %s\n%04.1f%% (%i of %i bytes)"
+# DFT_WAITING = u"waiting for connection"
+# DFT_STARTING = u"starting transfer"
+# DFT_ABORTED = u"transfer aborted"
+# DFT_COMPLETE = u"transfer complete"
+# DFT_ERROR = u"error"
 
 #settings dialaog
 DSET_TITLE = u"TorChat配置"

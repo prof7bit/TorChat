@@ -107,6 +107,11 @@ DFT_FILE_OPEN_TITLE = u"Sende Datei an %s"
 DFT_FILE_SAVE_TITLE = u"Speichere Datei von %s"
 DFT_SEND = u"Sende %s\nan %s\n%04.1f%% (%i von %i Bytes)"
 DFT_RECEIVE = u"Empfange %s\nvon %s\n%04.1f%% (%i von %i Bytes)"
+DFT_WAITING = u"warte auf Verbinding"
+DFT_STARTING = u"starte Transfer"
+DFT_ABORTED = u"Transfer abgebrochen"
+DFT_COMPLETE = u"Transfer vollständig"
+DFT_ERROR = u"Fehler"
 
 #settings dialaog
 DSET_TITLE = u"TorChat Konfiguration"

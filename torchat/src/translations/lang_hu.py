@@ -107,6 +107,11 @@ DFT_FILE_OPEN_TITLE = u"Fájl küldése %s számára"
 DFT_FILE_SAVE_TITLE = u"Fájl mentése %s-től"
 DFT_SEND = u"Külédes %s\n %s-nak\n%04.1f%% (%i kész %i bájtból)"
 DFT_RECEIVE = u"Fogadás  %s\n %s-től\n%04.1f%% (%i kész %i bájtból)"
+# DFT_WAITING = u"waiting for connection"
+# DFT_STARTING = u"starting transfer"
+# DFT_ABORTED = u"transfer aborted"
+# DFT_COMPLETE = u"transfer complete"
+# DFT_ERROR = u"error"
 
 #settings dialaog
 DSET_TITLE = u"TorChat beállítások"
