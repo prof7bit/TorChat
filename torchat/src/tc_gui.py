@@ -762,6 +762,8 @@ class BuddyList(wx.ListCtrl):
         self.Bind(wx.EVT_ENTER_WINDOW, self.onMouseEnter)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.onMouseLeave)
 
+        self.SetDropTarget(DropTarget(self.mw, None))
+
         if config.getint("gui", "color_text_use_system_colors") == 0:
             self.SetBackgroundColour(config.get("gui", "color_text_back"))
             self.SetForegroundColour(config.get("gui", "color_text_fore"))
@@ -1167,7 +1169,7 @@ class ChatWindow(wx.Frame):
         self.txt_in.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
         # file drop target
-        self.txt_in.SetDropTarget(DropTarget(self))
+        self.txt_in.SetDropTarget(DropTarget(self.mw, self.buddy))
 
         # Only the upper part of the chat window will
         # accept files. The lower part only text and URLs
@@ -1504,9 +1506,10 @@ class BetterFileDropTarget(wx.FileDropTarget):
         return file_name
 
 class DropTarget(BetterFileDropTarget):
-    def __init__(self, window):
+    def __init__(self, mw, buddy):
         wx.FileDropTarget.__init__(self)
-        self.window = window
+        self.mw = mw
+        self.buddy = buddy
 
     def OnDropFiles(self, x, y, filenames):
         if len(filenames) > 1:
@@ -1525,7 +1528,24 @@ class DropTarget(BetterFileDropTarget):
                           lang.D_WARN_BUDDY_OFFLINE_TITLE)
             return
         """
-        FileTransferWindow(self.window.mw, self.window.buddy, file_name)
+
+        if self.buddy:
+            buddy = self.buddy
+        else:
+            # this is the drop target for the buddy list
+            # find the buddy
+            # FIXME: add a method getBuddyFromXY() to BuddyList
+            index, flags = self.mw.gui_bl.HitTest((x,y))
+            if index != -1:
+                addr = self.mw.gui_bl.GetItemText(index)[0:16]
+                print "(2) file dropped at index %i (%s)" % (index, addr)
+                buddy = self.mw.buddy_list.getBuddyFromAddress(addr)
+            else:
+                print"(2) file dropped on empty space, ignoring"
+                return
+
+        FileTransferWindow(self.mw, buddy, file_name)
+
 
 class AvatarDropTarget(BetterFileDropTarget):
     def __init__(self, window):
