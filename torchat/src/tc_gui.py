@@ -887,6 +887,14 @@ class BuddyList(wx.ListCtrl):
         addr = self.GetItemText(index)[0:16]
         return self.bl.getBuddyFromAddress(addr)
 
+    def getBuddyFromXY(self, position):
+        index, flags = self.HitTest(position)
+        if index != -1:
+            addr = self.GetItemText(index)[0:16]
+            return self.bl.getBuddyFromAddress(addr)
+        else:
+            return None
+
     def onBuddyStatusChanged(self, buddy):
         assert isinstance(buddy, tc_client.Buddy)
         line = buddy.getDisplayName()
@@ -1491,6 +1499,7 @@ class BetterFileDropTarget(wx.FileDropTarget):
             #sometimes the file name is in utf8
             #but inside a unicode string!
             #FIXME: must report this bug to wx
+            print "(2) dropped file not found with dropped file_name, trying UTF-8 hack"
             try:
                 file_name_utf8 = ""
                 for c in file_name:
@@ -1534,14 +1543,11 @@ class DropTarget(BetterFileDropTarget):
         else:
             # this is the drop target for the buddy list
             # find the buddy
-            # FIXME: add a method getBuddyFromXY() to BuddyList
-            index, flags = self.mw.gui_bl.HitTest((x,y))
-            if index != -1:
-                addr = self.mw.gui_bl.GetItemText(index)[0:16]
-                print "(2) file dropped at index %i (%s)" % (index, addr)
-                buddy = self.mw.buddy_list.getBuddyFromAddress(addr)
+            buddy = self.mw.gui_bl.getBuddyFromXY((x,y))
+            if buddy:
+                print "(2) file dropped at buddy %s" % buddy.address
             else:
-                print"(2) file dropped on empty space, ignoring"
+                print "(2) file dropped on empty space, ignoring"
                 return
 
         FileTransferWindow(self.mw, buddy, file_name)
