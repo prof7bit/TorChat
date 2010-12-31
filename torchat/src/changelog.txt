@@ -6,6 +6,7 @@ svn trunk
 - fix receiving of very small files (sometimes got stuck at 0%)
 - fix the annoying "list item -1" error on windows once and for all (hopefully)
 - allow sending files to offline buddies (will wait until connect, then send)
+- allow dropping of files directly to a buddy in the buddy list
 - remove some CPU hogging in the GUI, also removed annoying flickering
 - configurable fonts and colors (in the .ini file, no GUI config yet)
 - configurable branding ("Ask Bernd" name and ID can now be pre-configured
