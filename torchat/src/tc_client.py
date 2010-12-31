@@ -299,8 +299,6 @@ class Buddy(object):
             else:
                 print "(2) could not send offline messages, not fully connected."
                 pass
-                
-        
         
     def getDisplayNameOrAddress(self):
         if self.name == "":
