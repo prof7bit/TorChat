@@ -819,9 +819,7 @@ class BuddyList(wx.ListCtrl):
                 self.blinkBuddy(window.buddy, False)
 
         # tooltips:
-        if not self.has_mouse and not self.mw.IsActive():
-            self.closeToolTip()
-        else:
+        if self.has_mouse and self.mw.IsActive():
             if time.time() - self.last_mouse_time > 0.5:
                 index, flags = self.HitTest(self.ScreenToClient(wx.GetMousePosition()))
                 if index == -1:
@@ -832,6 +830,8 @@ class BuddyList(wx.ListCtrl):
                     # hovering over item
                     if self.tool_tip == None:
                         self.openToolTip(index)
+        else:
+            self.closeToolTip()
 
     def closeToolTip(self):
         if self.tool_tip <> None:
