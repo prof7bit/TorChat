@@ -1519,11 +1519,12 @@ class DropTarget(BetterFileDropTarget):
         if file_name == None:
             return
 
+        """
         if not self.window.buddy.isFullyConnected():
             wx.MessageBox(lang.D_WARN_BUDDY_OFFLINE_MESSAGE,
                           lang.D_WARN_BUDDY_OFFLINE_TITLE)
             return
-
+        """
         FileTransferWindow(self.window.mw, self.window.buddy, file_name)
 
 class AvatarDropTarget(BetterFileDropTarget):
@@ -1558,6 +1559,7 @@ class FileTransferWindow(wx.Frame):
         self.file_name_save = ""
         self.completed = False
         self.error = False
+        self.error_msg = ""
 
         if not receiver:
             self.is_receiver = False
@@ -1630,8 +1632,25 @@ class FileTransferWindow(wx.Frame):
                    self.bytes_complete,
                    self.bytes_total)
 
+        try:
+            # the client has no translation files,
+            # it will send these english error messages
+            error_msg_trans = {
+                "waiting for connection" : lang.DFT_WAITING,
+                "starting transfer" : lang.DFT_STARTING,
+                "transfer complete" : lang.DFT_COMPLETE,
+                "transfer aborted" : lang.DFT_ABORTED,
+                "error" : lang.DFT_ERROR
+            }[self.error_msg]
+        except:
+            error_msg_trans = self.error_msg
+
+        # error_msg might also contain info messages like
+        # "waiting", etc. which are not fatal errors
+        text = "%s    %s" % (text, error_msg_trans)
+
+        # a fatal error
         if self.error:
-            text = self.error_msg
             self.btn_cancel.SetLabel(lang.BTN_CLOSE)
             if self.is_receiver:
                 self.btn_save.Enable(False)

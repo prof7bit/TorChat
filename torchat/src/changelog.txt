@@ -5,14 +5,15 @@ svn trunk
 - enable the logging for individual buddies and show backlog in opened window
 - fix receiving of very small files (sometimes got stuck at 0%)
 - fix the annoying "list item -1" error on windows once and for all (hopefully)
+- allow sending files to offline buddies (will wait until connect, then send)
 - remove some CPU hogging in the GUI, also removed annoying flickering
 - configurable fonts and colors (in the .ini file, no GUI config yet)
 - configurable branding ("Ask Bernd" name and ID can now be pre-configured
   in torchat.ini for easier adaption to different usage scenarios)
 
 version 0.9.9.328
-- fixed a flaw in the PING-PONG-sequence, where pong messages went missing 
-  and got stuck in the middle of the handshake, this fix now dramatically 
+- fixed a flaw in the PING-PONG-sequence, where pong messages went missing
+  and got stuck in the middle of the handshake, this fix now dramatically
   increases connection speed
 - fix error in Bulgarian translation
 
@@ -28,11 +29,11 @@ version 0.9.9.324
 
 version 0.9.9.292
 - prevent possible MITM attack by better verifying incoming pong messages
-- prevent possible attack by disallowing most incoming messages 
+- prevent possible attack by disallowing most incoming messages
   on the outgoing connections (only file messages are allowed)
 - make it work with Python 2.7.1
 - (windows) use current version of Tor.exe (0.2.2.19-alpha)
-- (windows) changed build process to use pyinstaller instead of py2exe 
+- (windows) changed build process to use pyinstaller instead of py2exe
 - added chinese translation
 
 version 0.9.9.277
@@ -77,19 +78,19 @@ version 0.9.9.149
 - show list of unread (hidden) windows in taskbar icon tooltip
 - ask before exiting when there are unread messages
 - show message with timestamp when delayed messages have been sent
- 
+
 version 0.9.9.140
-- incompatible protocol change! (adding and removing buddies)  
+- incompatible protocol change! (adding and removing buddies)
 - implemented offline messages
 - implemented logging
-- bugfix: possible race condition when opening 2 chat windows in a short time 
+- bugfix: possible race condition when opening 2 chat windows in a short time
 - bugfix: allow non-ascii characters in buddy name
 - bugfix: a buddy can now be removed from the list
 - bugfix: prevent possible DoS attack through faked "ping" messages
-- bugfix: wrong initialization of buddy list window didn't work on Mac 
+- bugfix: wrong initialization of buddy list window didn't work on Mac
 
 version 0.9.9.109
-- bugfix: if /tmp was on a separate partition, file receiving was broken   
+- bugfix: if /tmp was on a separate partition, file receiving was broken
 - bugfix: show correct buddy status immediately after connect
 - new connection attempts and keep-alives now in random intervals
 - implemented configuration file
@@ -100,7 +101,7 @@ version 0.9.9.98
 
 version 0.9.9.96
 - bugfix: fixes slow connection in 0.9.9.95
- 
+
 version 0.9.9.95
 - notification popups and flashing symbols in taskbar
 - file transfers can recover from connection breakdowns
