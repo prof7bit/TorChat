@@ -636,6 +636,10 @@ class DlgEditProfile(wx.Dialog):
 
         self.txt_text.SetFocus()
 
+        self.avatar.SetDropTarget(AvatarDropTarget(self))
+        self.txt_name.SetDropTarget(AvatarDropTarget(self))
+        self.txt_text.SetDropTarget(AvatarDropTarget(self))
+
         # position the dialog near the mouse
         # (yes, I am paying attention to details)
         w,h = self.GetSize()
@@ -667,22 +671,24 @@ class DlgEditProfile(wx.Dialog):
             else:
                 return wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
 
+    def onAvatarSelected(self, file_name):
+        avatar_old = os.path.join(config.getDataDir(), "avatar.png")
+        avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
+        if file_name == avatar_old or file_name == avatar_new:
+            wx.MessageBox(lang.DEP_WARN_IS_ALREADY, lang.DEP_WARN_TITLE)
+        else:
+            # onOk() will find the file avatar_new.png and know what to do
+            shutil.copy(file_name, avatar_new)
+            # set the new bitmap (in this dialog only)
+            self.avatar.SetBitmap(self.getAvatarBitmap(avatar_new))
+
     def onAvatar(self, evt):
         title = lang.DEP_AVATAR_SELECT_PNG
         dialog = wx.FileDialog(self, title, style=wx.OPEN)
         dialog.SetWildcard("%s (*.png)|*.png|%s (*.*)|*.*" % (lang.DEP_PNG_FILES, lang.DEP_ALL_FILES))
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
-            file_name = dialog.GetPath()
-            avatar_old = os.path.join(config.getDataDir(), "avatar.png")
-            avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
-            if file_name == avatar_old or file_name == avatar_new:
-                wx.MessageBox(lang.DEP_WARN_IS_ALREADY, lang.DEP_WARN_TITLE)
-            else:
-                # onOk() will find the file avatar_new.png and know what to do
-                shutil.copy(file_name, avatar_new)
-                # set the new bitmap (in this dialog only)
-                self.avatar.SetBitmap(self.getAvatarBitmap(avatar_new))
+            self.onAvatarSelected(dialog.GetPath())
         pass
 
     def onEnter(self, evt):
@@ -1471,19 +1477,10 @@ class ChatWindow(wx.Frame):
             f.write(("%s\r\n" % msg).encode("UTF-8"))
         f.close()
 
-class DropTarget(wx.FileDropTarget):
-    def __init__(self, window):
-        wx.FileDropTarget.__init__(self)
-        self.window = window
-
-    def OnDropFiles(self, x, y, filenames):
+class BetterFileDropTarget(wx.FileDropTarget):
+    def getFileName(self, filenames):
         if len(filenames) == 0:
-            return
-
-        if len(filenames) > 1:
-            wx.MessageBox(lang.D_WARN_FILE_ONLY_ONE_MESSAGE,
-                          lang.D_WARN_FILE_ONLY_ONE_TITLE)
-            return
+            return None
 
         file_name = filenames[0]
 
@@ -1500,10 +1497,27 @@ class DropTarget(wx.FileDropTarget):
             except:
                 tb()
                 wx.MessageBox("there is a strange bug in wx for your platform with wx.FileDropTarget and non-ascii characters in file names")
-                return
+                return None
         # --- end evil hack
 
         print "(2) file dropped: %s" % file_name
+        return file_name
+
+class DropTarget(BetterFileDropTarget):
+    def __init__(self, window):
+        wx.FileDropTarget.__init__(self)
+        self.window = window
+
+    def OnDropFiles(self, x, y, filenames):
+        if len(filenames) > 1:
+            wx.MessageBox(lang.D_WARN_FILE_ONLY_ONE_MESSAGE,
+                          lang.D_WARN_FILE_ONLY_ONE_TITLE)
+            return None
+
+        file_name = self.getFileName(filenames)
+
+        if file_name == None:
+            return
 
         if not self.window.buddy.isFullyConnected():
             wx.MessageBox(lang.D_WARN_BUDDY_OFFLINE_MESSAGE,
@@ -1512,6 +1526,22 @@ class DropTarget(wx.FileDropTarget):
 
         FileTransferWindow(self.window.mw, self.window.buddy, file_name)
 
+class AvatarDropTarget(BetterFileDropTarget):
+    def __init__(self, window):
+        wx.FileDropTarget.__init__(self)
+        self.window = window
+
+    def OnDropFiles(self, x, y, filenames):
+        file_name = self.getFileName(filenames)
+        if file_name == None:
+            return
+
+        root, ext = os.path.splitext(file_name)
+        if ext.lower() <> ".png":
+            wx.MessageBox("Avatar file must be .png", "wrong file type")
+            return
+
+        self.window.onAvatarSelected(file_name)
 
 class FileTransferWindow(wx.Frame):
     def __init__(self, main_window, buddy, file_name, receiver=None):
