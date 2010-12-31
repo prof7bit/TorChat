@@ -1538,7 +1538,7 @@ class AvatarDropTarget(BetterFileDropTarget):
 
         root, ext = os.path.splitext(file_name)
         if ext.lower() <> ".png":
-            wx.MessageBox("Avatar file must be .png", "wrong file type")
+            wx.MessageBox(lang.DEP_WARN_MUST_BE_PNG, lang.DEP_WARN_TITLE)
             return
 
         self.window.onAvatarSelected(file_name)

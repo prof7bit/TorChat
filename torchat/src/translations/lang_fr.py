@@ -100,6 +100,7 @@ DEC_MSG_ALREADY_ON_LIST = u"%s est déjà sur votre liste."
 # DEP_ALL_FILES = u"All files"
 # DEP_WARN_TITLE = u"Avatar selection not possible"
 # DEP_WARN_IS_ALREADY = u"This is already the current avatar"
+# DEP_WARN_MUST_BE_PNG = u"The avatar must be a .png file"
 
 #file transfer window
 # DFT_FILE_OPEN_TITLE = u"Send file to %s"

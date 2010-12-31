@@ -100,6 +100,7 @@ DEP_PNG_FILES = u"PNG files"
 DEP_ALL_FILES = u"All files"
 DEP_WARN_TITLE = u"Avatar selection not possible"
 DEP_WARN_IS_ALREADY = u"This is already the current avatar"
+DEP_WARN_MUST_BE_PNG = u"The avatar must be a .png file"
 
 #file transfer window
 DFT_FILE_OPEN_TITLE = u"Send file to %s"
@@ -156,13 +157,13 @@ ABOUT_TITLE = u"About TorChat"
 ABOUT_TEXT = u"""TorChat %(version)s (svn: r%(svn)s)
   %(copyright)s
 
-Translations: 
+Translations:
   %(translators)s
 
 Runtime environment:
   Python: %(python)s
   wx: %(wx)s
-    
+
 TorChat is free software: you can redistribute it and/or \
 modify it under the terms of the GNU General Public \
 License as published by the Free Software Foundation, \

@@ -100,6 +100,7 @@ DEP_PNG_FILES = u"PNG Dateien"
 DEP_ALL_FILES = u"Alle Dateien"
 DEP_WARN_TITLE = u"Auswahl nicht möglich"
 DEP_WARN_IS_ALREADY = u"Dies ist bereits ihr aktuelles Profilbild"
+DEP_WARN_MUST_BE_PNG = u"Bild muss eine .png Datei sein"
 
 #file transfer window
 DFT_FILE_OPEN_TITLE = u"Sende Datei an %s"
