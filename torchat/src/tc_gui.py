@@ -74,6 +74,8 @@ class TaskbarIcon(wx.TaskBarIcon):
 
     def onLeftClick(self, evt):
         self.mw.Show(not self.mw.IsShown())
+        if self.mw.IsShown():
+            self.mw.Iconize(False) # never show it minimized (can happen on KDE)
 
     def CreatePopupMenu(self):
         return TaskbarMenu(self.mw)
