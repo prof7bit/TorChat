@@ -16,8 +16,8 @@
 ## IMPORTANT: NEVER change the FIRST 11009 in HiddenServicePort, this is the
 ## port INSIDE the tunnel. This number is hardcoded, but since it is inside
 ## the tunnel it cannot collide, no matter how many instances you run. You
-## Ymust change only the second number, the forwarding target, as shown above.
-##########################################################################
+## must change only the second number, the forwarding target, as shown above.
+#############################################################################
 
 SocksPort 11109
 
@@ -36,10 +36,12 @@ AvoidDiskWrites 1
 LongLivedPorts 11009
 RendPostPeriod 600 seconds
 
-## turning off SaveLogging will leave sensitive information on your disk
+## You can uncomment the lines below to log Tor's activity to the
+## console or to a log file. Use this only during debugging! 
+## Turning off SaveLogging will leave sensitive information on your disk,
 ## the built in default is save logging turned on (set to 1).
 ## so don't remove the # from that line unless you need it
 ## and remember to put it in again, after you are done.
 #Log info File tor.log
 #Log info stdout
-SafeLogging 0
+#SafeLogging 0
