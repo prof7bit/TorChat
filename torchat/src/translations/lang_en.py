@@ -20,7 +20,7 @@ BTN_SAVE_AS = u"Save as..."
 BTN_CLOSE = u"Close"
 
 #status
-ST_AVAILABLE = u"Avalable"
+ST_AVAILABLE = u"Available"
 ST_AWAY = u"Away"
 ST_EXTENDED_AWAY = u"Extended away"
 ST_OFFLINE = u"Offline"
