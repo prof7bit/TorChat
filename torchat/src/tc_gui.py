@@ -1193,7 +1193,7 @@ class ChatWindow(wx.Frame):
         self.txt_in.Bind(wx.EVT_TEXT_URL, self.onURL)
 
         self.Bind(wx.EVT_ACTIVATE, self.onActivate)
-        self.txt_in.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.txt_in.Bind(wx.EVT_CONTEXT_MENU, self.onContextMenu)
 
         # file drop target
         self.txt_in.SetDropTarget(DropTarget(self.mw, self.buddy))
@@ -1399,7 +1399,7 @@ class ChatWindow(wx.Frame):
         else:
             evt.Skip()
 
-    def OnContextMenu(self, evt):
+    def onContextMenu(self, evt):
         menu = wx.Menu()
 
         id = wx.NewId()
