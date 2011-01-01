@@ -13,6 +13,7 @@ def zipSource(zip_filename, zip_options):
     os.system("zip %s %s doc\\*" % (zip_options, zip_filename))
     os.system("zip %s %s src\\*.py" % (zip_options, zip_filename))
     os.system("zip %s %s src\\*.spec" % (zip_options, zip_filename))
+    os.system("zip %s %s src\\*.bat" % (zip_options, zip_filename))
     os.system("zip %s %s src\\portable.txt" % (zip_options, zip_filename))
     os.system("zip %s %s src\\changelog.txt" % (zip_options, zip_filename))
     os.system("zip %s %s src\\LICENSE" % (zip_options, zip_filename))
@@ -23,7 +24,7 @@ def zipSource(zip_filename, zip_options):
     os.system("zip %s %s src\\SocksiPy\\* -x *.pyc *.pyo" % (zip_options, zip_filename))
 
 def zipWindowsBin(zip_filename, zip_options):
-    os.system("zip %s %s bin\\* -x bin\\buddy-list.txt *.log *.ini" % (zip_options, zip_filename))
+    os.system("zip %s %s bin\\* -x bin\\buddy-list.txt *.log *.ini *.tmp" % (zip_options, zip_filename))
     os.system("zip %s %s bin\\Tor\\* -x *.log" % (zip_options, zip_filename))
     os.system("zip %s %s bin\\icons\\*" % (zip_options, zip_filename))
 
