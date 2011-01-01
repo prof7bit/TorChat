@@ -3,6 +3,8 @@ svn trunk
 - (security) properly sanitize incoming file names
 - profile text and avatar (will be shown when mouse over buddy in list)
 - enable the logging for individual buddies and show backlog in opened window
+- make the splitter in the chat window movable
+- remember and restore window sizes
 - fix receiving of very small files (sometimes got stuck at 0%)
 - fix the annoying "list item -1" error on windows once and for all (hopefully)
 - allow sending files to offline buddies (will wait until connect, then send)
