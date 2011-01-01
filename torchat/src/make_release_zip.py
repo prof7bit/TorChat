@@ -24,7 +24,7 @@ def zipSource(zip_filename, zip_options):
     os.system("zip %s %s src\\SocksiPy\\* -x *.pyc *.pyo" % (zip_options, zip_filename))
 
 def zipWindowsBin(zip_filename, zip_options):
-    os.system("zip %s %s bin\\* -x bin\\buddy-list.txt *.log *.ini *.tmp" % (zip_options, zip_filename))
+    os.system("zip %s %s bin\\* -x bin\\buddy-list.txt *.log *.ini *.tmp *offline*" % (zip_options, zip_filename))
     os.system("zip %s %s bin\\Tor\\* -x *.log" % (zip_options, zip_filename))
     os.system("zip %s %s bin\\icons\\*" % (zip_options, zip_filename))
 
