@@ -55,6 +55,10 @@ config_defaults = {
     ("gui", "color_text_use_system_colors") : 1,
     ("gui", "chat_font_name") : "Arial",
     ("gui", "chat_font_size") : 10,
+    ("gui", "chat_window_width") : 400,
+    ("gui", "chat_window_height") : 400,
+    ("gui", "main_window_width") : 260,
+    ("gui", "main_window_height") : 350,
     ("branding", "support_id") : "utvrla6mjdypbyw6",
     ("branding", "support_name") : "Bernd, author of TorChat",
     ("profile", "name") : "",
@@ -81,8 +85,8 @@ def killProcess(pid):
     try:
         if isWindows():
             PROCESS_TERMINATE = 1
-            handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, 
-                                                        False, 
+            handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE,
+                                                        False,
                                                         pid)
             print handle
             ctypes.windll.kernel32.TerminateProcess(handle, -1)
@@ -104,7 +108,7 @@ def isPortable():
         return True
     except:
         return False
-        
+
 def getHomeDir():
     if isWindows():
         CSIDL_PERSONAL = 0x0005
@@ -113,7 +117,7 @@ def getHomeDir():
         return buf.value
     else:
         return os.path.expanduser("~")
-    
+
 def getDataDir():
     if isPortable():
         return SCRIPT_DIR
@@ -127,17 +131,17 @@ def getDataDir():
         else:
             home = os.path.expanduser("~")
             data_dir = os.path.join(home, ".torchat")
-    
+
     #test for optional profile name in command line
     try:
         data_dir += "_" + sys.argv[1]
     except:
         pass
-    
+
     #create it if necessary
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
-        
+
     #and create the folder 'Tor' with tor.exe and torrc.txt in it if necessary
     data_dir_tor = os.path.join(data_dir, "Tor")
     if not os.path.exists(data_dir_tor):
@@ -148,7 +152,7 @@ def getDataDir():
             tor_exe = "tor.sh"
         shutil.copy(os.path.join("Tor", tor_exe), data_dir_tor)
         shutil.copy(os.path.join("Tor", "torrc.txt"), data_dir_tor)
-        
+
     return data_dir
 
 def getProfileLongName():
@@ -163,23 +167,23 @@ def readConfig():
     global config
     dir = getDataDir()
     if not os.path.isdir(dir):
-        os.mkdir(dir)        
+        os.mkdir(dir)
     file_name = dir + "/torchat.ini"
     config = ConfigParser.ConfigParser()
-    
+
     #remove the BOM (notepad saves with BOM)
     if os.path.exists(file_name):
         f = file(file_name,'r+b')
         try:
             header = f.read(3)
-            if header == "\xef\xbb\xbf":   
+            if header == "\xef\xbb\xbf":
                 print "found UTF8 BOM in torchat.ini, removing it"
                 f.seek(0)
                 f.write("\x20\x0d\x0a")
         except:
             pass
         f.close()
-    
+
     try:
         config.read(file_name)
     except ConfigParser.MissingSectionHeaderError:
@@ -187,11 +191,11 @@ def readConfig():
         print "*** torchat.ini must be saved as UTF-8 ***"
         sys.exit()
 
-    #try to read all known options once. This will add 
-    #all the missing options to the config file 
+    #try to read all known options once. This will add
+    #all the missing options to the config file
     for section, option in config_defaults:
         get(section, option)
-    
+
 def writeConfig():
     fp = open(file_name, "w")
     config.write(fp)
@@ -215,7 +219,7 @@ def get(section, option):
         value = str(value)
     elif type(value) == float:
         value = str(value)
-            
+
     return value # this should now be a unicode string
 
 def getint(section, option):
@@ -259,7 +263,7 @@ def getTranslators():
                 for person in ltrans:
                     new_entry = "%s (%s [%s])" % (person, lname, lcode)
                     if not new_entry in translators:
-                        translators.append(new_entry) 
+                        translators.append(new_entry)
             except:
                 pass
     return ", ".join(translators)
@@ -272,12 +276,12 @@ def importLanguage():
         #between incomplete translations.
         for key in standard_dict:
             translations.lang_en.__dict__[key] = standard_dict[key]
-            
+
     lang_xx = "lang_" + get("gui", "language")
     if lang_xx == "lang_en":
         #lang_en is the standard translation. nothing to replace.
         return
-    
+
     if not SCRIPT_DIR in sys.path:
         #make sure that script dir is in sys.path (py2exe etc.)
         print "(1) putting script directory into module search path"
@@ -290,14 +294,14 @@ def importLanguage():
         dict_trans = __import__(lang_xx).__dict__
         print "(1) found custom language module %s.py" % lang_xx
     except:
-        #nothing found, so we try the built in translations 
+        #nothing found, so we try the built in translations
         if lang_xx in translations.__dict__:
             print "(1) found built in language module %s" % lang_xx
             dict_trans = translations.__dict__[lang_xx].__dict__
         else:
             print "(0) translation module %s not found"
             dict_trans = None
-            
+
     if dict_trans:
         #find missing translations and report them in the log
         for key in dict_std:
@@ -374,32 +378,32 @@ class LogWriter:
     def close(self):
         self.stdout.close()
         self.logfile.close()
-        
+
 def main():
     global standard_dict
     global log_writer
-    
+
     #many things are relative to the script directory, so set is as the cwd
     os.chdir(SCRIPT_DIR)
     readConfig()
     log_writer = LogWriter()
-    
+
     print "(0) python version %s" % sys.version.replace("\n", "").replace("\r", "")
 
     if isPortable():
         print "(0) running in portable mode, all data is kept inside the bin folder."
         if (len(sys.argv) > 1):
             print "(0) ignoring requested profile '%s' because profiles do not exist in portable mode" % sys.argv[1]
-        
+
     print "(0) script directory is %s" % SCRIPT_DIR
     print "(0) data directory is %s" % getDataDir()
-    
+
     #make a backup of all strings that are in the standard language file
     #because we could need them when switching between incomplete languages
     standard_dict = {}
     for key in translations.lang_en.__dict__:
         standard_dict[key] = translations.lang_en.__dict__[key]
-    
+
     #now switch to the configured translation
     importLanguage()
-    
+

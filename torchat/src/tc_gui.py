@@ -1115,10 +1115,16 @@ class ChatWindow(wx.Frame):
     def __init__(self, main_window, buddy, message="",
                                     hidden=False,
                                     notify_offline_sent=False):
-        wx.Frame.__init__(self,
-                          main_window,
-                          -1,
-                          size=(400,400))
+        wx.Frame.__init__(
+            self,
+            main_window,
+            -1,
+            size=(
+                config.getint("gui", "chat_window_width"),
+                config.getint("gui", "chat_window_height")
+            )
+        )
+
         self.mw = main_window
         self.buddy = buddy
         self.unread = 0
@@ -1323,6 +1329,9 @@ class ChatWindow(wx.Frame):
         evt.Skip()
 
     def onClose(self, evt):
+        w,h = self.GetSize()
+        config.set("gui", "chat_window_width", w)
+        config.set("gui", "chat_window_height", h)
         self.mw.chat_windows.remove(self)
         self.Destroy()
 
@@ -1749,7 +1758,16 @@ class FileTransferWindow(wx.Frame):
 
 class MainWindow(wx.Frame):
     def __init__(self, socket=None):
-        wx.Frame.__init__(self, None, -1, "TorChat", size=(260,350))
+        wx.Frame.__init__(
+            self,
+            None,
+            -1,
+            "TorChat",
+            size=(
+                config.getint("gui", "main_window_width"),
+                config.getint("gui", "main_window_height")
+            )
+        )
         self.conns = []
         self.chat_windows = []
         self.notification_window = None
@@ -1879,6 +1897,9 @@ class MainWindow(wx.Frame):
         self.Show(False)
 
     def exitProgram(self):
+        w,h = self.GetSize()
+        config.set("gui", "main_window_width", w)
+        config.set("gui", "main_window_height", h)
         found_unread = False
         for window in self.chat_windows:
             if not window.IsShown() or window.unread:
