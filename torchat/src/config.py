@@ -162,6 +162,25 @@ def getProfileLongName():
     except:
         return get("client", "own_hostname")
 
+class OrderedRawConfigParser(ConfigParser.RawConfigParser):
+    def __init__(self, defaults = None):
+        ConfigParser.RawConfigParser.__init__(self, defaults = None)
+
+    def write(self, fp):
+        """Write an .ini-format representation of the configuration state."""
+        if self._defaults:
+            fp.write("[%s]\n" % DEFAULTSECT)
+            for key in sorted(self._defaults):
+                fp.write( "%s = %s\n" % (key, str(self._defaults[key]).replace('\n', '\n\t')))
+            fp.write("\n")
+        for section in sorted(self._sections):
+            fp.write("[%s]\n" % section)
+            for key in sorted(self._sections[section]):
+                if key != "__name__":
+                    fp.write("%s = %s\n" %
+                             (key, str(self._sections[section][key]).replace('\n', '\n\t')))
+            fp.write("\n")
+
 def readConfig():
     global file_name
     global config
@@ -169,7 +188,7 @@ def readConfig():
     if not os.path.isdir(dir):
         os.mkdir(dir)
     file_name = dir + "/torchat.ini"
-    config = ConfigParser.ConfigParser()
+    config = OrderedRawConfigParser()
 
     #remove the BOM (notepad saves with BOM)
     if os.path.exists(file_name):
@@ -207,7 +226,7 @@ def get(section, option):
     if not config.has_option(section, option):
         value = config_defaults[section, option]
         set(section, option, value)
-    value = config.get(section, option, True)
+    value = config.get(section, option)
     if type(value) == str:
         try:
             value = value.decode("UTF-8")
