@@ -1129,7 +1129,12 @@ class ChatWindow(wx.Frame):
         self.unread = 0
         self.updateTitle()
 
-        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
+        self.splitter = wx.SplitterWindow(
+            self, -1,
+            style=wx.SP_3D |
+                  wx.SP_BORDER |
+                  wx.SP_LIVE_UPDATE
+        )
         self.panel_lower = wx.Panel(self.splitter, -1)
         self.panel_upper = wx.Panel(self.splitter, -1)
         self.splitter.SetMinimumPaneSize(50)
