@@ -57,6 +57,7 @@ config_defaults = {
     ("gui", "chat_font_size") : 10,
     ("gui", "chat_window_width") : 400,
     ("gui", "chat_window_height") : 400,
+    ("gui", "chat_window_height_lower") : 50,
     ("gui", "main_window_width") : 260,
     ("gui", "main_window_height") : 350,
     ("branding", "support_id") : "utvrla6mjdypbyw6",
@@ -160,7 +161,6 @@ def getProfileLongName():
         return "%s - %s" % (sys.argv[1], get("client", "own_hostname"))
     except:
         return get("client", "own_hostname")
-
 
 def readConfig():
     global file_name

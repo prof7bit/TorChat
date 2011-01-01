@@ -406,7 +406,6 @@ class PopupMenu(wx.Menu):
         except:
             pass
 
-
     def getChatWindow(self):
         # this is called by the on*Log() functions,
         # because all logging is done by the chat windows,
@@ -1130,35 +1129,44 @@ class ChatWindow(wx.Frame):
         self.unread = 0
         self.updateTitle()
 
-        self.panel = wx.Panel(self)
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
+        self.panel_lower = wx.Panel(self.splitter, -1)
+        self.panel_upper = wx.Panel(self.splitter, -1)
+        self.splitter.SetMinimumPaneSize(50)
+        self.splitter.SetSashGravity(1)
+        self.splitter.SetSashSize(3)
 
-        self.txt_in = wx.TextCtrl(self.panel,
-                                   -1,
-                                   style=wx.TE_READONLY |
-                                   wx.TE_MULTILINE |
-                                   wx.TE_AUTO_URL |
-                                   wx.TE_AUTO_SCROLL |
-                                   wx.TE_RICH2 |
-                                   wx.BORDER_SUNKEN)
+        # incoming text (upper area)
+        self.txt_in = wx.TextCtrl(
+            self.panel_upper,
+            -1,
+            style=wx.TE_READONLY |
+                  wx.TE_MULTILINE |
+                  wx.TE_AUTO_URL |
+                  wx.TE_AUTO_SCROLL |
+                  wx.TE_RICH2 |
+                  wx.BORDER_SUNKEN
+        )
 
-        sizer.Add(self.txt_in, 1, wx.EXPAND | wx.ALL, 0)
+        # outgoing text (lower area)
+        self.txt_out = wx.TextCtrl(
+            self.panel_lower,
+            -1,
+            style=wx.TE_MULTILINE |
+                  wx.TE_RICH2 |
+                  wx.BORDER_SUNKEN
+        )
 
-        self.txt_out = wx.TextCtrl(self.panel,
-                                   -1,
-                                   style=wx.TE_MULTILINE |
-                                   wx.TE_RICH2 |
-                                   wx.BORDER_SUNKEN)
+        self.doLayout() # set the sizers
+
+        # restore peviously saved sash position
+        lower = config.getint("gui", "chat_window_height_lower")
+        w,h = self.GetSize()
+        if lower > h - 50:
+            lower = h - 50
+        self.splitter.SetSashPosition(h - lower)
 
         self.setFontAndColor()
-
-        sizer.Add(self.txt_out, 0, wx.EXPAND | wx.ALL, 0)
-
-        sizer.SetItemMinSize(self.txt_out, (-1,50))
-
-        self.panel.SetSizer(sizer)
-        sizer.FitInside(self)
-
         self.insertBackLog()
 
         om = self.buddy.getOfflineMessages()
@@ -1194,6 +1202,19 @@ class ChatWindow(wx.Frame):
 
         self.mw.chat_windows.append(self)
         self.onBuddyStatusChanged()
+
+    def doLayout(self):
+        outer_sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_lower = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_upper = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_upper.Add(self.txt_in, 1, wx.ALL|wx.EXPAND, 0)
+        self.panel_upper.SetSizer(sizer_upper)
+        sizer_lower.Add(self.txt_out, 1, wx.ALL|wx.EXPAND, 0)
+        self.panel_lower.SetSizer(sizer_lower)
+        self.splitter.SplitHorizontally(self.panel_upper, self.panel_lower)
+        outer_sizer.Add(self.splitter, 1, wx.ALL|wx.EXPAND, 0)
+        self.SetSizer(outer_sizer)
+        self.Layout()
 
     def onShow(self, evt):
         # workaround scroll bug on windows
@@ -1332,6 +1353,7 @@ class ChatWindow(wx.Frame):
         w,h = self.GetSize()
         config.set("gui", "chat_window_width", w)
         config.set("gui", "chat_window_height", h)
+        config.set("gui", "chat_window_height_lower", h - self.splitter.GetSashPosition())
         self.mw.chat_windows.remove(self)
         self.Destroy()
 
