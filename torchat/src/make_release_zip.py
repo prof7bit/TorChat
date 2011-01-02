@@ -92,6 +92,7 @@ def zipSrc(zipfile_name):
 
         "src\\translations\\*.txt",
         "src\\translations\\lang_*.py",
+        "src\\translations\\insert_missing.py",
         "src\\translations\\__init__.py",
 
         "src\\SocksiPy\\*.py",
