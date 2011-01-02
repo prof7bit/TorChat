@@ -135,8 +135,8 @@ if not os.path.exists("Tor\\tor.exe"):
 clean(".")
 clean("translations")
 clean("SocksiPy")
-#os.system("rmdir /S /Q dist")
-#os.system("rmdir /S /Q build")
+os.system("rmdir /S /Q dist")
+os.system("rmdir /S /Q build")
 
 # build the .exe with pyinstaller
 # the following will result in a command line like this::
