@@ -996,11 +996,9 @@ class BuddyList(wx.ListCtrl):
         evt.Skip()
 
     def onMouseEnter(self, evt):
-        print "mouse_enter"
         self.has_mouse = True
 
     def onMouseLeave(self, evt):
-        print "mouse_leave"
         self.has_mouse = False
         self.closeToolTip()
 
