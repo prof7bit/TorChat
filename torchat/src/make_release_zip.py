@@ -94,7 +94,7 @@ def zipSrc(zipfile_name):
         "src\\Tor\\torrc.txt",
         "src\\translations\\*.txt",
         "src\\translations\\lang_*.py",
-        "src\\translations\\:__init__.py",
+        "src\\translations\\__init__.py",
         "src\\SocksiPy\\*"
     ])
 
@@ -114,9 +114,14 @@ def clean(folder):
         "%s\\*.tmp" % folder,
         "%s\\*~" % folder,
         "%s\\*offline*" % folder,
+        "%s\\*incoming*" % folder,
         "%s\\DEADJOE" % folder
     ])
 
+def cleanSrc():
+    clean(".")
+    clean("translations")
+    clean("SocksiPy")
 
 # ------------------
 # and here it begins
@@ -132,9 +137,7 @@ if not os.path.exists("Tor\\tor.exe"):
     sys.exit()
 
 # clean up the src directory
-clean(".")
-clean("translations")
-clean("SocksiPy")
+cleanSrc()
 os.system("rmdir /S /Q dist")
 os.system("rmdir /S /Q build")
 
@@ -173,6 +176,7 @@ copy([
 ])
 
 print "\n\ncreating the zip files"
+cleanSrc() # clean it again (all the .pyc files)
 os.chdir("..")
 bin_zip_filename = "release\\torchat-windows-%s.zip" % version.VERSION
 src_zip_filename = "release\\torchat-source-%s.zip" % version.VERSION
