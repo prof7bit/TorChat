@@ -1,70 +1,185 @@
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!                                          !!!
+# !!!  THIS SCRIPT WILL DELETE THE BIN FOLDER  !!!
+# !!!                                          !!!
+# !!!  and all its contents and then it will   !!!
+# !!!      create a new one from scratch.      !!!
+# !!!          You have been warned.           !!!
+# !!!                                          !!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 # this is RUN ON WINDOWS and
 # needs some tools installed:
-# python 2.7.x
-# zip.exe (must be in the PATH)
-# upx.exe (must be in the PATH)
-# pyinstaller latest trunk (in c:\pyinst\)
-# run make_windows_binary.py from within the src directory
+#
+#   python 2.7.x
+#   wxpython 2.8 (the unicode version)
+#   upx.exe (must be in the PATH)
+#   pythonwin extensions (needed by pyinstaller)
+#   pyinstaller latest trunk (in c:\pyinst\)
+#
+#   also put a copy of tor.exe into src/Tor
+#
+# run make_windows_binary.py from within the src directory and
+# you should end up with the zip files in the ../release folder
+# and a fresh bin folder to test the newly created torchat.exe
 
 import version
 import os
+import sys
+import shutil
+import zipfile
+import glob
 
-def zipSource(zip_filename, zip_options):
-    os.system("zip %s %s doc\\*" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\*.py" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\*.spec" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\*.bat" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\portable.txt" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\changelog.txt" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\LICENSE" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\icons\\*" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\Tor\\tor.sh" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\Tor\\torrc.txt" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\translations\\* -x *.pyc *.pyo" % (zip_options, zip_filename))
-    os.system("zip %s %s src\\SocksiPy\\* -x *.pyc *.pyo" % (zip_options, zip_filename))
+# pyinstaller must have been configured aleady
+PYINSTALLER_PATH = "c:\\pyinst"
 
-def zipWindowsBin(zip_filename, zip_options):
-    os.system("zip %s %s bin\\* -x bin\\buddy-list.txt *.log *.ini *.tmp *offline*" % (zip_options, zip_filename))
-    os.system("zip %s %s bin\\Tor\\* -x *.log" % (zip_options, zip_filename))
-    os.system("zip %s %s bin\\icons\\*" % (zip_options, zip_filename))
 
-def clean(dir):
-    print "cleaning %s" % dir
-    os.system ("del %s\\*.pyo" % dir)
-    os.system ("del %s\\*.pyc" % dir)
-    os.system ("del %s\\*.log" % dir)
-    os.system ("del %s\\*.tmp" % dir)
-    os.system ("del %s\\*~" % dir)
-    os.system ("del %s\\DEADJOE" % dir)
+# ----------------------------------------------------
+# first some useful helpers to zip, copy, delete files
+# ----------------------------------------------------
 
-dir = os.getcwd()
+class MyZip(zipfile.ZipFile):
+    def add(self, pattern):
+        for name in glob.glob(pattern):
+            print "adding %s" % name
+            self.write(name, name, zipfile.ZIP_DEFLATED)
+
+def unlink(patterns):
+    """delete files. takes a list of names or patterns"""
+    for pattern in patterns:
+        print "trying to unlink %s" % pattern
+        for name in glob.glob(pattern):
+            try:
+                os.unlink(name)
+                print "unlinked %s" % name
+            except:
+                print "could not unlink %s" % name
+
+def copy(patterns):
+    """copy files. takes a list of tuples of which
+    the first element is a name or pattern and the
+    second one is is the destination directory"""
+    for pattern, dest_dir in patterns:
+        print "trying to copy %s to %s" % (pattern, dest_dir)
+        for name in glob.glob(pattern):
+            try:
+                shutil.copy(name, dest_dir)
+                print "copied %s" % name
+            except:
+                print "could not copy %s" % name
+
+def zip(zipfile_name, patterns):
+    """add files to the archive zipfile_name.
+    Takes a list of filenames or wildcard patterns"""
+    print "\nopening %s" % zipfile_name
+    archive = MyZip(zipfile_name, "a")
+    for pattern in patterns:
+        archive.add(pattern)
+    print "closing %s" % zipfile_name
+    archive.close()
+
+def zipSrc(zipfile_name):
+    zip(zipfile_name, [
+        "doc\\*",
+        "src\\*.py",
+        "src\\*.spec",
+        "src\\*.bat",
+        "src\\portable.txt",
+        "src\\changelog.txt",
+        "src\\LICENSE",
+        "src\\icons\\*",
+        "src\\Tor\\tor.sh",
+        "src\\Tor\\torrc.txt",
+        "src\\translations\\*.txt",
+        "src\\translations\\lang_*.py",
+        "src\\translations\\:__init__.py",
+        "src\\SocksiPy\\*"
+    ])
+
+def zipBin(zipfile_name):
+    zip(zipfile_name, [
+        "bin\\*",
+        "bin\\Tor\\*",
+        "bin\\icons\\*"
+    ])
+
+def clean(folder):
+    print "\ncleaning %s" % folder
+    unlink([
+        "%s\\*.pyo" % folder,
+        "%s\\*.pyc" % folder,
+        "%s\\*.log" % folder,
+        "%s\\*.tmp" % folder,
+        "%s\\*~" % folder,
+        "%s\\*offline*" % folder,
+        "%s\\DEADJOE" % folder
+    ])
+
+
+# ------------------
+# and here it begins
+# ------------------
+
 try:
     os.mkdir("../release")
 except:
     pass
 
+if not os.path.exists("Tor\\tor.exe"):
+    print "!!! need a copy of tor.exe in the src\\Tor folder"
+    sys.exit()
+
 # clean up the src directory
 clean(".")
 clean("translations")
 clean("SocksiPy")
+os.system("rmdir /S /Q dist")
+os.system("rmdir /S /Q build")
 
 # build the .exe with pyinstaller
-os.system("c:\\pyinst\\Build.py torchat_windows.spec")
-os.system("copy /Y dist\\torchat.exe ..\\bin")
+# the following will result in a command line like this::
+# "c:\Python27\python.exe c:\pyinst\Build.py torchat_windows.spec"
+cmd = sys.executable \
+    + " " + os.path.join(PYINSTALLER_PATH, 'Build.py') \
+    + " torchat_windows.spec"
 
-#copy some files
-os.system("copy /Y portable.txt ..\\bin")
-os.system("copy /Y Tor\\torrc.txt ..\\bin\\Tor")
+print "\n\n" + cmd
+os.system(cmd)
 
+# check for success
+if not os.path.exists("dist\\torchat.exe"):
+    print "!!! pyinstaller did not run properly"
+    sys.exit()
+
+# now we have all files we need. We now put together
+# the contents of the bin folder exactly as it will be
+# in the final zip file. First make an empty bin folder.
+print "\n\nputting together the contents of the bin folder"
+os.system("rmdir /S /Q ..\\bin")
+os.system("mkdir ..\\bin")
+os.system("mkdir ..\\bin\\icons")
+os.system("mkdir ..\\bin\\Tor")
+
+#now copy the needed files to bin
+copy([
+    ("dist\\torchat.exe", "..\\bin"),
+    ("portable.txt", "..\\bin"),
+    ("Tor\\tor.exe", "..\\bin\\Tor"),
+    ("Tor\\torrc.txt", "..\\bin\\Tor"),
+    ("icons\\*.png", "..\\bin\\icons"),
+    ("icons\\*.ico", "..\\bin\\icons"),
+])
+
+print "\n\ncreating the zip files"
 os.chdir("..")
-zip_options = "-9"
+bin_zip_filename = "release\\torchat-windows-%s.zip" % version.VERSION
+src_zip_filename = "release\\torchat-source-%s.zip" % version.VERSION
+unlink([bin_zip_filename, src_zip_filename])
 
-zip_filename = "release\\torchat-windows-%s.zip" % version.VERSION
-os.system("del %s" % zip_filename)
-zipWindowsBin(zip_filename, zip_options)
-zipSource(zip_filename, zip_options)
+# torchat-windows-x.x.x.x.zip
+zipBin(bin_zip_filename)
+zipSrc(bin_zip_filename)
 
-zip_filename = "release\\torchat-source-%s.zip" % version.VERSION
-os.system("del %s" % zip_filename)
-zipSource(zip_filename, zip_options)
+# torchat-source-x.x.x.x.zip
+zipSrc(src_zip_filename)
 
