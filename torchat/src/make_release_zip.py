@@ -27,6 +27,7 @@ import version
 import os
 import sys
 import shutil
+import zlib
 import zipfile
 import glob
 
@@ -73,6 +74,7 @@ def zip(zipfile_name, patterns):
     Takes a list of filenames or wildcard patterns"""
     print "\nopening %s" % zipfile_name
     archive = MyZip(zipfile_name, "a")
+    zlib.Z_DEFAULT_COMPRESSION = zlib.Z_BEST_COMPRESSION
     for pattern in patterns:
         archive.add(pattern)
     print "closing %s" % zipfile_name
@@ -133,7 +135,7 @@ if not os.path.exists("Tor\\tor.exe"):
 clean(".")
 clean("translations")
 clean("SocksiPy")
-os.system("rmdir /S /Q dist")
+#os.system("rmdir /S /Q dist")
 os.system("rmdir /S /Q build")
 
 # build the .exe with pyinstaller
