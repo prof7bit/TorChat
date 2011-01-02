@@ -89,13 +89,21 @@ def zipSrc(zipfile_name):
         "src\\portable.txt",
         "src\\changelog.txt",
         "src\\LICENSE",
-        "src\\icons\\*",
-        "src\\Tor\\tor.sh",
-        "src\\Tor\\torrc.txt",
+
         "src\\translations\\*.txt",
         "src\\translations\\lang_*.py",
         "src\\translations\\__init__.py",
-        "src\\SocksiPy\\*"
+
+        "src\\SocksiPy\\*.py",
+        "src\\SocksiPy\\BUGS",
+        "src\\SocksiPy\\LICENSE",
+        "src\\SocksiPy\\README",
+
+        "src\\icons\\*.png",
+        "src\\icons\\*.ico",
+
+        "src\\Tor\\tor.sh",
+        "src\\Tor\\torrc.txt"
     ])
 
 def zipBin(zipfile_name):
@@ -128,7 +136,7 @@ def cleanSrc():
 # ------------------
 
 try:
-    os.mkdir("../release")
+    os.mkdir("..\\release")
 except:
     pass
 
@@ -176,7 +184,6 @@ copy([
 ])
 
 print "\n\ncreating the zip files"
-cleanSrc() # clean it again (all the .pyc files)
 os.chdir("..")
 bin_zip_filename = "release\\torchat-windows-%s.zip" % version.VERSION
 src_zip_filename = "release\\torchat-source-%s.zip" % version.VERSION
