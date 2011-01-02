@@ -818,6 +818,7 @@ class BuddyList(wx.ListCtrl):
                 self.blinkBuddy(window.buddy, False)
 
         # tooltips:
+        wp = wx.FindWindowAtPointer()
         if self.has_mouse and self.mw.IsActive():
             if time.time() - self.last_mouse_time > 0.5:
                 index, flags = self.HitTest(self.ScreenToClient(wx.GetMousePosition()))
@@ -843,6 +844,10 @@ class BuddyList(wx.ListCtrl):
         self.closeToolTip()
         self.tool_tip = BuddyToolTip(self, index)
         self.tool_tip_index = index
+
+        #TODO: wx.PopupWindow stealing focus under wine
+        #find a better way to prevent this
+        wx.CallAfter(self.mw.SetFocus)
 
     def onDClick(self, evt):
         i = self.GetFirstSelected()
@@ -870,14 +875,14 @@ class BuddyList(wx.ListCtrl):
     def onRClick(self, evt):
         index, flags = self.HitTest(evt.GetPosition())
         if index != -1:
-            self.mw.PopupMenu(PopupMenu(self.mw, "contact"))
             self.onMouseLeave(evt)
+            self.mw.PopupMenu(PopupMenu(self.mw, "contact"))
 
     def onRDown(self, evt):
         index, flags = self.HitTest(evt.GetPosition())
         if index == -1:
-            self.mw.PopupMenu(PopupMenu(self.mw, "empty"))
             self.onMouseLeave(evt)
+            self.mw.PopupMenu(PopupMenu(self.mw, "empty"))
         else:
             evt.Skip()
 
@@ -991,9 +996,11 @@ class BuddyList(wx.ListCtrl):
         evt.Skip()
 
     def onMouseEnter(self, evt):
+        print "mouse_enter"
         self.has_mouse = True
 
     def onMouseLeave(self, evt):
+        print "mouse_leave"
         self.has_mouse = False
         self.closeToolTip()
 
@@ -1007,6 +1014,7 @@ class BuddyToolTip(wx.PopupWindow):
     def __init__(self, list, index):
         wx.PopupWindow.__init__(self, list)
         self.buddy = list.getBuddyFromIndex(index)
+        self.mw = list.mw
 
         self.panel = wx.Panel(self, style=wx.RAISED_BORDER)
         sizer = wx.BoxSizer()
@@ -1052,7 +1060,6 @@ class BuddyToolTip(wx.PopupWindow):
 
     def setPos(self, pos):
         self.SetPosition((pos.x +10, pos.y + 10))
-
 
 class StatusSwitchList(wx.Menu):
     def __init__(self, status_switch):
