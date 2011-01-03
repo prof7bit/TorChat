@@ -1644,7 +1644,7 @@ class Receiver(threading.Thread):
                                     message.execute()
                                 else:
                                     # this is an outgoing connection. Incoming protocol messages are ignored
-                                    print "(1) received unexpected '%s' on outgoing connection to %" % (line, self.conn.buddy.address)
+                                    print "(1) received unexpected '%s' on outgoing connection to %s" % (line, self.conn.buddy.address)
                             except:
                                 tb()
                 else:
