@@ -1368,6 +1368,7 @@ class ChatWindow(wx.Frame):
         self.Destroy()
 
     def onKey(self, evt):
+        #TODO: in wine there is a problem with shift-enter
         if evt.GetKeyCode() == 13 and not evt.ShiftDown():
             self.onSend(evt)
         else:
@@ -1556,6 +1557,7 @@ class BetterFileDropTarget(wx.FileDropTarget):
         return file_name
 
 class DropTarget(BetterFileDropTarget):
+    #TODO: file dopping does not work in wine at all
     def __init__(self, mw, buddy):
         wx.FileDropTarget.__init__(self)
         self.mw = mw
