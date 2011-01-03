@@ -1668,8 +1668,8 @@ class InConnection:
         self.last_ping_address = "" #used to detect mass pings with fake adresses
         self.last_ping_cookie = "" #used to detect pings with fake cookies
         self.last_active = time.time()
-        self.receiver = Receiver(self, True)
         self.started = True
+        self.receiver = Receiver(self, True)
 
     def send(self, text):
         try:
