@@ -1,4 +1,4 @@
-svn trunk
+version 0.9.9.425
 - (security) wipe temporary files and sent offline messages before deleting
 - (security) properly sanitize incoming file names
 - profile text and avatar (will be shown when mouse over buddy in list)
