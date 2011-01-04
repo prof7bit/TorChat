@@ -668,9 +668,9 @@ class BuddyList(object):
 
     def stopClient(self):
         stopPortableTor()
-        self.listener.close() #FIXME: does this really work?
         for buddy in self.list + self.incoming_buddies:
             buddy.disconnect()
+        self.listener.close() #FIXME: does this really work?
 
 
 class FileSender(threading.Thread):
@@ -1808,9 +1808,14 @@ class Listener(threading.Thread):
     def close(self):
         self.running = False
         try:
+            print "(2) closing listening socket %s:%s" \
+              % (config.get("client", "listen_interface"),
+                 config.get("client", "listen_port"))
             self.socket.close()
+            print "(2) success"
         except:
-            pass
+            print "(2) closing socket failed, traceback follows:"
+            tb()
 
     def startTimer(self):
         self.timer = threading.Timer(30, self.onTimer)
