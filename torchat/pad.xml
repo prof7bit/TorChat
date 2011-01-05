@@ -13,7 +13,7 @@
 		<State_Province />
 		<Zip_Postal_Code />
 		<Country>Germany</Country>
-		<Company_WebSite_URL>http://torchat.googlecode.com/<Company_WebSite_URL>
+		<Company_WebSite_URL>http://torchat.googlecode.com/</Company_WebSite_URL>
 		<Contact_Info>
 			<Author_First_Name>Bernd</Author_First_Name>
 			<Author_Last_Name>Kreuss</Author_Last_Name>
