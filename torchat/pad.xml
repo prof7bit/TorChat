@@ -13,19 +13,19 @@
 		<State_Province />
 		<Zip_Postal_Code />
 		<Country>Germany</Country>
-		<Company_WebSite_URL />
+		<Company_WebSite_URL>http://torchat.googlecode.com/<Company_WebSite_URL>
 		<Contact_Info>
 			<Author_First_Name>Bernd</Author_First_Name>
 			<Author_Last_Name>Kreuss</Author_Last_Name>
 			<Author_Email>prof7bit@googlemail.com</Author_Email>
-			<Contact_First_Name />
-			<Contact_Last_Name />
-			<Contact_Email />
+			<Contact_First_Name>Bernd</Contact_First_Name>
+			<Contact_Last_Name>Kreuss</Contact_Last_Name>
+			<Contact_Email>prof7bit@googlemail.com</Contact_Email>
 		</Contact_Info>
 		<Support_Info>
-			<Sales_Email />
-			<Support_Email />
-			<General_Email />
+			<Sales_Email>prof7bit@googlemail.com</Sales_Email>
+			<Support_Email>prof7bit@googlemail.com</Support_Email>
+			<General_Email>prof7bit@googlemail.com</General_Email>
 			<Sales_Phone />
 			<Support_Phone />
 			<General_Phone />
@@ -41,7 +41,7 @@
 		<Program_Cost_Dollars />
 		<Program_Cost_Other_Code />
 		<Program_Cost_Other />
-		<Program_Type>GPL</Program_Type>
+		<Program_Type>Freeware</Program_Type>
 		<Program_Release_Status />
 		<Program_Install_Support />
 		<Program_OS_Support>Linux,Unix,Win2000,Win7 x32,Win7 x64,WinServer,WinVista,WinVista x64,WinXP</Program_OS_Support>
@@ -52,6 +52,8 @@
 		<Program_Categories />
 		<Program_System_Requirements />
 		<File_Info>
+			<File_Size_Bytes>7100000</File_Size_Bytes>
+			<File_Size_K>7100</File_Size_K>
 			<File_Size_MB>7.1</File_Size_MB>
 		</File_Info>
 		<Expire_Info>
@@ -78,9 +80,9 @@
 		<Application_URLs>
 			<Application_Info_URL>http://torchat.googlecode.com/</Application_Info_URL>
 			<Application_Order_URL />
-			<Application_Screenshot_URL />
-			<Application_Icon_URL />
-			<Application_XML_File_URL />
+			<Application_Screenshot_URL>http://torchat.googlecode.com/svn/trunk/torchat/screenshot.png</Application_Screenshot_URL>
+			<Application_Icon_URL>http://torchat.googlecode.com/svn/trunk/torchat/src/icons/torchat.png</Application_Icon_URL>
+			<Application_XML_File_URL>http://torchat.googlecode.com/svn/trunk/torchat/pad.xml</Application_XML_File_URL>
 		</Application_URLs>
 		<Download_URLs>
 			<Primary_Download_URL>http://torchat.googlecode.com/files/torchat-windows-0.9.9.425.zip</Primary_Download_URL>
