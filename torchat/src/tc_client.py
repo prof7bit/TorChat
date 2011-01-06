@@ -1690,18 +1690,18 @@ class InConnection:
         self.close()
 
     def close(self):
-        if not self.started:
-            return
+        print "(2) in-connection closing %s" % self.last_ping_address
+
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
-            pass
+            print "(2) socket.shutdown() %s" % sys.exc_info()[1]
         try:
             self.socket.close()
         except:
-            pass
+            print "(2) socket.close() %s" % sys.exc_info()[1]
+
         self.started = False
-        print "(2) in-connection closing %s" % self.last_ping_address
         if self in self.bl.listener.conns:
             self.bl.listener.conns.remove(self)
         if self.buddy:
@@ -1758,23 +1758,19 @@ class OutConnection(threading.Thread):
         self.close()
 
     def close(self):
-        if not self.running:
-            return
         self.running = False
         self.send_buffer = []
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
-            pass
+            print "(2) socket.shutdown() %s" % sys.exc_info()[1]
         try:
             self.socket.close()
         except:
-            pass
-        if self.buddy:
-            self.buddy.conn_out = None
-            print "(2) out-connection closing (%s)" % self.buddy.address
-        else:
-            print "(2) out-connection closing (without buddy)"
+            print "(2) socket.close() %s" % sys.exc_info()[1]
+
+        self.buddy.conn_out = None
+        print "(2) out-connection closed (%s)" % self.buddy.address
 
 
 class Listener(threading.Thread):
@@ -1830,6 +1826,8 @@ class Listener(threading.Thread):
                 else:
                     print "(2) closing unused in-connection from %s" % conn.last_ping_address
                     conn.close()
+                if conn in self.conns:
+                    self.conns.remove(conn)
                 print "(2) have now %i incoming connections" % len(self.conns)
         self.startTimer()
 

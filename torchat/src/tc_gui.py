@@ -48,7 +48,6 @@ def getStatusBitmap(status):
         _icon_images[status] = image
     bitmap = _icon_images[status].ConvertToBitmap()
     return bitmap
-
 class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
         wx.TaskBarIcon.__init__(self)
