@@ -1226,11 +1226,13 @@ class ChatWindow(wx.Frame):
         self.Layout()
 
     def onShow(self, evt):
-        # workaround scroll bug on windows
-        # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
-        wx.CallAfter(self.txt_in.AppendText, "") # go to end of text
-        wx.CallAfter(self.txt_in.ScrollLines, -50)
-        wx.CallAfter(self.txt_in.ScrollLines, 50)
+        # always make sure we are at the end when showing the window
+        wx.CallAfter(self.txt_in.AppendText, "")
+        if (config.isWindows()):
+            # workaround for buggy richedit control on windows
+            # scroll one line up and one line down to make it visible
+            wx.CallAfter(self.txt_in.ScrollLines, -1)
+            wx.CallAfter(self.txt_in.ScrollLines, 1)
 
     def insertBackLogContents(self, file_name):
         file = open(file_name)
