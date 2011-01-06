@@ -1695,11 +1695,11 @@ class InConnection:
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
-            print "(2) socket.shutdown() %s" % sys.exc_info()[1]
+            print "(3) socket.shutdown() %s" % sys.exc_info()[1]
         try:
             self.socket.close()
         except:
-            print "(2) socket.close() %s" % sys.exc_info()[1]
+            print "(3) socket.close() %s" % sys.exc_info()[1]
 
         self.started = False
         if self in self.bl.listener.conns:
@@ -1763,11 +1763,11 @@ class OutConnection(threading.Thread):
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except:
-            print "(2) socket.shutdown() %s" % sys.exc_info()[1]
+            print "(3) socket.shutdown() %s" % sys.exc_info()[1]
         try:
             self.socket.close()
         except:
-            print "(2) socket.close() %s" % sys.exc_info()[1]
+            print "(3) socket.close() %s" % sys.exc_info()[1]
 
         self.buddy.conn_out = None
         print "(2) out-connection closed (%s)" % self.buddy.address
