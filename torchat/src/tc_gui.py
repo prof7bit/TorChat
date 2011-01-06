@@ -58,7 +58,6 @@ class TaskbarIcon(wx.TaskBarIcon):
         img = wx.Image(os.path.join(config.ICON_DIR, "event.png"))
         img.ConvertAlphaToMask()
         self.event_icon = wx.IconFromBitmap(img.ConvertToBitmap())
-
         self.showStatus(self.mw.buddy_list.own_status)
         self.timer = wx.Timer(self, -1)
         self.blink_phase = False
@@ -1229,6 +1228,7 @@ class ChatWindow(wx.Frame):
     def onShow(self, evt):
         # workaround scroll bug on windows
         # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
+        wx.CallAfter(self.txt_in.AppendText, "") # go to end of text
         wx.CallAfter(self.txt_in.ScrollLines, -50)
         wx.CallAfter(self.txt_in.ScrollLines, 50)
 
