@@ -997,7 +997,11 @@ class FileReceiver:
         except:
             pass
         self.sendStopMessage()
-        self.file_name_save = ""
+        if self.file_name_save:
+            self.file_handle_save.close()
+            print "(2) unlinking empty placeholder file %s" % self.file_name_save
+            os.unlink(self.file_name_save) #its still empty, no wiping needed
+            self.file_name_save = ""
         self.close()
 
     def close(self):
@@ -1018,11 +1022,11 @@ class FileReceiver:
                 shutil.copy(self.file_name_tmp, self.file_name_save)
                 print "(2) copied file to %s" % self.file_name_save
 
+            print "(2) wiping received temporary file data"
             wipeFile(self.file_name_tmp)
             del self.buddy.bl.file_receiver[self.buddy.address, self.id]
         except:
-            pass
-
+            tb() #TODO: what could go wrong here? Why did I use try/except?
 
 
 #--- ### Protocol messages
