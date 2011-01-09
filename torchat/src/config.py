@@ -78,7 +78,7 @@ log_writer = None
 
 def isWindows98():
     if isWindows():
-        return sys.getwindowsversion()[0] == 4
+        return sys.getwindowsversion()[0] == 4 #@UndefinedVariable (make PyDev happy)
     else:
         return False
 
@@ -86,12 +86,12 @@ def killProcess(pid):
     try:
         if isWindows():
             PROCESS_TERMINATE = 1
-            handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE,
+            handle = ctypes.windll.kernel32.OpenProcess(PROCESS_TERMINATE, #@UndefinedVariable
                                                         False,
                                                         pid)
             print handle
-            ctypes.windll.kernel32.TerminateProcess(handle, -1)
-            ctypes.windll.kernel32.CloseHandle(handle)
+            ctypes.windll.kernel32.TerminateProcess(handle, -1) #@UndefinedVariable
+            ctypes.windll.kernel32.CloseHandle(handle) #@UndefinedVariable
         else:
             os.kill(pid, 15)
     except:
@@ -169,7 +169,7 @@ class OrderedRawConfigParser(ConfigParser.RawConfigParser):
     def write(self, fp):
         """Write an .ini-format representation of the configuration state."""
         if self._defaults:
-            fp.write("[%s]\n" % DEFAULTSECT)
+            fp.write("[%s]\n" % ConfigParser.DEFAULTSECT)
             for key in sorted(self._defaults):
                 fp.write( "%s = %s\n" % (key, str(self._defaults[key]).replace('\n', '\n\t')))
             fp.write("\n")
@@ -272,9 +272,9 @@ def tb1():
 
 def getTranslators():
     translators = []
-    for mname in translations.__dict__:
+    for mname in translations.__dict__: #@UndefinedVariable
         if mname[:5] == "lang_":
-            m = translations.__dict__[mname]
+            m = translations.__dict__[mname] #@UndefinedVariable
             try:
                 lcode = m.LANGUAGE_CODE
                 lname = m.LANGUAGE_NAME
@@ -288,13 +288,20 @@ def getTranslators():
     return ", ".join(translators)
 
 def importLanguage():
+    """switch the language by redefining all the variables that will be 
+    available in the lang.* namespace, using the namespace __dict__
+    and making use of the wonderful dynamic nature of the Python language"""
+    # (The many undefinedvariable comments below are there to make
+    # the code analysis of Eclipse-PyDev happy, which would not be able
+    # to recognize that these are perfectly valid at *runtime*)
+     
     #if the strings in the language module have already been changed then
     if translations.lang_en.LANGUAGE_CODE != "en":
         #restore the original values from our backup to have
         #all strings reset to english. This helps when switching
         #between incomplete translations.
         for key in standard_dict:
-            translations.lang_en.__dict__[key] = standard_dict[key]
+            translations.lang_en.__dict__[key] = standard_dict[key] #@UndefinedVariable
 
     lang_xx = "lang_" + get("gui", "language")
     if lang_xx == "lang_en":
@@ -306,7 +313,7 @@ def importLanguage():
         print "(1) putting script directory into module search path"
         sys.path.insert(0, SCRIPT_DIR)
 
-    dict_std = translations.lang_en.__dict__
+    dict_std = translations.lang_en.__dict__ #@UndefinedVariable
     print "(1) trying to import language module %s" % lang_xx
     try:
         #first we try to find a language module in the script dir
@@ -314,7 +321,7 @@ def importLanguage():
         print "(1) found custom language module %s.py" % lang_xx
     except:
         #nothing found, so we try the built in translations
-        if lang_xx in translations.__dict__:
+        if lang_xx in translations.__dict__: #@UndefinedVariable
             print "(1) found built in language module %s" % lang_xx
             dict_trans = translations.__dict__[lang_xx].__dict__
         else:
@@ -420,8 +427,8 @@ def main():
     #make a backup of all strings that are in the standard language file
     #because we could need them when switching between incomplete languages
     standard_dict = {}
-    for key in translations.lang_en.__dict__:
-        standard_dict[key] = translations.lang_en.__dict__[key]
+    for key in translations.lang_en.__dict__: #@UndefinedVariable
+        standard_dict[key] = translations.lang_en.__dict__[key] #@UndefinedVariable
 
     #now switch to the configured translation
     importLanguage()
