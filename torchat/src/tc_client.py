@@ -94,27 +94,38 @@ def createTemporaryFile(file_name):
     print "(2) created temporary file  %s" % file_name_tmp
     return (file_name_tmp, file_handle_tmp)
 
-def wipeFile(name):
-    print "(2) wiping %s" % name
-    if os.path.exists(name):
-        try:
-            handle = open(name, mode="r+b")
-            handle.seek(0, 2) #SEEK_END
-            size = handle.tell()
-            handle.seek(0)
-            for i in range (0, size):
-                handle.write(chr(random.getrandbits(8)))
-            print "(2) sync to disk"
-            handle.flush()
-            os.fsync(handle.fileno())
-            handle.close()
-            print "(2) unlinking wiped file"
-            os.unlink(name)
-        except:
-            print "(0) could not wipe file %s (file is locked or wrong permissions)" % name
-    else:
-        print "(2) file %s does not exist" % name
 
+class WipeFileThread(threading.Thread):
+    def __init__(self, file_name):
+        threading.Thread.__init__(self)
+        self.file_name = file_name
+        self.start()
+
+    def run(self):
+        BLOCK_SIZE = 8192
+        print "(2) wiping %s" % self.file_name
+        if os.path.exists(self.file_name):
+            try:
+                handle = open(self.file_name, mode="r+b")
+                handle.seek(0, 2) #SEEK_END
+                size = handle.tell()
+                handle.seek(0)
+                blocks = size / BLOCK_SIZE + 1
+                for i in range(blocks):
+                    handle.write(os.urandom(BLOCK_SIZE))
+                print "(2) sync to disk"
+                handle.flush()
+                os.fsync(handle.fileno())
+                handle.close()
+                print "(2) unlinking wiped file"
+                os.unlink(self.file_name)
+            except:
+                print "(0) could not wipe file %s (file is locked or wrong permissions)" % self.file_name
+        else:
+            print "(2) file %s does not exist" % self.file_name
+
+def wipeFile(file_name):
+    WipeFileThread(file_name)
 
 #--- ### Client API
 
