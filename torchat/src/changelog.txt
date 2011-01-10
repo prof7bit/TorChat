@@ -1,3 +1,6 @@
+svn trunk
+- speed up the wiping of deleted files and not freeze the GUI while doing it
+
 version 0.9.9.425
 - (security) wipe temporary files and sent offline messages before deleting
 - (security) properly sanitize incoming file names
