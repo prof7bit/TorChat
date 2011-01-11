@@ -1,4 +1,4 @@
-svn trunk
+version 0.9.9.447
 - speed up the wiping of deleted files and not freeze the GUI while doing it
 
 version 0.9.9.425
