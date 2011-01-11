@@ -34,7 +34,7 @@
 	</Company_Info>
 	<Program_Info>
 		<Program_Name>TorChat</Program_Name>
-		<Program_Version>0.9.9.425</Program_Version>
+		<Program_Version>0.9.9.449</Program_Version>
 		<Program_Release_Month>01</Program_Release_Month>
 		<Program_Release_Day>03</Program_Release_Day>
 		<Program_Release_Year>2011</Program_Release_Year>
@@ -85,7 +85,7 @@
 			<Application_XML_File_URL>http://torchat.googlecode.com/svn/trunk/torchat/pad.xml</Application_XML_File_URL>
 		</Application_URLs>
 		<Download_URLs>
-			<Primary_Download_URL>http://torchat.googlecode.com/files/torchat-windows-0.9.9.425.zip</Primary_Download_URL>
+			<Primary_Download_URL>http://torchat.googlecode.com/files/torchat-windows-0.9.9.449.zip</Primary_Download_URL>
 			<Secondary_Download_URL />
 			<Additional_Download_URL_1 />
 			<Additional_Download_URL_2 />
