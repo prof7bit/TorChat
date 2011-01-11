@@ -1155,7 +1155,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         if len(self.address) <> 16:
             return False
         for c in self.address:
-            if not c in "234567890abcdefghijklmnopqrstuvwxyz":
+            if not c in "23456789abcdefghijklmnopqrstuvwxyz":
                 return False
         return True
 
@@ -1164,7 +1164,7 @@ class ProtocolMsg_ping(ProtocolMsg):
 
         #is sender a valid onion address?
         if not self.isValidAddress():
-            print "(1) ping sender '%s' not a valid onion ID. closing conection."
+            print "(1) ping sender '%s' not a valid onion ID. closing connection."
             self.connection.close()
             return
 
