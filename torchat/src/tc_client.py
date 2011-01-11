@@ -151,6 +151,7 @@ class Buddy(object):
         self.timer = False
         self.last_status_time = 0
         self.count_failed_connects = 0
+        self.count_unanswered_pings = 0
         self.active = True
         self.temporary = temporary
         self.startTimer()
@@ -159,6 +160,7 @@ class Buddy(object):
         print "(2) %s.connect()" % self.address
         if self.conn_out == None:
             self.conn_out = OutConnection(self.address + ".onion", self.bl, self)
+            self.count_unanswered_pings = 0
             self.sendPing()
 
     def isFullyConnected(self):
@@ -189,10 +191,12 @@ class Buddy(object):
 
     def onOutConnectionSuccess(self):
         print "(2) %s.onOutConnectionSuccess()" % self.address
+        self.count_unanswered_pings = 0
         self.startTimer()
 
     def onInConnectionFound(self, connection):
         print "(2) %s.onInConnectionFound()" % self.address
+        self.count_unanswered_pings = 0
         conn_old = self.conn_in
         if conn_old == connection:
             print "(2) this connection is already the current conn_in. doing nothing."
@@ -376,7 +380,14 @@ class Buddy(object):
             if self.conn_in:
                 self.sendStatus()
             else:
-                self.sendPing()
+                # still waiting for return connection
+                if self.count_unanswered_pings < config.MAX_UNANSWERED_PINGS:
+                    self.sendPing()
+                    print "(2) unanswered pings to %s so far: %i" % (self.address, self.count_unanswered_pings)
+                else:
+                    # maybe this will help
+                    print "(2) too many unanswered pings to %s on same connection" % self.address 
+                    self.disconnect()
 
     def sendPing(self):
         print "(2) PING >>> %s" % self.address
@@ -387,6 +398,7 @@ class Buddy(object):
                            (config.get("client","own_hostname"),
                             self.random1))
         ping.send(self)
+        self.count_unanswered_pings += 1
 
     def sendStatus(self):
         if self.isAlreadyPonged():
