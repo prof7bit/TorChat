@@ -1,3 +1,6 @@
+version 0.9.9.453
+- fixed connection handshake: timeout for unanswered outgoing connections
+
 version 0.9.9.449
 - speed up the wiping of deleted files and not freeze the GUI while doing it
 
