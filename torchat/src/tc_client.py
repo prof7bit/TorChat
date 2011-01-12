@@ -1155,7 +1155,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         if len(self.address) <> 16:
             return False
         for c in self.address:
-            if not c in "23456789abcdefghijklmnopqrstuvwxyz":
+            if not c in "234567abcdefghijklmnopqrstuvwxyz":  # base32
                 return False
         return True
 
