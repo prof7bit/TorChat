@@ -267,7 +267,7 @@ class NotificationWindow(wx.PopupWindow):
             else:
                 # we reached the end of the animation
                 self.Hide()
-                self.Close()
+                self.Destroy()
 
 
 
@@ -834,7 +834,7 @@ class BuddyList(wx.ListCtrl):
     def closeToolTip(self):
         if self.tool_tip <> None:
             self.tool_tip.Hide()
-            self.tool_tip.Close()
+            self.tool_tip.Destroy()
             self.tool_tip = None
             self.tool_tip_index = -1
 
@@ -1366,6 +1366,7 @@ class ChatWindow(wx.Frame):
         config.set("gui", "chat_window_height", h)
         config.set("gui", "chat_window_height_lower", h - self.splitter.GetSashPosition())
         self.mw.chat_windows.remove(self)
+        self.Hide()
         self.Destroy()
 
     def onKey(self, evt):
