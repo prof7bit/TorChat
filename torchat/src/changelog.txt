@@ -1,5 +1,5 @@
-svn trunk
-- fixed crash that happened after the last chat window has been closed
+version 0.9.9.458
+- fixed crash that could happen while torchat was minimized to the tray
 
 version 0.9.9.453
 - fixed connection handshake: timeout for unanswered outgoing connections
