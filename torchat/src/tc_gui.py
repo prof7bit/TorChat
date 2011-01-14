@@ -274,16 +274,11 @@ class NotificationWindow(wx.Frame):
                 return
             else:
                 # we reached the end of the animation
-                self.phase = 2
-                
-        if self.phase == 2:
-            self.Hide()
-            self.Destroy()
+                self.Hide()
+                self.Destroy()
         
     def onMouse(self, evt):
-        # mark the animation as ended
-        # and restart the timer with a very short interval
-        self.phase = 2
+        # restart the timer to immediately end the waiting
         self.timer.Start(10, True)
         
 
