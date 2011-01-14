@@ -1,3 +1,9 @@
+trunk
+- fixed the focus stealing of the notification window on Windows
+- made the notofication window less obtrusive, more native looking 
+  and make it immediately disappear on mouse contact. 
+- made the animation of the popup faster and look more natural.
+
 version 0.9.9.458
 - fixed crash that could happen while torchat was minimized to the tray
 
