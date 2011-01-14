@@ -232,6 +232,8 @@ class NotificationWindow(wx.Frame):
 
         self.SetPosition((self.x_pos, self.y_pos))
         
+        # the following will prevent the focus 
+        # stealing on windows
         self.Disable()
         self.Show()
         self.Enable()
@@ -1345,12 +1347,7 @@ class ChatWindow(wx.Frame):
 
             if config.getint("gui", "notification_popup"):
                 nt = textwrap.fill("%s:\n%s" % (name, message), 40)
-                try:
-                    NotificationWindow(self.mw, nt, self.buddy)
-                except:
-                    #Some platforms (Mac) dont have wx.PopupWindow
-                    #TODO: need alternative solution
-                    pass
+                NotificationWindow(self.mw, nt, self.buddy)
 
         if not self.IsShown():
             self.mw.taskbar_icon.blink()
