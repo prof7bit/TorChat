@@ -196,9 +196,9 @@ class TaskbarMenu(wx.Menu):
         dialog = DlgEditProfile(self.mw, self.mw)
         dialog.ShowModal()
 
-class NotificationWindow(wx.PopupWindow):
+class NotificationWindow(wx.Frame):
     def __init__(self, mw, text, buddy):
-        wx.PopupWindow.__init__(self, mw)
+        wx.Frame.__init__(self, mw, style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER)
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
         sizer = wx.BoxSizer()
@@ -231,7 +231,10 @@ class NotificationWindow(wx.PopupWindow):
         self.phase = 0
 
         self.SetPosition((self.x_pos, self.y_pos))
+        
+        self.Disable()
         self.Show()
+        self.Enable()
 
         self.timer = wx.Timer(self, -1)
         self.Bind(wx.EVT_TIMER, self.onTimer)
