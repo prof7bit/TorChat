@@ -199,7 +199,8 @@ class TaskbarMenu(wx.Menu):
 class NotificationWindow(wx.PopupWindow):
     def __init__(self, mw, text, buddy):
         wx.PopupWindow.__init__(self, mw)
-        self.panel = wx.Panel(self, style=wx.RAISED_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
         sizer = wx.BoxSizer()
         self.panel.SetSizer(sizer)
 
@@ -211,9 +212,6 @@ class NotificationWindow(wx.PopupWindow):
         sizer.Add(static_image, 0, wx.ALL, 5 )
 
         self.label = wx.StaticText(self.panel)
-        font = self.label.GetFont()
-        font.SetPointSize(12)
-        self.label.SetFont(font)
         self.label.SetLabel(text)
         sizer.Add(self.label, 0, wx.ALL, 5 )
 
@@ -246,7 +244,8 @@ class NotificationWindow(wx.PopupWindow):
         if self.phase == 0:
             if self.x_pos < self.x_end:
                 # move right and restart timer
-                self.x_pos += 20
+                speed = ((self.x_end - self.x_pos) ^ 2) / 10
+                self.x_pos += (1 + speed)
                 self.SetPosition((self.x_pos, self.y_pos))
                 self.timer.Start(10, True)
                 return
@@ -254,22 +253,34 @@ class NotificationWindow(wx.PopupWindow):
                 # we are at the right border.
                 # now switch phase and wait a bit
                 self.phase = 1
-                self.timer.Start(5000, True)
+                self.timer.Start(3000, True)
+                
+                # and from now on we also close on mouse contact
+                self.panel.Bind(wx.EVT_MOUSE_EVENTS, self.onMouse)
                 return
 
         if self.phase == 1:
             if self.y_pos > -self.h:
                 # move upwards and restart timer
-                self.y_pos -= 20
+                speed = ((self.y_end - self.y_pos) ^ 2) / 10
+                self.y_pos -= (5 + speed)
                 self.SetPosition((self.x_pos, self.y_pos))
                 self.timer.Start(10, True)
                 return
             else:
                 # we reached the end of the animation
-                self.Hide()
-                self.Destroy()
-
-
+                self.phase = 2
+                
+        if self.phase == 2:
+            self.Hide()
+            self.Destroy()
+        
+    def onMouse(self, evt):
+        # mark the animation as ended
+        # and restart the timer with a very short interval
+        self.phase = 2
+        self.timer.Start(10, True)
+        
 
 class PopupMenu(wx.Menu):
     def __init__(self, main_window, type):
@@ -1012,7 +1023,8 @@ class BuddyToolTip(wx.PopupWindow):
         self.buddy = list.getBuddyFromIndex(index)
         self.mw = list.mw
 
-        self.panel = wx.Panel(self, style=wx.RAISED_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
         sizer = wx.BoxSizer()
         self.panel.SetSizer(sizer)
 
@@ -1832,7 +1844,7 @@ class MainWindow(wx.Frame):
 
         if not config.getint("gui", "open_main_window_hidden"):
             self.Show()
-
+            
         if config.get("logging", "log_file") and config.getint("logging", "log_level"):
             print "(0) logging to file may leave sensitive information on disk"
             hidden = config.getint("gui", "open_chat_window_hidden")
