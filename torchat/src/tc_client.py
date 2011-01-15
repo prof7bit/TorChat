@@ -191,6 +191,7 @@ class Buddy(object):
 
     def onOutConnectionSuccess(self):
         print "(2) %s.onOutConnectionSuccess()" % self.address
+        self.resetConnectionFailCounter()
         self.count_unanswered_pings = 0
         self.startTimer()
 
