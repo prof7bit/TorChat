@@ -18,7 +18,7 @@
 import config
 import wxversion
 
-if isMac():
+if config.isMac():
     if wxversion.checkInstalled('2.9'):
         wxversion.select('2.9') # For Mac it is tweaked and optimized with 2.9
     else:
