@@ -17,17 +17,26 @@
 
 import config
 import wxversion
-try:
-    if isMac():
+
+if isMac():
+    if wxversion.checkInstalled('2.9'):
         wxversion.select('2.9') # For Mac it is tweaked and optimized with 2.9
     else:
-        wxversion.select('2.8') # On MSW and GTK we stick with 2.8 for now
+        print "(1) wxPython-2.9 not installed"
         
-except:
-    # continue anyways. 
-    # in the pyinstaller binary wxversion.select() will always throw an exception 
-    # so in this case we just try use the wx version that happens to be available.
-    pass
+else:
+    try:
+        if wxversion.checkInstalled('2.8'):
+            wxversion.select('2.8') # On MSW and GTK we stick with 2.8 for now
+        else:
+            print "(1) wxPython-2.8 not installed"
+        
+    except:
+        # continue anyways. 
+        # in the pyinstaller binary wxversion can screw up and throw exceptions 
+        # so we ignore the error and just use the wx that happens to be available.
+        # TODO: Does this still happen since we now use checkInstalled()?
+        print "(2) wxversion screwed up, this is harmless, ignoring it."
 
 import wx
 import os
