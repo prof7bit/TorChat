@@ -15,18 +15,21 @@
 #                                                                            #
 ##############################################################################
 
+import config
 import wxversion
 try:
-    wxversion.select('2.8')
+    if isMac():
+        wxversion.select('2.9') # For Mac it is tweaked and optimized with 2.9
+    else:
+        wxversion.select('2.8') # On MSW and GTK we stick with 2.8 for now
+        
 except:
     # continue anyways. 
-    # the pyinstaller binary has problems with wxversion's 
-    # way of searching though the (non-existing) directories.
-    # so just try to use the wx version that is there.
+    # in the pyinstaller binary wxversion.select() will always throw an exception 
+    # so in this case we just try use the wx version that happens to be available.
     pass
 
 import wx
-import config
 import os
 import tc_client
 import tc_gui

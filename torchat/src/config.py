@@ -82,6 +82,9 @@ def isWindows98():
         return sys.getwindowsversion()[0] == 4 #@UndefinedVariable (make PyDev happy)
     else:
         return False
+        
+def isMac():
+    return sys.platform == 'darwin'
 
 def killProcess(pid):
     try:
