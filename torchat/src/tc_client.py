@@ -352,7 +352,14 @@ class Buddy(object):
             #whenever we are connected to someone we use a fixed timer.
             #otherwise we would create a unique pattern of activity
             #over time that could be identified at the other side
-            t = config.KEEPALIVE_INTERVAL
+            if self.status == STATUS_HANDSHAKE:
+                # ping more agressively during handshake
+                # to trigger more connect back attempts there
+                t = config.KEEPALIVE_INTERVAL / 4
+            else:
+                # when fully connected we can slow down to normal 
+                t = config.KEEPALIVE_INTERVAL
+                
 
         if self.timer:
             self.timer.cancel()

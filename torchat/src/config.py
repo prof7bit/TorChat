@@ -70,7 +70,7 @@ COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 240
 KEEPALIVE_INTERVAL = 120
-MAX_UNANSWERED_PINGS = 2
+MAX_UNANSWERED_PINGS = 4
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
 ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
