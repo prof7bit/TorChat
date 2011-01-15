@@ -437,3 +437,4 @@ def main():
     #now switch to the configured translation
     importLanguage()
 
+main()

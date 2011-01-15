@@ -17,19 +17,18 @@
 
 import config
 import wxversion
-
 if config.isMac():
     if wxversion.checkInstalled('2.9'):
         wxversion.select('2.9') # For Mac it is tweaked and optimized with 2.9
     else:
-        print "(1) wxPython-2.9 not installed"
+        print "(1) wxPython-2.9 is not installed"
         
 else:
     try:
         if wxversion.checkInstalled('2.8'):
             wxversion.select('2.8') # On MSW and GTK we stick with 2.8 for now
         else:
-            print "(1) wxPython-2.8 not installed"
+            print "(1) wxPython-2.8 is not installed"
         
     except:
         # continue anyways. 
@@ -44,9 +43,7 @@ import tc_client
 import tc_gui
         
 def main():
-    #initialize the configuration
-    config.main()
-    
+    print "(2) wxPython version %s" % wx.version()
     #create the mandatory wx application object
     app = wx.App(redirect=False)
     
