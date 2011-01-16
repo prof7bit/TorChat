@@ -28,6 +28,7 @@ import textwrap
 import version
 import dlg_settings
 import translations
+import tc_notification
 lang = translations.lang_en
 tb = config.tb
 tb1 = config.tb1
@@ -196,91 +197,6 @@ class TaskbarMenu(wx.Menu):
         dialog = DlgEditProfile(self.mw, self.mw)
         dialog.ShowModal()
 
-class NotificationWindow(wx.Frame):
-    def __init__(self, mw, text, buddy):
-        wx.Frame.__init__(self, mw, style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER)
-        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-        self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
-        sizer = wx.BoxSizer()
-        self.panel.SetSizer(sizer)
-
-        if buddy.profile_avatar_object <> None:
-            bitmap = buddy.profile_avatar_object
-        else:
-            bitmap = wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
-        static_image = wx.StaticBitmap(self.panel, -1, bitmap)
-        sizer.Add(static_image, 0, wx.ALL, 5 )
-
-        self.label = wx.StaticText(self.panel)
-        self.label.SetLabel(text)
-        sizer.Add(self.label, 0, wx.ALL, 5 )
-
-        wsizer = wx.BoxSizer()
-        wsizer.Add(self.panel, 0, wx.ALL, 0)
-        self.SetSizerAndFit(wsizer)
-        self.Layout()
-
-        # initialize animation
-        cx, cy, maxx, maxy = wx.ClientDisplayRect()
-        self.w, self.h = self.GetSize()
-        self.x_end = maxx - self.w - 20
-        self.y_end = maxy - self.h - 20
-
-        self.x_pos = -self.w
-        self.y_pos = self.y_end
-        self.phase = 0
-
-        self.SetPosition((self.x_pos, self.y_pos))
-        
-        # the following will prevent the focus 
-        # stealing on windows
-        self.Disable()
-        self.Show()
-        self.Enable()
-
-        self.timer = wx.Timer(self, -1)
-        self.Bind(wx.EVT_TIMER, self.onTimer)
-
-        # start animation
-        self.timer.Start(10, True)
-
-
-    def onTimer(self, evt):
-        if self.phase == 0:
-            if self.x_pos < self.x_end:
-                # move right and restart timer
-                speed = ((self.x_end - self.x_pos) ^ 2) / 10
-                self.x_pos += (1 + speed)
-                self.SetPosition((self.x_pos, self.y_pos))
-                self.timer.Start(10, True)
-                return
-            else:
-                # we are at the right border.
-                # now switch phase and wait a bit
-                self.phase = 1
-                self.timer.Start(3000, True)
-                
-                # and from now on we also close on mouse contact
-                self.panel.Bind(wx.EVT_MOUSE_EVENTS, self.onMouse)
-                return
-
-        if self.phase == 1:
-            if self.y_pos > -self.h:
-                # move upwards and restart timer
-                speed = ((self.y_end - self.y_pos) ^ 2) / 10
-                self.y_pos -= (5 + speed)
-                self.SetPosition((self.x_pos, self.y_pos))
-                self.timer.Start(10, True)
-                return
-            else:
-                # we reached the end of the animation
-                self.Hide()
-                self.Destroy()
-        
-    def onMouse(self, evt):
-        # restart the timer to immediately end the waiting
-        self.timer.Start(10, True)
-        
 
 class PopupMenu(wx.Menu):
     def __init__(self, main_window, type):
@@ -1342,7 +1258,7 @@ class ChatWindow(wx.Frame):
 
             if config.getint("gui", "notification_popup"):
                 nt = textwrap.fill("%s:\n%s" % (name, message), 40)
-                NotificationWindow(self.mw, nt, self.buddy)
+                tc_notification.notificationWindow(self.mw, nt, self.buddy)
 
         if not self.IsShown():
             self.mw.taskbar_icon.blink()
@@ -1813,7 +1729,6 @@ class MainWindow(wx.Frame):
         )
         self.conns = []
         self.chat_windows = []
-        self.notification_window = None
         self.buddy_list = tc_client.BuddyList(self.callbackMessage, socket)
 
         self.SetTitle("TorChat: %s" % config.getProfileLongName())

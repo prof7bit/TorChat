@@ -43,6 +43,7 @@ config_defaults = {
     ("files", "temp_files_custom_dir") : "",
     ("gui", "language") : "en",
     ("gui", "notification_popup") : 1,
+    ("gui", "notification_method") : "generic",
     ("gui", "notification_flash_window") : 1,
     ("gui", "open_main_window_hidden") : 0,
     ("gui", "open_chat_window_hidden") : 0,
