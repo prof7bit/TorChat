@@ -743,7 +743,6 @@ class BuddyList(wx.ListCtrl):
                 self.blinkBuddy(window.buddy, False)
 
         # tooltips:
-        wp = wx.FindWindowAtPointer()
         if self.has_mouse and self.mw.IsActive():
             if time.time() - self.last_mouse_time > 0.5:
                 index, flags = self.HitTest(self.ScreenToClient(wx.GetMousePosition()))
