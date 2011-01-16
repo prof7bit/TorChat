@@ -27,7 +27,7 @@ import os
 import shutil
 import subprocess
 import tempfile
-import md5
+import hashlib
 import config
 import version
 
@@ -775,7 +775,7 @@ class FileSender(threading.Thread):
                     size = remaining
                 self.file_handle.seek(start)
                 data = self.file_handle.read(size)
-                hash = md5.md5(data).hexdigest()
+                hash = hashlib.md5(data).hexdigest()
 
                 msg = ProtocolMsg(self.bl, None, "filedata", (self.id,
                                                               start,
@@ -976,7 +976,7 @@ class FileReceiver:
             return
 
         self.wrong_block_number_count = 0
-        hash2 = md5.md5(data).hexdigest()
+        hash2 = hashlib.md5(data).hexdigest()
         if hash == hash2:
             self.file_handle_tmp.seek(start)
             self.file_handle_tmp.write(data)
