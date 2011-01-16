@@ -5,8 +5,9 @@ import subprocess
 
 def notificationWindow_gtknotify(mw, text, buddy):
     import pynotify
-    if not pynotify.init('torchat'):
-        raise Exception('gtknotify not supported')
+    if not pynotify.is_initted():
+        if not pynotify.init('torchat'):
+            raise Exception('gtknotify not supported')
     pynotify.Notification(buddy.name, text).show()
 
 def notificationWindow_knotify(mw, text, buddy):
