@@ -2,6 +2,9 @@ import wx
 import config
 import os
 import subprocess
+import threading
+import time
+import textwrap
 
 def notificationWindow_gtknotify(mw, text, buddy):
     import pynotify
@@ -23,10 +26,24 @@ def notificationWindow_growlnotify(mw, text, buddy):
     args = ['growlnotify', '-m', text]
     subprocess.Popen(args).communicate()
 
+
 def notificationWindow_xosd(mw, text, buddy):
-    import pyosd
-    osd = pyosd.osd()
-    osd.display(text)
+    NotificationWindowXosd(mw, text, buddy).start()
+
+class NotificationWindowXosd(threading.Thread):
+    def __init__(self, mw, text, buddy):
+        threading.Thread.__init__(self)
+        self.text = text
+        
+    def run(self):    
+        import pyosd
+        text_lines = textwrap.fill(self.text, 40).split(os.linesep)
+        osd = pyosd.osd(lines=len(text_lines), shadow=2, colour="#FFFF00")
+        line_number = 0
+        for text_line in text_lines:
+            osd.display(text_line, line=line_number)
+            line_number += 1
+        time.sleep(3)
 
 def notificationWindow_generic(mw, text, buddy):
     NotificationWindowGeneric(mw, text, buddy)
