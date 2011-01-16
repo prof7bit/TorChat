@@ -15,7 +15,10 @@ def notificationWindow_gtknotify(mw, text, buddy):
     if not pynotify.is_initted():
         if not pynotify.init('torchat'):
             raise Exception('gtknotify not supported')
-    pynotify.Notification(buddy.name, text).show()
+    name = buddy.name
+    if name == "":
+        name = buddy.address 
+    pynotify.Notification(name, text).show()
 
 
 # notification_method = knotify
@@ -24,8 +27,11 @@ def notificationWindow_gtknotify(mw, text, buddy):
 # how to make this work with KDE3 also)
 def notificationWindow_knotify(mw, text, buddy):
     import dbus
+    name = buddy.name
+    if name == "":
+        name = buddy.address 
     knotify = dbus.SessionBus().get_object("org.kde.knotify", "/Notify")
-    knotify.event('warning', 'kde', [], buddy.name, text,
+    knotify.event('warning', 'kde', [], name, text,
             [], [], 0, 0, dbus_interface='org.kde.KNotify')
 
 
