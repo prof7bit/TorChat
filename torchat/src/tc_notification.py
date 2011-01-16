@@ -33,7 +33,7 @@ def notificationWindow_xosd(mw, text, buddy):
 class NotificationWindowXosd(threading.Thread):
     def __init__(self, mw, text, buddy):
         threading.Thread.__init__(self)
-        self.text = text
+        self.text = text.encode("utf-8")
         
     def run(self):    
         import pyosd
