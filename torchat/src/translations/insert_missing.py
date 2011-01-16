@@ -2,6 +2,7 @@
 
 import os
 import sys
+import shutil
 
 msg = """This little script will insert the missing strings into
 all incomplete translation files. It will create backup 
@@ -30,14 +31,16 @@ if c != "y":
 
 def readFile(filename):
     lines1 = []
-    lines = open(filename).readlines()
+    f = open(filename)
+    lines = f.readlines()
+    f.close()
     #combine lines with \ at the end
     not_at_end = False
     for line in lines:
         line=line.rstrip()
         if not_at_end:
             last = len(lines1)-1
-            lines1[last] = lines1[last] + "\n" + line
+            lines1[last] = lines1[last] + "\r\n" + line
         else:
             lines1.append(line)
             
@@ -52,7 +55,7 @@ def readFile(filename):
     for line in lines1:
         if in_string:
             last = len(lines2)-1
-            lines2[last] = lines2[last] + "\n" + line
+            lines2[last] = lines2[last] + "\r\n" + line
         else:
             lines2.append(line)
         
@@ -98,11 +101,11 @@ def updateTranslation(filename):
             # use the already translated version
             lang_xx_new.append(line_xx)
 
-        if cnt:
-            os.rename(filename, "_" + filename)
-            f = open(filename, "w")
-            f.write("\n".join(lang_xx_new))
-            f.close
+    if cnt:
+        shutil.move(filename, "_" + filename)
+        f = open(filename, "w")
+        f.write("\r\n".join(lang_xx_new))
+        f.close
 
 #load the english reference file            
 lang_en = readFile("lang_en.py")
