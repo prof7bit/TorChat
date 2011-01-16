@@ -6,6 +6,10 @@ import threading
 import time
 import textwrap
 
+
+# notification_method = gtknotify
+#
+# should be available when GTK+ is installed
 def notificationWindow_gtknotify(mw, text, buddy):
     import pynotify
     if not pynotify.is_initted():
@@ -13,12 +17,22 @@ def notificationWindow_gtknotify(mw, text, buddy):
             raise Exception('gtknotify not supported')
     pynotify.Notification(buddy.name, text).show()
 
+
+# notification_method = knotify
+#
+# works with KDE4 (maybe somebody could tell me
+# how to make this work with KDE3 also)
 def notificationWindow_knotify(mw, text, buddy):
     import dbus
     knotify = dbus.SessionBus().get_object("org.kde.knotify", "/Notify")
     knotify.event('warning', 'kde', [], buddy.name, text,
             [], [], 0, 0, dbus_interface='org.kde.KNotify')
 
+
+# notification_method = growlnotify
+#
+# this is meant for Mac OS X where growl is used by many
+# other apps. You need to have growl and growlnotify
 def notificationWindow_growlnotify(mw, text, buddy):
     # This seems to fail about half the time
     # iconpath = os.path.join(config.ICON_DIR, "torchat.png")
@@ -27,6 +41,10 @@ def notificationWindow_growlnotify(mw, text, buddy):
     subprocess.Popen(args).communicate()
 
 
+# notification_method = xosd
+#
+# this needs python-osd installed on the system
+# and works only on the X Window System
 def notificationWindow_xosd(mw, text, buddy):
     NotificationWindowXosd(mw, text, buddy).start()
 
@@ -45,6 +63,10 @@ class NotificationWindowXosd(threading.Thread):
             line_number += 1
         time.sleep(3)
 
+
+# notification_method = generic
+#
+# this is the default and works everywhere
 def notificationWindow_generic(mw, text, buddy):
     NotificationWindowGeneric(mw, text, buddy)
 
@@ -132,7 +154,8 @@ class NotificationWindowGeneric(wx.Frame):
     def onMouse(self, evt):
         # restart the timer to immediately end the waiting
         self.timer.Start(10, True)
-        
+
+
 def notificationWindow(mw, text, buddy):
     method = config.get('gui', 'notification_method')
     try:
