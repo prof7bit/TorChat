@@ -9,20 +9,11 @@ def notificationWindow_gtknotify(mw, text, buddy):
         raise Exception('gtknotify not supported')
     pynotify.Notification(buddy.name, text).show()
 
-"""
-# Totally untested! Code from
-# http://stackoverflow.com/questions/4107743/updating-notification-using-knotify
-
-# I cannot test this on my KDE3, there seems no knotify installed or running
-# and I have not found any documentation about how to install or start it.
-# I comment the whole function until I know more
-
 def notificationWindow_knotify(mw, text, buddy):
     import dbus
     knotify = dbus.SessionBus().get_object("org.kde.knotify", "/Notify")
     knotify.event('warning', 'kde', [], buddy.name, text,
             [], [], 0, 0, dbus_interface='org.kde.KNotify')
-"""
 
 def notificationWindow_growlnotify(mw, text, buddy):
     # This seems to fail about half the time
