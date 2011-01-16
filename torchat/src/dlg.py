@@ -38,6 +38,7 @@ class Panel(wx.Panel):
         self.SetSizer(self.outer_sizer)
         self.outer_sizer.Add(self.grid_sizer, 1, wx.ALL | wx.EXPAND, 5)
         
+        self.grid_sizer.SetCols(2)
         self.grid_sizer.AddGrowableCol(1)
         self.grid_sizer.SetMinSize((300, -1))
         
