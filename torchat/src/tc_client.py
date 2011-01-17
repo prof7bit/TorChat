@@ -1172,7 +1172,7 @@ class ProtocolMsg_ping(ProtocolMsg):
 
         #is sender a valid onion address?
         if not self.isValidAddress():
-            print "(1) ping sender '%s' not a valid onion ID. closing connection."
+            print "(1) ping sender '%s' not a valid onion ID. closing connection." % self.address
             self.connection.close()
             return
 
