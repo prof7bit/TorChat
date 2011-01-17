@@ -32,9 +32,12 @@ HiddenServicePort 11009 127.0.0.1:11009
 ## where should tor store it's cache files
 DataDirectory tor_data
 
+## some tuning
 AvoidDiskWrites 1
 LongLivedPorts 11009
-RendPostPeriod 600 seconds
+FetchDirInfoEarly 1
+CircuitBuildTimeout 30
+NumEntryGuards 6
 
 ## You can uncomment the lines below to log Tor's activity to the
 ## console or to a log file. Use this only during debugging! 
