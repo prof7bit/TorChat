@@ -12,13 +12,17 @@ import textwrap
 # should be available when GTK+ is installed
 def notificationWindow_gtknotify(mw, text, buddy):
     import pynotify
+    import cgi
     if not pynotify.is_initted():
         if not pynotify.init('torchat'):
             raise Exception('gtknotify not supported')
     name = buddy.name
     if name == "":
         name = buddy.address 
-    pynotify.Notification(name, text).show()
+    pynotify.Notification(
+        cgi.escape(name).encode('ascii', 'xmlcharrefreplace'), 
+        cgi.escape(text).encode('ascii', 'xmlcharrefreplace')
+    ).show()
 
 
 # notification_method = knotify
