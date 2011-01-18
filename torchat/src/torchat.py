@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+# vim: set sw=4 sts=4 expandtab:
 
 ##############################################################################
 #                                                                            #
@@ -45,7 +46,11 @@ import tc_gui
 def main():
     print "(2) wxPython version %s" % wx.version()
     #create the mandatory wx application object
-    app = wx.App(redirect=False)
+    if config.isMac():
+        import tc_mac
+        app = tc_mac.App(redirect=False)
+    else:
+        app = wx.App(redirect=False)
     
     #test for availability of our listening port
     interface = config.get("client", "listen_interface")
