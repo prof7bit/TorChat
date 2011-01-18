@@ -1067,8 +1067,6 @@ class ProtocolMsg(object):
         self.buddy = None
         self.connection = None
         
-        print type(args[0])
-        
         #__init__(self, bl, connection, command, data)
         if type(args[0]) == BuddyList:
             self.bl = args[0]
