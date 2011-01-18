@@ -596,8 +596,10 @@ class BuddyList(object):
         buddy_to_remove.setActive(False)
 
         if not disconnect:
-            #send remove_me and leave the connections open
-            #but remove them from this buddy.
+            # send remove_me and leave the connections open
+            # but remove them from this buddy.
+            # the connections will be closed by the other buddy
+            # or if the timeout for unused connections occurs
             buddy_to_remove.sendRemoveMe()
             if buddy_to_remove.conn_out:
                 buddy_to_remove.conn_out.buddy = None
@@ -1804,8 +1806,11 @@ class OutConnection(threading.Thread):
         except:
             print "(3) socket.close() %s" % sys.exc_info()[1]
 
-        self.buddy.conn_out = None
-        print "(2) out-connection closed (%s)" % self.buddy.address
+        if self.buddy:
+            self.buddy.conn_out = None
+            print "(2) out-connection closed (%s)" % self.buddy.address
+        else:
+            print "(2) out connection without buddy closed" # happens after removeBudddy()
 
 
 class Listener(threading.Thread):
