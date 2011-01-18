@@ -1251,6 +1251,7 @@ class ProtocolMsg_ping(ProtocolMsg):
             if not self.buddy.conn_in:
                 #the buddie's last pong might have been lost when his first conn-out failed
                 #so we send another ping, just to be on the safe side.
+                self.buddy.count_unanswered_pings = 0
                 self.buddy.sendPing()
 
         if self.buddy.isAlreadyPonged():
