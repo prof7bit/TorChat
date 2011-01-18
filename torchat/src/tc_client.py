@@ -1053,26 +1053,26 @@ class FileReceiver:
 
 #--- ### Protocol messages
 
-class MProtocolMsg(type):
-    #Meta-Class for ProtocolMsg. It automagically creates a hash for
-    #mapping protocol-commands and corresponding ProtocolMsg-subclasses
-    subclasses = {}
-    def __init__(cls, name, bases, dict):
-        #this will be executed whenever a ProtocolMsg gets *defined*
-        #(happens once at the time when this module is imported).
-        #the commands and their classes will be stored in
-        #the static member MProtocolMsg.subclasses
-        cls.subclasses[dict["command"]] = cls
-        super(MProtocolMsg, cls).__init__(name, bases, dict)
+def ProtocolMsgFromLine(bl, conn, line):
+    #this is the factory for producing instances of ProtocolMsg classes.
+    #it separates the first word from the line, looks up the corresponding
+    #ProtocolMsg subclass which can handle this kind of protocol message
+    #and returns an instance. If no class matches the command string it
+    #returns a ProtocolMsg instance which is generic and just does nothing.
+    command, text_escaped = splitLine(line)
+    #the rest of the message can be arbitrary (but escaped) data.
+    #unescape it, so it is in it's original (maybe even binary) form.
+    data = unescape(text_escaped)
+    try:
+        Msg = globals()["ProtocolMsg_%s" % command]
+        return Msg(bl, conn, command, data)
+    except:
+        return ProtocolMsg(bl, conn, command, data)
 
 
 class ProtocolMsg(object):
-    __metaclass__ = MProtocolMsg
-    command = ""
     #the base class for all ProtocolMsg-classes. All message classes
-    #must inherit from this and declare the static member command
-    #which is used (by the metaclass-magic-voodoo;-) to map between the
-    #command-string and the corresponding message class
+    #must inherit from this
 
     #Besides being the base class for all ProtocolMsg_* classes
     #this class has two other use cases:
@@ -1128,33 +1128,13 @@ class ProtocolMsg(object):
         buddy.sendLine(self.getLine(), conn)
 
 
-def ProtocolMsgFromLine(bl, conn, line):
-    #this is the factory for producing instances of ProtocolMsg classes.
-    #it separates the first word from the line, looks up the corresponding
-    #ProtocolMsg subclass which can handle this kind of protocol message
-    #and returns an instance. If no class matches the command string it
-    #returns a ProtocolMsg instance which is generic and just does nothing.
-    command, text_escaped = splitLine(line)
-    #the rest of the message can be arbitrary (but escaped) data.
-    #unescape it, so it is in it's original (maybe even binary) form.
-    data = unescape(text_escaped)
-    try:
-        return MProtocolMsg.subclasses[command](bl, conn, command, data)
-    except:
-        return ProtocolMsg(bl, conn, command, data)
-
-
 class ProtocolMsg_not_implemented(ProtocolMsg):
-    command = "not_implemented"
-    #FIXME: Maybe it would be better to have a *separate*
-    #"not_implemented"-message for every protocol message.
-    #I have to meditate over this for a while.
     def execute(self):
         if self.buddy:
             print "(2) %s says it can't handle '%s'" % (self.buddy.address, self.text)
 
+
 class ProtocolMsg_ping(ProtocolMsg):
-    command = "ping"
     #a ping message consists of sender address and a random string
     def parse(self):
         #the sender address is in the text. we take it for granted
@@ -1294,7 +1274,6 @@ class ProtocolMsg_ping(ProtocolMsg):
 
 
 class ProtocolMsg_pong(ProtocolMsg):
-    command = "pong"
     def parse(self):
         self.is_new_buddy = False
         #incoming pong messages are used to identify and authenticate
@@ -1336,7 +1315,6 @@ class ProtocolMsg_pong(ProtocolMsg):
 
 
 class ProtocolMsg_client(ProtocolMsg):
-    command = "client"
     def parse(self):
         self.client = self.text
 
@@ -1346,7 +1324,6 @@ class ProtocolMsg_client(ProtocolMsg):
             self.buddy.client = self.client
 
 class ProtocolMsg_version(ProtocolMsg):
-    command = "version"
     def parse(self):
         self.version = self.text
 
@@ -1357,7 +1334,6 @@ class ProtocolMsg_version(ProtocolMsg):
 
 
 class ProtocolMsg_status(ProtocolMsg):
-    command = "status"
     #this is a status message.
     def execute(self):
         #set the status flag of the corresponding buddy
@@ -1382,7 +1358,6 @@ class ProtocolMsg_status(ProtocolMsg):
 
 
 class ProtocolMsg_profile_name(ProtocolMsg):
-    command = "profile_name"
     def execute(self):
         if self.buddy:
             print "(2) received name from %s" % self.buddy.address
@@ -1390,7 +1365,6 @@ class ProtocolMsg_profile_name(ProtocolMsg):
 
 
 class ProtocolMsg_profile_text(ProtocolMsg):
-    command = "profile_text"
     def execute(self):
         if self.buddy:
             print "(2) received profile text from %s" % self.buddy.address
@@ -1402,7 +1376,6 @@ class ProtocolMsg_profile_avatar_alpha(ProtocolMsg):
     # only the latter one will trigger the GUI notification
     # this message must be sent with empty data (0 bytes) if there
     # is no alpha, it may not be omitted.
-    command = "profile_avatar_alpha"
     def execute(self):
         if self.buddy:
             print "(2) received avatar alpha channel from %s (%i bytes)" % (self.buddy.address, len(self.text))
@@ -1416,7 +1389,6 @@ class ProtocolMsg_profile_avatar_alpha(ProtocolMsg):
 class ProtocolMsg_profile_avatar(ProtocolMsg):
     # the uncompesseed 64*64*24bit image. Avatar messages can be completely omitted but
     # IF they are sent then the correct order is first the alpha and then this one
-    command = "profile_avatar"
     def execute(self):
         if self.buddy:
             print "(2) received avatar from %s (%i bytes)" % (self.buddy.address, len(self.text))
@@ -1429,7 +1401,6 @@ class ProtocolMsg_profile_avatar(ProtocolMsg):
 
 
 class ProtocolMsg_add_me(ProtocolMsg):
-    command = "add_me"
     def execute(self):
         if self.buddy:
             print "(2) add me from %s" % self.buddy.address
@@ -1442,7 +1413,6 @@ class ProtocolMsg_add_me(ProtocolMsg):
 
 
 class ProtocolMsg_remove_me(ProtocolMsg):
-    command = "remove_me"
     def execute(self):
         if self.buddy:
             print "(2) received remove_me from buddy %s" % self.buddy.address
@@ -1456,7 +1426,6 @@ class ProtocolMsg_remove_me(ProtocolMsg):
 
 
 class ProtocolMsg_message(ProtocolMsg):
-    command = "message"
     #this is a normal text chat message.
     def parse(self):
         self.text = self.text.decode("UTF-8")
@@ -1485,7 +1454,6 @@ class ProtocolMsg_message(ProtocolMsg):
 
 
 class ProtocolMsg_filename(ProtocolMsg):
-    command = "filename"
     #the first message in a file transfer, initiating the transfer.
     def parse(self):
         self.id, text = splitLine(self.text)
@@ -1528,7 +1496,6 @@ class ProtocolMsg_filename(ProtocolMsg):
 
 
 class ProtocolMsg_filedata(ProtocolMsg):
-    command = "filedata"
     #after a filename message has initiated the transfer several
     #filedata messagess transport the actual data in blocks of fixed
     #size. The data blocks are transmitted as they are and only
@@ -1560,7 +1527,6 @@ class ProtocolMsg_filedata(ProtocolMsg):
 
 
 class ProtocolMsg_filedata_ok(ProtocolMsg):
-    command = "filedata_ok"
     #every received "filedata" must be confirmed with a "filedata_ok"
     #(or a "filedata_error")
     def parse(self):
@@ -1585,7 +1551,6 @@ class ProtocolMsg_filedata_ok(ProtocolMsg):
 
 
 class ProtocolMsg_filedata_error(ProtocolMsg):
-    command = "filedata_error"
     def parse(self):
         self.id, start = splitLine(self.text)
         self.start = int(start)
@@ -1605,7 +1570,6 @@ class ProtocolMsg_filedata_error(ProtocolMsg):
 
 
 class ProtocolMsg_file_stop_sending(ProtocolMsg):
-    command = "file_stop_sending"
     #if the file transfer is prematurely canceled by the receiver
     #then this message tells the sender to stop sending further data
     def parse(self):
@@ -1625,7 +1589,6 @@ class ProtocolMsg_file_stop_sending(ProtocolMsg):
 
 
 class ProtocolMsg_file_stop_receiving(ProtocolMsg):
-    command = "file_stop_receiving"
     #if the file transfer is prematurely canceled by the sender
     #then this message tells the receiving buddy to close its receiver
     def parse(self):
