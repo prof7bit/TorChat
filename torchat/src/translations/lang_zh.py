@@ -8,7 +8,7 @@
 #                                                                            #
 ##############################################################################
 
-LANGUAGE_CODE = u"cn"
+LANGUAGE_CODE = u"zh"
 LANGUAGE_NAME = u"chinese"
 LANGUAGE_NAME_ENGLISH = u"English"
 TRANSLATOR_NAMES = [u"mickeywaley"]
