@@ -56,6 +56,10 @@ tor_timer = None
 
 
 def splitLine(text):
+    """split a line of text on the first space character and return
+    two strings, the first word and the remaining string. This is
+    used for parsing the incoming messages from left to right since 
+    the command and its arguments are all delimited by spaces"""
     sp = text.split(" ")
     try:
         a = sp[0]
@@ -121,6 +125,11 @@ def createTemporaryFile(file_name):
 
 
 class WipeFileThread(threading.Thread):
+    """This wipes a file in a separate thread because
+    wiping a file is a long running task and we don't
+    want to freeze parts of the application. This is
+    only called by the function wipeFile(). Call the
+    function wipeFile() if you want to wipe a file."""
     def __init__(self, file_name):
         threading.Thread.__init__(self)
         self.file_name = file_name
@@ -150,11 +159,21 @@ class WipeFileThread(threading.Thread):
             print "(2) file %s does not exist" % self.file_name
 
 def wipeFile(file_name):
+    """Wipe a file by first overwriting it with random data,
+    synching it to disk and finally unlinking it. For this
+    purpose it will start a separat thread to do this in the
+    background and return immediately."""
     WipeFileThread(file_name)
 
 #--- ### Client API
 
 class Buddy(object):
+    """Represets a buddy. Every buddy on the buddy list will have sich 
+    an instance created directly after program start and also every new 
+    connection from unknown addresses will result in the instantiation 
+    of a new buddy object when a valid ping message has been processed. 
+    All Buddy objects are maintained by and contained in the BuddyList 
+    object"""
     def __init__(self, address, buddy_list, name=u"", temporary=False):
         assert isinstance(buddy_list, BuddyList) #type hint for PyDev
         print "(2) initializing buddy %s, temporary=%s" % (address, temporary)
@@ -502,11 +521,17 @@ class Buddy(object):
 
 
 class BuddyList(object):
-    #the buddy list object is somewhat like a central API.
-    #All functionality and access to all other objects should
-    #be possible with it's methods. Most other objects carry
-    #a reference to the one and only BuddyList object around
-    #to be able to find and interact with other objects.
+    """the BuddyList object is the central API of the client.
+    Initializing it will start the client, load and initialize
+    all Buddy objects on the buddy list, etc. It does much more
+    than only maintaining the buddies, it also maintains a bunch 
+    of other objects like for example the FileSender and 
+    FileReceiver objects for currrently running file transfers etc.
+    BuddyList actually represents the whole client functionality
+    and controls everything else. 
+    The GUI will instantiate a BuddyList object and this is all
+    it needs to do in order to start the client and access 
+    all functionality"""
     def __init__(self, callback, socket=None):
         print "(1) initializing buddy list"
         self.gui = callback
@@ -1411,7 +1436,12 @@ class ProtocolMsg_version(ProtocolMsg):
 
 class ProtocolMsg_status(ProtocolMsg):
     """transmit the status, this MUST be sent every 120 seconds 
-    or the client may trigger a timeout and close the conection"""
+    or the client may trigger a timeout and close the conection.
+    When receiving this message the client will update the status
+    icon of the buddy, it will be transmitted after the pong upon
+    connection, immediately on every status change or at least 
+    once every 120 seconds. Allowed values for the data are
+    "avalable", "away", "xa", other values are not defined yet"""
     def parse(self):
         self.status = self.blob
         
