@@ -4,6 +4,8 @@ trunk
   and make it immediately disappear on mouse contact. 
 - made the animation of the popup faster and look more natural.
 - additional notification methods: knotify, gtknotify, growlnotify, xosd
+- Mac OSX: more Mac conforming UI with menu bar
+- Windows: use stable Tor-0.2.1.29 instead of experimental 0.2.2.20-alpha
 - updated french translation
 
 version 0.9.9.458
