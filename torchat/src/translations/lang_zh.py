@@ -8,14 +8,18 @@
 #                                                                            #
 ##############################################################################
 
+# there are still some errors in this file:
+# the label of the Ok button is not translated
+# the language name is not translated
+
 LANGUAGE_CODE = u"zh"
-LANGUAGE_NAME = u"chinese"
-LANGUAGE_NAME_ENGLISH = u"English"
+LANGUAGE_NAME = u"Chinese" # <-- Please translate, this should be the word "Chinese" in Chinese 
+LANGUAGE_NAME_ENGLISH = u"Chinese"  
 TRANSLATOR_NAMES = [u"mickeywaley"]
 
 #buttons
 BTN_CANCEL = u"取消"
-BTN_OK = u"Ok"
+BTN_OK = u"Ok"             # <-- Please translate 
 BTN_SAVE_AS = u"另存为..."
 BTN_CLOSE = u"关闭"
 
