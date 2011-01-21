@@ -10,15 +10,12 @@ import textwrap
 # notification_method = gtknotify
 #
 # should be available when GTK+ is installed
-def notificationWindow_gtknotify(mw, text, buddy):
+def notificationWindow_gtknotify(mw, name, text, buddy):
     import pynotify
     import cgi
     if not pynotify.is_initted():
         if not pynotify.init('torchat'):
             raise Exception('gtknotify not supported')
-    name = buddy.name
-    if name == "":
-        name = buddy.address 
     pynotify.Notification(
         cgi.escape(name).encode('ascii', 'xmlcharrefreplace'), 
         cgi.escape(text).encode('ascii', 'xmlcharrefreplace')
@@ -29,11 +26,8 @@ def notificationWindow_gtknotify(mw, text, buddy):
 #
 # works with KDE4 (maybe somebody could tell me
 # how to make this work with KDE3 also)
-def notificationWindow_knotify(mw, text, buddy):
+def notificationWindow_knotify(mw, name, text, buddy):
     import dbus
-    name = buddy.name
-    if name == "":
-        name = buddy.address 
     knotify = dbus.SessionBus().get_object("org.kde.knotify", "/Notify")
     knotify.event('warning', 'kde', [], name, text,
             [], [], 0, 0, dbus_interface='org.kde.KNotify')
@@ -43,10 +37,11 @@ def notificationWindow_knotify(mw, text, buddy):
 #
 # this is meant for Mac OS X where growl is used by many
 # other apps. You need to have growl and growlnotify
-def notificationWindow_growlnotify(mw, text, buddy):
+def notificationWindow_growlnotify(mw, name, text, buddy):
     # This seems to fail about half the time
     # iconpath = os.path.join(config.ICON_DIR, "torchat.png")
     #args = ['growlnotify', '-m', text, '--image', iconpath]
+    text = "%s\n\n%s" % (name, text)
     args = ['growlnotify', '-m', text]
     subprocess.Popen(args).communicate()
 
@@ -55,17 +50,19 @@ def notificationWindow_growlnotify(mw, text, buddy):
 #
 # this needs python-osd installed on the system
 # and works only on the X Window System
-def notificationWindow_xosd(mw, text, buddy):
-    NotificationWindowXosd(mw, text, buddy).start()
+def notificationWindow_xosd(mw, name, text, buddy):
+    NotificationWindowXosd(mw, name, text, buddy).start()
 
 class NotificationWindowXosd(threading.Thread):
-    def __init__(self, mw, text, buddy):
+    def __init__(self, mw, name, text, buddy):
         threading.Thread.__init__(self)
+        self.name = name.encode("utf-8")
         self.text = text.encode("utf-8")
         
     def run(self):    
         import pyosd
-        text_lines = textwrap.fill(self.text, 40).split(os.linesep)
+        text = "%s\n%s" % (self.name, self.text)
+        text_lines = textwrap.fill(text, 40).split(os.linesep)
         osd = pyosd.osd(lines=len(text_lines), shadow=2, colour="#FFFF00")
         line_number = 0
         for text_line in text_lines:
@@ -77,11 +74,11 @@ class NotificationWindowXosd(threading.Thread):
 # notification_method = generic
 #
 # this is the default and works everywhere
-def notificationWindow_generic(mw, text, buddy):
-    NotificationWindowGeneric(mw, text, buddy)
+def notificationWindow_generic(mw, name, text, buddy):
+    NotificationWindowGeneric(mw, name, text, buddy)
 
 class NotificationWindowGeneric(wx.Frame):
-    def __init__(self, mw, text, buddy):
+    def __init__(self, mw, name, text, buddy):
         wx.Frame.__init__(self, mw, style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER)
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
@@ -96,7 +93,7 @@ class NotificationWindowGeneric(wx.Frame):
         sizer.Add(static_image, 0, wx.ALL, 5 )
 
         self.label = wx.StaticText(self.panel)
-        self.label.SetLabel(text)
+        self.label.SetLabel("%s\n\n%s" % (name, text))
         sizer.Add(self.label, 0, wx.ALL, 5 )
 
         wsizer = wx.BoxSizer()
@@ -166,22 +163,22 @@ class NotificationWindowGeneric(wx.Frame):
         self.timer.Start(10, True)
 
 
-def notificationWindow(mw, text, buddy):
+def notificationWindow(mw, name, text, buddy):
     method = config.get('gui', 'notification_method')
     try:
         function = globals()["notificationWindow_%s" % method]
     except:
         print "(1) notification method '%s' is not implemented, falling back to 'generic'." % method
-        notificationWindow_generic(mw, text, buddy)
+        notificationWindow_generic(mw, name, text, buddy)
         return
     
     try:
-        function(mw, text, buddy)
+        function(mw, name, text, buddy)
     except:
         print "(1) exception while using notification method '%s'" % method
         print "(1) falling back to 'generic'. Traceback follows:"
         config.tb()
-        notificationWindow_generic(mw, text, buddy)
+        notificationWindow_generic(mw, name, text, buddy)
 
 
 # vim: set tw=0 sts=4 sw=4 expandtab:

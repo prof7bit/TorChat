@@ -1256,8 +1256,8 @@ class ChatWindow(wx.Frame):
             self.updateTitle()
 
             if config.getint("gui", "notification_popup"):
-                nt = textwrap.fill("%s:\n%s" % (name, message), 40)
-                tc_notification.notificationWindow(self.mw, nt, self.buddy)
+                message = textwrap.fill(message, 40)
+                tc_notification.notificationWindow(self.mw, name, message, self.buddy)
 
         if not self.IsShown():
             self.mw.taskbar_icon.blink()
