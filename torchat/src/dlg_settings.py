@@ -86,6 +86,7 @@ class Dialog(wx.Dialog):
         dlg.Check(self.p2, lang.DSET_GUI_OPEN_MAIN_HIDDEN, ("gui", "open_main_window_hidden"))
         dlg.Check(self.p2, lang.DSET_GUI_OPEN_CHAT_HIDDEN, ("gui", "open_chat_window_hidden"))
         dlg.Check(self.p2, lang.DSET_GUI_NOTIFICATION_POPUP, ("gui", "notification_popup"))
+        dlg.Text(self.p2, lang.DSET_GUI_NOTIFICATION_METHOD, ("gui", "notification_method"))
         dlg.Check(self.p2, lang.DSET_GUI_FLASH_WINDOW, ("gui", "notification_flash_window"))
         
         #3.3 misc options

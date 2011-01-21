@@ -8,18 +8,14 @@
 #                                                                            #
 ##############################################################################
 
-# there are still some errors in this file:
-# the label of the Ok button is not translated
-# the language name is not translated
-
 LANGUAGE_CODE = u"zh"
-LANGUAGE_NAME = u"Chinese" # <-- Please translate, this should be the word "Chinese" in Chinese 
-LANGUAGE_NAME_ENGLISH = u"Chinese"  
+LANGUAGE_NAME = u"Chinese" # <-- Please translate, this should be the word "Chinese" in Chinese
+LANGUAGE_NAME_ENGLISH = u"Chinese"
 TRANSLATOR_NAMES = [u"mickeywaley"]
 
 #buttons
 BTN_CANCEL = u"取消"
-BTN_OK = u"Ok"             # <-- Please translate 
+BTN_OK = u"Ok"             # <-- Please translate
 BTN_SAVE_AS = u"另存为..."
 BTN_CLOSE = u"关闭"
 
@@ -133,6 +129,7 @@ DSET_GUI_LANGUAGE = u"语言"
 DSET_GUI_OPEN_MAIN_HIDDEN = u"首先，最小化主窗口"
 DSET_GUI_OPEN_CHAT_HIDDEN = u"不要自动打开新窗"
 DSET_GUI_NOTIFICATION_POPUP = u"通知弹出"
+# DSET_GUI_NOTIFICATION_METHOD = u"Notification method"
 DSET_GUI_FLASH_WINDOW = u"闪光的新消息窗口的标题"
 DSET_MISC_TITLE = u"临时目录"
 DSET_MISC_TEMP_IN_DATA = u"内部数据存储临时文件的目录"
