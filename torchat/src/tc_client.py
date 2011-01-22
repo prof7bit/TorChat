@@ -467,12 +467,12 @@ class Buddy(object):
                 msg = ProtocolMsg_profile_text(self, text.encode("UTF-8"))
                 msg.send()
 
-    def sendAvatar(self):
+    def sendAvatar(self, send_empty=False):
         if self.isAlreadyPonged():
             print "(2) %s.sendAvatar()" % self.address
             # the GUI has put our own avatar into the BuddyList object, ready for sending.
             # avatar is optional but if sent then both messages must be in the following order:
-            if self.bl.own_avatar_data:
+            if self.bl.own_avatar_data or send_empty:
                 # alpha might be empty (0 bytes) but we must always send it.
                 data = self.bl.own_avatar_data_alpha
                 msg = ProtocolMsg_profile_avatar_alpha(self, data) #send raw binary data

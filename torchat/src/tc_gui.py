@@ -508,52 +508,65 @@ class DlgEditProfile(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, title=lang.DEP_TITLE)
         self.mw = main_window
         self.panel = wx.Panel(self)
+        self.remove_avatar_on_ok = False
 
         #setup the sizers
         sizer = wx.GridBagSizer(vgap = 5, hgap = 5)
+        avatar_sizer = wx.BoxSizer(wx.VERTICAL)
         box_sizer = wx.BoxSizer()
+        box_sizer.Add(avatar_sizer, 0, wx.EXPAND | wx.ALL, 5)
         box_sizer.Add(sizer, 1, wx.EXPAND | wx.ALL, 5)
-
+        
         #avatar
-        row = 0
         self.avatar = wx.StaticBitmap(self.panel, -1, self.getAvatarBitmap())
-        sizer.Add(self.avatar, (row, 0), (2, 1))
+        avatar_sizer.Add(self.avatar, 0, wx.EXPAND | wx.ALL, 2)
+        
+        #avatar buttons
+        self.btn_set_avatar = wx.Button(self.panel, -1, lang.DEP_SET_AVATAR)
+        avatar_sizer.Add(self.btn_set_avatar, 0, wx.EXPAND | wx.ALL, 2)
+        self.btn_remove_avatar = wx.Button(self.panel, -1, lang.DEP_REMOVE_AVATAR)
+        avatar_sizer.Add(self.btn_remove_avatar, 0, wx.EXPAND | wx.ALL, 2)
 
+        if not self.mw.buddy_list.own_avatar_data:
+            self.btn_remove_avatar.Disable()
+            
         #name
         row = 0
         lbl = wx.StaticText(self.panel, -1, lang.DEP_NAME)
-        sizer.Add(lbl, (row, 1))
+        sizer.Add(lbl, (row, 0))
 
         self.txt_name = wx.TextCtrl(self.panel, -1,
             config.get("profile", "name"))
         self.txt_name.SetMinSize((250, -1))
-        sizer.Add(self.txt_name, (row, 2), (1, 2))
+        sizer.Add(self.txt_name, (row, 1), (1, 2))
 
         #text
         row += 1
         lbl = wx.StaticText(self.panel, -1, lang.DEP_TEXT)
-        sizer.Add(lbl, (row, 1))
+        sizer.Add(lbl, (row, 0))
 
         self.txt_text = wx.TextCtrl(self.panel, -1,
             config.get("profile", "text"),
             style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
         self.txt_text.SetMinSize((250, -1))
-        sizer.Add(self.txt_text, (row, 2), (1, 2))
+        sizer.Add(self.txt_text, (row, 1), (1, 2))
 
         #buttons
         row += 1
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
-        sizer.Add(self.btn_cancel, (row, 2), flag=wx.EXPAND)
+        sizer.Add(self.btn_cancel, (row, 1), flag=wx.EXPAND)
 
         self.btn_ok = wx.Button(self.panel, wx.ID_OK, lang.BTN_OK)
         self.btn_ok.SetDefault()
-        sizer.Add(self.btn_ok, (row, 3), flag=wx.EXPAND)
+        sizer.Add(self.btn_ok, (row, 2), flag=wx.EXPAND)
 
         #fit the sizers
         self.panel.SetSizer(box_sizer)
         box_sizer.Fit(self)
 
         #bind the events
+        self.btn_set_avatar.Bind(wx.EVT_BUTTON, self.onAvatar)
+        self.btn_remove_avatar.Bind(wx.EVT_BUTTON, self.onAvatarRemove)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
         self.btn_ok.Bind(wx.EVT_BUTTON, self.onOk)
         self.txt_text.Bind(wx.EVT_TEXT_ENTER, self.onEnter)
@@ -597,6 +610,7 @@ class DlgEditProfile(wx.Dialog):
                 return wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG)
 
     def onAvatarSelected(self, file_name):
+        self.remove_avatar_on_ok = False
         avatar_old = os.path.join(config.getDataDir(), "avatar.png")
         avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
         if file_name == avatar_old or file_name == avatar_new:
@@ -606,7 +620,15 @@ class DlgEditProfile(wx.Dialog):
             shutil.copy(file_name, avatar_new)
             # set the new bitmap (in this dialog only)
             self.avatar.SetBitmap(self.getAvatarBitmap(avatar_new))
+            self.btn_remove_avatar.Enable()
+            self.panel.Layout()
 
+    def onAvatarRemove(self, evt):
+        self.avatar.SetBitmap(wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG))
+        self.panel.Layout()
+        self.remove_avatar_on_ok = True
+        self.btn_remove_avatar.Disable()
+        
     def onAvatar(self, evt):
         title = lang.DEP_AVATAR_SELECT_PNG
         dialog = wx.FileDialog(self, title, style=wx.OPEN)
@@ -615,6 +637,7 @@ class DlgEditProfile(wx.Dialog):
         if dialog.ShowModal() == wx.ID_OK:
             self.onAvatarSelected(dialog.GetPath())
         pass
+    
 
     def onEnter(self, evt):
         self.onOk(evt)
@@ -631,12 +654,22 @@ class DlgEditProfile(wx.Dialog):
         config.set("profile", "text", self.txt_text.GetValue())
 
         # replace the avatar if a new one has been selected
+        # or remove it and send an empty avatar if it has been removed
         avatar_old = os.path.join(config.getDataDir(), "avatar.png")
         avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
-        if os.path.exists(avatar_new):
-            shutil.copy(avatar_new, avatar_old)
+        
+        if self.remove_avatar_on_ok:
+            tc_client.wipeFile(avatar_old)
             tc_client.wipeFile(avatar_new)
-            self.mw.gui_bl.loadOwnAvatarData() # this will also send it
+            self.mw.buddy_list.own_avatar_data = ""
+            self.mw.buddy_list.own_avatar_data_alpha = ""
+            for buddy in self.mw.buddy_list.list:
+                buddy.sendAvatar(True)
+        else:
+            if os.path.exists(avatar_new):
+                shutil.copy(avatar_new, avatar_old)
+                tc_client.wipeFile(avatar_new)
+                self.mw.gui_bl.loadOwnAvatarData() # this will also send it
 
         for buddy in self.mw.buddy_list.list:
             buddy.sendProfile()
