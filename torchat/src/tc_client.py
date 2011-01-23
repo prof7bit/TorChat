@@ -1093,9 +1093,10 @@ def ProtocolMsgFromLine(bl, conn, line):
     # a readily initialized message object. 
     try:
         Msg = globals()["ProtocolMsg_%s" % command]
-        return Msg(bl, conn, command, encoded)
     except:
-        return ProtocolMsg(bl, conn, command, encoded)
+        Msg = ProtocolMsg
+    
+    return Msg(bl, conn, command, encoded)
 
 
 class ProtocolMsg(object):
@@ -1517,7 +1518,7 @@ class ProtocolMsg_profile_avatar(ProtocolMsg):
     be completely omitted but IF they are sent then the correct 
     order is first the alpha and then this one"""
     def parse(self):
-        if len(self.text) == 12288 or len(self.text) == 0:
+        if len(self.blob) == 12288 or len(self.blob) == 0:
             self.bitmap = self.blob
         else:
             self.bitmap = None
@@ -1884,7 +1885,6 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            #self.socket.settimeout(60)
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4,
                                  config.get(TOR_CONFIG, "tor_server"),
                                  config.getint(TOR_CONFIG, "tor_server_socks_port"))
