@@ -594,7 +594,7 @@ class BuddyList(object):
         self.own_avatar_data = ""
         self.own_avatar_data_alpha = ""
 
-        print "(1) buddy list initialized"
+        print "(1) BuddList initialized"
 
     def save(self):
         f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")

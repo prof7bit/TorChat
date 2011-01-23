@@ -365,6 +365,7 @@ class LogWriter:
             except:
                 print "(0) could not open logfile '%s'" % self.file_name
                 print "(0) logging only to stdout"
+            print "(0) logging to file might leave sensitive information on disk"
         print "(1) current log level is %i" % self.level
         print "(1) LogWriter initialized"
 
@@ -418,7 +419,7 @@ def main():
     os.chdir(SCRIPT_DIR)
     readConfig()
     log_writer = LogWriter()
-
+    
     print "(0) python version %s" % sys.version.replace("\n", "").replace("\r", "")
 
     if isPortable():

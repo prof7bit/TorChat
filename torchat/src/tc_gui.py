@@ -1789,16 +1789,6 @@ class MainWindow(wx.Frame):
         if not config.getint("gui", "open_main_window_hidden"):
             self.Show()
             
-        if config.get("logging", "log_file") and config.getint("logging", "log_level"):
-            print "(0) logging to file may leave sensitive information on disk"
-            hidden = config.getint("gui", "open_chat_window_hidden")
-            wx.CallAfter(
-                ChatWindow,
-                self,
-                self.buddy_list.own_buddy,
-                lang.D_LOG_WARNING_MESSAGE % config.log_writer.file_name, hidden
-            )
-
     def setStatus(self, status):
         self.buddy_list.setStatus(status)
         self.taskbar_icon.showStatus(status)
