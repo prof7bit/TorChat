@@ -1,4 +1,4 @@
-trunk
+version 0.9.9.509
 - fixed the focus stealing of the notification window on Windows
 - made the notofication window less obtrusive, more native looking 
   and make it immediately disappear on mouse contact. 
