@@ -7,6 +7,8 @@ trunk
 - Mac OSX: more Mac conforming UI with menu bar
 - Windows: use stable Tor-0.2.1.29 instead of experimental 0.2.2.20-alpha
 - updated french translation
+- remove annoying popup warning about debug log, we even allow logging of
+  conversations now so this is only consequent.
 
 version 0.9.9.458
 - fixed crash that could happen while torchat was minimized to the tray
