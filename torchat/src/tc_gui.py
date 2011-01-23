@@ -548,7 +548,7 @@ class DlgEditProfile(wx.Dialog):
         self.txt_text = wx.TextCtrl(self.panel, -1,
             config.get("profile", "text"),
             style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
-        self.txt_text.SetMinSize((250, -1))
+        self.txt_text.SetMinSize((250, 70))
         sizer.Add(self.txt_text, (row, 1), (1, 2))
 
         #buttons
@@ -622,10 +622,12 @@ class DlgEditProfile(wx.Dialog):
             self.avatar.SetBitmap(self.getAvatarBitmap(avatar_new))
             self.btn_remove_avatar.Enable()
             self.panel.Layout()
+            self.panel.Refresh()
 
     def onAvatarRemove(self, evt):
         self.avatar.SetBitmap(wx.Bitmap(os.path.join(config.ICON_DIR, "torchat.png"), wx.BITMAP_TYPE_PNG))
         self.panel.Layout()
+        self.panel.Refresh()
         self.remove_avatar_on_ok = True
         self.btn_remove_avatar.Disable()
         
