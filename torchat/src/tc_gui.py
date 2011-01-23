@@ -470,7 +470,7 @@ class DlgEditContact(wx.Dialog):
             return
 
         for c in address:
-            if c not in "0123456789abcdefghijklmnopqrstuvwxyz":
+            if c not in "234567abcdefghijklmnopqrstuvwxyz":
                 wx.MessageBox(lang.DEC_MSG_ONLY_ALPANUM)
                 return
 
