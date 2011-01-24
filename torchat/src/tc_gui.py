@@ -49,6 +49,8 @@ def getStatusBitmap(status):
         _icon_images[status] = image
     bitmap = _icon_images[status].ConvertToBitmap()
     return bitmap
+
+
 class TaskbarIcon(wx.TaskBarIcon):
     def __init__(self, main_window):
         wx.TaskBarIcon.__init__(self)
@@ -75,6 +77,11 @@ class TaskbarIcon(wx.TaskBarIcon):
         self.mw.Show(not self.mw.IsShown())
         if self.mw.IsShown():
             self.mw.Iconize(False) # never show it minimized (can happen on KDE)
+
+            #bring it to the front
+            self.mw.SetFocus()
+            self.mw.SetWindowStyle(self.mw.GetWindowStyle() | wx.STAY_ON_TOP)
+            self.mw.SetWindowStyle(self.mw.GetWindowStyle() & ~wx.STAY_ON_TOP)
 
     def CreatePopupMenu(self):
         return TaskbarMenu(self.mw)
@@ -174,7 +181,7 @@ class TaskbarMenu(wx.Menu):
         self.Bind(wx.EVT_MENU, self.onExit, item)
 
     def onShowHide(self, evt):
-        self.mw.Show(not self.mw.IsShown())
+        self.mw.taskbar_icon.onLeftClick(evt)
 
     def onChatWindow(self, evt):
         self.wnd[evt.GetId()].Show()
@@ -503,6 +510,7 @@ class DlgEditContact(wx.Dialog):
     def onCancel(self,evt):
         self.Close()
 
+
 class DlgEditProfile(wx.Dialog):
     def __init__(self, parent, main_window):
         wx.Dialog.__init__(self, parent, -1, title=lang.DEP_TITLE)
@@ -639,7 +647,6 @@ class DlgEditProfile(wx.Dialog):
         if dialog.ShowModal() == wx.ID_OK:
             self.onAvatarSelected(dialog.GetPath())
         pass
-    
 
     def onEnter(self, evt):
         self.onOk(evt)
@@ -914,7 +921,6 @@ class BuddyList(wx.ListCtrl):
         if self.tool_tip <> None and index == self.tool_tip_index:
             self.openToolTip(index)
 
-
     def onListChanged(self):
         # usually called via callback from the client
         # whenever the client has saved the changed list
@@ -1018,6 +1024,7 @@ class BuddyToolTip(wx.PopupWindow):
 
     def setPos(self, pos):
         self.SetPosition((pos.x +10, pos.y + 10))
+
 
 class StatusSwitchList(wx.Menu):
     def __init__(self, status_switch):
@@ -1421,7 +1428,6 @@ class ChatWindow(wx.Frame):
         wx.TheClipboard.SetData(clipdata)
         wx.TheClipboard.Close()
 
-
     def onSendFile(self, evt):
         title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
         dialog = wx.FileDialog(self, title, style=wx.OPEN)
@@ -1446,7 +1452,6 @@ class ChatWindow(wx.Frame):
     def onBuddyProfileChanged(self):
         # nothing to to yet
         pass
-
 
     def isLoggingActivated(self):
         return os.path.exists(os.path.join(config.getDataDir(), '%s.log' % self.buddy.address))
@@ -1488,6 +1493,7 @@ class ChatWindow(wx.Frame):
             f.write(("%s\r\n" % msg).encode("UTF-8"))
         f.close()
 
+
 class BetterFileDropTarget(wx.FileDropTarget):
     def getFileName(self, filenames):
         if len(filenames) == 0:
@@ -1514,6 +1520,7 @@ class BetterFileDropTarget(wx.FileDropTarget):
 
         print "(2) file dropped: %s" % file_name
         return file_name
+
 
 class DropTarget(BetterFileDropTarget):
     #TODO: file dopping does not work in wine at all
@@ -1571,6 +1578,7 @@ class AvatarDropTarget(BetterFileDropTarget):
             return
 
         self.window.onAvatarSelected(file_name)
+
 
 class FileTransferWindow(wx.Frame):
     def __init__(self, main_window, buddy, file_name, receiver=None):

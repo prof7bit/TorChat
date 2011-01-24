@@ -79,7 +79,8 @@ def notificationWindow_generic(mw, name, text, buddy):
 
 class NotificationWindowGeneric(wx.Frame):
     def __init__(self, mw, name, text, buddy):
-        wx.Frame.__init__(self, mw, style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER)
+        wx.Frame.__init__(self, mw,
+            style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER | wx.STAY_ON_TOP)
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
         sizer = wx.BoxSizer()
