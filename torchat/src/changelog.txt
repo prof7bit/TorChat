@@ -1,3 +1,8 @@
+trunk
+- fix (regression): make notification window stay on top again
+- fix wrong handling of new line characters in chat messages
+- make main window always come to front when unhiding from tray
+
 version 0.9.9.509
 - fixed the focus stealing of the notification window on Windows
 - made the notofication window less obtrusive, more native looking 
