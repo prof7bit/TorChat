@@ -316,7 +316,7 @@ class Buddy(object):
         #text must be unicode
         print "(2) storing offline message to %s" % self.address
         file = open(self.getOfflineFileName(), "a")
-        file.write("[delayed] " + text.encode("UTF-8") + "\n")
+        file.write("[delayed] " + text.encode("UTF-8") + os.linesep)
         file.close()
 
     def getOfflineMessages(self):
@@ -1572,6 +1572,7 @@ class ProtocolMsg_message(ProtocolMsg):
     """this is a normal text message. Text is encoded UTF-8"""
     def parse(self):
         self.text = self.blob.decode("UTF-8")
+        self.text = self.text.replace("\r\n", "\n").replace("\r", "\n").replace("\n", os.linesep)
 
     def execute(self):
         #give buddy and text to bl. bl will then call into the gui

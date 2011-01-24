@@ -90,7 +90,7 @@ class TaskbarIcon(wx.TaskBarIcon):
         text = "TorChat: %s" % config.getProfileLongName()
         for window in self.mw.chat_windows:
             if not window.IsShown():
-                text += "\n" + window.getTitleShort()
+                text += os.linesep + window.getTitleShort()
         return text
 
     def blink(self, start=True):
@@ -1148,10 +1148,10 @@ class ChatWindow(wx.Frame):
 
         om = self.buddy.getOfflineMessages()
         if om:
-            om = "\n*** %s\n" % lang.NOTICE_DELAYED_MSG_WAITING + om
+            om = os.linesep + "*** " + lang.NOTICE_DELAYED_MSG_WAITING + om + os.linesep
             self.writeHintLine(om)
 
-        self.txt_in.AppendText("\n") #scroll to end + 1 empty line
+        self.txt_in.AppendText(os.linesep) #scroll to end + 1 empty line
 
         if notify_offline_sent:
             self.notifyOfflineSent()
@@ -1213,11 +1213,11 @@ class ChatWindow(wx.Frame):
         cur = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
         if os.path.exists(cur):
             self.insertBackLogContents(cur)
-            self.writeHintLine("\n*** " + lang.LOG_IS_ACTIVATED % cur)
+            self.writeHintLine(os.linesep + "*** " + lang.LOG_IS_ACTIVATED % cur)
         else:
             if os.path.exists(old):
                 self.insertBackLogContents(old)
-                self.writeHintLine("\n*** " + lang.LOG_IS_STOPPED_OLD_LOG_FOUND % old)
+                self.writeHintLine(os.linesep + "*** " + lang.LOG_IS_STOPPED_OLD_LOG_FOUND % old)
 
     def setFontAndColor(self):
         font = wx.Font(
@@ -1265,7 +1265,7 @@ class ChatWindow(wx.Frame):
             self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
         else:
             self.txt_in.SetDefaultStyle(wx.TextAttr(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)))
-        self.txt_in.write("%s\n" % text)
+        self.txt_in.write(text + os.linesep)
 
         # workaround scroll bug on windows
         # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
@@ -1278,7 +1278,7 @@ class ChatWindow(wx.Frame):
 
     def writeHintLine(self, line):
         self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_time_stamp")))
-        self.txt_in.write("%s\n" % line)
+        self.txt_in.write(line + os.linesep)
         if config.getint("gui", "color_text_use_system_colors") == 0:
             self.txt_in.SetDefaultStyle(wx.TextAttr(config.get("gui", "color_text_fore")))
         else:
@@ -1334,15 +1334,17 @@ class ChatWindow(wx.Frame):
         self.Destroy()
 
     def onKey(self, evt):
-        #TODO: in wine there is a problem with shift-enter
+        #TODO: in wine there is/was a problem with shift-enter. Is this fixed now?
         if evt.GetKeyCode() == 13 and not evt.ShiftDown():
             self.onSend(evt)
         else:
+            # shift-enter will produce 0x0b (vertical tab) (only on windows!)
+            # we will deal with this later in the onSend method
             evt.Skip()
 
     def onSend(self, evt):
         evt.Skip()
-        text = self.txt_out.GetValue().rstrip().lstrip()
+        text = self.txt_out.GetValue().rstrip().lstrip().replace("\x0b", os.linesep)
         wx.CallAfter(self.txt_out.SetValue, "")
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
             self.buddy.sendChatMessage(text)
@@ -1485,12 +1487,12 @@ class ChatWindow(wx.Frame):
         file_name = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
         if not os.path.exists(file_name):
             f = open(file_name, "w")
-            f.write(("*** %s\r\n\r\n" % lang.LOG_HEADER).encode("UTF-8"))
+            f.write(("*** " + lang.LOG_HEADER + os.linesep + os.linesep).encode("UTF-8"))
         else:
             f = open(file_name, "a")
 
         if msg <> "":
-            f.write(("%s\r\n" % msg).encode("UTF-8"))
+            f.write((msg + os.linesep).encode("UTF-8"))
         f.close()
 
 
