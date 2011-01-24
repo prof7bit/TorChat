@@ -1572,7 +1572,7 @@ class ProtocolMsg_message(ProtocolMsg):
     """this is a normal text message. Text is encoded UTF-8"""
     def parse(self):
         self.text = self.blob.decode("UTF-8")
-        self.text = self.text.replace("\r\n", "\n").replace("\r", "\n").replace("\n", os.linesep)
+        self.text = self.text.replace("\r\n", "\n").replace("\r", "\n").replace("\x0b", "\n").replace("\n", os.linesep)
 
     def execute(self):
         #give buddy and text to bl. bl will then call into the gui
