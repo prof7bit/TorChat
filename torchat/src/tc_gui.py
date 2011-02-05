@@ -1633,7 +1633,6 @@ class FileTransferWindow(wx.Frame):
             grid_sizer.Add(self.btn_save, (2, 3))
             self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
             self.SetDefaultItem(self.btn_save)
-            self.btn_save.SetFocus()
         else:
             grid_sizer.Add(self.btn_cancel, (2, 3))
 
@@ -1641,7 +1640,9 @@ class FileTransferWindow(wx.Frame):
         self.updateOutput()
         self.outer_sizer.Fit(self)
 
+        self.Disable()
         self.Show()
+        self.Enable()
 
     def updateOutput(self):
         if self.bytes_complete == -1:
