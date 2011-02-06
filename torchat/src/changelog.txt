@@ -1,3 +1,7 @@
+trunk
+- fix some focus annoyances
+- improve the way the standard browser is found
+
 version 0.9.9.515
 - fix (regression): make notification window stay on top again
 - fix wrong handling of new line characters in chat messages
