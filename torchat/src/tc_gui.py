@@ -1174,6 +1174,8 @@ class ChatWindow(wx.Frame):
         # accept files. The lower part only text and URLs
         self.txt_out.DragAcceptFiles(False)
 
+        self.Bind(wx.EVT_CHILD_FOCUS, self.onChildFocus)
+
         if not hidden:
             self.Show()
 
@@ -1322,6 +1324,13 @@ class ChatWindow(wx.Frame):
     def onActivate(self, evt):
         self.unread = 0
         self.updateTitle()
+        evt.Skip()
+        
+    def onChildFocus(self, evt):
+        # no matter which child just got focus, we give
+        # it back to the lower text panel since this is the
+        # only control that should ever own the keyboard.
+        self.txt_out.SetFocus()
         evt.Skip()
 
     def onClose(self, evt):
