@@ -1373,12 +1373,8 @@ class ChatWindow(wx.Frame):
             start = evt.GetURLStart()
             end = evt.GetURLEnd()
             url = self.txt_in.GetRange(start, end)
-            if config.isWindows():
-                #this works very reliable
-                subprocess.Popen(("cmd /c start %s" % url).split(), creationflags=0x08000000)
-            else:
-                #TODO: is this the way to go? better make it a config option.
-                subprocess.Popen(("/etc/alternatives/x-www-browser %s" % url).split())
+            #TODO: is this the way to go? better make it a config option.
+            wx.LaunchDefaultBrowser(url)
         else:
             evt.Skip()
 
