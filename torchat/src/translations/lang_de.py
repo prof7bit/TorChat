@@ -23,7 +23,7 @@ BTN_CLOSE = u"Schließen"
 ST_AVAILABLE = u"Verfügbar"
 ST_AWAY = u"Abwesend"
 ST_EXTENDED_AWAY = u"Nicht verfügbar"
-ST_OFFLINE = u"Offine"
+ST_OFFLINE = u"Offline"
 
 #TaskbarMenu
 MTB_SHOW_HIDE_TORCHAT = u"TorChat anzeigen/verstecken"
@@ -46,7 +46,7 @@ MPOP_ASK_AUTHOR = u"%s fragen..."
 MPOP_SETTINGS = u"Einstellungen..."
 MPOP_EDIT_MY_PROFILE = u"Eigenes Profil bearbeiten..."
 
-# #chat window popup menu
+#chat window popup menu
 CPOP_COPY = u"Kopieren"
 
 #confirm delete message box
@@ -55,13 +55,13 @@ D_CONFIRM_DELETE_MESSAGE = u"Soll dieser Kontakt wirklich gelöscht werden?\n(%s
 
 #warning about log
 D_LOG_WARNING_TITLE = u"TorChat: Logging ist aktiviert"
-D_LOG_WARNING_MESSAGE = u"Logging in Datei ist aktiviert!\n\nLogdatei: %s\n\nVergessen Sie nicht, die Logdatei nach Beendingung der Fehlersuche wieder zu löschen, da diese Datei vertrauliche Informationen enthalten könnte."
+D_LOG_WARNING_MESSAGE = u"Logging in Datei ist aktiviert!\n\nLogdatei: %s\n\nVergessen Sie nicht, die Logdatei nach Beendigung der Fehlersuche wieder zu löschen, da diese Datei vertrauliche Informationen enthalten könnte."
 
-# #warning about used port
+#warning about used port
 D_WARN_USED_PORT_TITLE = u"TorChat: Port ist bereits belegt"
 D_WARN_USED_PORT_MESSAGE = u"Eine Anwendung, wahrscheinlich eine andere TorChat-Instanz, verwendet bereits den Port %s:%s. Sie müssen andere Profile mit anderen Ports verwenden, um TorChat mehrmals starten zu können."
 
-#warnig about unread messages
+#warning about unread messages
 D_WARN_UNREAD_TITLE = u"TorChat: Ungelesene Nachrichten"
 D_WARN_UNREAD_MESSAGE = u"Es liegen noch ungelesene Nachrichten vor. Diese würden unwiderruflich verloren gehen!\n\nMöchten sie TorChat dennoch jetzt beenden?"
 
@@ -84,12 +84,12 @@ D_WARN_FILE_ALREADY_EXISTS_MESSAGE = u"Die Datei '%s' existiert bereits.\nÜbers
 #dialog: add/edit contact
 DEC_TITLE_ADD = u"Neuen Kontakt anlegen"
 DEC_TITLE_EDIT = u"Kontakt bearbeiten"
-DEC_TORCHAT_ID = u"TorChat ID"
+DEC_TORCHAT_ID = u"TorChat-ID"
 DEC_DISPLAY_NAME = u"Angezeigter Name"
 DEC_INTRODUCTION = u"Kurze Vorstellung"
 DEC_MSG_16_CHARACTERS = u"Die Adresse muss genau 16 Zeichen lang sein, nicht %i."
-DEC_MSG_ONLY_ALPANUM = u"Die Adresse kann nur as Ziffern und Kleinbuchstaben ohne Umlaute bestehen"
-DEC_MSG_ALREADY_ON_LIST = u"%s ist bereits auf Ihrer Liste"
+DEC_MSG_ONLY_ALPANUM = u"Die Adresse kann nur aus Ziffern und Kleinbuchstaben ohne Umlaute bestehen."
+DEC_MSG_ALREADY_ON_LIST = u"%s ist bereits auf Ihrer Liste."
 
 # #dialog: edit my profile
 DEP_TITLE = u"Mein Profil bearbeiten"
@@ -97,20 +97,20 @@ DEP_NAME = u"Name"
 DEP_TEXT = u"Text"
 DEP_SET_AVATAR = u"Bild wählen"
 DEP_REMOVE_AVATAR = u"Bild löschen"
-DEP_AVATAR_SELECT_PNG = u"Auswählen einer .PNG Datei als Profilbild (wird auf 64*64 skaliert, darf Transparenz enthalten)"
-DEP_PNG_FILES = u"PNG Dateien"
+DEP_AVATAR_SELECT_PNG = u"Auswählen einer .png-Datei als Profilbild (wird auf 64*64 skaliert, darf Transparenz enthalten)"
+DEP_PNG_FILES = u"PNG-Dateien"
 DEP_ALL_FILES = u"Alle Dateien"
 DEP_WARN_TITLE = u"Auswahl nicht möglich"
 DEP_WARN_IS_ALREADY = u"Dies ist bereits ihr aktuelles Profilbild"
-DEP_WARN_MUST_BE_PNG = u"Bild muss eine .png Datei sein"
+DEP_WARN_MUST_BE_PNG = u"Bild muss eine .png-Datei sein"
 
 #file transfer window
 DFT_FILE_OPEN_TITLE = u"Sende Datei an %s"
 DFT_FILE_SAVE_TITLE = u"Speichere Datei von %s"
 DFT_SEND = u"Sende %s\nan %s\n%04.1f%% (%i von %i Bytes)"
 DFT_RECEIVE = u"Empfange %s\nvon %s\n%04.1f%% (%i von %i Bytes)"
-DFT_WAITING = u"warte auf Verbindung"
-DFT_STARTING = u"starte Transfer"
+DFT_WAITING = u"Warte auf Verbindung"
+DFT_STARTING = u"Starte Transfer"
 DFT_ABORTED = u"Transfer abgebrochen"
 DFT_COMPLETE = u"Transfer vollständig"
 DFT_ERROR = u"Fehler"
@@ -120,7 +120,7 @@ DSET_TITLE = u"TorChat Konfiguration"
 DSET_NET_TITLE = u"Netzwerk"
 DSET_NET_ACTIVE = u"aktiv"
 DSET_NET_INACTIVE = u"inaktiv"
-DSET_NET_TOR_ADDRESS = u"Tor-Proxy Addresse"
+DSET_NET_TOR_ADDRESS = u"Tor-Proxy Adresse"
 DSET_NET_TOR_SOCKS = u"Socks Port"
 DSET_NET_TOR_CONTROL = u"Control Port"
 DSET_NET_OWN_HOSTNAME = u"Eigene TorChat-ID"
