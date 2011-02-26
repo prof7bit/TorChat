@@ -1352,14 +1352,12 @@ class ChatWindow(wx.Frame):
             evt.Skip()
 
     def onSend(self, evt):
-        #evt.Skip()
         text = self.txt_out.GetValue().rstrip().lstrip().replace("\x0b", os.linesep)
         
         if text == "":
             return
             
         self.txt_out.SetValue("")
-        #wx.CallAfter(self.txt_out.SetValue, "")
         
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
             self.buddy.sendChatMessage(text)
