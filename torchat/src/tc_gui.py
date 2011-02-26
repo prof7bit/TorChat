@@ -1344,7 +1344,9 @@ class ChatWindow(wx.Frame):
 
     def onKey(self, evt):
         #TODO: in wine there is/was a problem with shift-enter. Is this fixed now?
-        if evt.GetKeyCode() == 13 and not evt.ShiftDown():
+        #TODO: There was an unconfirmed report that the enter key would not work at all in Windows 7, is this true?
+        print "(3) key pressed: %i" % evt.GetKeyCode() # debug the windows 7 problem
+        if evt.GetKeyCode() == wx.WXK_RETURN and not evt.ShiftDown():
             self.onSend(evt)
         else:
             # shift-enter will produce 0x0b (vertical tab) (only on windows!)
