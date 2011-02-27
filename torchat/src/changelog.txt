@@ -1,6 +1,8 @@
-trunk
-- fix some focus annoyances
+version 0.9.9.530
+- fix some focus and focus-stealing problems
 - improve the way the standard browser is found
+- fix race condition in the GUI resulting in the same line sent twice
+- Windows: update bundled Tor binary to version 0.2.1.30
 
 version 0.9.9.515
 - fix (regression): make notification window stay on top again
