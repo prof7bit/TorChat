@@ -1198,11 +1198,7 @@ class ChatWindow(wx.Frame):
     def onShow(self, evt):
         # always make sure we are at the end when showing the window
         wx.CallAfter(self.txt_in.AppendText, "")
-        if (config.isWindows()):
-            # workaround for buggy richedit control on windows
-            # scroll one line up and one line down to make it visible
-            wx.CallAfter(self.txt_in.ScrollLines, -1)
-            wx.CallAfter(self.txt_in.ScrollLines, 1)
+        wx.CallAfter(self.workaroundScrollBug)
 
     def insertBackLogContents(self, file_name):
         file = open(file_name)
@@ -1256,6 +1252,13 @@ class ChatWindow(wx.Frame):
         t = self.GetTitle()
         return t[:-19]
 
+    def workaroundScrollBug(self):
+        if config.isWindows():
+            # workaround scroll bug on windows
+            # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
+            self.txt_in.ScrollLines(-1)
+            self.txt_in.ScrollLines(1)
+
     def writeColored(self, color, name, text):
         # this method will write to the chat window and
         # will also write to the log file if logging is enabled.
@@ -1268,11 +1271,7 @@ class ChatWindow(wx.Frame):
         else:
             self.txt_in.SetDefaultStyle(wx.TextAttr(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)))
         self.txt_in.write(text + os.linesep)
-
-        # workaround scroll bug on windows
-        # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
-        self.txt_in.ScrollLines(-1)
-        self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
+        self.workaroundScrollBug()
 
         if os.path.exists(os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)):
             logtext = "%s %s: %s" % (time.strftime("(%Y-%m-%d %H:%M)"), name, text)
@@ -1286,10 +1285,7 @@ class ChatWindow(wx.Frame):
         else:
             self.txt_in.SetDefaultStyle(wx.TextAttr(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)))
 
-        # workaround scroll bug on windows
-        # https://sourceforge.net/tracker/?func=detail&atid=109863&aid=665381&group_id=9863
-        self.txt_in.ScrollLines(-1)
-        self.txt_in.ShowPosition(self.txt_in.GetLastPosition())
+        self.workaroundScrollBug()
 
     def notify(self, name, message):
         #needs unicode
