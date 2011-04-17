@@ -1,4 +1,4 @@
-trunk
+version 0.9.9.534
 - Windows: fix old scroll bug which reappeared on Windows 7
 - added Russian translation
 
