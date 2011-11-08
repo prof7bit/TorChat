@@ -334,6 +334,8 @@ def importLanguage():
             dict_trans = None
 
     if dict_trans:
+        #dict_std is the __dict__ of the standard lang module
+        #dict_trans is the __dict__ of the translation
         #find missing translations and report them in the log
         for key in dict_std:
             if not key in dict_trans:
@@ -371,9 +373,7 @@ class LogWriter:
 
     def write(self, text):
         text = text.rstrip()
-        if text == "":        #dict is the __dict__ of the standard lang module
-        #dict_trans is the __dict__ of the translation
-
+        if text == "":        
             return
         text += "\n"
         try:
