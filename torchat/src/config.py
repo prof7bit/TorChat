@@ -352,6 +352,7 @@ class LogWriter:
     def __init__(self):
         old_dir = os.getcwd()
         os.chdir(getDataDir())
+        self.console_encoding = sys.stdin.encoding
 
         #if log_file is a relative path then let it be relative to DataDir()
         self.file_name = os.path.abspath(get("logging", "log_file"))
@@ -376,11 +377,12 @@ class LogWriter:
         if text == "":        
             return
             
-        # hack! if this is not unicode then 
-        # we simply assume it is UTF-8 encoded
-        # FIXME: find a better way.
+        # hack! If something prints a string that is not unicode then we simply
+        # assume it is encoded in the same encoding as the console encoding
+        # (an unhandled exception containing a file name or a command line argument, etc)
+        # FIXME: could it be something else? File system different than console?
         if isinstance(text, str):
-            text = text.decode('utf-8')
+            text = text.decode(self.console_encoding)
             
         text += "\n"
         try:
@@ -406,10 +408,11 @@ class LogWriter:
                 text = text[0:4] + pos + text[3:]
             except:
                 pass
-            self.stdout.write(text.encode("ascii", "replace"))
+            self.stdout.write(text.encode(self.console_encoding))
             self.stdout.flush()
             try:
-                self.logfile.write(text.encode("ascii", "replace"))
+                # logfile like all other files always UTF-8
+                self.logfile.write(text.encode("UTF-8"))
                 self.logfile.flush()
             except:
                 pass
