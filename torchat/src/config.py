@@ -375,6 +375,13 @@ class LogWriter:
         text = text.rstrip()
         if text == "":        
             return
+            
+        # hack! if this is not unicode then 
+        # we simply assume it is UTF-8 encoded
+        # FIXME: find a better way.
+        if isinstance(text, str):
+            text = text.decode('utf-8')
+            
         text += "\n"
         try:
             x = text[0]
