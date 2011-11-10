@@ -392,6 +392,7 @@ class LogWriter:
         if  self.level and get("logging", "log_file"):
             try:
                 self.logfile = open(self.file_name, 'w')
+                os.chmod(self.file_name, 0600)
                 print "(0) started logging to file '%s'" % self.file_name
                 print "(0) logging to file might leave sensitive information on disk"
             except:
