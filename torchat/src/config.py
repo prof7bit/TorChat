@@ -15,6 +15,7 @@
 ##############################################################################
 
 import sys, os
+import locale
 import ConfigParser
 import traceback
 import inspect
@@ -352,7 +353,7 @@ class LogWriter:
     def __init__(self):
         old_dir = os.getcwd()
         os.chdir(getDataDir())
-        self.console_encoding = sys.stdin.encoding
+        self.encoding = locale.getpreferredencoding()
 
         #if log_file is a relative path then let it be relative to DataDir()
         self.file_name = os.path.abspath(get("logging", "log_file"))
@@ -377,12 +378,11 @@ class LogWriter:
         if text == "":        
             return
             
-        # hack! If something prints a string that is not unicode then we simply
-        # assume it is encoded in the same encoding as the console encoding
-        # (an unhandled exception containing a file name or a command line argument, etc)
-        # FIXME: could it be something else? File system different than console?
+        # If something prints a string that is not unicode then we simply
+        # assume it is encoded in the encoding of the current locale.
+        # (a traceback containing a file name or a command line argument, etc)
         if isinstance(text, str):
-            text = text.decode(self.console_encoding)
+            text = text.decode(self.encoding, 'replace')
             
         text += "\n"
         try:
@@ -408,10 +408,10 @@ class LogWriter:
                 text = text[0:4] + pos + text[3:]
             except:
                 pass
-            self.stdout.write(text.encode(self.console_encoding))
+            self.stdout.write(text.encode(self.encoding))
             self.stdout.flush()
             try:
-                # logfile like all other files always UTF-8
+                # logfile like all other TorChat related files always UTF-8
                 self.logfile.write(text.encode("UTF-8"))
                 self.logfile.flush()
             except:
