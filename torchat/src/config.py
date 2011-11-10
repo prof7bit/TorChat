@@ -184,7 +184,7 @@ def getDataDir():
     os.chmod(data_dir, 0700)
     os.chmod(data_dir_tor, 0700)
     os.chmod(os.path.join(data_dir_tor, tor_exe), 0700)
-    os.chmod(os.path.join(data_dir_tor, "torrc.txt"), 0700)
+    os.chmod(os.path.join(data_dir_tor, "torrc.txt"), 0600)
     
     return data_dir
 
