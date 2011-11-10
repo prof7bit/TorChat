@@ -68,15 +68,34 @@ config_defaults = {
     ("profile", "text") : "",
 }
 
-COPYRIGHT = u"Copyright (c) 2007-2010 Bernd Kreuß <prof7bit@gmail.com>"
+LOCALE_ENC = locale.getpreferredencoding()
+try:
+    CONSOLE_ENC = sys.stdout.encoding
+except:
+    CONSOLE_ENC = None
+
+def toUnicode(unknownstr):
+    # some things like sys.argv[] and also functions from os.path
+    # return bytestrings. Since I don't know if this might change
+    # eventually in some future Python version I need something to
+    # decode them only if needed. (I try to decode everything as
+    # soon as possible and only work with unicode everywhere)
+    # Note: it seems none of these strings I have come across so far
+    # was ever encoded in the console encoding, they all seem to use
+    # the locale encoding.
+    if isinstance(unknownstr, str):
+        return unknownstr.decode(LOCALE_ENC)
+    else:
+        return unknownstr
+
+COPYRIGHT = u"Copyright (c) 2007-2011 Bernd Kreuß <prof7bit@googlemail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 240
 KEEPALIVE_INTERVAL = 120
 MAX_UNANSWERED_PINGS = 4
 
-SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
+SCRIPT_DIR = os.path.abspath(os.path.dirname(toUnicode(sys.argv[0])))
 ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
-
 log_writer = None
 
 def isWindows98():
@@ -123,7 +142,7 @@ def getHomeDir():
         ctypes.windll.shell32.SHGetSpecialFolderPathW(None, buf, CSIDL_PERSONAL, 0)
         return buf.value
     else:
-        return os.path.expanduser("~")
+        return toUnicode(os.path.expanduser("~"))
 
 def getDataDir():
     if isPortable():
@@ -136,12 +155,12 @@ def getDataDir():
             appdata = buf.value
             data_dir = os.path.join(appdata, "torchat")
         else:
-            home = os.path.expanduser("~")
+            home = toUnicode(os.path.expanduser("~"))
             data_dir = os.path.join(home, ".torchat")
 
     #test for optional profile name in command line
     try:
-        data_dir += "_" + sys.argv[1]
+        data_dir += "_" + toUnicode(sys.argv[1])
     except:
         pass
 
@@ -164,7 +183,7 @@ def getDataDir():
 
 def getProfileLongName():
     try:
-        return "%s - %s" % (sys.argv[1], get("client", "own_hostname"))
+        return "%s - %s" % (toUnicode(sys.argv[1]), get("client", "own_hostname"))
     except:
         return get("client", "own_hostname")
 
@@ -353,7 +372,7 @@ class LogWriter:
     def __init__(self):
         old_dir = os.getcwd()
         os.chdir(getDataDir())
-        self.encoding = locale.getpreferredencoding()
+        self.encoding = LOCALE_ENC
 
         #if log_file is a relative path then let it be relative to DataDir()
         self.file_name = os.path.abspath(get("logging", "log_file"))
@@ -365,13 +384,20 @@ class LogWriter:
         if  self.level and get("logging", "log_file"):
             try:
                 self.logfile = open(self.file_name, 'w')
-                print "(1) started logging to file '%s'" % self.file_name
+                print "(0) started logging to file '%s'" % self.file_name
+                print "(0) logging to file might leave sensitive information on disk"
             except:
+                self.logfile = None
                 print "(0) could not open logfile '%s'" % self.file_name
                 print "(0) logging only to stdout"
-            print "(0) logging to file might leave sensitive information on disk"
+
+        else:
+            self.logfile = None
+            print "(1) logging to file is disabled"
+            
         print "(1) current log level is %i" % self.level
-        print "(1) console encoding is %s" % self.encoding
+        print "(1) locale encoding is %s" % LOCALE_ENC
+        print "(1) console encoding is %s" % CONSOLE_ENC
         print "(1) LogWriter initialized"
 
     def write(self, text):
@@ -381,7 +407,6 @@ class LogWriter:
             
         # If something prints a string that is not unicode then we simply
         # assume it is encoded in the encoding of the current locale.
-        # (a traceback containing a file name or a command line argument, etc)
         if isinstance(text, str):
             text = text.decode(self.encoding, 'replace')
             
@@ -409,14 +434,13 @@ class LogWriter:
                 text = text[0:4] + pos + text[3:]
             except:
                 pass
-            self.stdout.write(text.encode(self.encoding))
-            self.stdout.flush()
-            try:
+            if CONSOLE_ENC:
+                self.stdout.write(text.encode(CONSOLE_ENC, 'replace'))
+                self.stdout.flush()
+            if self.logfile:
                 # logfile like all other TorChat related files always UTF-8
                 self.logfile.write(text.encode("UTF-8"))
                 self.logfile.flush()
-            except:
-                pass
 
     def close(self):
         self.stdout.close()
@@ -436,7 +460,7 @@ def main():
     if isPortable():
         print "(0) running in portable mode, all data is kept inside the bin folder."
         if (len(sys.argv) > 1):
-            print "(0) ignoring requested profile '%s' because profiles do not exist in portable mode" % sys.argv[1]
+            print "(0) ignoring requested profile '%s' because profiles do not exist in portable mode" % toUnicode(sys.argv[1])
 
     print "(0) script directory is %s" % SCRIPT_DIR
     print "(0) data directory is %s" % getDataDir()
