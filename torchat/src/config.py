@@ -172,13 +172,19 @@ def getDataDir():
     data_dir_tor = os.path.join(data_dir, "Tor")
     if not os.path.exists(data_dir_tor):
         os.mkdir(data_dir_tor)
-        if isWindows():
-            tor_exe =  "tor.exe"
-        else:
-            tor_exe = "tor.sh"
-        shutil.copy(os.path.join("Tor", tor_exe), data_dir_tor)
-        shutil.copy(os.path.join("Tor", "torrc.txt"), data_dir_tor)
+        
+    if isWindows():
+        tor_exe =  "tor.exe"
+    else:
+        tor_exe = "tor.sh"
+    shutil.copy(os.path.join("Tor", tor_exe), data_dir_tor)
+    shutil.copy(os.path.join("Tor", "torrc.txt"), data_dir_tor)
 
+    #fix permissions
+    os.chmod(data_dir, 0700)
+    os.chmod(data_dir_tor, 0700)
+    os.chmod(os.path.join(data_dir_tor, tor_exe), 0700)
+    
     return data_dir
 
 def getProfileLongName():

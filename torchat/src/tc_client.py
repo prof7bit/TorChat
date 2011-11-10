@@ -2045,7 +2045,7 @@ def startPortableTor():
         else:
             if os.path.exists("tor.sh"):
                 #let our shell script start a tor instance
-                os.system("chmod +x tor.sh")
+                os.system("chmod 0700 tor.sh")
                 tor_proc = subprocess.Popen("./tor.sh".split())
                 tor_pid = tor_proc.pid
                 print "(1) tor pid is %i" % tor_pid
