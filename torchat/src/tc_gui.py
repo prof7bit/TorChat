@@ -1494,6 +1494,7 @@ class ChatWindow(wx.Frame):
         file_name = os.path.join(config.getDataDir(), "%s.log" % self.buddy.address)
         if not os.path.exists(file_name):
             f = open(file_name, "w")
+            os.chmod(file_name, 0600)
             f.write(("*** " + lang.LOG_HEADER + os.linesep + os.linesep).encode("UTF-8"))
         else:
             f = open(file_name, "a")
