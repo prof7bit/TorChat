@@ -181,6 +181,9 @@ def getDataDir():
     shutil.copy(os.path.join("Tor", "torrc.txt"), data_dir_tor)
 
     #fix permissions
+    for filename in os.listdir(data_dir):
+        # old log files still lying around in the data folder
+        os.chmod(os.path.join(data_dir, filename), 0600)
     os.chmod(data_dir, 0700)
     os.chmod(data_dir_tor, 0700)
     os.chmod(os.path.join(data_dir_tor, tor_exe), 0700)
