@@ -371,6 +371,7 @@ class LogWriter:
                 print "(0) logging only to stdout"
             print "(0) logging to file might leave sensitive information on disk"
         print "(1) current log level is %i" % self.level
+        print "(1) console encoding is %s" % self.encoding
         print "(1) LogWriter initialized"
 
     def write(self, text):
