@@ -249,6 +249,7 @@ def readConfig():
 
 def writeConfig():
     fp = open(file_name, "w")
+    os.chmod(file_name, 0600)
     config.write(fp)
     fp.close()
 
