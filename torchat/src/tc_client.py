@@ -120,6 +120,7 @@ def createTemporaryFile(file_name):
         tmp = tempfile.mkstemp("_" + file_name, "torchat_incoming_")
     fd, file_name_tmp = tmp
     file_handle_tmp = os.fdopen(fd, "w+b")
+    os.chmod(file_name_tmp, 0600)
     print "(2) created temporary file  %s" % file_name_tmp
     return (file_name_tmp, file_handle_tmp)
 
