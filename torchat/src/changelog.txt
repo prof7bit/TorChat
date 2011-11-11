@@ -1,7 +1,7 @@
-trunk
+version 0.9.9.550
 - fix some string encoding problems (and crashes) with 
   non-ascii user names or folder names.
-- Unix/Linux: make data folder permissions more restrictive
+- Unix/Linux: make data folder and file permissions more restrictive
 - Windows: update the bundled tor.exe to current stable version 0.2.2.34
 
 version 0.9.9.534
