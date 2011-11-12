@@ -1,3 +1,6 @@
+trunk
+- Added Swedish translation (thanks to Åke Engelbrektson)
+
 version 0.9.9.550
 - fix some string encoding problems (and crashes) with 
   non-ascii user names or folder names.
