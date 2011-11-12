@@ -8,3 +8,4 @@ import lang_pt
 import lang_zh
 import lang_bg
 import lang_ru
+import lang_sv
