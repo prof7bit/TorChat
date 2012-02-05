@@ -1,0 +1,5 @@
+*.pyc
+torchat/src/Tor/hidden_service/
+torchat/src/Tor/tor_data
+torchat/src/buddy-list.txt
+torchat/src/torchat.ini
