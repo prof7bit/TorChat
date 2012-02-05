@@ -5,7 +5,7 @@ EXPERIMENTAL = False
 
 # here used to be code that scanned the .svn dirs for the revision
 # number, generated a cache file if no svn was found, etc.
-# now I'm on git and for simplicita just manually increment 
+# now I'm on git and for simplicity just manually increment 
 # VERSION_SVN after each official release.
 
 VERSION = VERSION_MAJOR + "." + str(VERSION_SVN)
