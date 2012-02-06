@@ -7,5 +7,11 @@ while being very easy to use without the need to install or configure anything.
 
 Please see the wiki page: https://github.com/prof7bit/TorChat/wiki for more information.
 
-**Downloads** can be found in the section "Download Packages" 
-on the following page: https://github.com/prof7bit/TorChat/downloads
+Downloads
+---------
+Downloads can be found in the section "Download Packages" on the following page: 
+https://github.com/prof7bit/TorChat/downloads
+
+(End users: please ignore the two buttons "download zip" and "download tar.gz" on
+the top of the download page, these are only source code snapshots for developers 
+and as an end user you most likely simply want to download one of the packages.)
