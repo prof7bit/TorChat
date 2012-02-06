@@ -1,6 +1,6 @@
 NAME = "TorChat"
 VERSION_MAJOR = "0.9.9"
-VERSION_SVN = 551
+VERSION_SVN = 552
 EXPERIMENTAL = False
 
 # here used to be code that scanned the .svn dirs for the revision
