@@ -1,0 +1,8 @@
+object FMain: TFMain
+  Left = 347
+  Height = 240
+  Top = 137
+  Width = 320
+  Caption = 'TorChat'
+  LCLVersion = '0.9.31'
+end
