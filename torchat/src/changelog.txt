@@ -1,5 +1,9 @@
-trunk
+version 0.9.9.552 (master branch, not yet released)
+- 
+
+version 0.9.9.551
 - Added Swedish translation (thanks to Åke Engelbrektson)
+- Windows: update the bundled tor.exe to current stable version 0.2.2.35
 
 version 0.9.9.550
 - fix some string encoding problems (and crashes) with 
