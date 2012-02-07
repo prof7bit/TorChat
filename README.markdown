@@ -12,6 +12,9 @@ Downloads
 Downloads can be found in the section "Download Packages" on the following page: 
 https://github.com/prof7bit/TorChat/downloads
 
+Change log: https://raw.github.com/prof7bit/TorChat/master/torchat/src/changelog.txt
+
 (End users: please ignore the two buttons "download zip" and "download tar.gz" on
 the top of the download page, these are only source code snapshots for developers 
 and as an end user you most likely simply want to download one of the packages.)
+
