@@ -12,6 +12,7 @@ Downloads
 Downloads can be found in the section "Download Packages" on the following page: 
 https://github.com/prof7bit/TorChat/downloads
 
+The current stable version is 0.9.9.551 (released 2012-02-06)
 Change log: https://raw.github.com/prof7bit/TorChat/master/torchat/src/changelog.txt
 
 (End users: please ignore the two buttons "download zip" and "download tar.gz" on
