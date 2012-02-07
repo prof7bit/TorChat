@@ -92,7 +92,7 @@
 		</Download_URLs>
 	</Web_Info>
 	<Permissions>
-		<Distribution_Permissions />
+		<Distribution_Permissions>GNU General Public License v3.0</Distribution_Permissions>
 		<EULA />
 	</Permissions>
 </XML_DIZ_INFO>
