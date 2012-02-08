@@ -1,15 +1,10 @@
-﻿# -*- coding: UTF-8 -*-
+# # -*- coding: UTF-8 -*-
 
 ##############################################################################
 #                                                                            #
 # Copyright (c) 2007-2010 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # Translation file for TorChat                                               #
-#                                                                            #
-# TranslatorName = Åke Engelbrektson                                         #
-# TranslatorContact = eson57@gmail.com                                       #
-# TranslatorURL = http://svenskasprakfiler.se                                #
-# LastUpdated = Nov 12, 2011                                                 #
 #                                                                            #
 ##############################################################################
 

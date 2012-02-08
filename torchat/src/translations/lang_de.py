@@ -61,7 +61,7 @@ D_LOG_WARNING_MESSAGE = u"Logging in Datei ist aktiviert!\n\nLogdatei: %s\n\nVer
 D_WARN_USED_PORT_TITLE = u"TorChat: Port ist bereits belegt"
 D_WARN_USED_PORT_MESSAGE = u"Eine Anwendung, wahrscheinlich eine andere TorChat-Instanz, verwendet bereits den Port %s:%s. Sie müssen andere Profile mit anderen Ports verwenden, um TorChat mehrmals starten zu können."
 
-#warning about unread messages
+# #warnig about unread messages
 D_WARN_UNREAD_TITLE = u"TorChat: Ungelesene Nachrichten"
 D_WARN_UNREAD_MESSAGE = u"Es liegen noch ungelesene Nachrichten vor. Diese würden unwiderruflich verloren gehen!\n\nMöchten sie TorChat dennoch jetzt beenden?"
 
