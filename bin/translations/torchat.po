@@ -1,0 +1,472 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: language.about_title
+msgctxt "language.about_title"
+msgid "About TorChat"
+msgstr ""
+
+#: language.bpop_buddy_is_offline
+msgid "Buddy is offline"
+msgstr ""
+
+#: language.bpop_client_software
+msgid "Client: %s %s"
+msgstr ""
+
+#: language.bpop_connected_awaiting_return_conn
+msgid "Connected, awaiting return connection..."
+msgstr ""
+
+#: language.btn_cancel
+msgid "Cancel"
+msgstr ""
+
+#: language.btn_close
+msgid "Close"
+msgstr ""
+
+#: language.btn_ok
+msgid "Ok"
+msgstr ""
+
+#: language.btn_save_as
+msgid "Save as..."
+msgstr ""
+
+#: language.cpop_copy
+msgid "Copy"
+msgstr ""
+
+#: language.dec_display_name
+msgid "Display name"
+msgstr ""
+
+#: language.dec_introduction
+msgid "Introduction"
+msgstr ""
+
+#: language.dec_msg_16_characters
+msgid "The address must be 16 characters long, not %d."
+msgstr ""
+
+#: language.dec_msg_already_on_list
+msgid "%s is already on your list"
+msgstr ""
+
+#: language.dec_msg_only_alpanum
+msgid "The address must only contain numbers and lowercase letters"
+msgstr ""
+
+#: language.dec_title_add
+msgid "Add new contact"
+msgstr ""
+
+#: language.dec_title_edit
+msgid "Edit contact"
+msgstr ""
+
+#: language.dec_torchat_id
+msgid "TorChat ID"
+msgstr ""
+
+#: language.dep_all_files
+msgid "All files"
+msgstr ""
+
+#: language.dep_avatar_select_png
+msgid "Select .PNG file to use as your avatar (will be scaled to 64*64, may contain transparency)"
+msgstr ""
+
+#: language.dep_name
+msgid "Name"
+msgstr ""
+
+#: language.dep_png_files
+msgid "PNG files"
+msgstr ""
+
+#: language.dep_remove_avatar
+msgid "Remove Avatar"
+msgstr ""
+
+#: language.dep_set_avatar
+msgid "Set Avatar"
+msgstr ""
+
+#: language.dep_text
+msgid "Text"
+msgstr ""
+
+#: language.dep_title
+msgid "Edit my profile"
+msgstr ""
+
+#: language.dep_warn_is_already
+msgid "This is already the current avatar"
+msgstr ""
+
+#: language.dep_warn_must_be_png
+msgid "The avatar must be a .png file"
+msgstr ""
+
+#: language.dep_warn_title
+msgid "Avatar selection not possible"
+msgstr ""
+
+#: language.dft_aborted
+msgid "transfer aborted"
+msgstr ""
+
+#: language.dft_complete
+msgid "transfer complete"
+msgstr ""
+
+#: language.dft_error
+msgid "error"
+msgstr ""
+
+#: language.dft_file_open_title
+msgid "Send file to %s"
+msgstr ""
+
+#: language.dft_file_save_title
+msgid "Save file from %s"
+msgstr ""
+
+#: language.dft_receive
+msgid ""
+"Receiving %s\n"
+"from %s\n"
+"%04.1f%% (%d of %d bytes)\n"
+msgstr ""
+
+#: language.dft_send
+msgid ""
+"Sending %s\n"
+"to %s\n"
+"%04.1f%% (%d of %d bytes)\n"
+msgstr ""
+
+#: language.dft_starting
+msgid "starting transfer"
+msgstr ""
+
+#: language.dft_waiting
+msgid "waiting for connection"
+msgstr ""
+
+#: language.dset_gui_flash_window
+msgid "Flash window title on new message"
+msgstr ""
+
+#: language.dset_gui_language
+msgid "Language"
+msgstr ""
+
+#: language.dset_gui_notification_method
+msgid "Notification method"
+msgstr ""
+
+#: language.dset_gui_notification_popup
+msgid "Notification pop-up"
+msgstr ""
+
+#: language.dset_gui_open_chat_hidden
+msgid "Don''t automatically open new windows"
+msgstr ""
+
+#: language.dset_gui_open_main_hidden
+msgid "Start with minimized main window"
+msgstr ""
+
+#: language.dset_gui_title
+msgid "User interface"
+msgstr ""
+
+#: language.dset_misc_temp_custom_dir
+msgid "Temporary directory (leave empty for OS-default)"
+msgstr ""
+
+#: language.dset_misc_temp_in_data
+msgid "Store temporary files inside data directory"
+msgstr ""
+
+#: language.dset_misc_title
+msgid "Misc"
+msgstr ""
+
+#: language.dset_net_active
+msgid "active"
+msgstr ""
+
+#: language.dset_net_inactive
+msgid "inactive"
+msgstr ""
+
+#: language.dset_net_listen_interface
+msgid "Listen interface"
+msgstr ""
+
+#: language.dset_net_listen_port
+msgid "Listen port"
+msgstr ""
+
+#: language.dset_net_own_hostname
+msgid "Own TorChat-ID"
+msgstr ""
+
+#: language.dset_net_title
+msgid "Network"
+msgstr ""
+
+#: language.dset_net_tor_address
+msgid "Tor proxy address"
+msgstr ""
+
+#: language.dset_net_tor_control
+msgid "Control port"
+msgstr ""
+
+#: language.dset_net_tor_socks
+msgid "Socks port"
+msgstr ""
+
+#: language.dset_title
+msgid "TorChat configuration"
+msgstr ""
+
+#: language.d_confirm_delete_message
+msgid ""
+"Really delete this contact?\n"
+"(%s %s)\n"
+msgstr ""
+
+#: language.d_confirm_delete_title
+msgid "Confirm deletion"
+msgstr ""
+
+#: language.d_log_warning_message
+msgid ""
+"Logging to file is activated!\n"
+"\n"
+"Log File: %s\n"
+"\n"
+"Remember to delete the log file if you have finished debugging because the log file may contain sensitive information.\n"
+msgstr ""
+
+#: language.d_log_warning_title
+msgid "TorChat: Logging is active"
+msgstr ""
+
+#: language.d_warn_buddy_offline_message
+msgid "This operation is not possible with offline buddies"
+msgstr ""
+
+#: language.d_warn_buddy_offline_title
+msgid "TorChat: Buddy is offline"
+msgstr ""
+
+#: language.d_warn_file_already_exists_message
+msgid ""
+"The file ''%s'' already exists.\n"
+"Overwrite it?\n"
+msgstr ""
+
+#: language.d_warn_file_already_exists_title
+msgid "TorChat: File exists"
+msgstr ""
+
+#: language.d_warn_file_only_one_message
+msgid "You may not start multiple file transfers with one operation. Start the transfers individually or send a zip-file instead"
+msgstr ""
+
+#: language.d_warn_file_only_one_title
+msgid "TorChat: Multiple files"
+msgstr ""
+
+#: language.d_warn_file_save_error_message
+msgid ""
+"The file ''%s'' could not be created.\n"
+"\n"
+"%s\n"
+msgstr ""
+
+#: language.d_warn_file_save_error_title
+msgid "TorChat: Error saving file"
+msgstr ""
+
+#: language.d_warn_unread_message
+msgid ""
+"There are unread messages.\n"
+"They will be lost forever!\n"
+"\n"
+"Do you really want to exit TorChat now?\n"
+msgstr ""
+
+#: language.d_warn_unread_title
+msgid "TorChat: Unread messages"
+msgstr ""
+
+#: language.d_warn_used_port_message
+msgid "Something, probably another TorChat instance, is already listening at %s:%s. You must create another profile using different ports to be able to start TorChat a second time."
+msgstr ""
+
+#: language.d_warn_used_port_title
+msgid "TorChat: Port already in use"
+msgstr ""
+
+#: language.language_code
+msgid "en"
+msgstr ""
+
+#: language.language_name
+msgctxt "language.language_name"
+msgid "English"
+msgstr ""
+
+#: language.language_name_english
+msgctxt "language.language_name_english"
+msgid "English"
+msgstr ""
+
+#: language.log_deleted
+msgid "Log files have been deleted"
+msgstr ""
+
+#: language.log_header
+msgid "This log file is not signed and has no cogency of proof"
+msgstr ""
+
+#: language.log_is_activated
+msgid ""
+"Logging to file is activated:\n"
+"%s\n"
+msgstr ""
+
+#: language.log_is_stopped_old_log_found
+msgid ""
+"Logging is stopped but old log file still exists:\n"
+"%s\n"
+msgstr ""
+
+#: language.log_started
+msgid "Logging started"
+msgstr ""
+
+#: language.log_stopped
+msgid "Logging stopped"
+msgstr ""
+
+#: language.mpop_about
+msgctxt "language.mpop_about"
+msgid "About TorChat"
+msgstr ""
+
+#: language.mpop_activate_log
+msgid "Activate logging to file"
+msgstr ""
+
+#: language.mpop_add_contact
+msgid "Add contact..."
+msgstr ""
+
+#: language.mpop_ask_author
+msgid "Ask %s..."
+msgstr ""
+
+#: language.mpop_chat
+msgid "Chat..."
+msgstr ""
+
+#: language.mpop_clear_offline_messages
+msgid "Clear queued offline messages"
+msgstr ""
+
+#: language.mpop_delete_and_stop_log
+msgid "Delete log and stop logging"
+msgstr ""
+
+#: language.mpop_delete_contact
+msgid "Delete contact..."
+msgstr ""
+
+#: language.mpop_delete_existing_log
+msgid "Delete existing log file"
+msgstr ""
+
+#: language.mpop_edit_contact
+msgid "Edit contact..."
+msgstr ""
+
+#: language.mpop_edit_my_profile
+msgid "Edit my profile..."
+msgstr ""
+
+#: language.mpop_send_file
+msgid "Send file..."
+msgstr ""
+
+#: language.mpop_settings
+msgid "Settings..."
+msgstr ""
+
+#: language.mpop_show_offline_messages
+msgid "Show queued offline messages"
+msgstr ""
+
+#: language.mpop_stop_log
+msgid "Stop logging"
+msgstr ""
+
+#: language.msg_offline_empty
+msgid "there are no (more) queued messages for %s"
+msgstr ""
+
+#: language.msg_offline_queued
+msgid ""
+"queued offline messages for %s:\n"
+"\n"
+"%s\n"
+msgstr ""
+
+#: language.msg_offline_title
+msgid "TorChat: queued messages"
+msgstr ""
+
+#: language.mtb_quit
+msgid "Quit"
+msgstr ""
+
+#: language.mtb_show_hide_torchat
+msgid "Show/Hide TorChat"
+msgstr ""
+
+#: language.notice_delayed
+msgid "delayed"
+msgstr ""
+
+#: language.notice_delayed_msg_sent
+msgid "delayed messages have been sent"
+msgstr ""
+
+#: language.notice_delayed_msg_waiting
+msgid "delayed messages waiting to be sent"
+msgstr ""
+
+#: language.st_available
+msgid "Available"
+msgstr ""
+
+#: language.st_away
+msgid "Away"
+msgstr ""
+
+#: language.st_extended_away
+msgid "Extended away"
+msgstr ""
+
+#: language.st_offline
+msgid "Offline"
+msgstr ""
+

@@ -11,7 +11,8 @@
       <Icon Value="0"/>
     </General>
     <i18n>
-      <EnableI18N LFM="False"/>
+      <EnableI18N LFM="False" Value="True"/>
+      <OutDir Value="../../bin/translations"/>
     </i18n>
     <VersionInfo>
       <StringTable ProductVersion=""/>
@@ -35,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="3">
       <Unit0>
         <Filename Value="torchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -48,6 +49,11 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="main"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="language.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="language"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
