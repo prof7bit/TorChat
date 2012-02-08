@@ -53,7 +53,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="torchat"/>
+      <Filename Value="../../bin/torchat"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

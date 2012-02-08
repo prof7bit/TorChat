@@ -1,5 +1,6 @@
 *~
 *.lps
 *.res
+bin/torchat*
 src/gui/lib
 src/gui/torchat
