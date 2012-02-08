@@ -1,5 +1,5 @@
 *~
 *.lps
 *.res
-src/lib
+src/gui/lib
 src/gui/torchat
