@@ -5,5 +5,6 @@ object FMain: TFMain
   Width = 320
   Caption = 'TorChat'
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   LCLVersion = '0.9.31'
 end

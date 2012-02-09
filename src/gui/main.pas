@@ -14,6 +14,7 @@ type
 
   TFMain = class(TForm)
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { private declarations }
     Tor : TTor;
@@ -33,6 +34,12 @@ implementation
 procedure TFMain.FormCreate(Sender: TObject);
 begin
   Self.Tor := TTor.Create(Self);
+end;
+
+procedure TFMain.FormDestroy(Sender: TObject);
+begin
+  Self.Tor.Terminate(0);
+  Self.Tor.Free;
 end;
 
 end.
