@@ -5,7 +5,8 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, language;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, language,
+  torprocess;
 
 type
   TFMain = class(TForm)

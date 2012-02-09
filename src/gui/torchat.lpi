@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="torchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -54,6 +54,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="language"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="../client/torprocess.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="torprocess"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -63,6 +68,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../client"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
