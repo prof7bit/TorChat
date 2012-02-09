@@ -13,6 +13,7 @@ type
 
   TTor = class(TProcess)
     constructor Create(AOwner: TComponent);
+    destructor Destroy; override;
   end;
 
 implementation
@@ -28,6 +29,12 @@ begin
   Self.Parameters.Add('-f');
   Self.Parameters.Add('torrc.txt');
   Self.Execute;
+end;
+
+destructor TTor.Destroy;
+begin
+  Self.Terminate(0);
+  inherited Destroy;
 end;
 
 end.

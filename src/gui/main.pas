@@ -38,7 +38,6 @@ end;
 
 procedure TFMain.FormDestroy(Sender: TObject);
 begin
-  Self.Tor.Terminate(0);
   Self.Tor.Free;
 end;
 
