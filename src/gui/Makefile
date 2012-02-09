@@ -13,10 +13,14 @@ clean:
 	rm -rf lib *.res $(EXE)
 	
 install:
-	install -s $(EXE) $(PREF)/bin/
+	@echo "sorry, install not implemented yet"
+	@exit 2
+##	install -s $(EXE) $(PREF)/bin/
 	
 uninstall:
-	rm $(PREF)/bin/$(EXE)
+	@echo "sorry, uninstall not implemented yet"
+	@exit 2
+##	rm $(PREF)/bin/$(EXE)
 	
 lazbuild_not_found:
 	@echo "\n\
