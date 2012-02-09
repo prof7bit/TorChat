@@ -9,9 +9,14 @@ uses
   torprocess;
 
 type
+
+  { TFMain }
+
   TFMain = class(TForm)
+    procedure FormCreate(Sender: TObject);
   private
     { private declarations }
+    Tor : TTor;
   public
     { public declarations }
   end;
@@ -22,6 +27,13 @@ var
 implementation
 
 {$R *.lfm}
+
+{ TFMain }
+
+procedure TFMain.FormCreate(Sender: TObject);
+begin
+  Self.Tor := TTor.Create(Self);
+end;
 
 end.
 
