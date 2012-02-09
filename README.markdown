@@ -1,0 +1,1 @@
+This branch will be a complete rewrite of TorChat using Lazarus + Free Pascal
