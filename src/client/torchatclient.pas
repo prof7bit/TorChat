@@ -5,7 +5,7 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, torprocess, networking;
+  Classes, SysUtils, clientconfig, torprocess, networking;
 
 type
 
@@ -25,14 +25,25 @@ implementation
 { TTorChatClient }
 
 constructor TTorChatClient.Create(AOwner: TComponent);
+var
+  C : TConnection;
 begin
   Inherited Create(AOwner);
   self.FTor := TTor.Create(self);
+  Sleep(100);
+  try
+    C := ConnectTCP(GetTorHost, GetTorPort);
+    writeln(Format('TConnection object %p', [Pointer(C)]));
+  except
+    on E: Exception do begin
+      WriteLn(E.Message);
+    end;
+  end;
 end;
 
 destructor TTorChatClient.Destroy;
 begin
-  self.FTor.Free;
+  //self.FTor.Free;
   inherited Destroy;
 end;
 

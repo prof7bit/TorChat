@@ -70,7 +70,7 @@
         <UnitName Value="torchatclient"/>
       </Unit5>
       <Unit6>
-        <Filename Value="networking.pas"/>
+        <Filename Value="../client/networking.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networking"/>
       </Unit6>
