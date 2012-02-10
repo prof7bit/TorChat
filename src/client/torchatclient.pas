@@ -43,7 +43,7 @@ end;
 
 destructor TTorChatClient.Destroy;
 begin
-  //self.FTor.Free;
+  self.FTor.Free;
   inherited Destroy;
 end;
 
