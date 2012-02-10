@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="5">
+    <Units Count="6">
       <Unit0>
         <Filename Value="torchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -64,6 +64,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="clientconfig"/>
       </Unit4>
+      <Unit5>
+        <Filename Value="../client/torchatclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="torchatclient"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -100,12 +105,12 @@
     </Linking>
     <Other>
       <Verbosity>
-        <ShoLineNum Value="True"/>
         <ShowAllProcsOnError Value="True"/>
         <ShowSummary Value="True"/>
         <ShowHintsForUnusedUnitsInMainSrc Value="True"/>
       </Verbosity>
       <CompilerMessages>
+        <IgnoredMessages idx5024="True"/>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>

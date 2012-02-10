@@ -7,8 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, main, language, torprocess, clientconfig
-  { you can add units after this };
+  Forms, main;
 
 {$R *.res}
 

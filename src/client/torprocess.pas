@@ -12,7 +12,8 @@ type
   { TTor }
 
   TTor = class(TProcess)
-    constructor Create(AOwner: TComponent);
+    constructor Create(AOwner: TComponent); reintroduce;
+  public
     destructor Destroy; override;
   end;
 
