@@ -7,6 +7,7 @@ PREF = $(if $(PREFIX), $(PREFIX), $(PREFIX_DEFAULT))
 
 all: $(ASSERT_LAZ)
 	$(LAZ) $(LPR)
+	upx $(EXE)
 	@echo "*** $(EXE) successfully built :-)"
 	
 clean:
