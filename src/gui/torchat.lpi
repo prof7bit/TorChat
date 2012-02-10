@@ -11,7 +11,7 @@
       <Icon Value="0"/>
     </General>
     <i18n>
-      <EnableI18N LFM="False" Value="True"/>
+      <EnableI18N Value="True" LFM="False"/>
       <OutDir Value="../../bin/translations"/>
     </i18n>
     <VersionInfo>
@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="7">
       <Unit0>
         <Filename Value="torchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -69,6 +69,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="torchatclient"/>
       </Unit5>
+      <Unit6>
+        <Filename Value="networking.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="networking"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

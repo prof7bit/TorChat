@@ -5,7 +5,7 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, torprocess;
+  Classes, SysUtils, torprocess, networking;
 
 type
 
