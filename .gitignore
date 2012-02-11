@@ -5,5 +5,7 @@
 src/gui/lib
 src/gui/torchat
 bin/torchat
+bin/torchat.exe
 bin/tor/tor_data
+bin/tor/tor.exe
 bin/tor/hidden_service
