@@ -25,7 +25,7 @@ constructor TTor.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   self.Options := [poStderrToOutPut];
-  Self.CurrentDirectory := FileUtil.AppendPathDelim(GetDataDir) + 'tor';
+  Self.CurrentDirectory := FileUtil.AppendPathDelim(ConfGetDataDir) + 'tor';
   Self.Executable := '/usr/sbin/tor';
   Self.Parameters.Add('-f');
   Self.Parameters.Add('torrc.txt');

@@ -7,23 +7,29 @@ interface
 uses
   Classes, SysUtils, FileUtil;
 
-  function GetDataDir: String;
-  function GetTorHost: String;
-  function GetTorPort: DWord;
+  function ConfGetDataDir: String;
+  function ConfGetListenPort: DWord;
+  function ConfGetTorHost: String;
+  function ConfGetTorPort: DWord;
 
 implementation
 
-function GetDataDir: String;
+function ConfGetDataDir: String;
 begin
   Result := ProgramDirectory;
 end;
 
-function GetTorHost: String;
+function ConfGetListenPort: DWord;
+begin
+  Result := 11009;
+end;
+
+function ConfGetTorHost: String;
 begin
   Result := 'localhost'
 end;
 
-function GetTorPort: DWord;
+function ConfGetTorPort: DWord;
 begin
   Result := 11109;
 end;

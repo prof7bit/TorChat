@@ -22,6 +22,12 @@ type
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     procedure WriteLn(S: String); virtual;
+    procedure DoClose; virtual;
+  strict protected
+    FClosed: Boolean;
+    procedure SetClosed; virtual;
+  public
+    property Closed: Boolean read FClosed;
   end;
 
   { TReceiver }
@@ -30,9 +36,9 @@ type
     procedure Execute; override;
   strict protected
     FConn: TConnection;
-  end;
+  end deprecated 'This class will be removed, its only for testing, client will need its own receiver thread';
 
-  TListenerCallback = procedure(AConnection: TConnection);
+  TListenerCallback = procedure(AConnection: TConnection) of object;
 
   { TListener }
   TListener = class(TThread)
@@ -51,12 +57,18 @@ function NameResolve(AName: String): THostAddr;
 
 implementation
 
-function CreateSocket: THandle;
+function CreateSocketHandle: THandle;
 begin
   Result := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
   if Result = -1 then
     raise ENetworkError.CreateFmt('could not create socket (%s)',
       [StrError(SocketError)]);
+end;
+
+procedure CloseSocketHandle(ASocket: THandle);
+begin
+  fpshutdown(ASocket, SHUT_RDWR);
+  Sockets.CloseSocket(ASocket);
 end;
 
 { TListener }
@@ -79,11 +91,11 @@ begin
   TrueValue := 1;
   AddrLen := SizeOf(SockAddr);
 
-  FSocket := CreateSocket;
+  FSocket := CreateSocketHandle;
   fpSetSockOpt(FSocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
-  SockAddr.Family := AF_INET;
-  SockAddr.Port := ShortHostToNet(FPort);
-  SockAddr.Addr := 0;
+  SockAddr.sin_family := AF_INET;
+  SockAddr.sin_port := ShortHostToNet(FPort);
+  SockAddr.sin_addr.s_addr := 0;
 
   if fpBind(FSocket, @SockAddr, SizeOf(SockAddr))<>0 then
     raise ENetworkError.CreateFmt('could not bind port %d (%s)',
@@ -101,8 +113,7 @@ end;
 
 procedure TListener.Terminate;
 begin
-  fpshutdown(FSocket, SHUT_RDWR);
-  CloseSocket(FSocket);
+  CloseSocketHandle(Self.FSocket);
   inherited Terminate;
 end;
 
@@ -116,13 +127,13 @@ end;
 
 procedure TReceiver.Execute;
 var
-  B : array[0..1024] of Char;
+  B : array[0..1024] of Char = #0;
   N : Integer;
 begin
   repeat
     N := FConn.Read(B, 1024);
     B[N] := #0;
-    write(String(PChar(@B[0])));
+    write(PChar(@B[0]));
   until (N = 0) or Terminated;
 end;
 
@@ -135,8 +146,7 @@ end;
 
 destructor TConnection.Destroy;
 begin
-  fpshutdown(Handle, SHUT_RDWR);
-  CloseSocket(Handle);
+  DoClose;
   inherited Destroy;
 end;
 
@@ -148,6 +158,8 @@ end;
 function TConnection.Read(var Buffer; Count: LongInt): LongInt;
 begin
   Result := fprecv(Handle, @Buffer, Count, MSG_NOSIGNAL);
+  if Result = -1 then
+    DoClose;
 end;
 
 procedure TConnection.WriteLn(S: String);
@@ -156,6 +168,19 @@ var
 begin
   Buf := S + #10; // LF is the TorChat message delimiter (on all platforms!)
   self.Write(Buf[1], Length(Buf));
+end;
+
+procedure TConnection.DoClose;
+begin
+  if not Closed then begin
+    CloseSocketHandle(Handle);
+    SetClosed;
+  end;
+end;
+
+procedure TConnection.SetClosed;
+begin
+  FClosed := True;
 end;
 
 
@@ -169,7 +194,7 @@ begin
   SockAddr.sin_family := AF_INET;
   SockAddr.sin_port := ShortHostToNet(APort);
   SockAddr.sin_addr := HostToNet(HostAddr);
-  HSocket := CreateSocket;
+  HSocket := CreateSocketHandle;
   if Sockets.FpConnect(HSocket, @SockAddr, SizeOf(SockAddr))<>0 Then
     if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then
       raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
