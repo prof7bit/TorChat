@@ -2,3 +2,4 @@
 *.pas	eol=lf
 *.lpr	eol=lf
 *.lpi	eol=lf
+*.po	eol=lf
