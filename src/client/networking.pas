@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, Sockets, resolve, errors;
 
 const
+  SOCKS_USER_ID = 'torchat';
   Sys_EINPROGRESS = 115;
   Sys_EAGAIN = 11;
 
@@ -205,9 +206,38 @@ end;
 function ConnectSocks4a(AProxy: String; AProxyPort: DWord; AServer: String; APort: DWord): TConnection;
 var
   C : TConnection;
+  REQ : String;
+  ANS : array[1..8] of Byte;
 begin
   C := ConnectTCP(AProxy, AProxyPort);
-  Result := C;
+  SetLength(REQ, 8);
+  REQ[1] := #4; // Socks 4
+  REQ[2] := #1; // CONNECT command
+  PWord(@REQ[3])^ := ShortHostToNet(APort);
+  PDWord(@REQ[5])^ := HostToNet(1); // address '0.0.0.1' means: Socks 4a
+  REQ := REQ + SOCKS_USER_ID + #0;
+  REQ := REQ + AServer + #0;
+  C.Write(REQ[1], Length(REQ));
+  ANS[1] := $ff;
+  if (C.Read(ANS, 8) = 8) and (ANS[1] = 0) then begin
+    if ANS[2] = 90 then begin
+      Result := C;
+    end
+    else begin
+      C.Free;
+      Raise ENetworkError.CreateFmt(
+        'socks connect %s:%d via %s:%d failed (error %d)',
+        [AServer, APort, AProxy, AProxyPort, ANS[2]]
+      );
+    end;
+  end
+  else begin
+    C.Free;
+    Raise ENetworkError.CreateFmt(
+      'socks connect %s:%d via %s:%d failed in the middle of handshake',
+      [AServer, APort, AProxy, AProxyPort]
+    );
+  end;
 end;
 
 function NameResolve(AName: String): THostAddr;

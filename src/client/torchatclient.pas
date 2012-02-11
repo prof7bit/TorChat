@@ -27,10 +27,22 @@ implementation
 { TTorChatClient }
 
 constructor TTorChatClient.Create(AOwner: TComponent);
+var
+  C : TConnection;
 begin
   Inherited Create(AOwner);
   self.FTor := TTor.Create(self);
   self.FListener := TListener.Create(ConfGetListenPort, @OnIncomingConnection);
+
+  repeat
+    try
+      C := ConnectSocks4a(ConfGetTorHost, ConfGetTorPort, 'ddcbrqjsdar3dahu.onion', 11009);
+      C.WriteLn('hello myself via tor :-)');
+      C.Free;
+    except
+      Sleep(1000);
+    end;
+  until False;
 end;
 
 destructor TTorChatClient.Destroy;
