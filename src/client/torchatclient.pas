@@ -36,11 +36,13 @@ begin
 
   repeat
     try
+      WriteLn('trying to connect...');
       C := ConnectSocks4a(ConfGetTorHost, ConfGetTorPort, 'ddcbrqjsdar3dahu.onion', 11009);
-      C.WriteLn('hello myself via tor :-)');
+      C.WriteLn('hello myself via tor... and good bye :-)');
       C.Free;
     except
-      Sleep(1000);
+      WriteLn('waiting 3 seconds...');
+      Sleep(3000);
     end;
   until False;
 end;

@@ -103,9 +103,6 @@
       <Options>
         <PassLinkerOptions Value="True"/>
         <LinkerOptions Value="--stats --no-keep-memory --reduce-memory-overheads"/>
-        <Win32>
-          <GraphicApplication Value="True"/>
-        </Win32>
       </Options>
     </Linking>
     <Other>

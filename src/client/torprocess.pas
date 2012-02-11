@@ -26,7 +26,7 @@ begin
   inherited Create(AOwner);
   self.Options := [poStderrToOutPut];
   Self.CurrentDirectory := FileUtil.AppendPathDelim(ConfGetDataDir) + 'tor';
-  Self.Executable := '/usr/sbin/tor';
+  Self.Executable := ConfGetTorExe;
   Self.Parameters.Add('-f');
   Self.Parameters.Add('torrc.txt');
   Self.Execute;

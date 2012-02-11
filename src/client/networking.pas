@@ -5,12 +5,21 @@ unit networking;
 interface
 
 uses
-  Classes, SysUtils, Sockets, resolve, errors;
+  {$ifdef unix}errors,{$endif}
+  Classes, SysUtils, Sockets, resolve;
 
 const
   SOCKS_USER_ID = 'torchat';
   Sys_EINPROGRESS = 115;
   Sys_EAGAIN = 11;
+{$ifdef windows}
+  SND_FLAGS = 0;
+  RCV_FLAGS = 0;
+{$else}
+  SOCKET_ERROR = -1;
+  SND_FLAGS = MSG_NOSIGNAL;
+  RCV_FLAGS = MSG_NOSIGNAL;
+{$endif}
 
 type
   ENetworkError = class(Exception)
@@ -58,12 +67,22 @@ function NameResolve(AName: String): THostAddr;
 
 implementation
 
+function SockLastErrStr: String;
+begin
+  {$ifdef unix}
+  Result := StrError(SocketError);
+  {$else}
+  {$note find the winndows version of the above}
+  Result := IntToStr(SocketError);
+  {$endif}
+end;
+
 function CreateSocketHandle: THandle;
 begin
   Result := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
-  if Result = -1 then
+  if Result <= 0 then
     raise ENetworkError.CreateFmt('could not create socket (%s)',
-      [StrError(SocketError)]);
+      [SockLastErrStr]);
 end;
 
 procedure CloseSocketHandle(ASocket: THandle);
@@ -100,12 +119,12 @@ begin
 
   if fpBind(FSocket, @SockAddr, SizeOf(SockAddr))<>0 then
     raise ENetworkError.CreateFmt('could not bind port %d (%s)',
-      [FPort, StrError(SocketError)]);
+      [FPort, SockLastErrStr]);
 
   fpListen(FSocket, 1);
   repeat
     Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
-    if Incoming <> -1 then
+    if Incoming > 0 then
       FCallback(TConnection.Create(Incoming))
     else
       break;
@@ -153,13 +172,13 @@ end;
 
 function TConnection.Write(const Buffer; Count: LongInt): LongInt;
 begin
-  Result := FPsend(Handle, @Buffer, Count, MSG_NOSIGNAL);
+  Result := fpSend(Handle, @Buffer, Count, SND_FLAGS);
 end;
 
 function TConnection.Read(var Buffer; Count: LongInt): LongInt;
 begin
-  Result := fprecv(Handle, @Buffer, Count, MSG_NOSIGNAL);
-  if Result = -1 then
+  Result := fpRecv(Handle, @Buffer, Count, RCV_FLAGS);
+  if Result = SOCKET_ERROR then
     DoClose;
 end;
 
@@ -199,7 +218,7 @@ begin
   if Sockets.FpConnect(HSocket, @SockAddr, SizeOf(SockAddr))<>0 Then
     if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then
       raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
-        [AServer, APort, StrError(SocketError)]);
+        [AServer, APort, SockLastErrStr]);
   Result := TConnection.Create(HSocket);
 end;
 
