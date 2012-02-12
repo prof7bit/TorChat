@@ -20,16 +20,13 @@ const
   RCV_FLAGS = MSG_NOSIGNAL;
 {$endif}
 
-var
-  SOCKS_USER_ID : String = '';
-
 type
   ENetworkError = class(Exception)
   end;
 
   { TConnection wraps a socket}
   TConnection = class(THandleStream)
-    constructor Create(AHandle: THandle); reintroduce;
+    constructor Create(AHandle: THandle); virtual;
     destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
@@ -42,14 +39,7 @@ type
     property Closed: Boolean read FClosed;
   end;
 
-  { TReceiver }
-  TReceiver = class (TThread)
-    constructor Create(AConnection: TConnection);
-    procedure Execute; override;
-  strict protected
-    FConn: TConnection;
-  end deprecated 'This class will be removed, its only for testing, client will need its own receiver thread';
-
+  TConnectionClass = class of TConnection;
   TListenerCallback = procedure(AConnection: TConnection) of object;
 
   { TListener }
@@ -62,6 +52,14 @@ type
     FSocket   : THandle;
     FCallback : TListenerCallback;
   end;
+
+var
+  // the class of connection to automatically instantiate.
+  // defaults to TConnection but at runtime we will change this.
+  ConnectionClass : TConnectionClass = TConnection;
+
+  // which ID to send to the socks proxy
+  SOCKS_USER_ID : String = '';
 
 function ConnectTCP(AServer: String; APort: DWord): TConnection;
 function ConnectSocks4a(AProxy: String; AProxyPort: DWord; AServer: String; APort: DWord): TConnection;
@@ -91,6 +89,22 @@ procedure CloseSocketHandle(ASocket: THandle);
 begin
   fpshutdown(ASocket, SHUT_RDWR);
   Sockets.CloseSocket(ASocket);
+end;
+
+procedure ConnectSocketHandle(ASocket: THandle; AServer: String; APort: DWord);
+var
+  HostAddr: THostAddr;     // host byte order
+  SockAddr: TInetSockAddr; // network byte order
+  HSocket: THandle;
+begin
+  HostAddr := NameResolve(AServer);
+  SockAddr.sin_family := AF_INET;
+  SockAddr.sin_port := ShortHostToNet(APort);
+  SockAddr.sin_addr := HostToNet(HostAddr);
+  if Sockets.FpConnect(ASocket, @SockAddr, SizeOf(SockAddr))<>0 Then
+    if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then
+      raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
+        [AServer, APort, SockLastErrStr]);
 end;
 
 { TListener }
@@ -127,7 +141,7 @@ begin
   repeat
     Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
     if Incoming > 0 then
-      FCallback(TConnection.Create(Incoming))
+      FCallback(ConnectionClass.Create(Incoming))
     else
       break;
   until Terminated;
@@ -137,26 +151,6 @@ procedure TListener.Terminate;
 begin
   CloseSocketHandle(Self.FSocket);
   inherited Terminate;
-end;
-
-{ TReceiver }
-
-constructor TReceiver.Create(AConnection: TConnection);
-begin
-  FConn := AConnection;
-  inherited Create(False);
-end;
-
-procedure TReceiver.Execute;
-var
-  B : array[0..1024] of Char = #0;
-  N : Integer;
-begin
-  repeat
-    N := FConn.Read(B, 1024);
-    B[N] := #0;
-    write(PChar(@B[0]));
-  until (N = 0) or Terminated;
 end;
 
 { TConnection }
@@ -208,29 +202,21 @@ end;
 
 function ConnectTCP(AServer: String; APort: DWord): TConnection;
 var
-  HostAddr: THostAddr;     // host byte order
-  SockAddr: TInetSockAddr; // network byte order
   HSocket: THandle;
 begin
-  HostAddr := NameResolve(AServer);
-  SockAddr.sin_family := AF_INET;
-  SockAddr.sin_port := ShortHostToNet(APort);
-  SockAddr.sin_addr := HostToNet(HostAddr);
   HSocket := CreateSocketHandle;
-  if Sockets.FpConnect(HSocket, @SockAddr, SizeOf(SockAddr))<>0 Then
-    if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then
-      raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
-        [AServer, APort, SockLastErrStr]);
-  Result := TConnection.Create(HSocket);
+  ConnectSocketHandle(HSocket, AServer, APort);
+  Result := ConnectionClass.Create(HSocket);
 end;
 
 function ConnectSocks4a(AProxy: String; AProxyPort: DWord; AServer: String; APort: DWord): TConnection;
 var
-  C : TConnection;
+  HSocket: THandle;
   REQ : String;
   ANS : array[1..8] of Byte;
 begin
-  C := ConnectTCP(AProxy, AProxyPort);
+  HSocket := CreateSocketHandle;
+  ConnectSocketHandle(HSocket, AProxy, AProxyPort);
   SetLength(REQ, 8);
   REQ[1] := #4; // Socks 4
   REQ[2] := #1; // CONNECT command
@@ -238,14 +224,13 @@ begin
   PDWord(@REQ[5])^ := HostToNet(1); // address '0.0.0.1' means: Socks 4a
   REQ := REQ + SOCKS_USER_ID + #0;
   REQ := REQ + AServer + #0;
-  C.Write(REQ[1], Length(REQ));
+  fpSend(HSocket, @REQ[1], Length(REQ), SND_FLAGS);
   ANS[1] := $ff;
-  if (C.Read(ANS, 8) = 8) and (ANS[1] = 0) then begin
+  if (fpRecv(HSocket, @ANS, 8, RCV_FLAGS) = 8) and (ANS[1] = 0) then begin
     if ANS[2] = 90 then begin
-      Result := C;
+      Result := ConnectionClass.Create(HSocket);
     end
     else begin
-      C.Free;
       Raise ENetworkError.CreateFmt(
         'socks connect %s:%d via %s:%d failed (error %d)',
         [AServer, APort, AProxy, AProxyPort, ANS[2]]
@@ -253,9 +238,8 @@ begin
     end;
   end
   else begin
-    C.Free;
     Raise ENetworkError.CreateFmt(
-      'socks connect %s:%d via %s:%d failed in the middle of handshake',
+      'socks connect %s:%d via %s:%d handshake invalid response',
       [AServer, APort, AProxy, AProxyPort]
     );
   end;

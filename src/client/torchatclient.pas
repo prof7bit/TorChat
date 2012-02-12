@@ -5,7 +5,8 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, clientconfig, torprocess, networking, torchatabstract;
+  Classes, SysUtils, torchatabstract, clientconfig, torprocess, networking,
+  connection;
 
 type
 
@@ -31,7 +32,7 @@ implementation
 
 constructor TTorChatClient.Create;
 var
-  C : TConnection;
+  C : TAHiddenConnection;
 begin
   Inherited Create;
   self.FTor := TTor.Create;
@@ -40,7 +41,7 @@ begin
   repeat
     try
       WriteLn('trying to connect...');
-      C := ConnectSocks4a(ConfGetTorHost, ConfGetTorPort, 'ddcbrqjsdar3dahu.onion', 11009);
+      C := ConnectSocks4a(ConfGetTorHost, ConfGetTorPort, 'ddcbrqjsdar3dahu.onion', 11009) as TAHiddenConnection;
       C.WriteLn('hello myself via tor... and good bye :-)');
       C.Free;
     except
@@ -60,7 +61,8 @@ end;
 
 procedure TTorChatClient.OnIncomingConnection(AConnection: TAHiddenConnection);
 begin
-  TReceiver.Create(AConnection);
+  writeln('** incoming connection.');
+  //AConnection.StartReceiver;
   //AConnection.WriteLn('good bye!');
   //AConnection.Free;
 end;

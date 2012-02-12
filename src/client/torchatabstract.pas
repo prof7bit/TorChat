@@ -18,6 +18,7 @@ type
   TABuddy = class;
   TABuddyList = class;
   TAHiddenConnection = class;
+  TAReceiver = class;
 
   TAClient = class(TObject)
   strict protected
@@ -30,10 +31,10 @@ type
   strict protected
     FList: array of TABuddy;
   public
-    procedure AddBuddy(ABuddy: TABuddy); virtual abstract;
-    procedure RemoveBuddy(ABuddy: TABuddy); virtual abstract;
-    procedure Save; virtual abstract;
-    function Count: Integer; virtual abstract;
+    procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
+    procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
+    procedure Save; virtual; abstract;
+    function Count: Integer; virtual; abstract;
   end;
 
   TABuddy = class(TObject)
@@ -41,8 +42,8 @@ type
     FClient: TAClient;
     FConnIncoming: TAHiddenConnection;
     FConnOutgoing: TAHiddenConnection;
-    procedure SetIncoming(AConn: TAHiddenConnection); virtual abstract;
-    procedure SetOutgoing(AConn: TAHiddenConnection); virtual abstract;
+    procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
+    procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
   public
     property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
@@ -51,9 +52,16 @@ type
   TAHiddenConnection = class(TConnection)
   strict protected
     FBuddy: TABuddy;
-    procedure SetBuddy(ABuddy: TABuddy); virtual abstract;
+    FReceiver: TAReceiver;
+    procedure SetBuddy(ABuddy: TABuddy); virtual; abstract;
   public
+    procedure OnConnectionClose; virtual; abstract;
     property Buddy: TABuddy read FBuddy write SetBuddy;
+  end;
+
+  TAReceiver = class(TThread)
+  strict protected
+    FConnection: TAHiddenConnection;
   end;
 
 implementation

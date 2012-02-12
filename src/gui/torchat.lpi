@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="8">
+    <Units Count="10">
       <Unit0>
         <Filename Value="torchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -79,6 +79,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="torchatabstract"/>
       </Unit7>
+      <Unit8>
+        <Filename Value="../client/receiver.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="receiver"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../client/connection.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="connection"/>
+      </Unit9>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -93,15 +103,9 @@
     </SearchPaths>
     <CodeGeneration>
       <SmartLinkUnit Value="True"/>
-      <Optimizations>
-        <VariablesInRegisters Value="True"/>
-        <UncertainOptimizations Value="True"/>
-        <OptimizationLevel Value="3"/>
-      </Optimizations>
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>
@@ -124,7 +128,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="4">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -134,6 +138,9 @@
       <Item3>
         <Name Value="EFOpenError"/>
       </Item3>
+      <Item4>
+        <Name Value="ENetworkError"/>
+      </Item4>
     </Exceptions>
   </Debugging>
 </CONFIG>
