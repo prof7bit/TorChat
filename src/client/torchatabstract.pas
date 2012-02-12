@@ -1,7 +1,9 @@
 { This unit defines the interfaces between the various classes
-  of the client through abstract base classes. They will all be
-  implemented in separate units and all they need to know about
-  each other is clearly defined below.
+  of the client through abstract base classes. This is a lot of
+  Bolierplate but now we have a clear definition of what all the
+  objects are allowed to know about each other in one single place.
+  This file also serves as some kind of documentation about the
+  containment hierarchy and the internal API.
 }
 unit torchatabstract;
 

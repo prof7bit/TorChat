@@ -9,8 +9,11 @@ uses
 
 type
 
-  { TTorChatClient }
-
+  { TTorChatClient implements the abstract TAClient. Together with all its
+    contained objects this represents a fully functional TorChat client.
+    The GUI (or libtorchat or a command line client) will derive a class
+    from TTorChatClient overriding the virtual event methods to hook into
+    the events and then simply create an instance of it. }
   TTorChatClient = class(TAClient)
     constructor Create; reintroduce;
   public
