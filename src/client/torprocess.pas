@@ -12,7 +12,7 @@ type
   { TTor }
 
   TTor = class(TProcess)
-    constructor Create(AOwner: TComponent); reintroduce;
+    constructor Create; reintroduce;
   public
     destructor Destroy; override;
   end;
@@ -21,9 +21,9 @@ implementation
 
 { TTor }
 
-constructor TTor.Create(AOwner: TComponent);
+constructor TTor.Create;
 begin
-  inherited Create(AOwner);
+  inherited Create(nil);
   self.Options := [poStderrToOutPut];
   Self.CurrentDirectory := FileUtil.AppendPathDelim(ConfGetDataDir) + 'tor';
   Self.Executable := ConfGetTorExe;

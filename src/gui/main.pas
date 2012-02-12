@@ -33,7 +33,7 @@ implementation
 
 procedure TFMain.FormCreate(Sender: TObject);
 begin
-  Self.FClient := TMyClient.Create(Self);
+  Self.FClient := TMyClient.Create;
 end;
 
 procedure TFMain.FormDestroy(Sender: TObject);

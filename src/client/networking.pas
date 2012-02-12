@@ -9,7 +9,6 @@ uses
   Classes, SysUtils, Sockets, resolve;
 
 const
-  SOCKS_USER_ID = 'torchat';
   Sys_EINPROGRESS = 115;
   Sys_EAGAIN = 11;
 {$ifdef windows}
@@ -20,6 +19,9 @@ const
   SND_FLAGS = MSG_NOSIGNAL;
   RCV_FLAGS = MSG_NOSIGNAL;
 {$endif}
+
+var
+  SOCKS_USER_ID : String = '';
 
 type
   ENetworkError = class(Exception)

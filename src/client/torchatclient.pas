@@ -5,20 +5,20 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, clientconfig, torprocess, networking;
+  Classes, SysUtils, clientconfig, torprocess, networking, torchatabstract;
 
 type
 
   { TTorChatClient }
 
-  TTorChatClient = class(TComponent)
-    constructor Create(AOwner: TComponent); reintroduce;
+  TTorChatClient = class(TAClient)
+    constructor Create; reintroduce;
   public
     destructor Destroy; override;
   strict protected
     FTor: TTor;
     FListener: TListener;
-    procedure OnIncomingConnection(AConnection: TConnection);
+    procedure OnIncomingConnection(AConnection: TAHiddenConnection);
   end;
 
 
@@ -26,13 +26,13 @@ implementation
 
 { TTorChatClient }
 
-constructor TTorChatClient.Create(AOwner: TComponent);
+constructor TTorChatClient.Create;
 var
   C : TConnection;
 begin
-  Inherited Create(AOwner);
-  self.FTor := TTor.Create(self);
-  self.FListener := TListener.Create(ConfGetListenPort, @OnIncomingConnection);
+  Inherited Create;
+  self.FTor := TTor.Create;
+  self.FListener := TListener.Create(ConfGetListenPort, TListenerCallback(@OnIncomingConnection));
 
   repeat
     try
@@ -55,7 +55,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TTorChatClient.OnIncomingConnection(AConnection: TConnection);
+procedure TTorChatClient.OnIncomingConnection(AConnection: TAHiddenConnection);
 begin
   TReceiver.Create(AConnection);
   //AConnection.WriteLn('good bye!');
