@@ -16,13 +16,12 @@ type
     from TTorChatClient overriding the virtual event methods to hook into
     the events and then simply create an instance of it. }
   TTorChatClient = class(TAClient)
-    constructor Create; reintroduce;
-  public
-    destructor Destroy; override;
   strict protected
     FTor: TTor;
-    FListener: TListener;
+    FSock : TSocketWrapper;
     procedure OnIncomingConnection(AConnection: TAHiddenConnection);
+  public
+    constructor Create(AOwner: TComponent); reintroduce;
   end;
 
 
@@ -30,18 +29,22 @@ implementation
 
 { TTorChatClient }
 
-constructor TTorChatClient.Create;
+constructor TTorChatClient.Create(AOwner: TComponent);
 var
   C : TAHiddenConnection;
 begin
-  Inherited Create;
-  self.FTor := TTor.Create;
-  self.FListener := TListener.Create(ConfGetListenPort, TListenerCallback(@OnIncomingConnection));
-
+  Inherited Create(AOwner);
+  FTor := TTor.Create(self);
+  FSock := TSocketWrapper.Create(Self);
+  FSock.SocksProxyAddress := ConfGetTorHost;
+  FSock.SocksProxyPort := ConfGetTorPort;
+  FSock.ConnectionClass := THiddenConnection;
+  FSock.Bind(ConfGetListenPort, TListenerCallback(@OnIncomingConnection));
+  (*
   repeat
     try
       WriteLn('trying to connect...');
-      C := ConnectSocks4a(ConfGetTorHost, ConfGetTorPort, 'ddcbrqjsdar3dahu.onion', 11009) as TAHiddenConnection;
+      C := FSock.Connect('ddcbrqjsdar3dahu.onion', 11009) as THiddenConnection;
       C.Send('this packet'#10'has many'#10'lines in it but the last line ');
       C.Send('ends in the next packet'#10);
       C.Send('and here we have a packet completely without delimiter ');
@@ -60,14 +63,7 @@ begin
       Sleep(3000);
     end;
   until False;
-end;
-
-destructor TTorChatClient.Destroy;
-begin
-  self.FListener.Terminate;
-  self.FListener.Free;
-  self.FTor.Free;
-  inherited Destroy;
+  *)
 end;
 
 procedure TTorChatClient.OnIncomingConnection(AConnection: TAHiddenConnection);

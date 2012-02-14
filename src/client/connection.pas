@@ -5,7 +5,7 @@ unit connection;
 interface
 
 uses
-  Classes, SysUtils, networking, torchatabstract, receiver;
+  Classes, SysUtils, torchatabstract, receiver;
 
 type
 
@@ -54,10 +54,5 @@ begin
   inherited Destroy;
 end;
 
-initialization
-  // tell the networking unit which TConnection descendant
-  // we want it to use when creating new connection obects
-  networking.ConnectionClass := THiddenConnection;
-  networking.SOCKS_USER_ID := 'torchat';
 end.
 

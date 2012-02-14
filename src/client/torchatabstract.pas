@@ -20,14 +20,14 @@ type
   TAHiddenConnection = class;
   TAReceiver = class;
 
-  TAClient = class(TObject)
+  TAClient = class(TComponent)
   strict protected
     FBuddyList: TABuddyList;
   public
     property BuddyList: TABuddyList read FBuddyList;
   end;
 
-  TABuddyList = class(TObject)
+  TABuddyList = class(TComponent)
   strict protected
     FList: array of TABuddy;
   public

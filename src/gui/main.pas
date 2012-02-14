@@ -17,7 +17,6 @@ type
   { TFMain }
   TFMain = class(TForm)
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
   strict private
     FClient : TMyClient;
   end;
@@ -33,13 +32,9 @@ implementation
 
 procedure TFMain.FormCreate(Sender: TObject);
 begin
-  Self.FClient := TMyClient.Create;
+  Self.FClient := TMyClient.Create(Self);
 end;
 
-procedure TFMain.FormDestroy(Sender: TObject);
-begin
-  Self.FClient.Free;
-end;
 
 end.
 
