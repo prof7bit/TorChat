@@ -10,7 +10,6 @@ uses
 type
 
   { THiddenConnection }
-
   THiddenConnection = class(TAHiddenConnection)
     constructor Create(AHandle: THandle); override;
     procedure Send(AData: String); override;
@@ -22,7 +21,6 @@ type
 implementation
 
 { THiddenConnection }
-
 
 constructor THiddenConnection.Create(AHandle: THandle);
 begin

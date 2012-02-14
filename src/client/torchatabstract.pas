@@ -49,8 +49,6 @@ type
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
   end;
 
-  { TAHiddenConnection }
-
   TAHiddenConnection = class(TConnection)
   strict protected
     FBuddy: TABuddy;
