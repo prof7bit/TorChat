@@ -30,7 +30,6 @@ type
     destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
-    procedure WriteLn(S: String); virtual;
     procedure DoClose; virtual;
   strict protected
     FClosed: Boolean;
@@ -95,7 +94,6 @@ procedure ConnectSocketHandle(ASocket: THandle; AServer: String; APort: DWord);
 var
   HostAddr: THostAddr;     // host byte order
   SockAddr: TInetSockAddr; // network byte order
-  HSocket: THandle;
 begin
   HostAddr := NameResolve(AServer);
   SockAddr.sin_family := AF_INET;
@@ -176,14 +174,6 @@ begin
   Result := fpRecv(Handle, @Buffer, Count, RCV_FLAGS);
   if Result = SOCKET_ERROR then
     DoClose;
-end;
-
-procedure TConnection.WriteLn(S: String);
-var
-  Buf: String;
-begin
-  Buf := S + #10; // LF is the TorChat message delimiter (on all platforms!)
-  self.Write(Buf[1], Length(Buf));
 end;
 
 procedure TConnection.DoClose;

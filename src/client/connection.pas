@@ -13,6 +13,8 @@ type
 
   THiddenConnection = class(TAHiddenConnection)
     constructor Create(AHandle: THandle); override;
+    procedure Send(AData: String); override;
+    procedure SendLine(ALine: String); override;
     procedure OnConnectionClose; override;
     destructor Destroy; override;
   end;
@@ -29,14 +31,24 @@ begin
   WriteLn('created connection');
 end;
 
+procedure THiddenConnection.Send(AData: String);
+begin
+  Self.Write(AData[1], Length(AData));
+end;
+
+procedure THiddenConnection.SendLine(ALine: String);
+begin
+  Self.Send(ALine + #10);
+end;
+
 procedure THiddenConnection.OnConnectionClose;
 begin
-  system.writeln('*** OnConnectionClose');
+  WriteLn('*** OnConnectionClose');
 end;
 
 destructor THiddenConnection.Destroy;
 begin
-  WriteLn('destroying connection');
+  Self.DoClose; // this will also let the receiver leave the blocking recv()
   FReceiver.Terminate;
   FReceiver.Free;
   inherited Destroy;

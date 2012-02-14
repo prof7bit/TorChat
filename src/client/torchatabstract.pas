@@ -49,13 +49,17 @@ type
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
   end;
 
+  { TAHiddenConnection }
+
   TAHiddenConnection = class(TConnection)
   strict protected
     FBuddy: TABuddy;
     FReceiver: TAReceiver;
     procedure SetBuddy(ABuddy: TABuddy); virtual; abstract;
   public
-    procedure OnConnectionClose; virtual; abstract;
+    procedure Send(AData: String); virtual; abstract;
+    procedure SendLine(ALine: String); virtual; abstract;
+    procedure OnConnectionClose; virtual; abstract; // called by the receiver
     property Buddy: TABuddy read FBuddy write SetBuddy;
   end;
 
