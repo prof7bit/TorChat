@@ -33,12 +33,12 @@ end;
 
 procedure THiddenConnection.Send(AData: String);
 begin
-  Self.Write(AData[1], Length(AData));
+  Write(AData[1], Length(AData));
 end;
 
 procedure THiddenConnection.SendLine(ALine: String);
 begin
-  Self.Send(ALine + #10);
+  Send(ALine + #10);
 end;
 
 procedure THiddenConnection.OnConnectionClose;
@@ -48,7 +48,7 @@ end;
 
 destructor THiddenConnection.Destroy;
 begin
-  Self.DoClose; // this will also let the receiver leave the blocking recv()
+  DoClose; // this will also let the receiver leave the blocking recv()
   FReceiver.Terminate;
   FReceiver.Free;
   inherited Destroy;

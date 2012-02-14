@@ -24,18 +24,18 @@ implementation
 constructor TTor.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  self.Options := [poStderrToOutPut];
-  Self.CurrentDirectory := FileUtil.AppendPathDelim(ConfGetDataDir) + 'tor';
-  Self.Executable := ConfGetTorExe;
-  Self.Parameters.Add('-f');
-  Self.Parameters.Add('torrc.txt');
-  Self.Execute;
+  Options := [poStderrToOutPut];
+  CurrentDirectory := FileUtil.AppendPathDelim(ConfGetDataDir) + 'tor';
+  Executable := ConfGetTorExe;
+  Parameters.Add('-f');
+  Parameters.Add('torrc.txt');
+  Execute;
 end;
 
 destructor TTor.Destroy;
 begin
   writeln('torprocess destroying');
-  Self.Terminate(0);
+  Terminate(0);
   inherited Destroy;
 end;
 

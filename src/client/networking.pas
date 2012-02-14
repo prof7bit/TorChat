@@ -241,7 +241,7 @@ end;
 
 procedure TListenerThread.Terminate;
 begin
-  CloseHandle(Self.FSocket);
+  CloseHandle(FSocket);
   inherited Terminate;
 end;
 
