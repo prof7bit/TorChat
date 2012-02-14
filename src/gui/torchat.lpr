@@ -12,7 +12,7 @@ uses
 {$R *.res}
 
 begin
-  Application.Title := 'project1';
+  Application.Title := 'TorChat';
   RequireDerivedFormResource := True;
   Application.Initialize;
   Application.CreateForm(TFMain, FMain);
