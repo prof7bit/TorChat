@@ -37,7 +37,7 @@ type
     function Count: Integer; virtual; abstract;
   end;
 
-  TABuddy = class(TObject)
+  TABuddy = class
   strict protected
     FClient: TAClient;
     FConnIncoming: TAHiddenConnection;

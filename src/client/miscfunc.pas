@@ -15,6 +15,9 @@ function Split(var Line: String; Sep: Char): String;
 
 implementation
 
+{ split the string Line at the first occurrence of Sep, return the left part
+  in the function result and the right part in var Line. If no separator is
+  found then an EEndOfString exception is generated }
 function Split(var Line: String; Sep: Char): String;
 var
   P : Integer;
