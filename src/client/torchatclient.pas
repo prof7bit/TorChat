@@ -36,10 +36,14 @@ begin
   Inherited Create(AOwner);
   FTor := TTor.Create(self);
   FSock := TSocketWrapper.Create(Self);
-  FSock.SocksProxyAddress := ConfGetTorHost;
-  FSock.SocksProxyPort := ConfGetTorPort;
-  FSock.ConnectionClass := THiddenConnection;
-  FSock.Bind(ConfGetListenPort, TListenerCallback(@OnIncomingConnection));
+  with FSock do begin
+    SocksProxyAddress := ConfGetTorHost;
+    SocksProxyPort := ConfGetTorPort;
+    OutgoingClass := THiddenConnection;
+    IncomingClass := THiddenConnection;
+    IncomingCallback := TListenerCallback(@OnIncomingConnection);
+    Bind(ConfGetListenPort);
+  end;
   (*
   repeat
     try

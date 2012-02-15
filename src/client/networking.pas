@@ -47,28 +47,32 @@ type
     procedure Execute; override;
     procedure Terminate;
   strict protected
-    FPort     : DWord;
-    FSocket   : THandle;
-    FCallback : TListenerCallback;
-    FConnectionClass: TConnectionClass;
+    FPort             : DWord;
+    FSocket           : THandle;
+    FCallback         : TListenerCallback;
+    FConnectionClass  : TConnectionClass
   end;
 
   { TSocketWrapper }
   TSocketWrapper = Class(TComponent)
   strict protected
-    FSocksProxyAddress: String;
-    FSocksProxyPort: DWord;
-    FSocksUser: String;
-    FConnectionClass: TConnectionClass;
-    FListeners: array of TListenerThread;
+    FSocksProxyAddress  : String;
+    FSocksProxyPort     : DWord;
+    FSocksUser          : String;
+    FOutgoingClass      : TConnectionClass;
+    FIncomingClass      : TConnectionClass;
+    FIncomingCallback   : TListenerCallback;
+    FListeners          : array of TListenerThread;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Bind(APort: DWord; ACallback: TListenerCallback);
+    procedure Bind(APort: DWord);
     function Connect(AServer: String; APort: DWord): TConnection;
     property SocksProxyAddress: String write FSocksProxyAddress;
     property SocksProxyPort: DWord write FSocksProxyPort;
-    property ConnectionClass: TConnectionClass write FConnectionClass;
+    property OutgoingClass: TConnectionClass write FOutgoingClass;
+    property IncomingClass: TConnectionClass write FIncomingClass;
+    property IncomingCallback: TListenerCallback write FIncomingCallback;
   end;
 
 
@@ -136,7 +140,9 @@ end;
 constructor TSocketWrapper.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnectionClass := TConnection;
+  FOutgoingClass := TConnection;
+  FIncomingClass := TConnection;
+  FIncomingCallback := nil;
   FSocksUser := '';
   FSocksProxyAddress := '';
   FSocksProxyPort := 0;
@@ -156,11 +162,13 @@ begin
   inherited Destroy;
 end;
 
-procedure TSocketWrapper.Bind(APort: DWord; ACallback: TListenerCallback);
+procedure TSocketWrapper.Bind(APort: DWord);
 var
   Listener: TListenerThread;
 begin
-  Listener := TListenerThread.Create(APort, ACallback, FConnectionClass);
+  if FIncomingCallback = nil then
+    raise ENetworkError.Create('No callback for incoming connections');
+  Listener := TListenerThread.Create(APort, FIncomingCallback, FIncomingClass);
   SetLength(FListeners, Length(FListeners) + 1);
   FListeners[Length(FListeners)-1] := Listener;
 end;
@@ -196,7 +204,7 @@ begin
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort, ANS[2]]
       );
   end;
-  Result := FConnectionClass.Create(HSocket);
+  Result := FOutgoingClass.Create(HSocket);
 end;
 
 { TListenerThread }
