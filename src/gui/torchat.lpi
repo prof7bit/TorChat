@@ -131,7 +131,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="torchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -189,6 +189,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="miscfunc"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="../client/torchatprotocol.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="torchatprotocol"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

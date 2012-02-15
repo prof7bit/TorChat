@@ -5,7 +5,7 @@ unit receiver;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract, miscfunc;
+  Classes, SysUtils, torchatabstract, torchatprotocol, miscfunc;
 
 type
   { TReceiver - Each conection contains a TAReceiver object which is
@@ -69,8 +69,25 @@ begin
 end;
 
 procedure TReceiver.OnReceivedLine(Line: String);
+var
+  Command: String;
+  Msg: TAMessage;
 begin
-  Writeln('OnReceivedLine >>>' + Line + '<<<');
+  try
+    Command := Split(Line, ' ');
+  except
+    exit;
+  end;
+
+  Msg := GetMsgClassFromCommand(Command).Create(Self.FConnection, Line);
+  try
+    Msg.Parse;
+    Msg.Execute;
+  except
+    on Ex: Exception do begin
+      WriteLn(Ex.Message);
+    end;
+  end;
 end;
 
 end.

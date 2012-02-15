@@ -61,6 +61,17 @@ type
     property Buddy: TABuddy read FBuddy write SetBuddy;
   end;
 
+  { TAMessage represents a protocol message }
+  TAMessage = class
+  strict protected
+    FConnection: TAHiddenConnection;
+  public
+    class function GetCommand: String; virtual; abstract;
+    constructor Create(AConnection: TAHiddenConnection; AContent: String); virtual; abstract;
+    function Parse: Boolean; virtual; abstract;  // True = success
+    function Execute: Boolean; virtual; abstract;// True = success
+  end;
+
   TAReceiver = class(TThread)
   strict protected
     FConnection: TAHiddenConnection;
