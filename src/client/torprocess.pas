@@ -34,7 +34,6 @@ end;
 
 destructor TTor.Destroy;
 begin
-  writeln('torprocess destroying');
   Terminate(0);
   inherited Destroy;
 end;

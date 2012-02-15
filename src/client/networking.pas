@@ -153,7 +153,6 @@ destructor TSocketWrapper.Destroy;
 var
   Listener: TListenerThread;
 begin
-  writeln('socketwrapper destroying');
   for Listener in FListeners do begin
     Listener.Terminate;
     Listener.Free;
