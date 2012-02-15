@@ -5,7 +5,7 @@ unit receiver;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract;
+  Classes, SysUtils, torchatabstract, miscfunc;
 
 type
   { TReceiver - Each conection contains a TAReceiver object which is
@@ -23,22 +23,6 @@ type
 
 implementation
 
-type
-  EEndOfString = class(Exception)
-  end;
-
-function Split(var Line: String; Sep: Char): String;
-var
-  P : Integer;
-begin
-  P := Pos(Sep, Line);
-  if P > 0 then begin
-    Result := LeftStr(Line, P-1);
-    Line := RightStr(Line, Length(Line) - P);
-  end
-  else
-    raise EEndOfString.Create('');
-end;
 
 { TReceiver }
 
