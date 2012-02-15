@@ -6,7 +6,7 @@ ASSERT_LAZ = $(if $(LAZ), ,lazbuild_not_found)
 PREF = $(if $(PREFIX), $(PREFIX), $(PREFIX_DEFAULT))
 
 all: $(ASSERT_LAZ)
-	$(LAZ) $(LPR)
+	$(LAZ) --build-mode=Release $(LPR)
 	upx $(EXE)
 	@echo "*** $(EXE) successfully built :-)"
 	
