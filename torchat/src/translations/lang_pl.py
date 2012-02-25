@@ -153,7 +153,7 @@ BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Połączony, oczekiwanie na połączenie
 BPOP_CLIENT_SOFTWARE = u"Klient: %s %s"
 
 #logging of conversations to file
-# LOG_HEADER = u"This log file is not signed and has no cogency of proof"
+LOG_HEADER = u"Ten plik dziennika jest niepodpisany i nie stanowi żadnego dowodu"
 LOG_STARTED = u"Rejestrowanie rozpoczęte"
 LOG_STOPPED = u"Rejestrowanie zakończone"
 LOG_DELETED = u"Pliki dziennika zostały usunięte"
