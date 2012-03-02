@@ -1618,6 +1618,10 @@ class FileTransferWindow(wx.Frame):
             self.bytes_total = receiver.file_size
             self.file_name = file_name
 
+            if config.getint("files","autosave_downloaded_files") == 1:
+                    self.file_name_save = config.get("files", "autosave_downloaded_files_dir") + self.file_name
+                    self.transfer_object.setFileNameSave(self.file_name_save)
+
         self.panel = wx.Panel(self)
         self.outer_sizer = wx.BoxSizer()
         grid_sizer = wx.GridBagSizer(vgap = 5, hgap = 5)
@@ -1632,18 +1636,22 @@ class FileTransferWindow(wx.Frame):
         grid_sizer.Add(self.progress_bar, (1, 0), (1, 4), wx.EXPAND)
 
         if self.is_receiver:
-            # the first button that is created will have the focus, so
-            # we create the save button first. 
-            # SetDefault() does not seem to work in a wx.Frame.
-            self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, lang.BTN_SAVE_AS)
-            self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
-            
+            if config.getint("files", "autosave_downloaded_files") == 0:
+                # the first button that is created will have the focus, so
+                # we create the save button first. 
+                # SetDefault() does not seem to work in a wx.Frame.
+                self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, lang.BTN_SAVE_AS)
+                self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
+                
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
 
         if self.is_receiver:
-            grid_sizer.Add(self.btn_cancel, (2, 2))
-            grid_sizer.Add(self.btn_save, (2, 3))
+            if config.getint("files", "autosave_downloaded_files") == 1:
+                grid_sizer.Add(self.btn_cancel, (2, 3))
+            else:
+                grid_sizer.Add(self.btn_cancel, (2, 2))
+                grid_sizer.Add(self.btn_save, (2, 3))
         else:
             grid_sizer.Add(self.btn_cancel, (2, 3))
                 

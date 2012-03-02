@@ -42,6 +42,8 @@ config_defaults = {
     ("logging", "log_level") : 0,
     ("files", "temp_files_in_data_dir") : 1,
     ("files", "temp_files_custom_dir") : "",
+    ("files", "autosave_downloaded_files") : 0,
+    ("files", "autosave_downloaded_files_dir") : "",
     ("gui", "language") : "en",
     ("gui", "notification_popup") : 1,
     ("gui", "notification_method") : "generic",
