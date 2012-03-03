@@ -1622,11 +1622,13 @@ class FileTransferWindow(wx.Frame):
             self.file_name = file_name
 
             if autosave_downloaded_files == 1:
-                    self.file_name_save = config.get("files", "autosave_downloaded_files_dir") + self.file_name
+                    download_dir = config.get("files", "autosave_downloaded_files_dir")
+                    self.file_name_save = os.path.join(download_dir, self.file_name)
                     if os.path.exists(self.file_name_save):
-                        print "(2) file %s already exists" % self.file_name_save
-                        randprefix = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(5))
-                        self.file_name_save = config.get("files", "autosave_downloaded_files_dir") + randprefix + "_" + self.file_name
+                        print "(2) file %s already exists, let's use a random suffix" % self.file_name_save
+                        file_name, file_ext = os.path.splitext(self.file_name)
+                        randsuffix = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(5))
+                        self.file_name_save = os.path.join(download_dir,file_name + "_" + randsuffix + file_ext)
                     self.transfer_object.setFileNameSave(self.file_name_save)
 
         self.panel = wx.Panel(self)
