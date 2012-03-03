@@ -29,6 +29,8 @@ import version
 import dlg_settings
 import translations
 import tc_notification
+import string
+import random
 lang = translations.lang_en
 tb = config.tb
 tb1 = config.tb1
@@ -1606,6 +1608,7 @@ class FileTransferWindow(wx.Frame):
         self.completed = False
         self.error = False
         self.error_msg = ""
+        autosave_downloaded_files = config.getint("files","autosave_downloaded_files")
 
         if not receiver:
             self.is_receiver = False
@@ -1618,8 +1621,12 @@ class FileTransferWindow(wx.Frame):
             self.bytes_total = receiver.file_size
             self.file_name = file_name
 
-            if config.getint("files","autosave_downloaded_files") == 1:
+            if autosave_downloaded_files == 1:
                     self.file_name_save = config.get("files", "autosave_downloaded_files_dir") + self.file_name
+                    if os.path.exists(self.file_name_save):
+                        print "(2) file %s already exists" % self.file_name_save
+                        randprefix = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(5))
+                        self.file_name_save = config.get("files", "autosave_downloaded_files_dir") + randprefix + "_" + self.file_name
                     self.transfer_object.setFileNameSave(self.file_name_save)
 
         self.panel = wx.Panel(self)
@@ -1636,7 +1643,7 @@ class FileTransferWindow(wx.Frame):
         grid_sizer.Add(self.progress_bar, (1, 0), (1, 4), wx.EXPAND)
 
         if self.is_receiver:
-            if config.getint("files", "autosave_downloaded_files") == 0:
+            if autosave_downloaded_files == 0:
                 # the first button that is created will have the focus, so
                 # we create the save button first. 
                 # SetDefault() does not seem to work in a wx.Frame.
@@ -1647,7 +1654,7 @@ class FileTransferWindow(wx.Frame):
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
 
         if self.is_receiver:
-            if config.getint("files", "autosave_downloaded_files") == 1:
+            if autosave_downloaded_files == 1:
                 grid_sizer.Add(self.btn_cancel, (2, 3))
             else:
                 grid_sizer.Add(self.btn_cancel, (2, 2))
