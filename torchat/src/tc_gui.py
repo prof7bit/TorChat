@@ -1608,7 +1608,7 @@ class FileTransferWindow(wx.Frame):
         self.completed = False
         self.error = False
         self.error_msg = ""
-        autosave_downloaded_files = config.getint("files","autosave_downloaded_files")
+        self.autosave_downloaded_files = config.getint("files","autosave_downloaded_files")
 
         if not receiver:
             self.is_receiver = False
@@ -1621,7 +1621,7 @@ class FileTransferWindow(wx.Frame):
             self.bytes_total = receiver.file_size
             self.file_name = file_name
 
-            if autosave_downloaded_files == 1:
+            if self.autosave_downloaded_files:
                     download_dir = config.get("files", "autosave_downloaded_files_dir")
                     self.file_name_save = os.path.join(download_dir, self.file_name)
                     if os.path.exists(self.file_name_save):
@@ -1645,7 +1645,7 @@ class FileTransferWindow(wx.Frame):
         grid_sizer.Add(self.progress_bar, (1, 0), (1, 4), wx.EXPAND)
 
         if self.is_receiver:
-            if autosave_downloaded_files == 0:
+            if not self.autosave_downloaded_files:
                 # the first button that is created will have the focus, so
                 # we create the save button first. 
                 # SetDefault() does not seem to work in a wx.Frame.
@@ -1656,7 +1656,7 @@ class FileTransferWindow(wx.Frame):
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
 
         if self.is_receiver:
-            if autosave_downloaded_files == 1:
+            if self.autosave_downloaded_files:
                 grid_sizer.Add(self.btn_cancel, (2, 3))
             else:
                 grid_sizer.Add(self.btn_cancel, (2, 2))
@@ -1731,8 +1731,12 @@ class FileTransferWindow(wx.Frame):
                 if self.file_name_save != "":
                     self.btn_cancel.SetLabel(lang.BTN_CLOSE)
                     self.transfer_object.close() #this will actually save the file
+                    if self.autosave_downloaded_files:
+                        self.Destroy()
             else:
                 self.btn_cancel.SetLabel(lang.BTN_CLOSE)
+                if self.autosave_downloaded_files:
+                    self.Destroy()
 
     def onDataChange(self, total, complete, error_msg=""):
         #will be called from the FileSender/FileReceiver-object in the
