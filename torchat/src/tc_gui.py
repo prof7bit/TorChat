@@ -1010,6 +1010,7 @@ class BuddyToolTip(wx.PopupWindow):
 
 
         self.label = wx.StaticText(self.panel)
+        self.label.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOTEXT))
         self.label.SetLabel(text)
         sizer.Add(self.label, 0, wx.ALL, 5)
 

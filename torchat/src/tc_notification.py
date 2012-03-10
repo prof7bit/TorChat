@@ -94,6 +94,7 @@ class NotificationWindowGeneric(wx.Frame):
         sizer.Add(static_image, 0, wx.ALL, 5 )
 
         self.label = wx.StaticText(self.panel)
+        self.label.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOTEXT))
         self.label.SetLabel("%s\n\n%s" % (name, text))
         sizer.Add(self.label, 0, wx.ALL, 5 )
 
