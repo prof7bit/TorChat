@@ -45,6 +45,7 @@ MPOP_ABOUT = u"About TorChat"
 MPOP_ASK_AUTHOR = u"Ask %s..."
 MPOP_SETTINGS = u"Settings..."
 MPOP_EDIT_MY_PROFILE = u"Edit my profile..."
+MPOP_COPY_ID_TO_CLIPBOARD=u"Copy ID to clipboard"
 
 #chat window popup menu
 CPOP_COPY = u"Copy"
