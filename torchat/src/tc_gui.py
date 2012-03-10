@@ -231,6 +231,10 @@ class PopupMenu(wx.Menu):
                 self.AppendItem(item)
                 self.Bind(wx.EVT_MENU, self.onClearOffline, item)
 
+            item = wx.MenuItem(self, wx.NewId(), lang.MPOP_COPY_ID_TO_CLIPBOARD)
+            self.AppendItem(item)
+            self.Bind(wx.EVT_MENU, self.onCopyIdToClipboard)
+
             self.AppendSeparator()
 
             if not self.isCurrentBuddyLoggingActivated():
@@ -337,6 +341,13 @@ class PopupMenu(wx.Menu):
             tc_client.wipeFile(self.buddy.getOfflineFileName())
         except:
             pass
+
+    def onCopyIdToClipboard(self, evt):
+        if not wx.TheClipboard.IsOpened():
+            address = wx.TextDataObject(self.buddy.address)
+            wx.TheClipboard.Open()
+            wx.TheClipboard.SetData(address)
+            wx.TheClipboard.Close()
 
     def getChatWindow(self):
         # this is called by the on*Log() functions,
