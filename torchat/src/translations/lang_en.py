@@ -144,6 +144,9 @@ NOTICE_DELAYED_MSG_WAITING = u"delayed messages waiting to be sent"
 NOTICE_DELAYED_MSG_SENT = u"delayed messages have been sent"
 NOTICE_DELAYED = u"delayed"
 
+#notices about file transfer status in the chat window
+NFT_INCOMING_FILE_COMPLETE = u"Transfer complete. File stored in %s"
+
 #messagebox for offline messages
 MSG_OFFLINE_TITLE = u"TorChat: queued messages"
 MSG_OFFLINE_EMPTY = u"there are no (more) queued messages for %s"

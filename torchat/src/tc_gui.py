@@ -1732,6 +1732,9 @@ class FileTransferWindow(wx.Frame):
                     self.btn_cancel.SetLabel(lang.BTN_CLOSE)
                     self.transfer_object.close() #this will actually save the file
                     if self.autosave_downloaded_files:
+                        for window in self.mw.chat_windows:
+                            if window.buddy == self.buddy:
+                                window.writeHintLine(os.linesep + "*** " + lang.NFT_INCOMING_FILE_COMPLETE % self.file_name_save)
                         self.Destroy()
             else:
                 self.btn_cancel.SetLabel(lang.BTN_CLOSE)

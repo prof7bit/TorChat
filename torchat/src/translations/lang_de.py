@@ -144,6 +144,9 @@ NOTICE_DELAYED_MSG_WAITING = u"Verzögerte Nachrichten in der Sendewarteschlange
 NOTICE_DELAYED_MSG_SENT = u"Verzögerte Nachrichten wurden gesendet"
 NOTICE_DELAYED = u"Verzögert"
 
+#notices about file transfer status in the chat window
+NFT_INCOMING_FILE_COMPLETE = u"Transfer vollständig. Datei gespeichert in %s"
+
 #messagebox for offline messages
 MSG_OFFLINE_TITLE = u"TorChat: Ungesendete Nachrichten"
 MSG_OFFLINE_EMPTY = u"Es liegen keine ungesendeten Nachrichten (mehr) für %s vor"
