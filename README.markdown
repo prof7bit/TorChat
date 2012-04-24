@@ -25,8 +25,10 @@ As some of you might have noticed already there is another branch silently growi
 in the dark in this repository, the torchat2 branch. This is intended to become a 
 complete rewrite of TorChat in FreePascal. The first result from this (and one of 
 the reasons for the rewrite) will be a plugin for the instant messenger Pidgin.
-Once this is complete and working I will also write a standalone GUI version which
-will eventually (in a far away future) replace the current Python TorChat.
+Don't hold your breath yet, at the moment it's still not much more than a mostly 
+empty skeleton but once this is complete and working I will also write a standalone 
+GUI version which will eventually (in a far away future) replace the current Python 
+TorChat.
 
 Currently most development time is going into the torchat2 branch. The existing user 
 contributed localizations for TorChat will not be lost, since most of the new GUI 
