@@ -22,6 +22,12 @@ unit purple;
 
 interface
 
+
+(******************************
+ *                            *
+ *       some GLIB stuff      *
+ *                            *
+ ******************************)
 type
   PGList = ^TGList;
   TGList = packed record
@@ -32,13 +38,14 @@ type
 
   GBoolean = Boolean32;
 
+  PGSourceFunc = function(user_data: Pointer): GBoolean; cdecl;
+
 
 (******************************
  *                            *
  *  from libpurple/plugin.h   *
  *                            *
  ******************************)
-
 const
   PURPLE_PLUGIN_MAGIC = 5;
   PURPLE_MAJOR_VERSION = 2;
@@ -156,6 +163,8 @@ var
  ****************************************)
 
   purple_plugin_register: function(var Plugin: TPurplePlugin): GBoolean; cdecl;
+  purple_timeout_add: function(Interval: Integer; cb: PGSourceFunc; user_data: Pointer): Integer; cdecl;
+  purple_timeout_remove: function(handle: Integer): GBoolean; cdecl;
   purple_debug_info: procedure(category: PChar; format: PChar; args: array of const); cdecl;
   purple_debug_warning: procedure(category: PChar; format: PChar; args: array of const); cdecl;
   purple_debug_error: procedure(category: PChar; format: PChar; args: array of const); cdecl;
@@ -289,6 +298,8 @@ begin
     HPurple := LoadLibrary(LibName);
     if HPurple <> NilHandle then begin
       Connect(purple_plugin_register, 'purple_plugin_register');
+      Connect(purple_timeout_add, 'purple_timeout_add');
+      Connect(purple_timeout_remove, 'purple_timeout_remove');
       Connect(purple_debug_info, 'purple_debug_info');
       Connect(purple_debug_warning, 'purple_debug_warning');
       Connect(purple_debug_error, 'purple_debug_error');

@@ -54,7 +54,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="purpletorchat"/>
+      <Filename Value="../../bin/purpletorchat"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
