@@ -24,7 +24,7 @@ unit torprocess;
 interface
 
 uses
-  Classes, SysUtils, process, clientconfig, FileUtil;
+  Classes, SysUtils, process, clientconfig;
 
 type
 
@@ -44,7 +44,7 @@ constructor TTor.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Options := [poStderrToOutPut];
-  CurrentDirectory := FileUtil.AppendPathDelim(ConfGetDataDir) + 'tor';
+  CurrentDirectory := ConcatPaths([ConfGetDataDir, 'tor']);
   Executable := ConfGetTorExe;
   Parameters.Add('-f');
   Parameters.Add('torrc.txt');

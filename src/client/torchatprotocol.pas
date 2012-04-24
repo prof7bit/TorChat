@@ -24,7 +24,7 @@ unit torchatprotocol;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract, miscfunc;
+  Classes, SysUtils, torchatabstract;
 
 type
 

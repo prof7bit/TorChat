@@ -3,7 +3,7 @@ library purpletorchat;
 {$mode objfpc}{$H+}
 
 uses
-  purple;
+  purple, torchatclient;
 
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin

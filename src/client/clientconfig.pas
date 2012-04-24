@@ -24,7 +24,7 @@ unit clientconfig;
 interface
 
 uses
-  Classes, SysUtils, FileUtil;
+  Classes, SysUtils;
 
   function ConfGetDataDir: String;
   function ConfGetTorExe: String;
@@ -36,13 +36,14 @@ implementation
 
 function ConfGetDataDir: String;
 begin
-  Result := ProgramDirectory;
+  {$warning this is a dirty hack for now, rewrite all that later when it works}
+  Result := GetCurrentDir;
 end;
 
 function ConfGetTorExe: String;
 begin
   {$ifdef win32}
-  Result := AppendPathDelim(ProgramDirectory) + 'tor\tor.exe';
+  Result := GetCurrentDir + '\tor\tor.exe';
   {$else}
   Result := '/usr/sbin/tor';
   {$endif}
