@@ -3,9 +3,12 @@
 *.res
 *.bak
 *.log
+*.so
+*.dll
+*.exe
 src/gui/lib
+src/purple/lib
 bin/torchat
 bin/torchat.exe
 bin/tor/tor_data
 bin/tor/hidden_service
-bin/tor/tor.exe

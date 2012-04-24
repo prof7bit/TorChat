@@ -1,7 +1,7 @@
 object FMain: TFMain
-  Left = 347
+  Left = 438
   Height = 240
-  Top = 137
+  Top = 298
   Width = 320
   Caption = 'TorChat'
   OnCreate = FormCreate
