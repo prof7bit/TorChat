@@ -59,7 +59,8 @@ def splitLine(text):
     """split a line of text on the first space character and return
     two strings, the first word and the remaining string. This is
     used for parsing the incoming messages from left to right since 
-    the command and its arguments are all delimited by spaces"""
+    the command and its arguments are all delimited by spaces and
+    the command may not contain spaces"""
     sp = text.split(" ")
     try:
         a = sp[0]
@@ -95,7 +96,11 @@ def encodeLF(blob):
     # delimiter which I chose to be 0x0a and because 0x0a is
     # often referred to as "newline" I call the chunks of
     # encoded data between them "lines" and each "line" is 
-    # representing exactly one protocol message.
+    # representing exactly one protocol message. 
+    #
+    # The first word of each line will be the command and 
+    # may only consist of [a..z] or underscore, see the
+    # individual message classes for detailed descriptions.
     return blob.replace("\\", "\\/").replace("\n", "\\n")
 
 def decodeLF(line):
@@ -1085,7 +1090,11 @@ def ProtocolMsgFromLine(bl, conn, line):
     
     # each protocol message as it is transmitted and received from the socket 
     # is in the following form (which I call the "line")
+    # 
     # <command>0x20<encoded>
+    # 
+    # future extensions to the protocol might define new commands
+    # but <command> may only consist of characters [a..z] or _
     # we split it at the first space character (0x20)
     command, encoded = splitLine(line)
     
