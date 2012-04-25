@@ -5,6 +5,26 @@ library purpletorchat;
 uses
   purple, torchatclient;
 
+type
+  { This class can be used to pass all kinds of data to our timer callbacks.
+    The structure is internal to our plugin and may contain whatever we want. }
+  TUserData = class
+    buddy_from: String;
+    buddy_to: String;
+    Status: String;
+    Message: String;
+    Param1: Integer;
+    Param2: Integer;
+    // not yet decided what other fields we will need
+  end;
+
+  PCallBack = function(UserData: TUserData): GBoolean; cdecl;
+
+function CastCallback(Func: PCallBack): PGSourceFunc; inline;
+begin
+  Result := PGSourceFunc(Func);
+end;
+
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   _info('loaded');

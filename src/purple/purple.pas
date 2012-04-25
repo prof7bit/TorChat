@@ -22,20 +22,6 @@ unit purple;
 
 interface
 
-type
-  { This class can be used to pass all kinds of data to our timer callbacks.
-    The structure is internal to our plugin and may contain whatever we want. }
-  TUserData = class
-    buddy_from: String;
-    buddy_to: String;
-    Status: String;
-    Message: String;
-    Param1: Integer;
-    Param2: Integer;
-    // not yet decided what other fields we will need
-  end;
-
-
 (******************************
  *                            *
  *       some GLIB stuff      *
@@ -51,7 +37,7 @@ type
 
   GBoolean = Boolean32;
 
-  PGSourceFunc = function(UserData: TUserData): GBoolean; cdecl;
+  PGSourceFunc = function(UserData: Pointer): GBoolean; cdecl;
 
 
 (******************************
@@ -162,7 +148,7 @@ type
 	  PURPLE_NOTIFY_MSG_INFO         // Information notification.
   );
 
-  PPurpleNotifyCloseCallback = procedure(UserData: TUserData); cdecl;
+  PPurpleNotifyCloseCallback = procedure(UserData: Pointer); cdecl;
 
 
 var
@@ -176,14 +162,14 @@ var
  ****************************************)
 
   purple_plugin_register: function(var Plugin: TPurplePlugin): GBoolean; cdecl;
-  purple_timeout_add: function(Interval: Integer; cb: PGSourceFunc; UserData: TUserData): Integer; cdecl;
+  purple_timeout_add: function(Interval: Integer; cb: PGSourceFunc; UserData: Pointer): Integer; cdecl;
   purple_timeout_remove: function(handle: Integer): GBoolean; cdecl;
   purple_debug_info: procedure(category: PChar; format: PChar; args: array of const); cdecl;
   purple_debug_warning: procedure(category: PChar; format: PChar; args: array of const); cdecl;
   purple_debug_error: procedure(category: PChar; format: PChar; args: array of const); cdecl;
   purple_notify_message: function(var Plugin: TPurplePlugin;
     typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
-    cb: PPurpleNotifyCloseCallback; UserData: TUserData): GBoolean; cdecl;
+    cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; cdecl;
 
 
 type
