@@ -36,16 +36,20 @@ implementation
 
 function ConfGetDataDir: String;
 begin
-  {$warning home directory hardcoded, dirty hack}
-  Result := '/home/bernd/.torchat2';
+  {$ifdef windows}
+    {$fatal Windows is not yet supported}
+  {$else}
+    {$warning home directory hardcoded, dirty hack}
+    Result := ExpandFileName('~/.torchat2');
+  {$endif}
 end;
 
 function ConfGetTorExe: String;
 begin
-  {$ifdef win32}
-  Result := GetCurrentDir + '\tor\tor.exe';
+  {$ifdef windows}
+    Result := GetCurrentDir + '\tor\tor.exe';
   {$else}
-  Result := '/usr/sbin/tor';
+    Result := '/usr/sbin/tor';
   {$endif}
 end;
 
