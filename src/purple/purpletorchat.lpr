@@ -32,6 +32,7 @@ end;
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Client := TTorChatClient.Create(nil);
+  _info(ConfGetHiddenServiceName);
   _info('loaded');
   Result := True;
 end;

@@ -71,7 +71,7 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="11">
+    <Units Count="12">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -127,6 +127,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="torchatabstract"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="../client/timers.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="timers"/>
+      </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

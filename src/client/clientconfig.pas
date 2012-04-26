@@ -31,6 +31,7 @@ uses
   function ConfGetListenPort: DWord;
   function ConfGetTorHost: String;
   function ConfGetTorPort: DWord;
+  function ConfGetHiddenServiceName: String;
 
 implementation
 
@@ -66,6 +67,25 @@ end;
 function ConfGetTorPort: DWord;
 begin
   Result := 11109;
+end;
+
+function ConfGetHiddenServiceName: String;
+var
+  FileName: String;
+  HostnameFile: TFileStream;
+const
+  OnionLength = 16;
+begin
+  FileName := ConcatPaths([ConfGetDataDir, 'tor/hidden_service/hostname']);
+  SetLength(Result, OnionLength);
+  try
+    HostnameFile := TFileStream.Create(FileName, fmOpenRead);
+    if HostnameFile.Read(Result[1], OnionLength) < OnionLength then
+      Result := '';
+  except
+    Result := '';
+  end;
+  HostnameFile.Free;
 end;
 
 end.
