@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, torchatabstract, clientconfig, torprocess, networking,
-  connection, timers;
+  connection;
 
 type
   { TTorChatClient implements the abstract TAClient. Together with all its
@@ -37,11 +37,7 @@ type
   strict protected
     FTor: TTor;
     FSock : TSocketWrapper;
-    FTimer: TTimer;
     procedure OnIncomingConnection(AConnection: TAHiddenConnection);
-    function OnTimer: Boolean;
-    function OnTimer1: Boolean;
-    function OnTimer2: Boolean;
   public
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
@@ -66,11 +62,6 @@ begin
     IncomingCallback := TListenerCallback(@OnIncomingConnection);
     Bind(ConfGetListenPort);
   end;
-
-  FTimer := TTimer.Create();
-  FTimer.AddTimer(2000, @OnTimer);
-  FTimer.AddTimer(200, @OnTimer1);
-  FTimer.AddTimer(7000, @OnTimer2);
 
   (*
   repeat
@@ -100,32 +91,12 @@ end;
 
 destructor TTorChatClient.Destroy;
 begin
-  FTimer.Terminate;
-  FTimer.Free;
   inherited Destroy;
 end;
 
 procedure TTorChatClient.OnIncomingConnection(AConnection: TAHiddenConnection);
 begin
   writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
-end;
-
-function TTorChatClient.OnTimer: Boolean;
-begin
-  writeln('timer :-)');
-  Result := False;
-end;
-
-function TTorChatClient.OnTimer1: Boolean;
-begin
-  writeln('timer1 :-)');
-  Result := True;
-end;
-
-function TTorChatClient.OnTimer2: Boolean;
-begin
-  writeln('timer2 :-)');
-  Result := False;
 end;
 
 end.
