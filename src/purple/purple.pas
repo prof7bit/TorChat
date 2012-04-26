@@ -60,7 +60,7 @@ type
   );
 
   TPurplePluginPriority = Integer;
-  PPurplePluginUiInfo= Pointer; {$warning define me!}
+  PPurplePluginUiInfo= Pointer; {$note define me!}
 
   PPurplePluginInfo = ^TPurplePluginInfo;
 

@@ -36,8 +36,8 @@ implementation
 
 function ConfGetDataDir: String;
 begin
-  {$warning this is a dirty hack for now, rewrite all that later when it works}
-  Result := GetCurrentDir;
+  {$warning home directory hardcoded, dirty hack}
+  Result := '/home/bernd/.torchat2';
 end;
 
 function ConfGetTorExe: String;

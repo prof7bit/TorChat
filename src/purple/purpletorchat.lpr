@@ -3,7 +3,8 @@ library purpletorchat;
 {$mode objfpc}{$H+}
 
 uses
-  purple, torchatclient;
+  {$ifdef unix}cthreads,{$endif}
+  purple, torchatclient, clientconfig;
 
 type
   { This class can be used to pass all kinds of data to our timer callbacks.
@@ -20,6 +21,9 @@ type
 
   PCallBack = function(UserData: TUserData): GBoolean; cdecl;
 
+var
+  Client: TTorChatClient;
+
 procedure PupleCall(Func: PCallBack; UserData: TUserData); inline;
 begin
   purple_timeout_add(0, PGSourceFunc(@Func), UserData);
@@ -27,12 +31,15 @@ end;
 
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
+  Client := TTorChatClient.Create(nil);
   _info('loaded');
   Result := True;
 end;
 
 function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
+  Client.Free;
+  Client := nil;
   _info('unloaded');
   Result := True;
 end;
