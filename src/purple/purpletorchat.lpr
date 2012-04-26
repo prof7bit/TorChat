@@ -20,9 +20,9 @@ type
 
   PCallBack = function(UserData: TUserData): GBoolean; cdecl;
 
-function CastCallback(Func: PCallBack): PGSourceFunc; inline;
+procedure PupleCall(Func: PCallBack; UserData: TUserData); inline;
 begin
-  Result := PGSourceFunc(Func);
+  purple_timeout_add(0, PGSourceFunc(@Func), UserData);
 end;
 
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
