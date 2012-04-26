@@ -23,15 +23,23 @@ type
 
 var
   Client: TTorChatClient;
+  PurpleTimer: Integer;
 
 procedure PupleCall(Func: PCallBack; UserData: TUserData); inline;
 begin
   purple_timeout_add(0, PGSourceFunc(@Func), UserData);
 end;
 
+function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
+begin
+  Client.GuiIdle;
+  Result := True;
+end;
+
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Client := TTorChatClient.Create(nil);
+  PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
   _info(ConfGetHiddenServiceName);
   _info('loaded');
   Result := True;
@@ -39,6 +47,7 @@ end;
 
 function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
+  purple_timeout_remove(PurpleTimer);
   Client.Free;
   Client := nil;
   _info('unloaded');

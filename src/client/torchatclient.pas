@@ -41,6 +41,7 @@ type
   public
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
+    procedure GuiIdle;
   end;
 
 implementation
@@ -92,6 +93,11 @@ end;
 destructor TTorChatClient.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TTorChatClient.GuiIdle;
+begin
+  writeln('GUIIdle called');
 end;
 
 procedure TTorChatClient.OnIncomingConnection(AConnection: TAHiddenConnection);
