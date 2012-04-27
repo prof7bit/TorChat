@@ -20,13 +20,13 @@ var
 
 function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
 begin
-  Client.GuiIdle;
+  Client.ProcessMessages;
   Result := True;
 end;
 
 function OnPurpleTimerOneShot(Data: Pointer): GBoolean; cdecl;
 begin
-  Client.GuiIdle;
+  Client.ProcessMessages;
   Result := False; // purple timer will not fire again
 end;
 

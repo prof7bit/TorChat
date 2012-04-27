@@ -24,25 +24,38 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract, clientconfig, torprocess, networking,
+  Classes, SysUtils, contnrs, torchatabstract, clientconfig, torprocess, networking,
   connection;
 
 type
   { TTorChatClient implements the abstract TAClient. Together with all its
     contained objects this represents a fully functional TorChat client.
-    The GUI (or libtorchat or a command line client) will derive a class
-    from TTorChatClient overriding the virtual event methods to hook into
-    the events and then simply create an instance of it. }
+    The GUI (or libpurpletorchat or a command line client) will derive a class
+    from TTorChatClient overriding the virtual event methods (the methods that
+    start with CB (see the definition of TAClient) to hook into the events and
+    then create an instance of it.
+    The GUI also must call the TorChatClient.ProcessMessages method in regular
+    intervals (1 second or so) from within the GUI-thread. Aditionally whenever
+    there is an incoming chat message, status change or other event then
+    TorChatClient will fire the CBWakeGui event and as a response the GUI should
+    schedule an additional call to ProcessMessages a soon as possible. All other
+    CB event method calls will then always originate from the thread that is
+    calling TorChatClient.ProcessMessages. This method will process one queued
+    message per call, it will never block and if there are no messages and
+    nothing else to do it will just return.}
   TTorChatClient = class(TAClient)
   strict protected
     FTor: TTor;
     FSock : TSocketWrapper;
+    FQueue: TQueue;
+    CS: TRTLCriticalSection;
     procedure OnIncomingConnection(AConnection: TAHiddenConnection);
+    procedure PopNextMessage;
   public
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
     procedure Enqueue(AMessage: TAMessage); override;
-    procedure GuiIdle;
+    procedure ProcessMessages;
   end;
 
 implementation
@@ -54,6 +67,8 @@ var
   C : TAHiddenConnection;
 begin
   Inherited Create(AOwner);
+  InitCriticalSection(CS);
+  FQueue := TQueue.Create;
   FTor := TTor.Create(self);
   FSock := TSocketWrapper.Create(Self);
   with FSock do begin
@@ -92,26 +107,58 @@ begin
 end;
 
 destructor TTorChatClient.Destroy;
+var
+  Msg: TAMessage;
 begin
   inherited Destroy;
+  EnterCriticalsection(CS);
+  while FQueue.Count > 0 do begin
+    Msg := TAMessage(FQueue.Pop);
+    Msg.Free;
+  end;
+  FQueue.Free;
+  LeaveCriticalsection(CS);
+  DoneCriticalsection(CS);
 end;
 
 procedure TTorChatClient.Enqueue(AMessage: TAMessage);
 begin
   writeln('enqueue new incoming message');
-
-  // implement me: implemet a queue and not just throw it away
-  AMessage.Free;
+  EnterCriticalsection(CS);
+  FQueue.Push(AMessage);
+  LeaveCriticalsection(CS);
 end;
 
-procedure TTorChatClient.GuiIdle;
+procedure TTorChatClient.ProcessMessages;
+var
+  Msg: TAMessage;
 begin
   writeln('GUIIdle called');
+  PopNextMessage;
 end;
 
 procedure TTorChatClient.OnIncomingConnection(AConnection: TAHiddenConnection);
 begin
   writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
+end;
+
+procedure TTorChatClient.PopNextMessage;
+var
+  Msg: TAMessage;
+begin
+  if FQueue.Count > 0 then begin
+    EnterCriticalsection(CS);
+    Msg := TAMessage(FQueue.Pop);
+    LeaveCriticalsection(CS);
+    try
+      Msg.Execute;
+    except
+      on E: Exception do begin
+        WriteLn(E.Message);
+      end;
+    end;
+    Msg.Free;
+  end;
 end;
 
 end.
