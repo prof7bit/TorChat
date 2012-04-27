@@ -45,16 +45,18 @@ type
 
   { TConnection wraps a socket}
   TConnection = class(THandleStream)
-    constructor Create(AHandle: THandle); virtual;
+    constructor Create(AHandle: THandle; AAppRef: TComponent); virtual;
     destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     procedure DoClose; virtual;
   strict protected
     FClosed: Boolean;
+    FAppRef: TComponent; // the component who owns the SocketWrapper
     procedure SetClosed; virtual;
   public
     property Closed: Boolean read FClosed;
+    property AppRef: TComponent read FAppRef;
   end;
 
   TConnectionClass = class of TConnection;
@@ -62,14 +64,15 @@ type
 
   { TListenerThread }
   TListenerThread = class(TThread)
-    constructor Create(APort: DWord; ACallback: TListenerCallback; AConnectionClass: TConnectionClass); reintroduce;
+    constructor Create(APort: DWord; ACallback: TListenerCallback; AConnectionClass: TConnectionClass; AAppRef: TComponent); reintroduce;
     procedure Execute; override;
     procedure Terminate;
   strict protected
     FPort             : DWord;
     FSocket           : THandle;
     FCallback         : TListenerCallback;
-    FConnectionClass  : TConnectionClass
+    FConnectionClass  : TConnectionClass;
+    FAppRef           : TComponent; // the component who owns the SocketWrapper
   end;
 
   { TSocketWrapper }
@@ -186,7 +189,7 @@ var
 begin
   if FIncomingCallback = nil then
     raise ENetworkError.Create('No callback for incoming connections');
-  Listener := TListenerThread.Create(APort, FIncomingCallback, FIncomingClass);
+  Listener := TListenerThread.Create(APort, FIncomingCallback, FIncomingClass, GetParentComponent);
   SetLength(FListeners, Length(FListeners) + 1);
   FListeners[Length(FListeners)-1] := Listener;
 end;
@@ -222,16 +225,17 @@ begin
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort, ANS[2]]
       );
   end;
-  Result := FOutgoingClass.Create(HSocket);
+  Result := FOutgoingClass.Create(HSocket, self.GetParentComponent);
 end;
 
 { TListenerThread }
 
-constructor TListenerThread.Create(APort: DWord; ACallback: TListenerCallback; AConnectionClass: TConnectionClass);
+constructor TListenerThread.Create(APort: DWord; ACallback: TListenerCallback; AConnectionClass: TConnectionClass; AAppRef: TComponent);
 begin
   FPort := APort;
   FCallback := ACallback;
   FConnectionClass := AConnectionClass;
+  FAppRef := AAppRef;
   Inherited Create(false);
 end;
 
@@ -260,7 +264,7 @@ begin
   repeat
     Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
     if Incoming > 0 then
-      FCallback(FConnectionClass.Create(Incoming))
+      FCallback(FConnectionClass.Create(Incoming, FAppRef))
     else
       break;
   until Terminated;
@@ -274,8 +278,9 @@ end;
 
 { TConnection }
 
-constructor TConnection.Create(AHandle: THandle);
+constructor TConnection.Create(AHandle: THandle; AAppRef: TComponent);
 begin
+  FAppRef := AAppRef;
   inherited Create(AHandle);
 end;
 

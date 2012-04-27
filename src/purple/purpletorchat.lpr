@@ -6,9 +6,17 @@ uses
   {$ifdef unix}cthreads,{$endif}
   purple, torchatclient, clientconfig;
 
+type
+
+  { TTorchatPurpleClient }
+
+  TTorChatPurpleClient = class(TTorChatClient)
+    procedure CBWakeGui; override;
+  end;
+
 var
-  Client: TTorChatClient;
-  PurpleTimer: Integer;
+  Client: TTorChatPurpleClient;
+  HPurpleTimer: Integer;
 
 function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
 begin
@@ -16,10 +24,16 @@ begin
   Result := True;
 end;
 
+function OnPurpleTimerOneShot(Data: Pointer): GBoolean; cdecl;
+begin
+  Client.GuiIdle;
+  Result := False; // purple timer will not fire again
+end;
+
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
-  Client := TTorChatClient.Create(nil);
-  PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
+  Client := TTorChatPurpleClient.Create(nil);
+  HPurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
   _info(ConfGetHiddenServiceName);
   _info('loaded');
   Result := True;
@@ -27,7 +41,7 @@ end;
 
 function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
-  purple_timeout_remove(PurpleTimer);
+  purple_timeout_remove(HPurpleTimer);
   Client.Free;
   Client := nil;
   _info('unloaded');
@@ -36,6 +50,13 @@ end;
 
 exports
   purple_init_plugin;
+
+{ TTorchatPurpleClient }
+
+procedure TTorChatPurpleClient.CBWakeGui;
+begin
+  purple_timeout_add(0, @OnPurpleTimerOneShot, nil);
+end;
 
 begin
   with PluginInfo do begin

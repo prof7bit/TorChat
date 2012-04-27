@@ -30,7 +30,7 @@ type
   { TReceiver - Each conection contains a TAReceiver object which is
     a thread reading from the blocking socket, splitting the received
     data into individual messages and for each of them instantiate the
-    appropriate message class to parse and process the message }
+    appropriate message class to parse and enqueue the message }
   TReceiver = class(TAReceiver)
     constructor Create(AConn: TAHiddenConnection);
     destructor Destroy; override;
@@ -48,6 +48,7 @@ implementation
 constructor TReceiver.Create(AConn: TAHiddenConnection);
 begin
   FConnection := AConn;
+  FClient := AConn.Client; // the torchat client object
   FIncompleteMessage := '';
   inherited Create(False);
 end;
@@ -101,11 +102,17 @@ begin
   Msg := GetMsgClassFromCommand(Command).Create(Self.FConnection, Line);
   try
     Msg.Parse;
-    Msg.Execute;
   except
     on Ex: Exception do begin
       WriteLn(Ex.Message);
+      Msg.Free;
+      Msg := nil;
     end;
+  end;
+
+  if Assigned(Msg) then begin
+    Client.Enqueue(Msg);
+    Client.CBWakeGui;
   end;
 end;
 

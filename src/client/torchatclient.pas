@@ -41,6 +41,7 @@ type
   public
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
+    procedure Enqueue(AMessage: TAMessage); override;
     procedure GuiIdle;
   end;
 
@@ -93,6 +94,14 @@ end;
 destructor TTorChatClient.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TTorChatClient.Enqueue(AMessage: TAMessage);
+begin
+  writeln('enqueue new incoming message');
+
+  // implement me: implemet a queue and not just throw it away
+  AMessage.Free;
 end;
 
 procedure TTorChatClient.GuiIdle;

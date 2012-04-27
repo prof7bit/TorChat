@@ -30,7 +30,7 @@ type
 
   { THiddenConnection }
   THiddenConnection = class(TAHiddenConnection)
-    constructor Create(AHandle: THandle); override;
+    constructor Create(AHandle: THandle; AAppRef: TComponent); override;
     procedure Send(AData: String); override;
     procedure SendLine(ALine: String); override;
     procedure OnConnectionClose; override;
@@ -41,9 +41,10 @@ implementation
 
 { THiddenConnection }
 
-constructor THiddenConnection.Create(AHandle: THandle);
+constructor THiddenConnection.Create(AHandle: THandle; AAppRef: TComponent);
 begin
-  inherited Create(AHandle);
+  inherited Create(AHandle, AAppRef);
+  FClient := TAClient(AppRef);
   FReceiver := TReceiver.Create(Self);
   WriteLn('created connection');
 end;

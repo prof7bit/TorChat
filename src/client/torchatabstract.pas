@@ -39,11 +39,14 @@ type
   TABuddyList = class;
   TAHiddenConnection = class;
   TAReceiver = class;
+  TAMessage = class;
 
   TAClient = class(TComponent)
   strict protected
     FBuddyList: TABuddyList;
   public
+    procedure CBWakeGui; virtual; abstract;
+    procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;
   end;
 
@@ -71,6 +74,7 @@ type
 
   TAHiddenConnection = class(TConnection)
   strict protected
+    FClient: TAClient;
     FBuddy: TABuddy;
     FReceiver: TAReceiver;
     procedure SetBuddy(ABuddy: TABuddy); virtual; abstract;
@@ -79,6 +83,7 @@ type
     procedure SendLine(ALine: String); virtual; abstract;
     procedure OnConnectionClose; virtual; abstract; // called by the receiver
     property Buddy: TABuddy read FBuddy write SetBuddy;
+    property Client: TAClient read FClient;
   end;
 
   { TAMessage represents a protocol message }
@@ -94,7 +99,10 @@ type
 
   TAReceiver = class(TThread)
   strict protected
+    FClient: TAClient;
     FConnection: TAHiddenConnection;
+  public
+    property Client: TAClient read FClient;
   end;
 
 implementation
