@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, contnrs, torchatabstract, clientconfig, torprocess, networking,
-  connection;
+  connection, miscfunc;
 
 type
   { TTorChatClient implements the abstract TAClient. Together with all its
@@ -63,8 +63,8 @@ implementation
 { TTorChatClient }
 
 constructor TTorChatClient.Create(AOwner: TComponent);
-var
-  C : TAHiddenConnection;
+//var
+//  C : TAHiddenConnection;
 begin
   Inherited Create(AOwner);
   InitCriticalSection(CS);
@@ -130,8 +130,6 @@ begin
 end;
 
 procedure TTorChatClient.ProcessMessages;
-var
-  Msg: TAMessage;
 begin
   writeln('ProcessMessages called');
   PopNextMessage;
@@ -139,6 +137,7 @@ end;
 
 procedure TTorChatClient.IncomingConnection(AConnection: TAHiddenConnection);
 begin
+  Ignore(AConnection);
   writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
 end;
 

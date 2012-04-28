@@ -32,6 +32,8 @@ type
 
 function Split(var Line: String; Sep: Char): String;
 
+function Ignore(P: Pointer): Pointer; Inline;
+
 implementation
 
 { split the string Line at the first occurrence of Sep, return the left part
@@ -48,6 +50,11 @@ begin
   end
   else
     raise EEndOfString.Create('');
+end;
+
+function Ignore(P: Pointer): Pointer; inline;
+begin
+  Result := P;
 end;
 
 end.

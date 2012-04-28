@@ -4,7 +4,7 @@ library purpletorchat;
 
 uses
   {$ifdef unix}cthreads,{$endif}
-  purple, torchatclient, clientconfig;
+  purple, torchatclient, clientconfig, miscfunc;
 
 type
 
@@ -20,18 +20,21 @@ var
 
 function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
 begin
+  Ignore(Data);
   Client.ProcessMessages;
   Result := True;
 end;
 
 function OnPurpleTimerOneShot(Data: Pointer): GBoolean; cdecl;
 begin
+  Ignore(Data);
   Client.ProcessMessages;
   Result := False; // purple timer will not fire again
 end;
 
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
+  Ignore(@Plugin);
   Client := TTorChatPurpleClient.Create(nil);
   HPurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
   _info(ConfGetHiddenServiceName);
@@ -41,6 +44,7 @@ end;
 
 function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
+  Ignore(@Plugin);
   purple_timeout_remove(HPurpleTimer);
   Client.Free;
   Client := nil;

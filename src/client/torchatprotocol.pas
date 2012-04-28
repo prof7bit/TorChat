@@ -74,6 +74,7 @@ end;
 
 constructor TMsg.Create(AConnection: TAHiddenConnection; AContent: String);
 begin
+  FConnection := AConnection;
   FRaw := AContent;
 end;
 
