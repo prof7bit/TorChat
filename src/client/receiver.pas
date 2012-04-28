@@ -112,7 +112,7 @@ begin
 
   if Assigned(Msg) then begin
     Client.Enqueue(Msg);
-    Client.CBWakeGui;
+    Client.OnNotifyGui;
   end;
 end;
 

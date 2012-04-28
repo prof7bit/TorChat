@@ -32,14 +32,14 @@ type
     contained objects this represents a fully functional TorChat client.
     The GUI (or libpurpletorchat or a command line client) will derive a class
     from TTorChatClient overriding the virtual event methods (the methods that
-    start with CB (see the definition of TAClient) to hook into the events and
+    start with On (see the definition of TAClient) to hook into the events and
     then create an instance of it.
     The GUI also must call the TorChatClient.ProcessMessages method in regular
     intervals (1 second or so) from within the GUI-thread. Aditionally whenever
     there is an incoming chat message, status change or other event then
-    TorChatClient will fire the CBWakeGui event and as a response the GUI should
+    TorChatClient will fire the OnNotifyGui event and as a response the GUI should
     schedule an additional call to ProcessMessages a soon as possible. All other
-    CB event method calls will then always originate from the thread that is
+    event method calls will then always originate from the thread that is
     calling TorChatClient.ProcessMessages. This method will process one queued
     message per call, it will never block and if there are no messages and
     nothing else to do it will just return.}
@@ -49,7 +49,7 @@ type
     FSock : TSocketWrapper;
     FQueue: TQueue;
     CS: TRTLCriticalSection;
-    procedure OnIncomingConnection(AConnection: TAHiddenConnection);
+    procedure IncomingConnection(AConnection: TAHiddenConnection);
     procedure PopNextMessage;
   public
     constructor Create(AOwner: TComponent); reintroduce;
@@ -76,7 +76,7 @@ begin
     SocksProxyPort := ConfGetTorPort;
     OutgoingClass := THiddenConnection;
     IncomingClass := THiddenConnection;
-    IncomingCallback := TListenerCallback(@OnIncomingConnection);
+    IncomingCallback := TListenerCallback(@IncomingConnection);
     Bind(ConfGetListenPort);
   end;
 
@@ -133,11 +133,11 @@ procedure TTorChatClient.ProcessMessages;
 var
   Msg: TAMessage;
 begin
-  writeln('GUIIdle called');
+  writeln('ProcessMessages called');
   PopNextMessage;
 end;
 
-procedure TTorChatClient.OnIncomingConnection(AConnection: TAHiddenConnection);
+procedure TTorChatClient.IncomingConnection(AConnection: TAHiddenConnection);
 begin
   writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
 end;

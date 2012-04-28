@@ -45,7 +45,7 @@ type
   strict protected
     FBuddyList: TABuddyList;
   public
-    procedure CBWakeGui; virtual; abstract;
+    procedure OnNotifyGui; virtual; abstract;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;
   end;

@@ -11,7 +11,7 @@ type
   { TTorchatPurpleClient }
 
   TTorChatPurpleClient = class(TTorChatClient)
-    procedure CBWakeGui; override;
+    procedure OnNotifyGui; override;
   end;
 
 var
@@ -53,7 +53,7 @@ exports
 
 { TTorchatPurpleClient }
 
-procedure TTorChatPurpleClient.CBWakeGui;
+procedure TTorChatPurpleClient.OnNotifyGui;
 begin
   purple_timeout_add(0, @OnPurpleTimerOneShot, nil);
 end;
