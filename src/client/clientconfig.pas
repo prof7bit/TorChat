@@ -38,7 +38,7 @@ implementation
 function ConfGetDataDir: String;
 begin
   {$ifdef windows}
-    {$fatal Windows is not yet supported}
+    //{$fatal Windows is not yet supported}
   {$else}
     {$warning home directory hardcoded, dirty hack}
     Result := ExpandFileName('~/.torchat2');

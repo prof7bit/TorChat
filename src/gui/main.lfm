@@ -1,9 +1,9 @@
 object FMain: TFMain
-  Left = 438
-  Height = 240
-  Top = 298
-  Width = 320
+  Left = 615
+  Height = 338
+  Top = 310
+  Width = 218
   Caption = 'TorChat'
   OnCreate = FormCreate
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
 end
