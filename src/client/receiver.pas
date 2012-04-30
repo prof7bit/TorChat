@@ -66,7 +66,7 @@ var
   M : String;
 begin
   repeat
-    N := FConnection.Read(B, 1024);
+    N := FConnection.Stream.Read(B, 1024);
     if N > 0 then begin
       SetLength(R, N);
       Move(B, R[1], N);
@@ -84,7 +84,7 @@ begin
       end;
     end;
   until (N = 0) or Terminated;
-  FConnection.DoClose; // only shutdown and close the socket handle
+  FConnection.Stream.DoClose; // only shutdown and close the socket handle
   FConnection.OnConnectionClose;
 end;
 

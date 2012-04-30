@@ -72,8 +72,9 @@ type
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
   end;
 
-  TAHiddenConnection = class(TConnection)
+  TAHiddenConnection = class
   strict protected
+    FTCPStream: TTCPStream;
     FClient: TAClient;
     FBuddy: TABuddy;
     FReceiver: TAReceiver;
@@ -84,6 +85,7 @@ type
     procedure OnConnectionClose; virtual; abstract; // called by the receiver
     property Buddy: TABuddy read FBuddy write SetBuddy;
     property Client: TAClient read FClient;
+    property Stream: TTCPStream read FTCPStream;
   end;
 
   { TAMessage represents a protocol message }

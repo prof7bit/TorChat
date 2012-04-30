@@ -43,36 +43,32 @@ type
   ENetworkError = class(Exception)
   end;
 
-  { TConnection wraps a socket}
-  TConnection = class(THandleStream)
-    constructor Create(AHandle: THandle; AAppRef: TComponent); virtual;
+  { TTCPStream wraps a TCP connection}
+  TTCPStream = class(THandleStream)
+    constructor Create(AHandle: THandle);
     destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     procedure DoClose; virtual;
   strict protected
     FClosed: Boolean;
-    FAppRef: TComponent; // the component who owns the SocketWrapper
     procedure SetClosed; virtual;
   public
     property Closed: Boolean read FClosed;
-    property AppRef: TComponent read FAppRef;
   end;
 
-  TConnectionClass = class of TConnection;
-  TListenerCallback = procedure(AConnection: TConnection) of object;
+  TListenerCallback = procedure(AStream: TTCPStream; AOwner: TComponent) of object;
 
   { TListenerThread }
   TListenerThread = class(TThread)
-    constructor Create(APort: DWord; ACallback: TListenerCallback; AConnectionClass: TConnectionClass; AAppRef: TComponent); reintroduce;
+    constructor Create(APort: DWord; ACallback: TListenerCallback; AOwner: TComponent); reintroduce;
     procedure Execute; override;
     procedure Terminate;
   strict protected
     FPort             : DWord;
     FSocket           : THandle;
     FCallback         : TListenerCallback;
-    FConnectionClass  : TConnectionClass;
-    FAppRef           : TComponent; // the component who owns the SocketWrapper
+    FOwner            : TComponent; // the component who owns the SocketWrapper
   end;
 
   { TSocketWrapper }
@@ -81,19 +77,15 @@ type
     FSocksProxyAddress  : String;
     FSocksProxyPort     : DWord;
     FSocksUser          : String;
-    FOutgoingClass      : TConnectionClass;
-    FIncomingClass      : TConnectionClass;
     FIncomingCallback   : TListenerCallback;
     FListeners          : array of TListenerThread;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Bind(APort: DWord);
-    function Connect(AServer: String; APort: DWord): TConnection;
+    function Connect(AServer: String; APort: DWord): TTCPStream;
     property SocksProxyAddress: String write FSocksProxyAddress;
     property SocksProxyPort: DWord write FSocksProxyPort;
-    property OutgoingClass: TConnectionClass write FOutgoingClass;
-    property IncomingClass: TConnectionClass write FIncomingClass;
     property IncomingCallback: TListenerCallback write FIncomingCallback;
   end;
 
@@ -162,8 +154,6 @@ end;
 constructor TSocketWrapper.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FOutgoingClass := TConnection;
-  FIncomingClass := TConnection;
   FIncomingCallback := nil;
   FSocksUser := '';
   FSocksProxyAddress := '';
@@ -189,12 +179,12 @@ var
 begin
   if FIncomingCallback = nil then
     raise ENetworkError.Create('No callback for incoming connections');
-  Listener := TListenerThread.Create(APort, FIncomingCallback, FIncomingClass, GetParentComponent);
+  Listener := TListenerThread.Create(APort, FIncomingCallback, GetParentComponent);
   SetLength(FListeners, Length(FListeners) + 1);
   FListeners[Length(FListeners)-1] := Listener;
 end;
 
-function TSocketWrapper.Connect(AServer: String; APort: DWord): TConnection;
+function TSocketWrapper.Connect(AServer: String; APort: DWord): TTCPStream;
 var
   HSocket: THandle;
   REQ : String;
@@ -225,17 +215,16 @@ begin
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort, ANS[2]]
       );
   end;
-  Result := FOutgoingClass.Create(HSocket, self.GetParentComponent);
+  Result := TTCPStream.Create(HSocket);
 end;
 
 { TListenerThread }
 
-constructor TListenerThread.Create(APort: DWord; ACallback: TListenerCallback; AConnectionClass: TConnectionClass; AAppRef: TComponent);
+constructor TListenerThread.Create(APort: DWord; ACallback: TListenerCallback; AOwner: TComponent);
 begin
   FPort := APort;
   FCallback := ACallback;
-  FConnectionClass := AConnectionClass;
-  FAppRef := AAppRef;
+  FOwner := AOwner;
   Inherited Create(false);
 end;
 
@@ -264,7 +253,7 @@ begin
   repeat
     Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
     if Incoming > 0 then
-      FCallback(FConnectionClass.Create(Incoming, FAppRef))
+      FCallback(TTCPStream.Create(Incoming), FOwner)
     else
       break;
   until Terminated;
@@ -276,33 +265,32 @@ begin
   inherited Terminate;
 end;
 
-{ TConnection }
+{ TTCPStream }
 
-constructor TConnection.Create(AHandle: THandle; AAppRef: TComponent);
+constructor TTCPStream.Create(AHandle: THandle);
 begin
-  FAppRef := AAppRef;
   inherited Create(AHandle);
 end;
 
-destructor TConnection.Destroy;
+destructor TTCPStream.Destroy;
 begin
   DoClose;
   inherited Destroy;
 end;
 
-function TConnection.Write(const Buffer; Count: LongInt): LongInt;
+function TTCPStream.Write(const Buffer; Count: LongInt): LongInt;
 begin
   Result := fpSend(Handle, @Buffer, Count, SND_FLAGS);
 end;
 
-function TConnection.Read(var Buffer; Count: LongInt): LongInt;
+function TTCPStream.Read(var Buffer; Count: LongInt): LongInt;
 begin
   Result := fpRecv(Handle, @Buffer, Count, RCV_FLAGS);
   if Result = SOCKET_ERROR then
     DoClose;
 end;
 
-procedure TConnection.DoClose;
+procedure TTCPStream.DoClose;
 begin
   if not Closed then begin
     CloseHandle(Handle);
@@ -310,7 +298,7 @@ begin
   end;
 end;
 
-procedure TConnection.SetClosed;
+procedure TTCPStream.SetClosed;
 begin
   FClosed := True;
 end;

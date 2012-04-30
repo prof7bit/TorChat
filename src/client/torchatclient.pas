@@ -49,7 +49,7 @@ type
     FSock : TSocketWrapper;
     FQueue: TQueue;
     CS: TRTLCriticalSection;
-    procedure IncomingConnection(AConnection: TAHiddenConnection);
+    procedure IncomingConnection(AStream: TTCPStream; AOwner: TComponent);
     procedure PopNextMessage;
   public
     constructor Create(AOwner: TComponent); reintroduce;
@@ -74,8 +74,6 @@ begin
   with FSock do begin
     SocksProxyAddress := ConfGetTorHost;
     SocksProxyPort := ConfGetTorPort;
-    OutgoingClass := THiddenConnection;
-    IncomingClass := THiddenConnection;
     IncomingCallback := TListenerCallback(@IncomingConnection);
     Bind(ConfGetListenPort);
   end;
@@ -96,7 +94,7 @@ begin
       C.Send('bar'#10);
 
       C.Free;
-      {$note we are still leaking unfreed *incoming* TConnection objects }
+      {$note we are still leaking unfreed *incoming* TTCPStream objects }
 
     except
       WriteLn('waiting 3 seconds...');
@@ -135,9 +133,12 @@ begin
   PopNextMessage;
 end;
 
-procedure TTorChatClient.IncomingConnection(AConnection: TAHiddenConnection);
+procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; AOwner: TComponent);
+var
+  C : THiddenConnection;
 begin
-  Ignore(AConnection);
+  C := THiddenConnection.Create(AStream, AOwner as TAClient);
+  Ignore(C);
   writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
 end;
 
