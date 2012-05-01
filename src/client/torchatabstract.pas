@@ -58,11 +58,12 @@ type
     procedure CheckState; virtual; abstract;
     procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
     procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
+    procedure Load; virtual; abstract;
     procedure Save; virtual; abstract;
     function Count: Integer; virtual; abstract;
   end;
 
-  TABuddy = class
+  TABuddy = class(TComponent)
   strict protected
     FClient: TAClient;
     FConnIncoming: TAHiddenConnection;

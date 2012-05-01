@@ -28,6 +28,23 @@ uses
   connection, miscfunc;
 
 type
+  { TBuddyList contains all the buddy objects and implements all the boring
+    CRUD mechanisms, persisting on disk, etc. Its essentialy an array of
+    TABuddy with a few helper methods to manage it. TBuddyList is thread safe.}
+  TBuddyList = class(TABuddyList)
+  strict protected
+    FCritical: TRTLCriticalSection;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure CheckState; override;
+    procedure Load; override;
+    procedure Save; override;
+    procedure RemoveBuddy(ABuddy: TABuddy); override;
+    procedure AddBuddy(ABuddy: TABuddy); override;
+    function Count: Integer; override;
+  end;
+
   { TTorChatClient implements the abstract TAClient. Together with all its
     contained objects this represents a fully functional TorChat client.
     The GUI (or libpurpletorchat or a command line client) will derive a class
@@ -60,6 +77,79 @@ type
 
 implementation
 
+{ TBuddyList }
+
+constructor TBuddyList.Create(AOwner: TComponent);
+begin
+  InitCriticalSection(FCritical);
+  inherited Create(AOwner);
+end;
+
+destructor TBuddyList.Destroy;
+begin
+  inherited Destroy;
+  DoneCriticalsection(FCritical);
+end;
+
+procedure TBuddyList.CheckState;
+var
+  Buddy: TABuddy;
+begin
+  EnterCriticalsection(FCritical);
+  for Buddy in FList do begin
+    Buddy.CheckState;
+  end;
+  LeaveCriticalsection(FCritical);
+end;
+
+procedure TBuddyList.Load;
+begin
+  EnterCriticalsection(FCritical);
+  LeaveCriticalsection(FCritical);
+end;
+
+procedure TBuddyList.Save;
+begin
+  EnterCriticalsection(FCritical);
+  LeaveCriticalsection(FCritical);
+end;
+
+procedure TBuddyList.RemoveBuddy(ABuddy: TABuddy);
+var
+  P,P1,L : Integer;
+begin
+  EnterCriticalsection(FCritical);
+  L := Length(FList);
+  for P := 0 to L do begin
+    if FList[P] = ABuddy then begin
+      for P1 := P to L-1 do begin
+        FList[P] := FList[P+1];
+      end;
+      SetLength(FList, L-1);
+      break;
+    end;
+  end;
+  LeaveCriticalsection(FCritical);
+  Save;
+end;
+
+procedure TBuddyList.AddBuddy(ABuddy: TABuddy);
+var
+  P : Integer;
+begin
+  EnterCriticalsection(FCritical);
+  P := Length(FList);
+  SetLength(FList, P+1);
+  FList[P] := ABuddy;
+  LeaveCriticalsection(FCritical);
+  Save;
+end;
+
+function TBuddyList.Count: Integer;
+begin
+  Result := Length(FList);
+end;
+
 { TTorChatClient }
 
 constructor TTorChatClient.Create(AOwner: TComponent);
@@ -71,6 +161,7 @@ begin
   FQueue := TQueue.Create;
   FTor := TTor.Create(self);
   FSock := TSocketWrapper.Create(Self);
+  FBuddyList := TBuddyList.Create(self);
   with FSock do begin
     SocksProxyAddress := ConfGetTorHost;
     SocksProxyPort := ConfGetTorPort;
