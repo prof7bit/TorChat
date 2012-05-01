@@ -55,7 +55,7 @@ type
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
     procedure Enqueue(AMessage: TAMessage); override;
-    procedure ProcessMessages;
+    procedure ProcessMessages; override;
   end;
 
 implementation

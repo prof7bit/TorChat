@@ -45,6 +45,7 @@ type
   strict protected
     FBuddyList: TABuddyList;
   public
+    procedure ProcessMessages; virtual; abstract;
     procedure OnNotifyGui; virtual; abstract;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;
@@ -54,6 +55,7 @@ type
   strict protected
     FList: array of TABuddy;
   public
+    procedure CheckState; virtual; abstract;
     procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
     procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
     procedure Save; virtual; abstract;
@@ -68,6 +70,9 @@ type
     procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
     procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
   public
+    procedure CheckState; virtual; abstract;
+    procedure OnOutgoingConnection; virtual; abstract;
+    procedure OnOutgoingConnectionFail; virtual; abstract;
     property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
   end;
@@ -92,11 +97,15 @@ type
   TAMessage = class
   strict protected
     FConnection: TAHiddenConnection;
+    FClient: TAClient;
+    FBuddy: TABuddy;
   public
     class function GetCommand: String; virtual; abstract;
     constructor Create(AConnection: TAHiddenConnection; AContent: String); virtual; abstract;
-    function Parse: Boolean; virtual; abstract;  // True = success
-    function Execute: Boolean; virtual; abstract;// True = success
+    procedure Parse; virtual; abstract;
+    procedure Execute; virtual; abstract;
+    property Client: TAClient read FClient write FClient;
+    property Buddy: TABuddy read FBuddy write FBuddy;
   end;
 
   TAReceiver = class(TThread)
