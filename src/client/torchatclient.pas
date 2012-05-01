@@ -66,7 +66,7 @@ type
     FSock : TSocketWrapper;
     FQueue: TQueue;
     CS: TRTLCriticalSection;
-    procedure IncomingConnection(AStream: TTCPStream);
+    procedure IncomingConnection(AStream: TTCPStream; E: Exception);
     procedure PopNextMessage;
   public
     constructor Create(AOwner: TComponent); reintroduce;
@@ -224,12 +224,13 @@ begin
   PopNextMessage;
 end;
 
-procedure TTorChatClient.IncomingConnection(AStream: TTCPStream);
+procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; E: Exception);
 var
   C : THiddenConnection;
 begin
   C := THiddenConnection.Create(self, AStream);
   Ignore(C);
+  Ignore(E);
   writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
 end;
 

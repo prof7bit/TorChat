@@ -30,15 +30,20 @@ type
   EEndOfString = class(Exception)
   end;
 
+{ split the string Line at the first occurrence of Sep, return the left part
+  in the function result and the right part in var Line. If no separator is
+  found then an EEndOfString exception is generated }
 function Split(var Line: String; Sep: Char): String;
 
+{ This function exists only to make the compiler happy when we have unused
+  function arguments, we can then just Ignore() them and the compiler will not
+  emit a warning anymore. Unneccessary warnings only spam the console when
+  compiling and bury legitimate problems. This function is declared inline,
+  it does absolutely nothing and will therefore be optimized away completely. }
 function Ignore(P: Pointer): Pointer; Inline;
 
 implementation
 
-{ split the string Line at the first occurrence of Sep, return the left part
-  in the function result and the right part in var Line. If no separator is
-  found then an EEndOfString exception is generated }
 function Split(var Line: String; Sep: Char): String;
 var
   P : Integer;

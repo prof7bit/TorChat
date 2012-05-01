@@ -57,7 +57,7 @@ type
     property Closed: Boolean read FClosed;
   end;
 
-  TConnectionCallback = procedure(AStream: TTCPStream) of object;
+  TConnectionCallback = procedure(AStream: TTCPStream; E: Exception) of object;
 
   { TListenerThread }
   TListenerThread = class(TThread)
@@ -179,10 +179,10 @@ var
 begin
   try
     C := FSocketWrapper.Connect(FServer, FPort);
-    FCallback(C);
+    FCallback(C, nil);
   except
     on E: Exception do begin
-      FCallback(nil);
+      FCallback(nil, E);
     end;
   end;
 end;
@@ -295,7 +295,7 @@ begin
   repeat
     Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
     if Incoming > 0 then
-      FCallback(TTCPStream.Create(Incoming))
+      FCallback(TTCPStream.Create(Incoming), nil)
     else
       break;
   until Terminated;
