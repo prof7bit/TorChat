@@ -53,11 +53,14 @@ type
 
   TABuddyList = class(TComponent)
   strict protected
+    FClient: TAClient;
     FList: array of TABuddy;
   public
     procedure CheckState; virtual; abstract;
+    procedure SetHiddenServiceName(AID: String); virtual; abstract;
     procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
     procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
+    function FindBuddy(AName: String): TABuddy; virtual; abstract;
     procedure Load; virtual; abstract;
     procedure Save; virtual; abstract;
     function Count: Integer; virtual; abstract;
@@ -66,6 +69,7 @@ type
   TABuddy = class(TComponent)
   strict protected
     FClient: TAClient;
+    FID: String;
     FConnIncoming: TAHiddenConnection;
     FConnOutgoing: TAHiddenConnection;
     procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
@@ -74,6 +78,7 @@ type
     procedure CheckState; virtual; abstract;
     procedure OnOutgoingConnection; virtual; abstract;
     procedure OnOutgoingConnectionFail; virtual; abstract;
+    property ID: String read FID;
     property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
   end;

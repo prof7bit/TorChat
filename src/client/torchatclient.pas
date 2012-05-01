@@ -24,7 +24,7 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, contnrs, torchatabstract, clientconfig, torprocess, networking,
+  Classes, SysUtils, contnrs, torchatabstract, buddy, clientconfig, torprocess, networking,
   connection, miscfunc;
 
 type
@@ -35,13 +35,15 @@ type
   strict protected
     FCritical: TRTLCriticalSection;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AClient: TAClient); reintroduce;
     destructor Destroy; override;
     procedure CheckState; override;
+    procedure SetHiddenServiceName(AID: String); override;
     procedure Load; override;
     procedure Save; override;
     procedure RemoveBuddy(ABuddy: TABuddy); override;
     procedure AddBuddy(ABuddy: TABuddy); override;
+    function FindBuddy(AID: String): TABuddy; override;
     function Count: Integer; override;
   end;
 
@@ -66,8 +68,11 @@ type
     FSock : TSocketWrapper;
     FQueue: TQueue;
     CS: TRTLCriticalSection;
+    FTimeStarted: TDateTime;
+    FHSNameOK: Boolean;
     procedure IncomingConnection(AStream: TTCPStream; E: Exception);
     procedure PopNextMessage;
+    procedure CheckHiddenServiceName;
   public
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
@@ -79,16 +84,27 @@ implementation
 
 { TBuddyList }
 
-constructor TBuddyList.Create(AOwner: TComponent);
+constructor TBuddyList.Create(AClient: TAClient);
 begin
   InitCriticalSection(FCritical);
-  inherited Create(AOwner);
+  inherited Create(AClient);
+  FClient := AClient;
 end;
 
 destructor TBuddyList.Destroy;
 begin
   inherited Destroy;
   DoneCriticalsection(FCritical);
+end;
+
+procedure TBuddyList.SetHiddenServiceName(AID: String);
+var
+  Buddy : TABuddy;
+begin
+  if FindBuddy(AID) = nil then begin
+    Buddy := TBuddy.Create(FClient, AID);
+    AddBuddy(Buddy);
+  end;
 end;
 
 procedure TBuddyList.CheckState;
@@ -145,6 +161,17 @@ begin
   Save;
 end;
 
+function TBuddyList.FindBuddy(AID: String): TABuddy;
+begin
+  Result := nil;
+  EnterCriticalsection(FCritical);
+  for Result in FList do begin
+    if Result.ID = AID then
+      break;
+  end;
+  LeaveCriticalsection(FCritical);
+end;
+
 function TBuddyList.Count: Integer;
 begin
   Result := Length(FList);
@@ -158,6 +185,8 @@ constructor TTorChatClient.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   InitCriticalSection(CS);
+  FHSNameOK := False;
+  FTimeStarted := Now;
   FQueue := TQueue.Create;
   FTor := TTor.Create(self);
   FSock := TSocketWrapper.Create(Self);
@@ -220,8 +249,9 @@ end;
 
 procedure TTorChatClient.ProcessMessages;
 begin
-  writeln('ProcessMessages called');
+  CheckHiddenServiceName;
   PopNextMessage;
+  BuddyList.CheckState;
 end;
 
 procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; E: Exception);
@@ -250,6 +280,21 @@ begin
       end;
     end;
     Msg.Free;
+  end;
+end;
+
+procedure TTorChatClient.CheckHiddenServiceName;
+var
+  HSName: String;
+begin
+  if not FHSNameOK then begin;
+    if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
+      HSName := ConfGetHiddenServiceName;
+      if Name <> '' then begin
+        BuddyList.SetHiddenServiceName(HSName);
+        FHSNameOK := True;
+      end;
+    end;
   end;
 end;
 

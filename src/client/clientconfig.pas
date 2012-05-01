@@ -26,6 +26,9 @@ interface
 uses
   Classes, SysUtils;
 
+const
+  SECONDS_WAIT_FOR_HOSTNAME_FILE = 20;
+
   function ConfGetDataDir: String;
   function ConfGetTorExe: String;
   function ConfGetListenPort: DWord;
