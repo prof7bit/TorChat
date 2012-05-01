@@ -83,6 +83,7 @@ type
     destructor Destroy; override;
     procedure Bind(APort: DWord);
     function Connect(AServer: String; APort: DWord): TTCPStream;
+    procedure ConnectAsync(AServer: String; APort: DWord; ACallback: TConnectionCallback);
     property SocksProxyAddress: String write FSocksProxyAddress;
     property SocksProxyPort: DWord write FSocksProxyPort;
     property IncomingCallback: TConnectionCallback write FIncomingCallback;
@@ -253,6 +254,11 @@ begin
       );
   end;
   Result := TTCPStream.Create(HSocket);
+end;
+
+procedure TSocketWrapper.ConnectAsync(AServer: String; APort: DWord; ACallback: TConnectionCallback);
+begin
+  TAsyncConnectThread.Create(Self, AServer, APort, ACallback);
 end;
 
 { TListenerThread }
