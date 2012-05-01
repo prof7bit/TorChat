@@ -61,7 +61,7 @@ type
 
   { TListenerThread }
   TListenerThread = class(TThread)
-    constructor Create(APort: DWord; ACallback: TConnectionCallback; AOwner: TComponent); reintroduce;
+    constructor Create(APort: DWord; ACallback: TConnectionCallback); reintroduce;
     procedure Execute; override;
     procedure Terminate;
   strict protected
@@ -216,7 +216,7 @@ var
 begin
   if FIncomingCallback = nil then
     raise ENetworkError.Create('No callback for incoming connections');
-  Listener := TListenerThread.Create(APort, FIncomingCallback, GetParentComponent);
+  Listener := TListenerThread.Create(APort, FIncomingCallback);
   SetLength(FListeners, Length(FListeners) + 1);
   FListeners[Length(FListeners)-1] := Listener;
 end;
@@ -257,7 +257,7 @@ end;
 
 { TListenerThread }
 
-constructor TListenerThread.Create(APort: DWord; ACallback: TConnectionCallback; AOwner: TComponent);
+constructor TListenerThread.Create(APort: DWord; ACallback: TConnectionCallback);
 begin
   FPort := APort;
   FCallback := ACallback;
