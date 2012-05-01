@@ -123,7 +123,7 @@ begin
   for I := 0 to Last do begin
     if FList[I] = ABuddy then begin
       for J := I to Last-1 do begin
-        FList[I] := FList[I+1];
+        FList[J] := FList[J+1];
       end;
       SetLength(FList, Last);
       break;
