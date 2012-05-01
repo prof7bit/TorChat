@@ -116,16 +116,16 @@ end;
 
 procedure TBuddyList.RemoveBuddy(ABuddy: TABuddy);
 var
-  P,P1,L : Integer;
+  I,J,Last : Integer;
 begin
   EnterCriticalsection(FCritical);
-  L := Length(FList);
-  for P := 0 to L do begin
-    if FList[P] = ABuddy then begin
-      for P1 := P to L-1 do begin
-        FList[P] := FList[P+1];
+  Last := Length(FList) - 1;
+  for I := 0 to Last do begin
+    if FList[I] = ABuddy then begin
+      for J := I to Last-1 do begin
+        FList[I] := FList[I+1];
       end;
-      SetLength(FList, L-1);
+      SetLength(FList, Last);
       break;
     end;
   end;
