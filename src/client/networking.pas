@@ -57,17 +57,17 @@ type
     property Closed: Boolean read FClosed;
   end;
 
-  TListenerCallback = procedure(AStream: TTCPStream; AOwner: TComponent) of object;
+  TConnectionCallback = procedure(AStream: TTCPStream; AOwner: TComponent) of object;
 
   { TListenerThread }
   TListenerThread = class(TThread)
-    constructor Create(APort: DWord; ACallback: TListenerCallback; AOwner: TComponent); reintroduce;
+    constructor Create(APort: DWord; ACallback: TConnectionCallback; AOwner: TComponent); reintroduce;
     procedure Execute; override;
     procedure Terminate;
   strict protected
     FPort             : DWord;
     FSocket           : THandle;
-    FCallback         : TListenerCallback;
+    FCallback         : TConnectionCallback;
     FOwner            : TComponent; // the component who owns the SocketWrapper
   end;
 
@@ -77,7 +77,7 @@ type
     FSocksProxyAddress  : String;
     FSocksProxyPort     : DWord;
     FSocksUser          : String;
-    FIncomingCallback   : TListenerCallback;
+    FIncomingCallback   : TConnectionCallback;
     FListeners          : array of TListenerThread;
   public
     constructor Create(AOwner: TComponent); override;
@@ -86,10 +86,21 @@ type
     function Connect(AServer: String; APort: DWord): TTCPStream;
     property SocksProxyAddress: String write FSocksProxyAddress;
     property SocksProxyPort: DWord write FSocksProxyPort;
-    property IncomingCallback: TListenerCallback write FIncomingCallback;
+    property IncomingCallback: TConnectionCallback write FIncomingCallback;
   end;
 
+  { TAsyncConnectThread }
 
+  TAsyncConnectThread = class(TThread)
+    constructor Create(ASocketWrapper: TSocketWrapper; AServer: String;
+      APort: DWord; ACallback: TConnectionCallback);
+    procedure Execute; override;
+  strict protected
+    FSocketWrapper: TSocketWrapper;
+    FCallback: TConnectionCallback;
+    FServer: String;
+    FPort: DWord;
+  end;
 
 implementation
 
@@ -147,6 +158,33 @@ begin
     if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then
       raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
         [AServer, APort, LastErrorString]);
+end;
+
+{ TAsyncConnectThread }
+
+constructor TAsyncConnectThread.Create(ASocketWrapper: TSocketWrapper; AServer: String;
+  APort: DWord; ACallback: TConnectionCallback);
+begin
+  FSocketWrapper := ASocketWrapper;
+  FCallback := ACallback;
+  FServer := AServer;
+  FPort := APort;
+  FreeOnTerminate := True;
+  Inherited Create(False);
+end;
+
+procedure TAsyncConnectThread.Execute;
+var
+  C : TTCPStream;
+begin
+  try
+    C := FSocketWrapper.Connect(FServer, FPort);
+    FCallback(C, FSocketWrapper.GetParentComponent);
+  except
+    on E: Exception do begin
+      FCallback(nil, FSocketWrapper.GetParentComponent);
+    end;
+  end;
 end;
 
 { TSocketWrapper }
@@ -220,7 +258,7 @@ end;
 
 { TListenerThread }
 
-constructor TListenerThread.Create(APort: DWord; ACallback: TListenerCallback; AOwner: TComponent);
+constructor TListenerThread.Create(APort: DWord; ACallback: TConnectionCallback; AOwner: TComponent);
 begin
   FPort := APort;
   FCallback := ACallback;

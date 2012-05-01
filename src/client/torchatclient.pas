@@ -49,7 +49,7 @@ type
     FSock : TSocketWrapper;
     FQueue: TQueue;
     CS: TRTLCriticalSection;
-    procedure IncomingConnection(AStream: TTCPStream; AOwner: TComponent);
+    procedure IncomingConnection(AStream: TTCPStream; AClient: TAClient);
     procedure PopNextMessage;
   public
     constructor Create(AOwner: TComponent); reintroduce;
@@ -58,7 +58,14 @@ type
     procedure ProcessMessages;
   end;
 
+  TMyConnectionCallback = procedure(AStream: TTCPStream; AClient: TAClient) of object;
+
 implementation
+
+function CastMyCallback(MyCallback: TMyConnectionCallback): TConnectionCallback; inline;
+begin
+  Result := TConnectionCallback(MyCallback);
+end;
 
 { TTorChatClient }
 
@@ -74,7 +81,7 @@ begin
   with FSock do begin
     SocksProxyAddress := ConfGetTorHost;
     SocksProxyPort := ConfGetTorPort;
-    IncomingCallback := TListenerCallback(@IncomingConnection);
+    IncomingCallback := CastMyCallback(@IncomingConnection);
     Bind(ConfGetListenPort);
   end;
 
@@ -133,11 +140,11 @@ begin
   PopNextMessage;
 end;
 
-procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; AOwner: TComponent);
+procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; AClient: TAClient);
 var
   C : THiddenConnection;
 begin
-  C := THiddenConnection.Create(AStream, AOwner as TAClient);
+  C := THiddenConnection.Create(AStream, AClient);
   Ignore(C);
   writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
 end;
