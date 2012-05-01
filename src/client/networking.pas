@@ -57,7 +57,7 @@ type
     property Closed: Boolean read FClosed;
   end;
 
-  TConnectionCallback = procedure(AStream: TTCPStream; AOwner: TComponent) of object;
+  TConnectionCallback = procedure(AStream: TTCPStream) of object;
 
   { TListenerThread }
   TListenerThread = class(TThread)
@@ -68,7 +68,6 @@ type
     FPort             : DWord;
     FSocket           : THandle;
     FCallback         : TConnectionCallback;
-    FOwner            : TComponent; // the component who owns the SocketWrapper
   end;
 
   { TSocketWrapper }
@@ -179,10 +178,10 @@ var
 begin
   try
     C := FSocketWrapper.Connect(FServer, FPort);
-    FCallback(C, FSocketWrapper.GetParentComponent);
+    FCallback(C);
   except
     on E: Exception do begin
-      FCallback(nil, FSocketWrapper.GetParentComponent);
+      FCallback(nil);
     end;
   end;
 end;
@@ -262,7 +261,6 @@ constructor TListenerThread.Create(APort: DWord; ACallback: TConnectionCallback;
 begin
   FPort := APort;
   FCallback := ACallback;
-  FOwner := AOwner;
   Inherited Create(false);
 end;
 
@@ -291,7 +289,7 @@ begin
   repeat
     Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
     if Incoming > 0 then
-      FCallback(TTCPStream.Create(Incoming), FOwner)
+      FCallback(TTCPStream.Create(Incoming))
     else
       break;
   until Terminated;

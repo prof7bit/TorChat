@@ -30,7 +30,7 @@ type
 
   { THiddenConnection }
   THiddenConnection = class(TAHiddenConnection)
-    constructor Create(AStream: TTCPStream; AClient: TAClient);
+    constructor Create(AClient: TAClient; AStream: TTCPStream);
     destructor Destroy; override;
     procedure Send(AData: String); override;
     procedure SendLine(ALine: String); override;
@@ -42,7 +42,7 @@ implementation
 
 { THiddenConnection }
 
-constructor THiddenConnection.Create(AStream: TTCPStream ; AClient: TAClient);
+constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream);
 begin
   FTCPStream := AStream;
   FClient := AClient;
