@@ -198,26 +198,12 @@ var
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
-  {$ifdef DebugToConsole}
-  try
-    writeln(PluginInfo.id, ': ', Level, ' ', Msg);
-  except
-  end;
-  {$endif}
   if ImportsLoaded then begin
     case Level of
       DEBUG_INFO: purple_debug_info(PluginInfo.id, PChar(Msg + LineEnding), []);
       DEBUG_WARNING: purple_debug_warning(PluginInfo.id, PChar(Msg + LineEnding), []);
       DEBUG_ERROR: purple_debug_error(PluginInfo.id, PChar(Msg + LineEnding), []);
     end;
-  end
-  else begin
-    {$ifndef DebugToConsole}
-    try
-      writeln(PluginInfo.id, ': ', Level, ' ', Msg);
-    except
-    end;
-    {$endif}
   end;
 end;
 

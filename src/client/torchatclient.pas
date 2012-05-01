@@ -141,7 +141,6 @@ begin
   FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
   FS.Write(JData[1], Length(JData));
   FS.Free;
-  writeln('*** saved');
 end;
 
 procedure TBuddyList.RemoveBuddy(ABuddy: TABuddy);
@@ -267,6 +266,13 @@ begin
   CheckHiddenServiceName;
   PopNextMessage;
   BuddyList.CheckState;
+
+  // testing the WriteLn redrection
+  writeln ('(0) this is an error');
+  writeln ('(1) this is a warning');
+  writeln ('(2) this is an info');
+  writeln ('this should also come out as an info');
+  writeln ('x'); // too short but must also be printed
 end;
 
 procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; E: Exception);
@@ -276,7 +282,7 @@ begin
   C := THiddenConnection.Create(self, AStream);
   Ignore(C);
   Ignore(E);
-  writeln('** incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
+  writeln('(1) incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
 end;
 
 procedure TTorChatClient.PopNextMessage;

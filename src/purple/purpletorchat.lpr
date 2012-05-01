@@ -4,19 +4,29 @@ library purpletorchat;
 
 uses
   {$ifdef unix}cthreads,{$endif}
+  Classes, sysutils, StreamIO,
   purple, torchatclient, clientconfig, miscfunc;
 
 type
-
   { TTorchatPurpleClient }
-
   TTorChatPurpleClient = class(TTorChatClient)
     procedure OnNotifyGui; override;
+  end;
+
+  { TWritelnRedirect will catch everything that is WriteLn() to stdout and
+    redirects it to the libpurple debug logger. We will create an instance
+    of this and replace it with the standard output stream }
+  TWritelnRedirect = class(TStream)
+    function Write(const Buffer; Count : Longint) : Longint; override;
   end;
 
 var
   Client: TTorChatPurpleClient;
   HPurpleTimer: Integer;
+
+  // these two variables are needed for the stdout redirection.
+  OldStdOut: Text;
+  WritelnRedirect: TWritelnRedirect;
 
 function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
 begin
@@ -52,9 +62,6 @@ begin
   Result := True;
 end;
 
-exports
-  purple_init_plugin;
-
 { TTorchatPurpleClient }
 
 procedure TTorChatPurpleClient.OnNotifyGui;
@@ -62,7 +69,43 @@ begin
   purple_timeout_add(0, @OnPurpleTimerOneShot, nil);
 end;
 
+{ TDebugStream }
+
+function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
+var
+  Msg, Lvl, Txt: String;
 begin
+  Result := Count;
+  SetLength(Msg, Count);
+  Move(Buffer, Msg[1], Count);
+  Msg := Trim(Msg);
+  Lvl := LeftStr(Msg, 4);
+  Txt := RightStr(Msg, Length(Msg)-4);
+  case Lvl of
+    '(0) ': _error(Txt);
+    '(1) ': _warning(Txt);
+    '(2) ': _info(Txt);
+  else
+    _info(Msg);
+  end;
+end;
+
+{ The TorChat units are logging their debug info with WriteLn(). It is
+  the responsibility of the frontend to catch them and log them or display
+  them appropriately. Here we install the redirection that will do this. }
+procedure RedirectWriteln;
+begin
+  OldStdOut := Output;
+  WritelnRedirect := TWritelnRedirect.Create();
+  AssignStream(Output, WritelnRedirect);
+  Rewrite(Output);
+end;
+
+exports
+  purple_init_plugin;
+
+begin
+  RedirectWriteln;
   with PluginInfo do begin
     magic := PURPLE_PLUGIN_MAGIC;
     major_version := PURPLE_MAJOR_VERSION;
