@@ -32,7 +32,7 @@ unit torchatabstract;
 interface
 
 uses
-  Classes, networking;
+  Classes, fpjson, networking;
 
 type
   TABuddy = class;
@@ -70,15 +70,19 @@ type
   strict protected
     FClient: TAClient;
     FID: String;
+    FNick: String;
     FConnIncoming: TAHiddenConnection;
     FConnOutgoing: TAHiddenConnection;
     procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
     procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
+    procedure SetNick(ANick: String); virtual; abstract;
   public
     procedure CheckState; virtual; abstract;
+    function AsJsonObject: TJSONObject; virtual; abstract;
     procedure OnOutgoingConnection; virtual; abstract;
     procedure OnOutgoingConnectionFail; virtual; abstract;
     property ID: String read FID;
+    property Nick: String read FNick write SetNick;
     property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
   end;

@@ -24,7 +24,7 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, contnrs, torchatabstract, buddy, clientconfig, torprocess, networking,
+  Classes, SysUtils, contnrs, fpjson, torchatabstract, buddy, clientconfig, torprocess, networking,
   connection, miscfunc;
 
 type
@@ -102,7 +102,7 @@ var
   Buddy : TABuddy;
 begin
   if FindBuddy(AID) = nil then begin
-    Buddy := TBuddy.Create(FClient, AID);
+    Buddy := TBuddy.Create(FClient, AID, 'myself');
     AddBuddy(Buddy);
   end;
 end;
@@ -125,9 +125,23 @@ begin
 end;
 
 procedure TBuddyList.Save;
+var
+  Buddy: TABuddy;
+  JArr : TJSONArray;
+  JData: String;
+  FS: TFileStream;
 begin
+  JArr := TJSONArray.Create;
   EnterCriticalsection(FCritical);
+  for Buddy in FList do begin
+    JArr.Add(Buddy.AsJsonObject);
+  end;
   LeaveCriticalsection(FCritical);
+  JData := JArr.FormatJSON([foSingleLineObject]);
+  FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
+  FS.Write(JData[1], Length(JData));
+  FS.Free;
+  writeln('*** saved');
 end;
 
 procedure TBuddyList.RemoveBuddy(ABuddy: TABuddy);
@@ -186,7 +200,7 @@ begin
   Inherited Create(AOwner);
   InitCriticalSection(CS);
   FHSNameOK := False;
-  FTimeStarted := Now;
+  FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
   FQueue := TQueue.Create;
   FTor := TTor.Create(self);
   FSock := TSocketWrapper.Create(Self);
@@ -249,6 +263,7 @@ end;
 
 procedure TTorChatClient.ProcessMessages;
 begin
+  if FTimeStarted = 0 then FTimeStarted := Now;
   CheckHiddenServiceName;
   PopNextMessage;
   BuddyList.CheckState;
@@ -290,7 +305,7 @@ begin
   if not FHSNameOK then begin;
     if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
       HSName := ConfGetHiddenServiceName;
-      if Name <> '' then begin
+      if HSName <> '' then begin
         BuddyList.SetHiddenServiceName(HSName);
         FHSNameOK := True;
       end;
