@@ -142,7 +142,7 @@ type
    *
    * These should all be stuff that some plugins can do and others can't.
    *)
-  PurpleProtocolOptions = (
+  TPurpleProtocolOptions = (
     (**
      * User names are unique to a chat and are not shared between rooms.
      *
@@ -220,6 +220,24 @@ type
   	OPT_PROTO_INVITE_MESSAGE = $00000800
   );
 
+  TPurpleIconSpec = packed record
+  	(** This is a comma-delimited list of image formats or @c NULL if icons
+  	 *  are not supported.  Neither the core nor the prpl will actually
+  	 *  check to see if the data it's given matches this; it's entirely up
+  	 *  to the UI to do what it wants
+  	 *)
+  	format: PChar;
+  	min_width: Integer;                     // Minimum width of this icon
+  	min_height: Integer;                    // Minimum height of this icon
+  	max_width: Integer;                     // Maximum width of this icon
+  	max_height: Integer;                    // Maximum height of this icon
+  	max_filesize: PtrUInt;                  // Maximum size in bytes
+  	scale_rules: TPurpleIconScaleRules;     // How to stretch this icon
+  end;
+  {
+
+  }
+
   (**
    * A protocol plugin information structure.
    *
@@ -228,12 +246,12 @@ type
    * NULL.  If a callback must be implemented, it has a comment indicating so.
    *)
   TPurplePluginProtocolInfo = packed record
+    options: TPurpleProtocolOptions;
+  	user_splits: PGList;      // A GList of PurpleAccountUserSplit
+  	protocol_options: PGList; // A GList of PurpleAccountOption
   end;
   {
-  	PurpleProtocolOptions options;  /**< Protocol options.          */
 
-  	GList *user_splits;      /**< A GList of PurpleAccountUserSplit */
-  	GList *protocol_options; /**< A GList of PurpleAccountOption    */
 
   	PurpleBuddyIconSpec icon_spec; /**< The icon spec. */
 
