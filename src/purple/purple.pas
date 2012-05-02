@@ -808,6 +808,7 @@ type
 
 var
   PluginInfo: TPurplePluginInfo;
+  PluginProtocolInfo: TPurplePluginProtocolInfo;
 
 
 (****************************************
@@ -1038,6 +1039,7 @@ end;
 initialization
   InstallWritelnRedirect;
   FillByte(PluginInfo, Sizeof(PluginInfo), 0);
+  FillByte((PluginProtocolInfo, SizeOf(PluginProtocolInfo), 0);
 finalization
   UnloadImports;
 end.
