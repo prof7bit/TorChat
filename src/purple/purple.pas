@@ -43,10 +43,9 @@ type
     prev: PGList;
   end;
 
+  PGHashTable = Pointer; // for now its just a pointer, care about this later
   GBoolean = Boolean32;
-
   PGSourceFunc = function(UserData: Pointer): GBoolean;
-
 
 (******************************
  *                            *
@@ -251,6 +250,30 @@ type
   	scale_rules: TPurpleIconScaleRules;     // How to stretch this icon
   end;
 
+  PPurpleAccount = Pointer;
+  PPurpleConnection = Pointer;
+  PPurpleBuddy = Pointer;
+  PPurpleGroup = Pointer;
+  PPurpleUserInfo = Pointer;
+  PPurpleStatus = Pointer;
+  PPurpleStoredImage = Pointer;
+  PPurpleBlistNode = Pointer;
+  PPurpleChat = Pointer;
+  PPurpleRoomlist = Pointer;
+  PPurpleRoomlistRoom = Pointer;
+  PPurpleXfer = Pointer;
+  PPurpleWhiteboardPrplOps = Pointer;
+  TPurpleMessageFlags = Integer;
+  TPurpleTypingState = Integer;
+  TPurpleMediaSessionType = Integer;
+  TPurpleMediaCaps = Integer;
+  TPurpleMood = Integer;
+	PPurpleSetPublicAliasSuccessCallback = procedure(); {$note fixme: define this}
+	PPurpleSetPublicAliasFailureCallback = procedure();
+	PPurpleGetPublicAliasSuccessCallback = procedure();
+	PPurpleGetPublicAliasFailureCallback = procedure();
+
+
   (**
    * A protocol plugin information structure.
    *
@@ -272,53 +295,56 @@ type
   	 *
   	 * This must be implemented.
   	 *)
-    //list_icon: function(account: PPurpleAccount; buddy: PPurpleBuddy): PChar;
+    list_icon: function(account: PPurpleAccount; buddy: PPurpleBuddy): PChar;
     //const char *(*list_icon)(PurpleAccount *account, PurpleBuddy *buddy);
 
   	(**
   	 * Fills the four char**'s with string identifiers for "emblems"
   	 * that the UI will interpret and display as relevant
   	 *)
-     //list_emblem: function(buddy: PPurpleBuddy): PChar;
-     //const char *(*list_emblem)(PurpleBuddy *buddy);
-  end;
-{
+    list_emblem: function(buddy: PPurpleBuddy): PChar;
+    //const char *(*list_emblem)(PurpleBuddy *buddy);
 
-  	/**
-  	 * Gets a short string representing this buddy's status.  This will
-  	 * be shown on the buddy list.
-  	 */
-  	char *(*status_text)(PurpleBuddy *buddy);
+   	(**
+   	 * Gets a short string representing this buddy's status.  This will
+   	 * be shown on the buddy list.
+   	 *)
+    status_text: function(buddy: PPurpleBuddy): PChar;
+   	//char *(*status_text)(PurpleBuddy *buddy);
 
-  	/**
-  	 * Allows the prpl to add text to a buddy's tooltip.
-  	 */
-  	void (*tooltip_text)(PurpleBuddy *buddy, PurpleNotifyUserInfo *user_info, gboolean full);
+    (**
+     * Allows the prpl to add text to a buddy's tooltip.
+     *)
+    tooltip_text: procedure(buddy: PPurpleBuddy; user_info: PPurpleUserInfo; full: GBoolean);
+    //void (*tooltip_text)(PurpleBuddy *buddy, PurpleNotifyUserInfo *user_info, gboolean full);
 
-  	/**
+  	(**
   	 * Returns a list of #PurpleStatusType which exist for this account;
   	 * this must be implemented, and must add at least the offline and
   	 * online states.
-  	 */
-  	GList *(*status_types)(PurpleAccount *account);
+  	 *)
+    status_types: function(account: PPurpleAccount): PGList;
+  	//GList *(*status_types)(PurpleAccount *account);
 
-  	/**
+  	(**
   	 * Returns a list of #PurpleMenuAction structs, which represent extra
   	 * actions to be shown in (for example) the right-click menu for @a
   	 * node.
-  	 */
-  	GList *(*blist_node_menu)(PurpleBlistNode *node);
+  	 *)
+    blist_node_menu: function(node: PPurpleBlistNode): PGList;
+  	//GList *(*blist_node_menu)(PurpleBlistNode *node);
 
-  	/**
+  	(**
   	 * Returns a list of #proto_chat_entry structs, which represent
   	 * information required by the PRPL to join a chat. libpurple will
   	 * call join_chat along with the information filled by the user.
   	 *
   	 * @return A list of #proto_chat_entry structs
-  	 */
-  	GList *(*chat_info)(PurpleConnection *);
+  	 *)
+    chat_info: function(conn: PPurpleConnection): PGList;
+  	//GList *(*chat_info)(PurpleConnection *);
 
-  	/**
+  	(**
   	 * Returns a hashtable which maps #proto_chat_entry struct identifiers
   	 * to default options as strings based on chat_name. The resulting
   	 * hashtable should be created with g_hash_table_new_full(g_str_hash,
@@ -327,18 +353,22 @@ type
   	 *
   	 * @param chat_name The chat name to be turned into components
   	 * @return Hashtable containing the information extracted from chat_name
-  	 */
-  	GHashTable *(*chat_info_defaults)(PurpleConnection *, const char *chat_name);
+  	 *)
+    chat_info_defaults: function(conn: PPurpleConnection; chat_name: PChar): PGHashTable;
+  	//GHashTable *(*chat_info_defaults)(PurpleConnection *, const char *chat_name);
 
-  	/* All the server-related functions */
 
-  	/** This must be implemented. */
-  	void (*login)(PurpleAccount *);
+    (* All the server-related functions *)
 
-  	/** This must be implemented. */
-  	void (*close)(PurpleConnection *);
+    (** This must be implemented. *)
+    login: procedure(acc: PPurpleAccount);
+    //void (*login)(PurpleAccount *);
 
-  	/**
+    (** This must be implemented. *)
+    close: procedure(conn: PPurpleConnection);
+    //void (*close)(PurpleConnection *);
+
+  	(**
   	 * This PRPL function should return a positive value on success.
   	 * If the message is too big to be sent, return -E2BIG.  If
   	 * the account is not connected, return -ENOTCONN.  If the
@@ -346,33 +376,40 @@ type
   	 * some other negative value.  You can use one of the valid
   	 * errno values, or just big something.  If the message should
   	 * not be echoed to the conversation window, return 0.
-  	 */
-  	int  (*send_im)(PurpleConnection *, const char *who,
-  					const char *message,
-  					PurpleMessageFlags flags);
+  	 *)
+    send_im: function(conn: PPurpleConnection; who: PChar; message: PChar; flags: TPurpleMessageFlags): Integer;
+  	//int  (*send_im)(PurpleConnection *, const char *who,
+  	//				const char *message,
+  	//				PurpleMessageFlags flags);
 
-  	void (*set_info)(PurpleConnection *, const char *info);
+    set_info: procedure(conn: PPurpleConnection; info: PChar);
+  	//void (*set_info)(PurpleConnection *, const char *info);
 
-  	/**
+  	(**
   	 * @return If this protocol requires the PURPLE_TYPING message to
   	 *         be sent repeatedly to signify that the user is still
   	 *         typing, then the PRPL should return the number of
   	 *         seconds to wait before sending a subsequent notification.
   	 *         Otherwise the PRPL should return 0.
-  	 */
-  	unsigned int (*send_typing)(PurpleConnection *, const char *name, PurpleTypingState state);
+  	 *)
+    send_typing: function(conn: PPurpleConnection; name: PChar; state: TPurpleTypingState): Integer;
+  	//unsigned int (*send_typing)(PurpleConnection *, const char *name, PurpleTypingState state);
 
-  	/**
+  	(**
   	 * Should arrange for purple_notify_userinfo() to be called with
   	 * @a who's user info.
-  	 */
-  	void (*get_info)(PurpleConnection *, const char *who);
-  	void (*set_status)(PurpleAccount *account, PurpleStatus *status);
+  	 *)
+    get_info: procedure(conn: PPurpleConnection; who: PChar);
+  	//void (*get_info)(PurpleConnection *, const char *who);
+    set_status: procedure(account: PPurpleAccount; status: PPurpleStatus);
+  	//void (*set_status)(PurpleAccount *account, PurpleStatus *status);
+    set_idle: procedure(conn: PPurpleConnection; idletime: Integer);
+    //void (*set_idle)(PurpleConnection *, int idletime);
+    change_passwd: procedure(conn: PPurpleConnection; old_pass, newpass: PChar);
+  	//void (*change_passwd)(PurpleConnection *, const char *old_pass,
+  	//					  const char *new_pass);
 
-  	void (*set_idle)(PurpleConnection *, int idletime);
-  	void (*change_passwd)(PurpleConnection *, const char *old_pass,
-  						  const char *new_pass);
-  	/**
+  	(**
   	 * Add a buddy to a group on the server.
   	 *
   	 * This PRPL function may be called in situations in which the buddy is
@@ -382,18 +419,27 @@ type
   	 *
   	 * @deprecated Since 2.8.0, add_buddy_with_invite is preferred.
   	 * @see add_buddy_with_invite
-  	 */
-  	void (*add_buddy)(PurpleConnection *, PurpleBuddy *buddy, PurpleGroup *group);
-  	void (*add_buddies)(PurpleConnection *, GList *buddies, GList *groups);
-  	void (*remove_buddy)(PurpleConnection *, PurpleBuddy *buddy, PurpleGroup *group);
-  	void (*remove_buddies)(PurpleConnection *, GList *buddies, GList *groups);
-  	void (*add_permit)(PurpleConnection *, const char *name);
-  	void (*add_deny)(PurpleConnection *, const char *name);
-  	void (*rem_permit)(PurpleConnection *, const char *name);
-  	void (*rem_deny)(PurpleConnection *, const char *name);
-  	void (*set_permit_deny)(PurpleConnection *);
+  	 *)
+    add_buddy: procedure(conn: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
+  	//void (*add_buddy)(PurpleConnection *, PurpleBuddy *buddy, PurpleGroup *group);
+    add_buddies: procedure(conn: PPurpleConnection; buddies: PGList; groups: PGList);
+    //void (*add_buddies)(PurpleConnection *, GList *buddies, GList *groups);
+    remove_buddy: procedure(conn: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
+    //void (*remove_buddy)(PurpleConnection *, PurpleBuddy *buddy, PurpleGroup *group);
+    remove_buddies: procedure(conn: PPurpleConnection; buddies: PGList; groups: PGList);
+    //void (*remove_buddies)(PurpleConnection *, GList *buddies, GList *groups);
+    add_permit: procedure(conn: PPurpleConnection; name: PChar);
+    //void (*add_permit)(PurpleConnection *, const char *name);
+    add_deny: procedure(conn: PPurpleConnection; name: PChar);
+    //void (*add_deny)(PurpleConnection *, const char *name);
+    rem_permit: procedure(conn: PPurpleConnection; name: PChar);
+    //void (*rem_permit)(PurpleConnection *, const char *name);
+    rem_deny: procedure(conn: PPurpleConnection; name: PChar);
+    //void (*rem_deny)(PurpleConnection *, const char *name);
+    set_permit_deny: procedure(conn: PPurpleConnection);
+    //void (*set_permit_deny)(PurpleConnection *);
 
-  	/**
+  	(**
   	 * Called when the user requests joining a chat. Should arrange for
   	 * #serv_got_joined_chat to be called.
   	 *
@@ -402,54 +448,61 @@ type
   	 *                   by #chat_info. It may also be called when accepting
   	 *                   an invitation, in which case this matches the
   	 *                   data parameter passed to #serv_got_chat_invite.
-  	 */
-  	void (*join_chat)(PurpleConnection *, GHashTable *components);
+  	 *)
+    join_chat: procedure(conn: PPurpleConnection; components: PGHashTable);
+  	//void (*join_chat)(PurpleConnection *, GHashTable *components);
 
-  	/**
+  	(**
   	 * Called when the user refuses a chat invitation.
   	 *
   	 * @param components A hashtable containing information required to
   	 *                   join the chat as passed to #serv_got_chat_invite.
-  	 */
-  	void (*reject_chat)(PurpleConnection *, GHashTable *components);
+  	 *)
+    reject_chat: procedure(conn: PPurpleConnection; components: PGHashTable);
+  	//void (*reject_chat)(PurpleConnection *, GHashTable *components);
 
-  	/**
+  	(**
   	 * Returns a chat name based on the information in components. Use
   	 * #chat_info_defaults if you instead need to generate a hashtable
   	 * from a chat name.
   	 *
   	 * @param components A hashtable containing information about the chat.
-  	 */
-  	char *(*get_chat_name)(GHashTable *components);
+  	 *)
+    get_chat_name: function(components: PGHashTable): PChar;
+  	//char *(*get_chat_name)(GHashTable *components);
 
-  	/**
+  	(**
   	 * Invite a user to join a chat.
   	 *
   	 * @param id      The id of the chat to invite the user to.
   	 * @param message A message displayed to the user when the invitation
   	 *                is received.
   	 * @param who     The name of the user to send the invation to.
-  	 */
-  	void (*chat_invite)(PurpleConnection *, int id,
-  						const char *message, const char *who);
-  	/**
+  	 *)
+    chat_invite: procedure(conn: PPurpleConnection; id: Integer; message: PChar; who: PChar);
+  	//void (*chat_invite)(PurpleConnection *, int id,
+  	//					const char *message, const char *who);
+
+  	(**
   	 * Called when the user requests leaving a chat.
   	 *
   	 * @param id The id of the chat to leave
-  	 */
-  	void (*chat_leave)(PurpleConnection *, int id);
+  	 *)
+    chat_leave: procedure(conn: PPurpleConnection);
+  	//void (*chat_leave)(PurpleConnection *, int id);
 
-  	/**
+  	(**
   	 * Send a whisper to a user in a chat.
   	 *
   	 * @param id      The id of the chat.
   	 * @param who     The name of the user to send the whisper to.
   	 * @param message The message of the whisper.
-  	 */
-  	void (*chat_whisper)(PurpleConnection *, int id,
-  						 const char *who, const char *message);
+  	 *)
+    chat_whisper: procedure(conn: PPurpleConnection; id: Integer; who: PChar; message: PChar);
+  	//void (*chat_whisper)(PurpleConnection *, int id,
+  	//					 const char *who, const char *message);
 
-  	/**
+  	(**
   	 * Send a message to a chat.
   	 * This PRPL function should return a positive value on success.
   	 * If the message is too big to be sent, return -E2BIG.  If
@@ -465,63 +518,77 @@ type
   	 *                message flags.
   	 * @return 	  A positive number or 0 in case of succes,
   	 *                a negative error number in case of failure.
-  	 */
-  	int  (*chat_send)(PurpleConnection *, int id, const char *message, PurpleMessageFlags flags);
+  	 *)
+    chat_send: function(conn: PPurpleConnection; id: Integer; message: PChar; flags: TPurpleMessageFlags): Integer;
+  	//int  (*chat_send)(PurpleConnection *, int id, const char *message, PurpleMessageFlags flags);
 
-  	/** If implemented, this will be called regularly for this prpl's
+  	(** If implemented, this will be called regularly for this prpl's
   	 *  active connections.  You'd want to do this if you need to repeatedly
   	 *  send some kind of keepalive packet to the server to avoid being
   	 *  disconnected.  ("Regularly" is defined by
   	 *  <code>KEEPALIVE_INTERVAL</code> in <tt>libpurple/connection.c</tt>.)
-  	 */
-  	void (*keepalive)(PurpleConnection *);
+  	 *)
+    keepalive: procedure(conn: PPurpleConnection);
+  	//void (*keepalive)(PurpleConnection *);
 
-  	/** new user registration */
-  	void (*register_user)(PurpleAccount *);
+  	(** new user registration *)
+    register_user: procedure(acc: PPurpleAccount);
+  	//void (*register_user)(PurpleAccount *);
 
-  	/**
+  	(**
   	 * @deprecated Use #PurplePluginProtocolInfo.get_info instead.
-  	 */
-  	void (*get_cb_info)(PurpleConnection *, int, const char *who);
-  	/**
+  	 *)
+    get_cb_info: Pointer; // nothing because its deprecated
+  	//void (*get_cb_info)(PurpleConnection *, int, const char *who);
+
+    (**
   	 * @deprecated Use #PurplePluginProtocolInfo.get_cb_real_name and
   	 *             #PurplePluginProtocolInfo.status_text instead.
-  	 */
-  	void (*get_cb_away)(PurpleConnection *, int, const char *who);
+  	 *)
+    get_cb_away: Pointer; // nothing because its deprecated
+  	//void (*get_cb_away)(PurpleConnection *, int, const char *who);
 
-  	/** save/store buddy's alias on server list/roster */
-  	void (*alias_buddy)(PurpleConnection *, const char *who,
-  						const char *alias);
+  	(** save/store buddy's alias on server list/roster *)
+    alias_buddy: procedure(conn: PPurpleConnection; who: PChar; alias: PChar);
+  	//void (*alias_buddy)(PurpleConnection *, const char *who,
+  	//					const char *alias);
 
-  	/** change a buddy's group on a server list/roster */
-  	void (*group_buddy)(PurpleConnection *, const char *who,
-  						const char *old_group, const char *new_group);
+  	(** change a buddy's group on a server list/roster *)
+    group_buddy: procedure(conn: PPurpleConnection; who, old_group, new_group: PChar);
+  	//void (*group_buddy)(PurpleConnection *, const char *who,
+  	//					const char *old_group, const char *new_group);
 
-  	/** rename a group on a server list/roster */
-  	void (*rename_group)(PurpleConnection *, const char *old_name,
-  						 PurpleGroup *group, GList *moved_buddies);
+  	(** rename a group on a server list/roster *)
+    rename_group: procedure(conn: PPurpleConnection; old_name: PChar; group: PPurpleGroup; moved_buddies: PGList);
+  	//void (*rename_group)(PurpleConnection *, const char *old_name,
+  	//					 PurpleGroup *group, GList *moved_buddies);
 
-  	void (*buddy_free)(PurpleBuddy *);
+    buddy_free: procedure(buddy: PPurpleBuddy);
+  	//void (*buddy_free)(PurpleBuddy *);
 
-  	void (*convo_closed)(PurpleConnection *, const char *who);
+    convo_closed: procedure(conn: PPurpleConnection; who: PChar);
+  	//void (*convo_closed)(PurpleConnection *, const char *who);
 
-  	/**
+  	(**
   	 *  Convert the username @a who to its canonical form.  (For example,
   	 *  AIM treats "fOo BaR" and "foobar" as the same user; this function
   	 *  should return the same normalized string for both of those.)
-  	 */
-  	const char *(*normalize)(const PurpleAccount *, const char *who);
+  	 *)
+    normalize: function(acc: PPurpleAccount; who: PChar): PChar;
+  	//const char *(*normalize)(const PurpleAccount *, const char *who);
 
-  	/**
+  	(**
   	 * Set the buddy icon for the given connection to @a img.  The prpl
   	 * does NOT own a reference to @a img; if it needs one, it must
   	 * #purple_imgstore_ref(@a img) itself.
-  	 */
-  	void (*set_buddy_icon)(PurpleConnection *, PurpleStoredImage *img);
+  	 *)
+    set_buddy_icon: procedure(conn: PPurpleConnection; img: PPurpleStoredImage);
+  	//void (*set_buddy_icon)(PurpleConnection *, PurpleStoredImage *img);
 
-  	void (*remove_group)(PurpleConnection *gc, PurpleGroup *group);
+    remove_group: procedure(conn: PPurpleConnection; group: PPurpleGroup);
+  	//void (*remove_group)(PurpleConnection *gc, PurpleGroup *group);
 
-  	/** Gets the real name of a participant in a chat.  For example, on
+  	(** Gets the real name of a participant in a chat.  For example, on
   	 *  XMPP this turns a chat room nick <tt>foo</tt> into
   	 *  <tt>room\@server/foo</tt>
   	 *  @param gc  the connection on which the room is.
@@ -529,57 +596,77 @@ type
   	 *  @param who the nickname of the chat participant.
   	 *  @return    the real name of the participant.  This string must be
   	 *             freed by the caller.
-  	 */
-  	char *(*get_cb_real_name)(PurpleConnection *gc, int id, const char *who);
+  	 *)
+    get_cb_real_name: function(conn: PPurpleConnection; id: Integer; who: PChar): PChar;
+  	//char *(*get_cb_real_name)(PurpleConnection *gc, int id, const char *who);
 
-  	void (*set_chat_topic)(PurpleConnection *gc, int id, const char *topic);
+    set_chat_topic: procedure(conn: PPurpleConnection; id: Integer; topic: PChar);
+  	//void (*set_chat_topic)(PurpleConnection *gc, int id, const char *topic);
 
-  	PurpleChat *(*find_blist_chat)(PurpleAccount *account, const char *name);
+    find_blist_chat: function(acc: PPurpleAccount; name: PChar): PPurpleChat;
+  	//PurpleChat *(*find_blist_chat)(PurpleAccount *account, const char *name);
 
-  	/* room listing prpl callbacks */
-  	PurpleRoomlist *(*roomlist_get_list)(PurpleConnection *gc);
-  	void (*roomlist_cancel)(PurpleRoomlist *list);
-  	void (*roomlist_expand_category)(PurpleRoomlist *list, PurpleRoomlistRoom *category);
+  	(* room listing prpl callbacks *)
+    roomlist_get_list: function(conn: PPurpleConnection): PPurpleRoomlist;
+  	//PurpleRoomlist *(*roomlist_get_list)(PurpleConnection *gc);
 
-  	/* file transfer callbacks */
-  	gboolean (*can_receive_file)(PurpleConnection *, const char *who);
-  	void (*send_file)(PurpleConnection *, const char *who, const char *filename);
-  	PurpleXfer *(*new_xfer)(PurpleConnection *, const char *who);
+    roomlist_cancel: procedure(list: PPurpleRoomlist);
+    //void (*roomlist_cancel)(PurpleRoomlist *list);
 
-  	/** Checks whether offline messages to @a buddy are supported.
+    roomlist_expand_category: procedure(list: PPurpleRoomlist; category: PPurpleRoomlistRoom);
+    //void (*roomlist_expand_category)(PurpleRoomlist *list, PurpleRoomlistRoom *category);
+
+  	(* file transfer callbacks *)
+    can_receive_file: function(conn: PPurpleConnection; who: PChar): GBoolean;
+  	//gboolean (*can_receive_file)(PurpleConnection *, const char *who);
+
+    send_file: procedure(conn: PPurpleConnection; who: PChar; filename: PChar);
+    //void (*send_file)(PurpleConnection *, const char *who, const char *filename);
+
+    new_xfer: function(conn: PPurpleConnection; who: PChar): PPurpleXfer;
+    //PurpleXfer *(*new_xfer)(PurpleConnection *, const char *who);
+
+  	(** Checks whether offline messages to @a buddy are supported.
   	 *  @return @c TRUE if @a buddy can be sent messages while they are
   	 *          offline, or @c FALSE if not.
-  	 */
-  	gboolean (*offline_message)(const PurpleBuddy *buddy);
+  	 *)
+    offline_message: function(buddy: PPurpleBuddy): GBoolean;
+  	//gboolean (*offline_message)(const PurpleBuddy *buddy);
 
-  	PurpleWhiteboardPrplOps *whiteboard_prpl_ops;
+    whiteboard_prpl_ops : PPurpleWhiteboardPrplOps;
 
-  	/** For use in plugins that may understand the underlying protocol */
-  	int (*send_raw)(PurpleConnection *gc, const char *buf, int len);
+  	(** For use in plugins that may understand the underlying protocol *)
+    send_raw: function(conn: PPurpleConnection; buf: Pointer; len: Integer): Integer;
+  	//int (*send_raw)(PurpleConnection *gc, const char *buf, int len);
 
-  	/* room list serialize */
-  	char *(*roomlist_room_serialize)(PurpleRoomlistRoom *room);
+  	(* room list serialize *)
+    roomlist_room_serialize: function(room: PPurpleRoomlistRoom): PChar;
+  	//char *(*roomlist_room_serialize)(PurpleRoomlistRoom *room);
 
-  	/** Remove the user from the server.  The account can either be
+  	(** Remove the user from the server.  The account can either be
   	 * connected or disconnected. After the removal is finished, the
   	 * connection will stay open and has to be closed!
-  	 */
-  	/* This is here rather than next to register_user for API compatibility
+  	 *)
+  	(* This is here rather than next to register_user for API compatibility
   	 * reasons.
-  	 */
-  	void (*unregister_user)(PurpleAccount *, PurpleAccountUnregistrationCb cb, void *user_data);
+  	 *)
+    unregister_user: procedure(acc: PPurpleAccount; cb: Pointer; user_data: Pointer); {$note fixme: define the callback function}
+  	//void (*unregister_user)(PurpleAccount *, PurpleAccountUnregistrationCb cb, void *user_data);
 
-  	/* Attention API for sending & receiving zaps/nudges/buzzes etc. */
-  	gboolean (*send_attention)(PurpleConnection *gc, const char *username, guint type);
-  	GList *(*get_attention_types)(PurpleAccount *acct);
+  	(* Attention API for sending & receiving zaps/nudges/buzzes etc. *)
+    send_attention: function(conn: PPurpleConnection; username: PChar; typ: UInt32): GBoolean;
+  	//gboolean (*send_attention)(PurpleConnection *gc, const char *username, guint type);
 
-  	/**
+    get_attention_types: function(acc: PPurpleAccount): PGList;
+  	//GList *(*get_attention_types)(PurpleAccount *acct);
+
+  	(**
   	 * The size of the PurplePluginProtocolInfo. This should always be sizeof(PurplePluginProtocolInfo).
   	 * This allows adding more functions to this struct without requiring a major version bump.
-  	 */
-  	unsigned long struct_size;
+  	 *)
+    struct_size: UInt32;
 
-  	/* NOTE:
+  	(* NOTE:
   	 * If more functions are added, they should accessed using the following syntax:
   	 *
   	 *		if (PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl, new_function))
@@ -592,9 +679,9 @@ type
   	 *
   	 * The PURPLE_PROTOCOL_PLUGIN_HAS_FUNC macro can be used for the older member
   	 * functions (e.g. login, send_im etc.) too.
-  	 */
+  	 *)
 
-  	/** This allows protocols to specify additional strings to be used for
+  	(** This allows protocols to specify additional strings to be used for
   	 * various purposes.  The idea is to stuff a bunch of strings in this hash
   	 * table instead of expanding the struct for every addition.  This hash
   	 * table is allocated every call and MUST be unrefed by the caller.
@@ -602,38 +689,42 @@ type
   	 * @param account The account to specify.  This can be NULL.
   	 * @return The protocol's string hash table. The hash table should be
   	 *         destroyed by the caller when it's no longer needed.
-  	 */
-  	GHashTable *(*get_account_text_table)(PurpleAccount *account);
+  	 *)
+    get_account_text_table: function(acc: PPurpleAccount): PGHashTable;
+  	//GHashTable *(*get_account_text_table)(PurpleAccount *account);
 
-  	/**
+  	(**
   	 * Initiate a media session with the given contact.
   	 *
   	 * @param account The account to initiate the media session on.
   	 * @param who The remote user to initiate the session with.
   	 * @param type The type of media session to initiate.
   	 * @return TRUE if the call succeeded else FALSE. (Doesn't imply the media session or stream will be successfully created)
-  	 */
-  	gboolean (*initiate_media)(PurpleAccount *account, const char *who,
-  					PurpleMediaSessionType type);
+  	 *)
+    initiate_media: function(acc: PPurpleAccount; who: PChar; typ: TPurpleMediaSessionType): GBoolean;
+  	//gboolean (*initiate_media)(PurpleAccount *account, const char *who,
+  	//				PurpleMediaSessionType type);
 
-  	/**
+  	(**
   	 * Checks to see if the given contact supports the given type of media session.
   	 *
   	 * @param account The account the contact is on.
   	 * @param who The remote user to check for media capability with.
   	 * @return The media caps the contact supports.
-  	 */
-  	PurpleMediaCaps (*get_media_caps)(PurpleAccount *account,
-  					  const char *who);
+  	 *)
+    get_media_caps: function(acc: PPurpleAccount; who: PChar): TPurpleMediaCaps;
+  	//PurpleMediaCaps (*get_media_caps)(PurpleAccount *account,
+  	//				  const char *who);
 
-  	/**
+  	(**
   	 * Returns an array of "PurpleMood"s, with the last one having
   	 * "mood" set to @c NULL.
   	 * @since 2.7.0
-  	 */
-  	PurpleMood *(*get_moods)(PurpleAccount *account);
+  	 *)
+    get_moods: function(acc: PPurpleAccount): TPurpleMood;
+  	//PurpleMood *(*get_moods)(PurpleAccount *account);
 
-  	/**
+  	(**
   	 * Set the user's "friendly name" (or alias or nickname or
   	 * whatever term you want to call it) on the server.  The
   	 * protocol plugin should call success_cb or failure_cb
@@ -650,11 +741,16 @@ type
   	 *                   fails
   	 * @see purple_account_set_public_alias
   	 * @since 2.7.0
-  	 */
-  	void (*set_public_alias)(PurpleConnection *gc, const char *alias,
-  	                         PurpleSetPublicAliasSuccessCallback success_cb,
-  	                         PurpleSetPublicAliasFailureCallback failure_cb);
-  	/**
+  	 *)
+    set_public_alias: procedure(conn: PPurpleConnection; aalias: PChar;
+      success_cb: PPurpleSetPublicAliasSuccessCallback;
+      failure_cp: PPurpleSetPublicAliasFailureCallback);
+  	//void (*set_public_alias)(PurpleConnection *gc, const char *alias,
+  	//                         PurpleSetPublicAliasSuccessCallback success_cb,
+  	//                         PurpleSetPublicAliasFailureCallback failure_cb);
+
+
+  	(**
   	 * Retrieve the user's "friendly name" as set on the server.
   	 * The protocol plugin should call success_cb or failure_cb
   	 * *asynchronously* (even if it knows immediately that the get will fail,
@@ -667,12 +763,15 @@ type
   	 *                   retrieve the alias
   	 * @see purple_account_get_public_alias
   	 * @since 2.7.0
-  	 */
-  	void (*get_public_alias)(PurpleConnection *gc,
-  	                         PurpleGetPublicAliasSuccessCallback success_cb,
-  	                         PurpleGetPublicAliasFailureCallback failure_cb);
+  	 *)
+    get_public_alias: procedure(acc: PPurpleAccount;
+      success_cb: PPurpleGetPublicAliasSuccessCallback;
+      failure_cb: PPurpleGetPublicAliasFailureCallback);
+  	//void (*get_public_alias)(PurpleConnection *gc,
+  	//                         PurpleGetPublicAliasSuccessCallback success_cb,
+  	//                         PurpleGetPublicAliasFailureCallback failure_cb);
 
-  	/**
+  	(**
   	 * Add a buddy to a group on the server.
   	 *
   	 * This PRPL function may be called in situations in which the buddy is
@@ -683,12 +782,13 @@ type
   	 * If authorization is required, then use the supplied invite message.
   	 *
   	 * @since 2.8.0
-  	 */
-  	void (*add_buddy_with_invite)(PurpleConnection *pc, PurpleBuddy *buddy, PurpleGroup *group, const char *message);
-  	void (*add_buddies_with_invite)(PurpleConnection *pc, GList *buddies, GList *groups, const char *message);
-  }
+  	 *)
+    add_buddy_with_invite: procedure(conn: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup; message: PChar);
+  	//void (*add_buddy_with_invite)(PurpleConnection *pc, PurpleBuddy *buddy, PurpleGroup *group, const char *message);
 
-
+    add_buddies_with_invite: procedure(conn: PPurpleConnection; buddies: PGList; groups: PGList; message: PChar);
+    //void (*add_buddies_with_invite)(PurpleConnection *pc, GList *buddies, GList *groups, const char *message);
+  end;
 
 
 (******************************
