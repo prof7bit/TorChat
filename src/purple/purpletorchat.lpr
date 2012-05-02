@@ -109,6 +109,7 @@ begin
     list_icon := @OnListIcon;
     login := @OnLogin;
     close := @OnClose;
+    struct_size := SizeOf(PluginProtocolInfo);
   end;
 end.
 
