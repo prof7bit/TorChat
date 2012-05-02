@@ -54,7 +54,10 @@ end;
 function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
   _info('OnListIcon');
-  Result := nil;
+  Result := 'torchat';
+  // now it now look for torchat.png in several resolutions
+  // in the folders /usr/share/pixmaps/pidgin/protocols/*/
+  // the installer for the plugin must install these files.
 end;
 
 procedure OnLogin(acc: PPurpleAccount); cdecl;

@@ -863,6 +863,8 @@ procedure _warning(Msg: String; Args: array of const);
 procedure _error(Msg: String);
 procedure _error(Msg: String; Args: array of const);
 
+{ sometimes we need to allocate a char* for which libpurple will take ownership }
+function AllocPurpleString(Str: String): PChar;
 
 implementation
 uses
@@ -930,6 +932,23 @@ end;
 procedure _error(Msg: String; Args: array of const);
 begin
   _purple_debug(DEBUG_ERROR, Msg, Args);
+end;
+
+function AllocPurpleString(Str: String): PChar;
+var
+  L : Integer;
+begin
+  L := Length(Str);
+  if L = 0 then
+    Result := nil
+  else begin
+    // bypass the FPC heap manager and malloc() directly from the system.
+    // Of course we do this only for strings that we pass to libpurple and
+    // where libpurple promises to free it again.
+    Result := SysGetmem(L+1);
+    Move(Str[1], Result[0], L);
+    Result[L] := #0;
+  end;
 end;
 
 { TWritelnRedirect }
