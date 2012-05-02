@@ -266,13 +266,6 @@ begin
   CheckHiddenServiceName;
   PopNextMessage;
   BuddyList.CheckState;
-
-  // testing the WriteLn redrection
-  writeln ('(0) this is an error');
-  writeln ('(1) this is a warning');
-  writeln ('(2) this is an info');
-  writeln ('this should also come out as an info');
-  writeln ('x'); // too short but must also be printed
 end;
 
 procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; E: Exception);

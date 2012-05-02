@@ -51,6 +51,23 @@ begin
   Result := True;
 end;
 
+function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
+begin
+  _info('OnListIcon');
+  Result := nil;
+end;
+
+procedure OnLogin(acc: PPurpleAccount); cdecl;
+begin
+  _info('OnLogin');
+end;
+
+procedure OnClose(conn: PPurpleConnection); cdecl;
+begin
+  _info('OnClose');
+end;
+
+
 { TTorchatPurpleClient }
 
 procedure TTorChatPurpleClient.OnNotifyGui;
@@ -66,17 +83,25 @@ begin
     magic := PURPLE_PLUGIN_MAGIC;
     major_version := PURPLE_MAJOR_VERSION;
     minor_version := PURPLE_MINOR_VERSION;
-    plugintype := PURPLE_PLUGIN_STANDARD;
+    plugintype := PURPLE_PLUGIN_PROTOCOL;
     priority := PURPLE_PRIORITY_DEFAULT;
     id := 'prpl-prof7bit-torchat';
     name := 'TorChat';
     version := '2.0';
     summary := 'TorChat Protocol';
     description := 'TorChat protocol plugin for libpurple / Pidgin';
-    author := 'Bernd Kreuss';
+    author := 'Bernd Kreuss <prof7bit@gmail.com>';
     homepage := 'https://github.com/prof7bit/TorChat';
     load := @OnLoad;
     unload := @OnUnload;
+    extra_info := @PluginProtocolInfo;
+  end;
+
+  with PluginProtocolInfo do begin
+    options := OPT_PROTO_NO_PASSWORD;
+    list_icon := @OnListIcon;
+    login := @OnLogin;
+    close := @OnClose;
   end;
 end.
 
