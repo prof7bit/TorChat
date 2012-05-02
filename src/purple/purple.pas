@@ -146,85 +146,88 @@ type
    * Protocol options
    *
    * These should all be stuff that some plugins can do and others can't.
+   * Allowed values are the constants that start with OPT_PROTO_
    *)
-  TPurpleProtocolOptions = (
-    (**
-     * User names are unique to a chat and are not shared between rooms.
-     *
-     * XMPP lets you choose what name you want in chats, so it shouldn't
-     * be pulling the aliases from the buddy list for the chat list;
-     * it gets annoying.
-     *)
- 	  OPT_PROTO_UNIQUE_CHATNAME = $00000004,
+  TPurpleProtocolOptions = DWord;
 
-  	(**
-  	 * Chat rooms have topics.
-  	 *
-  	 * IRC and XMPP support this.
-  	 *)
-  	OPT_PROTO_CHAT_TOPIC = $00000008,
+const
+  (**
+   * User names are unique to a chat and are not shared between rooms.
+   *
+   * XMPP lets you choose what name you want in chats, so it shouldn't
+   * be pulling the aliases from the buddy list for the chat list;
+   * it gets annoying.
+   *)
+ 	OPT_PROTO_UNIQUE_CHATNAME = $00000004;
 
-    (**
-     * Don't require passwords for sign-in.
-     *
-     * Zephyr doesn't require passwords, so there's no
-     * need for a password prompt.
-     *)
-    OPT_PROTO_NO_PASSWORD = $00000010,
+  (**
+   * Chat rooms have topics.
+   *
+   * IRC and XMPP support this.
+   *)
+  OPT_PROTO_CHAT_TOPIC = $00000008;
 
-    (**
-     * Notify on new mail.
-     *
-     * MSN and Yahoo notify you when you have new mail.
-     *)
-    OPT_PROTO_MAIL_CHECK = $00000020,
+  (**
+   * Don't require passwords for sign-in.
+   *
+   * Zephyr doesn't require passwords, so there's no
+   * need for a password prompt.
+   *)
+  OPT_PROTO_NO_PASSWORD = $00000010;
 
-  	(**
-  	 * Images in IMs.
-  	 *
-  	 * Oscar lets you send images in direct IMs.
-  	 *)
-  	OPT_PROTO_IM_IMAGE = $00000040,
+  (**
+   * Notify on new mail.
+   *
+   * MSN and Yahoo notify you when you have new mail.
+   *)
+  OPT_PROTO_MAIL_CHECK = $00000020;
 
-  	(**
-  	 * Allow passwords to be optional.
-  	 *
-  	 * Passwords in IRC are optional, and are needed for certain
-  	 * functionality.
-  	 *)
-  	OPT_PROTO_PASSWORD_OPTIONAL = $00000080,
+  (**
+   * Images in IMs.
+   *
+   * Oscar lets you send images in direct IMs.
+   *)
+  OPT_PROTO_IM_IMAGE = $00000040;
 
-  	(**
-  	 * Allows font size to be specified in sane point size
-  	 *
-  	 * Probably just XMPP and Y!M
-  	 *)
-  	OPT_PROTO_USE_POINTSIZE = $00000100,
+  (**
+   * Allow passwords to be optional.
+   *
+   * Passwords in IRC are optional, and are needed for certain
+   * functionality.
+   *)
+  OPT_PROTO_PASSWORD_OPTIONAL = $00000080;
 
-  	(**
-  	 * Set the Register button active even when the username has not
-  	 * been specified.
-  	 *
-  	 * Gadu-Gadu doesn't need a username to register new account (because
-  	 * usernames are assigned by the server).
-  	 *)
-  	OPT_PROTO_REGISTER_NOSCREENNAME = $00000200,
+  (**
+   * Allows font size to be specified in sane point size
+   *
+   * Probably just XMPP and Y!M
+   *)
+  OPT_PROTO_USE_POINTSIZE = $00000100;
 
-  	(**
-  	 * Indicates that slash commands are native to this protocol.
-  	 * Used as a hint that unknown commands should not be sent as messages.
-  	 * @since 2.1.0
-  	 *)
-  	OPT_PROTO_SLASH_COMMANDS_NATIVE = $00000400,
+  (**
+   * Set the Register button active even when the username has not
+   * been specified.
+   *
+   * Gadu-Gadu doesn't need a username to register new account (because
+   * usernames are assigned by the server).
+   *)
+  OPT_PROTO_REGISTER_NOSCREENNAME = $00000200;
 
-  	(**
-  	 * Indicates that this protocol supports sending a user-supplied message
-  	 * along with an invitation.
-  	 * @since 2.8.0
-  	 *)
-  	OPT_PROTO_INVITE_MESSAGE = $00000800
-  );
+  (**
+   * Indicates that slash commands are native to this protocol.
+   * Used as a hint that unknown commands should not be sent as messages.
+   * @since 2.1.0
+   *)
+  OPT_PROTO_SLASH_COMMANDS_NATIVE = $00000400;
 
+  (**
+   * Indicates that this protocol supports sending a user-supplied message
+   * along with an invitation.
+   * @since 2.8.0
+   *)
+  OPT_PROTO_INVITE_MESSAGE = $00000800;
+
+type
   TPurpleIconScaleRules = (
   	PURPLE_ICON_SCALE_DISPLAY = $01,		// We scale the icon when we display it
   	PURPLE_ICON_SCALE_SEND = $02			// We scale the icon before we send it to the server

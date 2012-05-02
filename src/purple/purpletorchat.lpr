@@ -54,6 +54,8 @@ end;
 function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
   _info('OnListIcon');
+  Ignore(account);
+  Ignore(buddy);
   Result := 'torchat';
   // now it now look for torchat.png in several resolutions
   // in the folders /usr/share/pixmaps/pidgin/protocols/*/
@@ -63,11 +65,13 @@ end;
 procedure OnLogin(acc: PPurpleAccount); cdecl;
 begin
   _info('OnLogin');
+  Ignore(Acc);
 end;
 
 procedure OnClose(conn: PPurpleConnection); cdecl;
 begin
   _info('OnClose');
+  Ignore(conn);
 end;
 
 
@@ -101,7 +105,7 @@ begin
   end;
 
   with PluginProtocolInfo do begin
-    options := OPT_PROTO_NO_PASSWORD;
+    options := OPT_PROTO_NO_PASSWORD or OPT_PROTO_REGISTER_NOSCREENNAME;
     list_icon := @OnListIcon;
     login := @OnLogin;
     close := @OnClose;
