@@ -158,7 +158,7 @@ const
    * be pulling the aliases from the buddy list for the chat list;
    * it gets annoying.
    *)
- 	OPT_PROTO_UNIQUE_CHATNAME = $00000004;
+  OPT_PROTO_UNIQUE_CHATNAME = $00000004;
 
   (**
    * Chat rooms have topics.
