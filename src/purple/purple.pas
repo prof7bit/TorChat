@@ -21,6 +21,8 @@ unit purple;
 {$mode objfpc}{$H+}
 
 interface
+uses
+  Classes;
 
 (******************************
  *                            *
@@ -151,6 +153,21 @@ type
   PPurpleNotifyCloseCallback = procedure(UserData: Pointer); cdecl;
 
 
+(******************************
+ *                            *
+ *    some internal stuff     *
+ *                            *
+ ******************************)
+
+  { TWritelnRedirect will catch everything that is WriteLn() to stdout and
+    redirects it to the libpurple debug logger. We will create an instance
+    of this and replace it with the standard output stream }
+  TWritelnRedirect = class(TStream)
+    function Write(const Buffer; Count : Longint) : Longint; override;
+  end;
+
+
+
 var
   PluginInfo: TPurplePluginInfo;
 
@@ -172,6 +189,13 @@ var
     cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; cdecl;
 
 
+
+(****************************************
+ *                                      *
+ *    internal functions and helpers    *
+ *                                      *
+ ****************************************)
+
 type
   TDebugLevel = (
     DEBUG_INFO,
@@ -190,11 +214,13 @@ function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 
 implementation
 uses
-  dynlibs, sysutils;
+  dynlibs, sysutils, StreamIO;
 
 var
   HPurple: TLibHandle = NilHandle;
   ImportsLoaded: Boolean = False;
+  OldStdOut: Text;
+  WritelnRedirect: TWritelnRedirect;
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
@@ -205,6 +231,12 @@ begin
       DEBUG_ERROR: purple_debug_error(PluginInfo.id, PChar(Msg + LineEnding), []);
     end;
   end;
+  {$ifdef DebugToConsole}
+  try
+    WriteLn(OldStdOut, '[', PluginInfo.id, ' ', Level, '] ', Msg);
+  finally
+  end;
+  {$endif}
 end;
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String; Args: array of const);
@@ -246,6 +278,37 @@ end;
 procedure _error(Msg: String; Args: array of const);
 begin
   _purple_debug(DEBUG_ERROR, Msg, Args);
+end;
+
+{ TWritelnRedirect }
+function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
+var
+  Msg, Lvl, Txt: String;
+begin
+  Result := Count;
+  SetLength(Msg, Count);
+  Move(Buffer, Msg[1], Count);
+  Msg := Trim(Msg);
+  Lvl := LeftStr(Msg, 4);
+  Txt := RightStr(Msg, Length(Msg)-4);
+  case Lvl of
+    '(0) ': _error(Txt);
+    '(1) ': _warning(Txt);
+    '(2) ': _info(Txt);
+  else
+    _info(Msg);
+  end;
+end;
+
+{ The TorChat units are logging their debug info with WriteLn(). It is
+  the responsibility of the frontend to catch them and log them or display
+  them appropriately. Here we install the redirection that will do this. }
+procedure InstallWritelnRedirect;
+begin
+  OldStdOut := Output;
+  WritelnRedirect := TWritelnRedirect.Create();
+  AssignStream(Output, WritelnRedirect);
+  Rewrite(Output);
 end;
 
 procedure UnloadImports;
@@ -322,6 +385,7 @@ begin
 end;
 
 initialization
+  InstallWritelnRedirect;
   FillByte(PluginInfo, Sizeof(PluginInfo), 0);
 finalization
   UnloadImports;
