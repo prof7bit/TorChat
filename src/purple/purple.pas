@@ -220,6 +220,16 @@ type
   	OPT_PROTO_INVITE_MESSAGE = $00000800
   );
 
+  TPurpleIconScaleRules = (
+  	PURPLE_ICON_SCALE_DISPLAY = $01,		// We scale the icon when we display it
+  	PURPLE_ICON_SCALE_SEND = $02			// We scale the icon before we send it to the server
+  );
+
+  (**
+   * A description of a Buddy Icon specification.  This tells Purple what kind of image file
+   * it should give this prpl, and what kind of image file it should expect back.
+   * Dimensions less than 1 should be ignored and the image not scaled.
+   *)
   TPurpleIconSpec = packed record
   	(** This is a comma-delimited list of image formats or @c NULL if icons
   	 *  are not supported.  Neither the core nor the prpl will actually
