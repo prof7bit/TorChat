@@ -57,7 +57,7 @@ begin
   Ignore(account);
   Ignore(buddy);
   Result := 'torchat';
-  // now it now look for torchat.png in several resolutions
+  // now it will look for torchat.png in several resolutions
   // in the folders /usr/share/pixmaps/pidgin/protocols/*/
   // the installer for the plugin must install these files.
 end;
