@@ -20,6 +20,12 @@
 unit purple;
 {$mode objfpc}{$H+}
 
+// the first 90% of the implementation section are by default cdecl.
+// we will switch back to default later for our internal functions and
+// for the entire implementation section. libpurple functions should
+// only be declared in the cdecl part of implementation.
+{$calling cdecl}
+
 interface
 uses
   Classes;
@@ -39,7 +45,7 @@ type
 
   GBoolean = Boolean32;
 
-  PGSourceFunc = function(UserData: Pointer): GBoolean; cdecl;
+  PGSourceFunc = function(UserData: Pointer): GBoolean;
 
 
 (******************************
@@ -106,9 +112,9 @@ type
 
     { If a plugin defines a 'load' function, and it returns FALSE,
       then the plugin will not be loaded.}
-    load: function(var Plugin: TPurplePlugin): GBoolean; cdecl;
-    unload: function(var Plugin: TPurplePlugin): GBoolean; cdecl;
-    destroy: procedure(var Plugin: TPurplePlugin); cdecl;
+    load: function(var Plugin: TPurplePlugin): GBoolean;
+    unload: function(var Plugin: TPurplePlugin): GBoolean;
+    destroy: procedure(var Plugin: TPurplePlugin);
 
     ui_info: Pointer;
     extra_info: Pointer;
@@ -128,7 +134,7 @@ type
       in the Accounts menu, under a submenu with the name of the
       account.  context will be set to the PurpleConnection for that
       account.  This callback will only be called for online accounts.}
-    actions: function(var Plugin: TPurplePlugin; Context: Pointer): PGList; cdecl;
+    actions: function(var Plugin: TPurplePlugin; Context: Pointer): PGList;
 
     _purple_reserved1: Pointer;
     _purple_reserved2: Pointer;
@@ -230,7 +236,7 @@ type
    * it should give this prpl, and what kind of image file it should expect back.
    * Dimensions less than 1 should be ignored and the image not scaled.
    *)
-  TPurpleIconSpec = packed record
+  TPurpleBuddyIconSpec = packed record
   	(** This is a comma-delimited list of image formats or @c NULL if icons
   	 *  are not supported.  Neither the core nor the prpl will actually
   	 *  check to see if the data it's given matches this; it's entirely up
@@ -244,9 +250,6 @@ type
   	max_filesize: PtrUInt;                  // Maximum size in bytes
   	scale_rules: TPurpleIconScaleRules;     // How to stretch this icon
   end;
-  {
-
-  }
 
   (**
    * A protocol plugin information structure.
@@ -259,27 +262,27 @@ type
     options: TPurpleProtocolOptions;
   	user_splits: PGList;      // A GList of PurpleAccountUserSplit
   	protocol_options: PGList; // A GList of PurpleAccountOption
-  end;
-  {
+  	icon_spec: TPurpleBuddyIconSpec; // The icon spec.
 
-
-  	PurpleBuddyIconSpec icon_spec; /**< The icon spec. */
-
-  	/**
+  	(**
   	 * Returns the base icon name for the given buddy and account.
   	 * If buddy is NULL and the account is non-NULL, it will return the
   	 * name to use for the account's icon. If both are NULL, it will
   	 * return the name to use for the protocol's icon.
   	 *
   	 * This must be implemented.
-  	 */
-  	const char *(*list_icon)(PurpleAccount *account, PurpleBuddy *buddy);
+  	 *)
+    //list_icon: function(account: PPurpleAccount; buddy: PPurpleBuddy): PChar;
+    //const char *(*list_icon)(PurpleAccount *account, PurpleBuddy *buddy);
 
-  	/**
+  	(**
   	 * Fills the four char**'s with string identifiers for "emblems"
   	 * that the UI will interpret and display as relevant
-  	 */
-  	const char *(*list_emblem)(PurpleBuddy *buddy);
+  	 *)
+     //list_emblem: function(buddy: PPurpleBuddy): PChar;
+     //const char *(*list_emblem)(PurpleBuddy *buddy);
+  end;
+{
 
   	/**
   	 * Gets a short string representing this buddy's status.  This will
@@ -700,22 +703,7 @@ type
 	  PURPLE_NOTIFY_MSG_INFO         // Information notification.
   );
 
-  PPurpleNotifyCloseCallback = procedure(UserData: Pointer); cdecl;
-
-
-(******************************
- *                            *
- *    some internal stuff     *
- *                            *
- ******************************)
-
-  { TWritelnRedirect will catch everything that is WriteLn() to stdout and
-    redirects it to the libpurple debug logger. We will create an instance
-    of this and replace it with the standard output stream }
-  TWritelnRedirect = class(TStream)
-    function Write(const Buffer; Count : Longint) : Longint; override;
-  end;
-
+  PPurpleNotifyCloseCallback = procedure(UserData: Pointer);
 
 
 var
@@ -728,23 +716,30 @@ var
  *                                      *
  ****************************************)
 
-  purple_plugin_register: function(var Plugin: TPurplePlugin): GBoolean; cdecl;
-  purple_timeout_add: function(Interval: Integer; cb: PGSourceFunc; UserData: Pointer): Integer; cdecl;
-  purple_timeout_remove: function(handle: Integer): GBoolean; cdecl;
-  purple_debug_info: procedure(category: PChar; format: PChar; args: array of const); cdecl;
-  purple_debug_warning: procedure(category: PChar; format: PChar; args: array of const); cdecl;
-  purple_debug_error: procedure(category: PChar; format: PChar; args: array of const); cdecl;
+  purple_plugin_register: function(var Plugin: TPurplePlugin): GBoolean;
+  purple_timeout_add: function(Interval: Integer; cb: PGSourceFunc; UserData: Pointer): Integer;
+  purple_timeout_remove: function(handle: Integer): GBoolean;
+  purple_debug_info: procedure(category: PChar; format: PChar; args: array of const);
+  purple_debug_warning: procedure(category: PChar; format: PChar; args: array of const);
+  purple_debug_error: procedure(category: PChar; format: PChar; args: array of const);
   purple_notify_message: function(var Plugin: TPurplePlugin;
     typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
-    cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; cdecl;
+    cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean;
 
+
+// this is the only exported function, everything else will work with callbacks
+function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
 
 
 (****************************************
  *                                      *
- *    internal functions and helpers    *
+ *   internal functions and helpers.    *
+ *                                      *
+ *   from here on we also switch back   *
+ *   to the default calling convention  *
  *                                      *
  ****************************************)
+{$calling default}
 
 type
   TDebugLevel = (
@@ -753,6 +748,13 @@ type
     DEBUG_ERROR
   );
 
+  { TWritelnRedirect will catch everything that is WriteLn() to stdout and
+    redirects it to the libpurple debug logger. We will create an instance
+    of this and replace it with the standard output stream }
+  TWritelnRedirect = class(TStream)
+    function Write(const Buffer; Count : Longint) : Longint; override;
+  end;
+
 procedure _info(Msg: String);
 procedure _info(Msg: String; Args: array of const);
 procedure _warning(Msg: String);
@@ -760,7 +762,6 @@ procedure _warning(Msg: String; Args: array of const);
 procedure _error(Msg: String);
 procedure _error(Msg: String; Args: array of const);
 
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 
 implementation
 uses
