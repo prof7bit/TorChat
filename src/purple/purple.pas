@@ -985,6 +985,12 @@ begin
   Rewrite(Output);
 end;
 
+procedure UninstallWritelnRedirect;
+begin
+  Output := OldStdOut;
+  WritelnRedirect.Free;
+end;
+
 procedure UnloadImports;
 begin
   if HPurple <> NilHandle then begin
@@ -1064,5 +1070,6 @@ initialization
   FillByte(PluginProtocolInfo, SizeOf(PluginProtocolInfo), 0);
 finalization
   UnloadImports;
+  UninstallWritelnRedirect;
 end.
 

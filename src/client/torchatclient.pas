@@ -174,6 +174,7 @@ begin
   end;
   LeaveCriticalsection(FCritical);
   JData := JArr.FormatJSON([foSingleLineObject]);
+  JArr.Free;
   FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
   FS.Write(JData[1], Length(JData));
   FS.Free;
