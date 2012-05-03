@@ -12,10 +12,10 @@ type
   { TBuddy }
 
   TBuddy = class(TABuddy)
-    constructor Create(AClient: TAClient; AID: String; ANick: String); reintroduce;
     procedure CheckState; override;
     function AsJsonObject: TJSONObject; override;
-    procedure SetNick(ANick: String); override;
+    procedure InitFromJsonObect(AObject: TJSONObject); override;
+    procedure InitID(AID: String); override;
     procedure SetIncoming(AConn: TAHiddenConnection); override;
     procedure SetOutgoing(AConn: TAHiddenConnection); override;
     procedure OnOutgoingConnection; override;
@@ -26,14 +26,6 @@ implementation
 
 { TBuddy }
 
-constructor TBuddy.Create(AClient: TAClient; AID: String; ANick: String);
-begin
-  Inherited Create(AClient);
-  FClient := AClient;
-  FID := AID;
-  FNick := ANick;
-end;
-
 procedure TBuddy.CheckState;
 begin
 
@@ -42,14 +34,30 @@ end;
 function TBuddy.AsJsonObject: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('ID', TJSONString.Create(ID));
-  Result.Add('nick', TJSONString.Create(Nick));
+  Result.Add('id', TJSONString.Create(FID));
+  Result.Add('friendlyname', TJSONString.Create(FFriendlyName));
 end;
 
-procedure TBuddy.SetNick(ANick: String);
+procedure TBuddy.InitFromJsonObect(AObject: TJSONObject);
 begin
-  FNick := ANick;
-  FClient.BuddyList.Save;
+  // these fields are mandatory, failing will raise exception
+  FID := AObject.Strings['id'];
+  FFriendlyName := AObject.Strings['friendlyname'];
+
+  // the following fields are optional (backwards compatibility)
+  // they will be tried in excatly this order from oldest fields
+  // first to newest last and failing at any point will be ignored
+  try
+    // nothing yet
+  except
+    // ignore from here on (this all followig fields) because it
+    // was created by an older TorChat. Fields have resonable defaults.
+  end;
+end;
+
+procedure TBuddy.InitID(AID: String);
+begin
+  FID := AID;
 end;
 
 procedure TBuddy.SetIncoming(AConn: TAHiddenConnection);

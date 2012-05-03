@@ -54,35 +54,38 @@ type
   TABuddyList = class(TComponent)
   strict protected
     FClient: TAClient;
+    FOwnID: String;
     FList: array of TABuddy;
   public
     procedure CheckState; virtual; abstract;
-    procedure SetHiddenServiceName(AID: String); virtual; abstract;
+    procedure SetOwnID(AID: String); virtual; abstract;
     procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
     procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
     function FindBuddy(AName: String): TABuddy; virtual; abstract;
     procedure Load; virtual; abstract;
     procedure Save; virtual; abstract;
     function Count: Integer; virtual; abstract;
+    property OwnID: String read FOwnID write SetOwnID;
   end;
 
   TABuddy = class(TComponent)
   strict protected
     FClient: TAClient;
     FID: String;
-    FNick: String;
+    FFriendlyName: String;
     FConnIncoming: TAHiddenConnection;
     FConnOutgoing: TAHiddenConnection;
     procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
     procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
-    procedure SetNick(ANick: String); virtual; abstract;
   public
     procedure CheckState; virtual; abstract;
     function AsJsonObject: TJSONObject; virtual; abstract;
+    procedure InitFromJsonObect(AObject: TJSONObject); virtual; abstract;
+    procedure InitID(AID: String); virtual; abstract;
     procedure OnOutgoingConnection; virtual; abstract;
     procedure OnOutgoingConnectionFail; virtual; abstract;
     property ID: String read FID;
-    property Nick: String read FNick write SetNick;
+    property FriendlyName: String read FFriendlyName write FFriendlyName;
     property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
   end;

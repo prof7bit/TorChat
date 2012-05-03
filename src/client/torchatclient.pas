@@ -24,7 +24,7 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, contnrs, fpjson, torchatabstract, buddy, clientconfig, torprocess, networking,
+  Classes, SysUtils, contnrs, fpjson, jsonparser, torchatabstract, buddy, clientconfig, torprocess, networking,
   connection, miscfunc;
 
 type
@@ -38,7 +38,7 @@ type
     constructor Create(AClient: TAClient); reintroduce;
     destructor Destroy; override;
     procedure CheckState; override;
-    procedure SetHiddenServiceName(AID: String); override;
+    procedure SetOwnID(AID: String); override;
     procedure Load; override;
     procedure Save; override;
     procedure RemoveBuddy(ABuddy: TABuddy); override;
@@ -89,6 +89,7 @@ begin
   InitCriticalSection(FCritical);
   inherited Create(AClient);
   FClient := AClient;
+  Load;
 end;
 
 destructor TBuddyList.Destroy;
@@ -97,13 +98,18 @@ begin
   DoneCriticalsection(FCritical);
 end;
 
-procedure TBuddyList.SetHiddenServiceName(AID: String);
+procedure TBuddyList.SetOwnID(AID: String);
 var
   Buddy : TABuddy;
 begin
+  FOwnID := AID;
   if FindBuddy(AID) = nil then begin
-    Buddy := TBuddy.Create(FClient, AID, 'myself');
+    writeln('adding "myself"-buddy ' + AID + ' to the list');
+    Buddy := TBuddy.Create(FClient);
+    Buddy.InitID(AID);
+    Buddy.FriendlyName := 'myself';
     AddBuddy(Buddy);
+    Save;
   end;
 end;
 
@@ -119,9 +125,38 @@ begin
 end;
 
 procedure TBuddyList.Load;
+var
+  FS: TFileStream = nil;
+  JParser: TJSONParser = nil;
+  JList: TJSONArray = nil;
+  Last, I: Integer;
+  Buddy: TABuddy;
 begin
-  EnterCriticalsection(FCritical);
-  LeaveCriticalsection(FCritical);
+  try
+    writeln('trying to load saved buddy list');
+    FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmOpenRead);
+    JParser :=TJSONParser.Create(FS);
+    JList := JParser.Parse as TJSONArray;
+    Last := JList.Count - 1;
+    EnterCriticalsection(FCritical);
+    for I := 0 to Last do begin
+      try
+        Buddy := TBuddy.Create(FClient);
+        Buddy.InitFromJsonObect(JList.Objects[I]); // this may raise exception
+        AddBuddy(Buddy);
+        writeln('buddy ' + Buddy.ID + ' loaded');
+      except
+        FreeAndNil(Buddy);
+        writeln('(0) error while parsing buddy from saved list');
+      end;
+    end;
+    LeaveCriticalsection(FCritical);
+  finally
+    if assigned(JList) then FreeAndNil(JList);
+    if assigned(JParser) then FreeAndNil(JParser);
+    if assigned(FS) then FreeAndNil(FS);
+  end;
+  Save;
 end;
 
 procedure TBuddyList.Save;
@@ -131,6 +166,7 @@ var
   JData: String;
   FS: TFileStream;
 begin
+  writeln('saving buddy list');
   JArr := TJSONArray.Create;
   EnterCriticalsection(FCritical);
   for Buddy in FList do begin
@@ -159,7 +195,6 @@ begin
     end;
   end;
   LeaveCriticalsection(FCritical);
-  Save;
 end;
 
 procedure TBuddyList.AddBuddy(ABuddy: TABuddy);
@@ -171,7 +206,6 @@ begin
   SetLength(FList, P+1);
   FList[P] := ABuddy;
   LeaveCriticalsection(FCritical);
-  Save;
 end;
 
 function TBuddyList.FindBuddy(AID: String): TABuddy;
@@ -210,31 +244,6 @@ begin
     IncomingCallback := @IncomingConnection;
     Bind(ConfGetListenPort);
   end;
-
-  (*
-  repeat
-    try
-      WriteLn('trying to connect...');
-      C := FSock.Connect('ddcbrqjsdar3dahu.onion', 11009) as THiddenConnection;
-      C.Send('this packet'#10'has many'#10'lines in it but the last line ');
-      C.Send('ends in the next packet'#10);
-      C.Send('and here we have a packet completely without delimiter ');
-      C.Send('also ending only in the following line'#10);
-      C.Send('and another one');
-      C.Send(#10);
-      C.Send(#10);
-      C.Send('foo'#10);
-      C.Send('bar'#10);
-
-      C.Free;
-      {$note we are still leaking unfreed *incoming* TTCPStream objects }
-
-    except
-      WriteLn('waiting 3 seconds...');
-      Sleep(3000);
-    end;
-  until False;
-  *)
 end;
 
 destructor TTorChatClient.Destroy;
@@ -305,7 +314,8 @@ begin
     if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
       HSName := ConfGetHiddenServiceName;
       if HSName <> '' then begin
-        BuddyList.SetHiddenServiceName(HSName);
+        writeln('found own name: ' + HSName);
+        BuddyList.OwnID := HSName;
         FHSNameOK := True;
       end;
     end;
