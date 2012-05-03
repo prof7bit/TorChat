@@ -860,11 +860,8 @@ type
   end;
 
 procedure _info(Msg: String);
-procedure _info(Msg: String; Args: array of const);
 procedure _warning(Msg: String);
-procedure _warning(Msg: String; Args: array of const);
 procedure _error(Msg: String);
-procedure _error(Msg: String; Args: array of const);
 
 { sometimes we need to allocate a char* for which libpurple will take ownership }
 function AllocPurpleString(Str: String): PChar;
@@ -896,25 +893,9 @@ begin
   {$endif}
 end;
 
-procedure _purple_debug(Level: TDebugLevel; Msg: String; Args: array of const);
-begin
-  try
-    _purple_debug(Level, Format(Msg, Args));
-  except
-    _purple_debug(DEBUG_ERROR,
-      'could not format arguments for the following debug message: "'
-      + StringReplace(Msg, '%', '$', [rfReplaceAll]) + '"')
-  end;
-end;
-
 procedure _info(Msg: String);
 begin
   _purple_debug(DEBUG_INFO, Msg);
-end;
-
-procedure _info(Msg: String; Args: array of const);
-begin
-  _purple_debug(DEBUG_INFO, Msg, Args);
 end;
 
 procedure _warning(Msg: String);
@@ -922,19 +903,9 @@ begin
   _purple_debug(DEBUG_WARNING, Msg);
 end;
 
-procedure _warning(Msg: String; Args: array of const);
-begin
-  _purple_debug(DEBUG_WARNING, Msg, Args);
-end;
-
 procedure _error(Msg: String);
 begin
   _purple_debug(DEBUG_ERROR, Msg);
-end;
-
-procedure _error(Msg: String; Args: array of const);
-begin
-  _purple_debug(DEBUG_ERROR, Msg, Args);
 end;
 
 function AllocPurpleString(Str: String): PChar;
