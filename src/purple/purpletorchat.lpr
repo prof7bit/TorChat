@@ -36,8 +36,7 @@ begin
   Ignore(@Plugin);
   Client := TTorChatPurpleClient.Create(nil);
   HPurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
-  _info(ConfGetHiddenServiceName);
-  _info('loaded');
+  _info('plugin loaded');
   Result := True;
 end;
 
@@ -47,13 +46,12 @@ begin
   purple_timeout_remove(HPurpleTimer);
   Client.Free;
   Client := nil;
-  _info('unloaded');
+  _info('plugin unloaded');
   Result := True;
 end;
 
 function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
-  _info('OnListIcon');
   Ignore(account);
   Ignore(buddy);
   Result := 'torchat';
