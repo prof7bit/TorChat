@@ -30,6 +30,15 @@ interface
 uses
   Classes;
 
+
+type
+  {$ifdef cpu64}
+    time_t = UInt64;
+  {$else}
+    time_t = UInt32;
+  {$endif}
+
+
 (******************************
  *                            *
  *       some GLIB stuff      *
@@ -44,6 +53,7 @@ type
   end;
 
   PGHashTable = Pointer; // for now its just a pointer, care about this later
+  PGSList = Pointer;
   GBoolean = Boolean32;
   PGSourceFunc = function(UserData: Pointer): GBoolean;
 
@@ -253,8 +263,85 @@ type
     scale_rules: TPurpleIconScaleRules;     // How to stretch this icon
   end;
 
-  PPurpleAccount = Pointer;
-  PPurpleConnection = Pointer;
+  PPurpleProxyInfo = Pointer;
+  PPurplePrivacyType = Pointer;
+  PPurplePresence = Pointer;
+  PPurpleLog = Pointer;
+  PPurpleAccountRegistrationCb = procedure(); {$note fixme: define this}
+
+  PPurpleConnection = ^TPurpleConnection;
+
+  (** Structure representing an account.
+   *)
+  PPurpleAccount = ^TPurpleAccount;
+  TPurpleAccount = packed record
+    username: PChar;             // The username.
+    aalias: PChar;               // How you appear to yourself.
+    password: PChar;             // The account password.
+    user_info: PChar;            // User information.
+    buddy_icon_path: PChar;      // The buddy icon's non-cached path.
+    remember_pass: GBoolean;     // Remember the password.
+    protocol_id: PChar;          // The ID of the protocol.
+    gc: PPurpleConnection;       // The connection handle.
+    disconnecting: GBoolean;     // The account is currently disconnecting
+    settings: PGHashTable;       // Protocol-specific settings.
+    ui_settings: PGHashTable;    // UI-specific settings.
+    proxy_info: PPurpleProxyInfo;// Proxy information.  This will be set
+                                 //   to NULL when the account inherits
+                                 //   proxy settings from global prefs.
+
+    (*
+     * TODO: Supplementing the next two linked lists with hash tables
+     * should help performance a lot when these lists are long.  This
+     * matters quite a bit for protocols like MSN, where all your
+     * buddies are added to your permit list.  Currently we have to
+     * iterate through the entire list if we want to check if someone
+     * is permitted or denied.  We should do this for 3.0.0.
+     * Or maybe use a GTree.
+     *)
+    permit: PGSList;                // Permit list.
+    deny: PGSList;                  // Deny list.
+    perm_deny: PPurplePrivacyType;  // The permit/deny setting.
+    status_types: PGList;           // Status types.
+    presence: PPurplePresence;      // Presence.                              */
+    sytem_log: PPurpleLog;          // The system log                         */
+    ui_data: Pointer;               // The UI can put data here.              */
+    registration_cb: PPurpleAccountRegistrationCb;
+    registration_cb_user_data: Pointer;
+    priv: Pointer;                  // Pointer to opaque private data.
+  end;
+
+  TPurpleConnectionFlags = Integer;
+  TPurpleConnectionState = Integer;
+
+  (* Represents an active connection on an account. *)
+  TPurpleConnection = packed record
+    prpl: PPurplePlugin;            // The protocol plugin.
+    flags: TPurpleConnectionFlags;  // Connection flags.
+    state: TPurpleConnectionState;  // The connection state.
+    account: PPurpleAccount;        // The account being connected to.
+    password: PChar;                // The password used.
+    inpa: Integer;                  // The input watcher.
+    buddy_chats: PGSList;           // A list of active chats
+                                    //  (#PurpleConversation structs of type
+                                    //  #PURPLE_CONV_TYPE_CHAT).
+    proto_data: Pointer;            // Protocol-specific data.
+    display_name: PChar;            // How you appear to other people.
+    keepalive: Integer;             // Keep-alive.
+
+    (** Wants to Die state.  This is set when the user chooses to log out, or
+     * when the protocol is disconnected and should not be automatically
+     * reconnected (incorrect password, etc.).  prpls should rely on
+     * purple_connection_error_reason() to set this for them rather than
+     * setting it themselves.
+     * @see purple_connection_error_is_fatal
+     *)
+    wants_to_die: GBoolean;
+    disconnect_timeout: Integer;    // Timer used for nasty stack tricks
+    last_received: time_t;          // When we last received a packet. Set by the
+                                    // prpl to avoid sending unneeded keepalives
+  end;
+
   PPurpleBuddy = Pointer;
   PPurpleGroup = Pointer;
   PPurpleUserInfo = Pointer;

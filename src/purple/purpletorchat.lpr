@@ -10,6 +10,8 @@ uses
 type
   { TTorchatPurpleClient }
   TTorChatPurpleClient = class(TTorChatClient)
+  public
+    PurpleAccount: PPurpleAccount;
     procedure OnNotifyGui; override;
   end;
 
@@ -34,8 +36,7 @@ end;
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
-  Client := TTorChatPurpleClient.Create(nil);
-  HPurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
+  Client := nil;
   _info('plugin loaded');
   Result := True;
 end;
@@ -43,9 +44,6 @@ end;
 function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
-  purple_timeout_remove(HPurpleTimer);
-  Client.Free;
-  Client := nil;
   _info('plugin unloaded');
   Result := True;
 end;
@@ -63,6 +61,11 @@ begin
   Result := GListAppend(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, nil, nil, True, True, False));
 end;
 
+procedure OnSetStatus(account: PPurpleAccount; status: PPurpleStatus); cdecl;
+begin
+  _info('OnSetStatus');
+end;
+
 function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
   Ignore(account);
@@ -76,12 +79,19 @@ end;
 procedure OnLogin(acc: PPurpleAccount); cdecl;
 begin
   _info('OnLogin');
-  Ignore(Acc);
+  if not Assigned(Client) then begin;
+    {$warning: need to handle multiple instances}
+    Client := TTorChatPurpleClient.Create(nil);
+    Client.PurpleAccount := acc;
+    HPurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
+  end;
 end;
 
 procedure OnClose(conn: PPurpleConnection); cdecl;
 begin
   _info('OnClose');
+  purple_timeout_remove(HPurpleTimer);
+  if Assigned(Client) then FreeAndNil(Client);
   Ignore(conn);
 end;
 
@@ -121,6 +131,7 @@ begin
     status_types := @OnStatusTypes;
     login := @OnLogin;
     close := @OnClose;
+    set_status := @OnSetStatus;
     struct_size := SizeOf(PluginProtocolInfo);
   end;
 end.
