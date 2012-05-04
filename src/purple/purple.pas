@@ -28,8 +28,7 @@ unit purple;
 
 interface
 uses
-  Classes;
-
+  Classes, glib2;
 
 type
   {$ifdef cpu64}
@@ -38,24 +37,6 @@ type
     time_t = UInt32;
   {$endif}
 
-
-(******************************
- *                            *
- *       some GLIB stuff      *
- *                            *
- ******************************)
-type
-  PGList = ^TGList;
-  TGList = packed record
-    data: Pointer;
-    next: PGlist;
-    prev: PGList;
-  end;
-
-  PGHashTable = Pointer; // for now its just a pointer, care about this later
-  PGSList = Pointer;
-  GBoolean = Boolean32;
-  PGSourceFunc = function(UserData: Pointer): GBoolean;
 
 (******************************
  *                            *
@@ -922,7 +903,7 @@ var
  ****************************************)
 
   purple_plugin_register: function(var Plugin: TPurplePlugin): GBoolean;
-  purple_timeout_add: function(Interval: Integer; cb: PGSourceFunc; UserData: Pointer): Integer;
+  purple_timeout_add: function(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer;
   purple_timeout_remove: function(handle: Integer): GBoolean;
   purple_debug_info: procedure(category: PChar; format: PChar; args: array of const);
   purple_debug_warning: procedure(category: PChar; format: PChar; args: array of const);
@@ -996,11 +977,6 @@ procedure _error(Msg: String);
   FPC heap manager! }
 function AllocPurpleString(Str: String): PChar;
 
-{ append a new element at the end of the list.
-  This will allocate memory directly from the system
-  and not from the FPC heap manager, so libpurple
-  can take ownership of the memory }
-function GListAppend(List: PGList; Item: Pointer): PGList;
 
 implementation
 uses
@@ -1055,30 +1031,10 @@ begin
     // bypass the FPC heap manager and malloc() directly from the system.
     // Of course we do this only for strings that we pass to libpurple and
     // where libpurple promises to free it again.
-    Result := SysGetmem(L+1);
+    Result := g_malloc(L+1);
     Move(Str[1], Result[0], L);
     Result[L] := #0;
   end;
-end;
-
-function GListAllocElement(Prev, Next: PGList; Data: Pointer): PGList;
-begin
-  Result := SysGetmem(SizeOf(TGList));
-  Result^.data := Data;
-  Result^.next := Next;
-  Result^.prev := Prev;
-end;
-
-function GListAppend(List: PGList; Item: Pointer): PGList;
-begin
-  if List <> nil then begin
-    Result := List;
-    while List^.next <> nil do
-      List := List^.next;
-    List^.next := GListAllocElement(List, nil, Item);
-  end
-  else
-    Result := GListAllocElement(nil, nil, Item);
 end;
 
 { TWritelnRedirect }

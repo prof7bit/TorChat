@@ -4,7 +4,7 @@ library purpletorchat;
 
 uses
   {$ifdef unix}cthreads,{$endif}
-  Classes, sysutils, contnrs,
+  Classes, sysutils, contnrs, glib2,
   purple, torchatclient, miscfunc;
 
 type
@@ -56,10 +56,10 @@ begin
   // we neeed to define offline and online statuses
   // or else it will not call our login callback
   Result := nil;
-  Result := GListAppend(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, nil, nil, True, True, False));
-  Result := GListAppend(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, nil, nil, True, True, False));
-  Result := GListAppend(Result, purple_status_type_new_full(PURPLE_STATUS_EXTENDED_AWAY, nil, nil, True, True, False));
-  Result := GListAppend(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, nil, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, nil, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, nil, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_EXTENDED_AWAY, nil, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, nil, nil, True, True, False));
 end;
 
 procedure OnSetStatus(account: PPurpleAccount; status: PPurpleStatus); cdecl;
