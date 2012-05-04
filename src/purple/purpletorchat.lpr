@@ -81,18 +81,20 @@ begin
   _info('OnLogin');
   if not Assigned(Client) then begin;
     {$warning: need to handle multiple instances}
+    writeln(Integer(acc^.gc));
     Client := TTorChatPurpleClient.Create(nil);
     Client.PurpleAccount := acc;
     HPurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
   end;
 end;
 
-procedure OnClose(conn: PPurpleConnection); cdecl;
+procedure OnClose(gc: PPurpleConnection); cdecl;
 begin
   _info('OnClose');
+  writeln(Integer(gc));
   purple_timeout_remove(HPurpleTimer);
   if Assigned(Client) then FreeAndNil(Client);
-  Ignore(conn);
+  Ignore(gc);
 end;
 
 
