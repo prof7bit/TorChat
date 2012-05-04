@@ -109,7 +109,7 @@ begin
   {$ifdef unix}
   Result := StrError(SocketError);
   {$else}
-  {$note find the winndows version of the above}
+  {$note find the windows version of the above}
   Result := IntToStr(SocketError);
   {$endif}
 end;
