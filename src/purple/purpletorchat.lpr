@@ -4,7 +4,7 @@ library purpletorchat;
 
 uses
   {$ifdef unix}cthreads,{$endif}
-  Classes, sysutils,
+  Classes, sysutils, contnrs,
   purple, torchatclient, miscfunc;
 
 type
@@ -12,31 +12,31 @@ type
   TTorChatPurpleClient = class(TTorChatClient)
   public
     PurpleAccount: PPurpleAccount;
+    PurpleTimer: Integer;
     procedure OnNotifyGui; override;
   end;
 
 var
-  Client: TTorChatPurpleClient;
-  HPurpleTimer: Integer;
+  Clients: TFPHashObjectList;
 
 function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
 begin
   Ignore(Data);
-  Client.ProcessMessages;
+  TTorChatPurpleClient(Data).ProcessMessages;
   Result := True;
 end;
 
 function OnPurpleTimerOneShot(Data: Pointer): GBoolean; cdecl;
 begin
   Ignore(Data);
-  Client.ProcessMessages;
+  TTorChatPurpleClient(Data).ProcessMessages;
   Result := False; // purple timer will not fire again
 end;
 
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
-  Client := nil;
+  Clients := TFPHashObjectList.Create(False);
   _info('plugin loaded');
   Result := True;
 end;
@@ -44,6 +44,7 @@ end;
 function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
+  Clients.Free;
   _info('plugin unloaded');
   Result := True;
 end;
@@ -77,24 +78,29 @@ begin
 end;
 
 procedure OnLogin(acc: PPurpleAccount); cdecl;
+var
+  NewClient: TTorChatPurpleClient;
 begin
   _info('OnLogin');
-  if not Assigned(Client) then begin;
-    {$warning: need to handle multiple instances}
-    writeln(Integer(acc^.gc));
-    Client := TTorChatPurpleClient.Create(nil);
-    Client.PurpleAccount := acc;
-    HPurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, nil);
-  end;
+  NewClient := TTorChatPurpleClient.Create(nil);
+  NewClient.PurpleAccount := acc;
+  NewClient.PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, NewClient);
+  Clients.Add(acc^.username, NewClient);
+  _info('created torchat client object for ' + acc^.username);
 end;
 
 procedure OnClose(gc: PPurpleConnection); cdecl;
+var
+  ClientToClose: TTorChatPurpleClient;
 begin
   _info('OnClose');
-  writeln(Integer(gc));
-  purple_timeout_remove(HPurpleTimer);
-  if Assigned(Client) then FreeAndNil(Client);
-  Ignore(gc);
+  ClientToClose := Clients.Find(gc^.account^.username) as TTorChatPurpleClient;
+  if Assigned(ClientToClose) then begin
+    purple_timeout_remove(ClientToClose.PurpleTimer);
+    Clients.Remove(ClientToClose);
+    ClientToClose.Free;
+    _info('destroyed torchat client object for ' + gc^.account^.username);
+  end;
 end;
 
 
@@ -102,7 +108,7 @@ end;
 
 procedure TTorChatPurpleClient.OnNotifyGui;
 begin
-  purple_timeout_add(0, @OnPurpleTimerOneShot, nil);
+  purple_timeout_add(0, @OnPurpleTimerOneShot, self);
 end;
 
 exports
