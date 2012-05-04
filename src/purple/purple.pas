@@ -903,9 +903,16 @@ procedure _info(Msg: String);
 procedure _warning(Msg: String);
 procedure _error(Msg: String);
 
-{ sometimes we need to allocate a char* for which libpurple will take ownership }
+{ sometimes we need to allocate a char* for which
+  libpurple will take ownership. This will allocate
+  memory directly from the system and not from the
+  FPC heap manager! }
 function AllocPurpleString(Str: String): PChar;
 
+{ append a new element at the end of the list.
+  This will allocate memory directly from the system
+  and not from the FPC heap manager, so libpurple
+  can take ownership of the memory }
 function GListAppend(List: PGList; Item: Pointer): PGList;
 
 implementation
