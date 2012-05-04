@@ -167,7 +167,7 @@ var
   Buddy: TABuddy;
   JArr : TJSONArray;
   JData: String;
-  FS: TFileStream;
+  FS: TFileStream = nil;
 begin
   writeln('saving buddy list');
   JArr := TJSONArray.Create;
@@ -178,9 +178,15 @@ begin
   LeaveCriticalsection(FCritical);
   JData := JArr.FormatJSON([foSingleLineObject]);
   JArr.Free;
-  FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
-  FS.Write(JData[1], Length(JData));
-  FS.Free;
+  try
+    FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
+    FS.Write(JData[1], Length(JData));
+  except
+    on E: Exception do begin
+      writeln('(0) could not save buddy list: ' + E.Message);
+    end;
+  end;
+  if assigned(FS) then FreeAndNil(FS);
 end;
 
 procedure TBuddyList.RemoveBuddy(ABuddy: TABuddy);
