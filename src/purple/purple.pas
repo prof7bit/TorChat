@@ -278,17 +278,17 @@ type
   PPurpleGetPublicAliasFailureCallback = procedure();
 
   TPurpleStatusPrimitive = (
-	  PURPLE_STATUS_UNSET = 0,
-	  PURPLE_STATUS_OFFLINE,
-	  PURPLE_STATUS_AVAILABLE,
-	  PURPLE_STATUS_UNAVAILABLE,
-	  PURPLE_STATUS_INVISIBLE,
-	  PURPLE_STATUS_AWAY,
-	  PURPLE_STATUS_EXTENDED_AWAY,
-	  PURPLE_STATUS_MOBILE,
-	  PURPLE_STATUS_TUNE,
-	  PURPLE_STATUS_MOOD,
-	  PURPLE_STATUS_NUM_PRIMITIVES
+    PURPLE_STATUS_UNSET = 0,
+    PURPLE_STATUS_OFFLINE,
+    PURPLE_STATUS_AVAILABLE,
+    PURPLE_STATUS_UNAVAILABLE,
+    PURPLE_STATUS_INVISIBLE,
+    PURPLE_STATUS_AWAY,
+    PURPLE_STATUS_EXTENDED_AWAY,
+    PURPLE_STATUS_MOBILE,
+    PURPLE_STATUS_TUNE,
+    PURPLE_STATUS_MOOD,
+    PURPLE_STATUS_NUM_PRIMITIVES
   );
 
   (**
@@ -396,8 +396,8 @@ type
      *)
     send_im: function(conn: PPurpleConnection; who: PChar; message: PChar; flags: TPurpleMessageFlags): Integer;
     //int  (*send_im)(PurpleConnection *, const char *who,
-    //				const char *message,
-    //				PurpleMessageFlags flags);
+    //        const char *message,
+    //        PurpleMessageFlags flags);
 
     set_info: procedure(conn: PPurpleConnection; info: PChar);
     //void (*set_info)(PurpleConnection *, const char *info);
@@ -424,7 +424,7 @@ type
     //void (*set_idle)(PurpleConnection *, int idletime);
     change_passwd: procedure(conn: PPurpleConnection; old_pass, newpass: PChar);
     //void (*change_passwd)(PurpleConnection *, const char *old_pass,
-    //					  const char *new_pass);
+    //            const char *new_pass);
 
     (**
      * Add a buddy to a group on the server.
@@ -498,7 +498,7 @@ type
      *)
     chat_invite: procedure(conn: PPurpleConnection; id: Integer; message: PChar; who: PChar);
     //void (*chat_invite)(PurpleConnection *, int id,
-    //					const char *message, const char *who);
+    //          const char *message, const char *who);
 
     (**
      * Called when the user requests leaving a chat.
@@ -517,7 +517,7 @@ type
      *)
     chat_whisper: procedure(conn: PPurpleConnection; id: Integer; who: PChar; message: PChar);
     //void (*chat_whisper)(PurpleConnection *, int id,
-    //					 const char *who, const char *message);
+    //           const char *who, const char *message);
 
     (**
      * Send a message to a chat.
@@ -533,7 +533,7 @@ type
      * @param message The message to send to the chat.
      * @param flags   A bitwise OR of #PurpleMessageFlags representing
      *                message flags.
-     * @return 	  A positive number or 0 in case of succes,
+     * @return    A positive number or 0 in case of succes,
      *                a negative error number in case of failure.
      *)
     chat_send: function(conn: PPurpleConnection; id: Integer; message: PChar; flags: TPurpleMessageFlags): Integer;
@@ -568,17 +568,17 @@ type
     (** save/store buddy's alias on server list/roster *)
     alias_buddy: procedure(conn: PPurpleConnection; who: PChar; alias: PChar);
     //void (*alias_buddy)(PurpleConnection *, const char *who,
-    //					const char *alias);
+    //          const char *alias);
 
     (** change a buddy's group on a server list/roster *)
     group_buddy: procedure(conn: PPurpleConnection; who, old_group, new_group: PChar);
     //void (*group_buddy)(PurpleConnection *, const char *who,
-    //					const char *old_group, const char *new_group);
+    //          const char *old_group, const char *new_group);
 
     (** rename a group on a server list/roster *)
     rename_group: procedure(conn: PPurpleConnection; old_name: PChar; group: PPurpleGroup; moved_buddies: PGList);
     //void (*rename_group)(PurpleConnection *, const char *old_name,
-    //					 PurpleGroup *group, GList *moved_buddies);
+    //           PurpleGroup *group, GList *moved_buddies);
 
     buddy_free: procedure(buddy: PPurpleBuddy);
     //void (*buddy_free)(PurpleBuddy *);
@@ -686,13 +686,13 @@ type
     (* NOTE:
      * If more functions are added, they should accessed using the following syntax:
      *
-     *		if (PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl, new_function))
-     *			prpl->new_function(...);
+     *    if (PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl, new_function))
+     *      prpl->new_function(...);
      *
      * instead of
      *
-     *		if (prpl->new_function != NULL)
-     *			prpl->new_function(...);
+     *    if (prpl->new_function != NULL)
+     *      prpl->new_function(...);
      *
      * The PURPLE_PROTOCOL_PLUGIN_HAS_FUNC macro can be used for the older member
      * functions (e.g. login, send_im etc.) too.
@@ -720,7 +720,7 @@ type
      *)
     initiate_media: function(acc: PPurpleAccount; who: PChar; typ: TPurpleMediaSessionType): GBoolean;
     //gboolean (*initiate_media)(PurpleAccount *account, const char *who,
-    //				PurpleMediaSessionType type);
+    //        PurpleMediaSessionType type);
 
     (**
      * Checks to see if the given contact supports the given type of media session.
@@ -731,7 +731,7 @@ type
      *)
     get_media_caps: function(acc: PPurpleAccount; who: PChar): TPurpleMediaCaps;
     //PurpleMediaCaps (*get_media_caps)(PurpleAccount *account,
-    //				  const char *who);
+    //          const char *who);
 
     (**
      * Returns an array of "PurpleMood"s, with the last one having
@@ -866,10 +866,10 @@ var
     user_settable: GBoolean;
     independent: GBoolean): PPurpleStatusType;
   //PurpleStatusType *purple_status_type_new_full(PurpleStatusPrimitive primitive,
-  //							  const char *id, const char *name,
-  //							  gboolean saveable,
-  //							  gboolean user_settable,
-  //							  gboolean independent);purple_status_type_new_full: function();
+  //                const char *id, const char *name,
+  //                gboolean saveable,
+  //                gboolean user_settable,
+  //                gboolean independent);purple_status_type_new_full: function();
 
 // this is the only exported function, everything else will work with callbacks
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
