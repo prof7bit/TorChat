@@ -259,6 +259,7 @@ type
   PPurpleGroup = Pointer;
   PPurpleUserInfo = Pointer;
   PPurpleStatus = Pointer;
+  PPurpleStatusType = Pointer;
   PPurpleStoredImage = Pointer;
   PPurpleBlistNode = Pointer;
   PPurpleChat = Pointer;
@@ -276,6 +277,19 @@ type
   PPurpleGetPublicAliasSuccessCallback = procedure();
   PPurpleGetPublicAliasFailureCallback = procedure();
 
+  TPurpleStatusPrimitive = (
+	  PURPLE_STATUS_UNSET = 0,
+	  PURPLE_STATUS_OFFLINE,
+	  PURPLE_STATUS_AVAILABLE,
+	  PURPLE_STATUS_UNAVAILABLE,
+	  PURPLE_STATUS_INVISIBLE,
+	  PURPLE_STATUS_AWAY,
+	  PURPLE_STATUS_EXTENDED_AWAY,
+	  PURPLE_STATUS_MOBILE,
+	  PURPLE_STATUS_TUNE,
+	  PURPLE_STATUS_MOOD,
+	  PURPLE_STATUS_NUM_PRIMITIVES
+  );
 
   (**
    * A protocol plugin information structure.
@@ -830,6 +844,32 @@ var
     typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
     cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean;
 
+  (**
+   * Creates a new status type.
+   *
+   * @param primitive     The primitive status type.
+   * @param id            The ID of the status type, or @c NULL to use the id of
+   *                      the primitive status type.
+   * @param name          The name presented to the user, or @c NULL to use the
+   *                      name of the primitive status type.
+   * @param saveable      TRUE if the information set for this status by the
+   *                      user can be saved for future sessions.
+   * @param user_settable TRUE if this is a status the user can manually set.
+   * @param independent   TRUE if this is an independent (non-exclusive)
+   *                      status type.
+   *
+   * @return A new status type.
+   *)
+  purple_status_type_new_full: function(primitive: TPurpleStatusPrimitive;
+    id: PChar; name: Pchar;
+    saveable: GBoolean;
+    user_settable: GBoolean;
+    independent: GBoolean): PPurpleStatusType;
+  //PurpleStatusType *purple_status_type_new_full(PurpleStatusPrimitive primitive,
+  //							  const char *id, const char *name,
+  //							  gboolean saveable,
+  //							  gboolean user_settable,
+  //							  gboolean independent);purple_status_type_new_full: function();
 
 // this is the only exported function, everything else will work with callbacks
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
@@ -865,6 +905,8 @@ procedure _error(Msg: String);
 
 { sometimes we need to allocate a char* for which libpurple will take ownership }
 function AllocPurpleString(Str: String): PChar;
+
+function GListAppend(List: PGList; Item: Pointer): PGList;
 
 implementation
 uses
@@ -922,6 +964,29 @@ begin
     Result := SysGetmem(L+1);
     Move(Str[1], Result[0], L);
     Result[L] := #0;
+  end;
+end;
+
+function GListAppend(List: PGList; Item: Pointer): PGList;
+var
+  P : PGList;
+begin
+  if List = nil then begin
+    Result := SysGetmem(SizeOf(TGList));
+    Result^.next := nil;
+    Result^.prev := nil;
+    Result^.data := Item;
+  end
+  else begin
+    P := List;
+    While P^.next <> nil do begin
+      P := P^.next;
+    end;
+    P^.next := SysGetmem(SizeOf(TGList));
+    P^.next^.prev := P;
+    P^.next^.next := nil;
+    P^.next^.data := Item;
+    Result := List;
   end;
 end;
 
@@ -1003,6 +1068,7 @@ begin
       Connect(purple_debug_warning, 'purple_debug_warning');
       Connect(purple_debug_error, 'purple_debug_error');
       Connect(purple_notify_message, 'purple_notify_message');
+      Connect(purple_status_type_new_full, 'purple_status_type_new_full');
       if Error then
         UnloadImports
       else

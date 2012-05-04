@@ -236,7 +236,7 @@ begin
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
   FQueue := TQueue.Create;
-  FTor := TTor.Create(self);
+  //FTor := TTor.Create(self);
   FSock := TSocketWrapper.Create(Self);
   FBuddyList := TBuddyList.Create(self);
   with FSock do begin

@@ -5,7 +5,7 @@ library purpletorchat;
 uses
   {$ifdef unix}cthreads,{$endif}
   Classes, sysutils,
-  purple, torchatclient, clientconfig, miscfunc;
+  purple, torchatclient, miscfunc;
 
 type
   { TTorchatPurpleClient }
@@ -48,6 +48,20 @@ begin
   Client := nil;
   _info('plugin unloaded');
   Result := True;
+end;
+
+function OnStatusTypes(account: PPurpleAccount): PGList; cdecl;
+var
+  Status: PPurpleStatusType;
+begin
+  _info('OnStatusTypes()');
+  Ignore(account);
+  // we neeed to define offline and online statuses
+  // or else it will not call our login callback
+  Status := purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, nil, nil, True, True, False);
+  Result := GListAppend(nil, Status);
+  Status := purple_status_type_new_full(PURPLE_STATUS_OFFLINE, nil, nil, True, True, False);
+  Result := GListAppend(Result, Status);
 end;
 
 function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
@@ -105,6 +119,7 @@ begin
   with PluginProtocolInfo do begin
     options := OPT_PROTO_NO_PASSWORD or OPT_PROTO_REGISTER_NOSCREENNAME;
     list_icon := @OnListIcon;
+    status_types := @OnStatusTypes;
     login := @OnLogin;
     close := @OnClose;
     struct_size := SizeOf(PluginProtocolInfo);
