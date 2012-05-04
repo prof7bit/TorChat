@@ -65,6 +65,8 @@ end;
 procedure OnSetStatus(account: PPurpleAccount; status: PPurpleStatus); cdecl;
 begin
   _info('OnSetStatus');
+  Ignore(account);
+  Ignore(status);
 end;
 
 function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
