@@ -151,11 +151,14 @@ begin
       end;
     end;
     LeaveCriticalsection(FCritical);
-  finally
-    if assigned(JList) then FreeAndNil(JList);
-    if assigned(JParser) then FreeAndNil(JParser);
-    if assigned(FS) then FreeAndNil(FS);
+  except
+    on E: Exception do begin
+      WriteLn('(1) could not load buddy list: ' + E.Message);
+    end;
   end;
+  if assigned(JList) then FreeAndNil(JList);
+  if assigned(JParser) then FreeAndNil(JParser);
+  if assigned(FS) then FreeAndNil(FS);
   Save;
 end;
 
