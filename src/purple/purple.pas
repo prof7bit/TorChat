@@ -967,27 +967,24 @@ begin
   end;
 end;
 
-function GListAppend(List: PGList; Item: Pointer): PGList;
-var
-  P : PGList;
+function GListAllocElement(Prev, Next: PGList; Data: Pointer): PGList;
 begin
-  if List = nil then begin
-    Result := SysGetmem(SizeOf(TGList));
-    Result^.next := nil;
-    Result^.prev := nil;
-    Result^.data := Item;
-  end
-  else begin
-    P := List;
-    While P^.next <> nil do begin
-      P := P^.next;
-    end;
-    P^.next := SysGetmem(SizeOf(TGList));
-    P^.next^.prev := P;
-    P^.next^.next := nil;
-    P^.next^.data := Item;
+  Result := SysGetmem(SizeOf(TGList));
+  Result^.data := Data;
+  Result^.next := Next;
+  Result^.prev := Prev;
+end;
+
+function GListAppend(List: PGList; Item: Pointer): PGList;
+begin
+  if List <> nil then begin
     Result := List;
-  end;
+    while List^.next <> nil do
+      List := List^.next;
+    List^.next := GListAllocElement(List, nil, Item);
+  end
+  else
+    Result := GListAllocElement(nil, nil, Item);
 end;
 
 { TWritelnRedirect }
