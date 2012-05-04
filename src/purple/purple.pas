@@ -293,7 +293,12 @@ type
   end;
 
   TPurpleConnectionFlags = Integer;
-  TPurpleConnectionState = Integer;
+
+  TPurpleConnectionState = (
+  	PURPLE_DISCONNECTED = 0, // Disconnected.
+  	PURPLE_CONNECTED,        // Connected.
+  	PURPLE_CONNECTING        // Connecting.
+  );
 
   (* Represents an active connection on an account. *)
   TPurpleConnection = packed record
@@ -939,6 +944,20 @@ var
   //                gboolean user_settable,
   //                gboolean independent);purple_status_type_new_full: function();
 
+  (**
+   * Sets the connection state.  PRPLs should call this and pass in
+   * the state #PURPLE_CONNECTED when the account is completely
+   * signed on.  What does it mean to be completely signed on?  If
+   * the core can call prpl->set_status, and it successfully changes
+   * your status, then the account is online.
+   *
+   * @param gc    The connection.
+   * @param state The connection state.
+   *)
+   purple_connection_set_state: procedure(gc: PPurpleConnection; state: TPurpleConnectionState);
+   //void purple_connection_set_state(PurpleConnection *gc, PurpleConnectionState state);
+
+
 // this is the only exported function, everything else will work with callbacks
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
 
@@ -1116,6 +1135,7 @@ begin
       Connect(purple_debug_error, 'purple_debug_error');
       Connect(purple_notify_message, 'purple_notify_message');
       Connect(purple_status_type_new_full, 'purple_status_type_new_full');
+      Connect(purple_connection_set_state, 'purple_connection_set_state');
       if Error then
         UnloadImports
       else

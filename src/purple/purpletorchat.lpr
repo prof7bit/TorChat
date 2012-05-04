@@ -88,6 +88,7 @@ begin
   NewClient.PurpleAccount := acc;
   NewClient.PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, NewClient);
   Clients.Add(acc^.username, NewClient);
+  purple_connection_set_state(acc^.gc, PURPLE_CONNECTED);
   _info('created torchat client object for ' + acc^.username);
 end;
 
