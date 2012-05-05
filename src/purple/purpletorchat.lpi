@@ -39,9 +39,6 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
-            <Debugging>
-              <UseHeaptrc Value="True"/>
-            </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
               <LinkerOptions Value="--stats --no-keep-memory --reduce-memory-overheads"/>
@@ -58,7 +55,7 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole"/>
+            <CustomOptions Value="-dDebugToConsole -dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -131,9 +128,6 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
-            <Debugging>
-              <UseHeaptrc Value="True"/>
-            </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
               <LinkerOptions Value="--stats --no-keep-memory --reduce-memory-overheads"/>
@@ -150,7 +144,7 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole"/>
+            <CustomOptions Value="-dDebugToConsole -dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -191,7 +185,7 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole -fPIC"/>
+            <CustomOptions Value="-dDebugToConsole -dUseHeapTrc -fPIC"/>
             <CompilerPath Value="/usr/local/bin/ppcrossx64"/>
           </Other>
         </CompilerOptions>

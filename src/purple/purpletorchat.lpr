@@ -3,9 +3,10 @@ library purpletorchat;
 {$mode objfpc}{$H+}
 
 uses
+  {$ifdef UseHeapTrc}heaptrc,{$endif} // do it with -dUseHeapTrc, not with -gh
   {$ifdef unix}cthreads,{$endif}
   Classes, sysutils, contnrs, glib2,
-  purple, torchatabstract, torchatclient, miscfunc;
+  purple, torchatabstract, torchatclient, clientconfig, miscfunc;
 
 type
   { TTorchatPurpleClient }
@@ -164,6 +165,14 @@ begin
     set_status := @OnSetStatus;
     struct_size := SizeOf(PluginProtocolInfo);
   end;
+
+  {$ifdef UseHeapTrc}
+    {$warning compiling with -dUseHeapTrc. Not recommended for release.}
+    {$ifdef windows}
+      // we have no stdout when running on windows
+      heaptrc.SetHeapTraceOutput(ConcatPaths([ConfGetDataDir, 'heaptrc.log']));
+    {$endif}
+  {$endif}
 end.
 
 

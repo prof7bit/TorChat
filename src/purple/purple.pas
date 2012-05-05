@@ -31,7 +31,6 @@ type
     time_t = UInt32;
   {$endif}
 
-
 (****************************************
  *                                      *
  *   Const and Type declarations        *
@@ -1075,7 +1074,8 @@ begin
   {$ifdef DebugToConsole}
   try
     WriteLn(OldStdOut, '[', PluginInfo.id, ' ', Level, '] ', Msg);
-  finally
+  except
+    // There is no stdout on windows if pidgin is not run with --debug
   end;
   {$endif}
 end;
@@ -1213,7 +1213,7 @@ end;
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   {$ifdef DebugToConsole}
-  {$warning compiling with -dDebugToConsole. Not recommended.}
+  {$warning compiling with -dDebugToConsole. Not recommended for release.}
   _warning('Plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
   LoadImports;
