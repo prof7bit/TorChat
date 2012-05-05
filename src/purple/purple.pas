@@ -20,12 +20,6 @@
 unit purple;
 {$mode objfpc}{$H+}
 
-// the first 90% of the implementation section are by default cdecl.
-// we will switch back to default later for our internal functions and
-// for the entire implementation section. libpurple functions should
-// only be declared in the cdecl part of implementation.
-{$calling cdecl}
-
 interface
 uses
   Classes, glib2;
@@ -38,11 +32,24 @@ type
   {$endif}
 
 
-(******************************
- *                            *
- *  from libpurple/plugin.h   *
- *                            *
- ******************************)
+(****************************************
+ *                                      *
+ *   Const and Type declarations        *
+ *                                      *
+ *   from various libpurple/*.h         *
+ *   (for function imports scroll       *
+ *   down to the next section).         *
+ *                                      *
+ *   Most of the original comments      *
+ *   from the C headers and also most   *
+ *   of the function declarations in    *
+ *   their original C syntax have       *
+ *   been copied into the comments,     *
+ *   so this unit looks much bigger     *
+ *   than it really is.                 *
+ *                                      *
+ ****************************************)
+{$calling cdecl}
 const
   PURPLE_PLUGIN_MAGIC = 5;
   PURPLE_MAJOR_VERSION = 2;
@@ -880,13 +887,6 @@ type
     //void (*add_buddies_with_invite)(PurpleConnection *pc, GList *buddies, GList *groups, const char *message);
   end;
 
-
-(******************************
- *                            *
- *  from libpurple/notify.h   *
- *                            *
- ******************************)
-type
   TPurpleNotifyMsgType = (
     PURPLE_NOTIFY_MSG_ERROR   = 0, // Error notification.
     PURPLE_NOTIFY_MSG_WARNING,     // Warning notification.
@@ -896,17 +896,24 @@ type
   PPurpleNotifyCloseCallback = procedure(UserData: Pointer);
 
 
+
+
+
+(********************************************
+ *                                          *
+ *   function imports from libpurple        *
+ *                                          *
+ *   All imported functions are declared    *
+ *   as procedure variables and will be     *
+ *   linked dnamically at runtime. Make     *
+ *   sure that every new function that is   *
+ *   added here will also be linked in our  *
+ *   LoadImports() procedure below in the   *
+ *   implementation section of this unit.   *
+ *                                          *
+ ********************************************)
+{$calling cdecl}
 var
-  PluginInfo: TPurplePluginInfo;
-  PluginProtocolInfo: TPurplePluginProtocolInfo;
-
-
-(****************************************
- *                                      *
- *  functions imported from libpurple   *
- *                                      *
- ****************************************)
-
   purple_plugin_register: function(var Plugin: TPurplePlugin): GBoolean;
   purple_timeout_add: function(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer;
   purple_timeout_remove: function(handle: Integer): GBoolean;
@@ -989,20 +996,35 @@ var
    //PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
 
 
-// this is the only exported function, everything else will work with callbacks
+
+(****************************************
+ *                                      *
+ *   This is the only exported symbol   *
+ *                                      *
+ *   It is called when libpurple is     *
+ *   probing all libs in the plugin     *
+ *   folder. In the C examples this     *
+ *   is hidden behind the macro         *
+ *   PURPLE_INIT_PLUGIN but here we     *
+ *   don't have macros to hide such     *
+ *   things and the plugin library      *
+ *   using this unit must explicitly    *
+ *   export it.                         *
+ *                                      *
+ ****************************************)
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
+
 
 
 (****************************************
  *                                      *
- *   internal functions and helpers.    *
+ *   Our own functions and helpers      *
  *                                      *
  *   from here on we also switch back   *
  *   to the default calling convention  *
  *                                      *
  ****************************************)
 {$calling default}
-
 type
   TDebugLevel = (
     DEBUG_INFO,
@@ -1027,6 +1049,9 @@ procedure _error(Msg: String);
   FPC heap manager! }
 function AllocPurpleString(Str: String): PChar;
 
+var
+  PluginInfo: TPurplePluginInfo;
+  PluginProtocolInfo: TPurplePluginProtocolInfo;
 
 implementation
 uses
@@ -1139,7 +1164,7 @@ var
   LibName: String;
   Error: Boolean = False;
 
-  procedure Connect(const ProcVar; ProcName: String);
+  procedure Link(const ProcVar; ProcName: String);
   var
     P : Pointer;
   begin
@@ -1158,18 +1183,18 @@ begin
   for LibName in PossibleNames do begin
     HPurple := LoadLibrary(LibName);
     if HPurple <> NilHandle then begin
-      Connect(purple_plugin_register, 'purple_plugin_register');
-      Connect(purple_timeout_add, 'purple_timeout_add');
-      Connect(purple_timeout_remove, 'purple_timeout_remove');
-      Connect(purple_debug_info, 'purple_debug_info');
-      Connect(purple_debug_warning, 'purple_debug_warning');
-      Connect(purple_debug_error, 'purple_debug_error');
-      Connect(purple_notify_message, 'purple_notify_message');
-      Connect(purple_status_type_new_full, 'purple_status_type_new_full');
-      Connect(purple_connection_set_state, 'purple_connection_set_state');
-      Connect(purple_status_type_get_primitive, 'purple_status_type_get_primitive');
-      Connect(purple_status_get_type, 'purple_status_get_type');
-      Connect(purple_presence_get_active_status, 'purple_presence_get_active_status');
+      Link(purple_plugin_register, 'purple_plugin_register');
+      Link(purple_timeout_add, 'purple_timeout_add');
+      Link(purple_timeout_remove, 'purple_timeout_remove');
+      Link(purple_debug_info, 'purple_debug_info');
+      Link(purple_debug_warning, 'purple_debug_warning');
+      Link(purple_debug_error, 'purple_debug_error');
+      Link(purple_notify_message, 'purple_notify_message');
+      Link(purple_status_type_new_full, 'purple_status_type_new_full');
+      Link(purple_connection_set_state, 'purple_connection_set_state');
+      Link(purple_status_type_get_primitive, 'purple_status_type_get_primitive');
+      Link(purple_status_get_type, 'purple_status_get_type');
+      Link(purple_presence_get_active_status, 'purple_presence_get_active_status');
       if Error then
         UnloadImports
       else
