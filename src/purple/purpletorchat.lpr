@@ -3,10 +3,17 @@ library purpletorchat;
 {$mode objfpc}{$H+}
 
 uses
-  {$ifdef UseHeapTrc}heaptrc,{$endif} // do it with -dUseHeapTrc, not with -gh
-  {$ifdef unix}cthreads,{$endif}
+  {$ifdef UseHeapTrc} // do it with -dUseHeapTrc, not with -gh
+    heaptrc,
+    {$ifdef windows}  // need config path for heaptrc output
+      clientconfig,
+    {$endif}
+  {$endif}
+  {$ifdef unix}
+    cthreads,
+  {$endif}
   Classes, sysutils, contnrs, glib2,
-  purple, torchatabstract, torchatclient, clientconfig, miscfunc;
+  purple, torchatabstract, torchatclient, miscfunc;
 
 type
   { TTorchatPurpleClient }

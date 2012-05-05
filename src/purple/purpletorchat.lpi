@@ -55,8 +55,7 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-XLApurple=
--dDebugToConsole 
+            <CustomOptions Value="-dDebugToConsole 
 -dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
@@ -312,7 +311,6 @@
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-XLApurple="/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
