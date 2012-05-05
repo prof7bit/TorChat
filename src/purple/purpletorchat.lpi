@@ -55,7 +55,9 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole -dUseHeapTrc"/>
+            <CustomOptions Value="-XLApurple=
+-dDebugToConsole 
+-dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -144,7 +146,8 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole -dUseHeapTrc"/>
+            <CustomOptions Value="-dDebugToConsole 
+-dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -185,7 +188,9 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole -dUseHeapTrc -fPIC"/>
+            <CustomOptions Value="-dDebugToConsole 
+-dUseHeapTrc 
+-fPIC"/>
             <CompilerPath Value="/usr/local/bin/ppcrossx64"/>
           </Other>
         </CompilerOptions>
@@ -307,6 +312,7 @@
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
+      <CustomOptions Value="-XLApurple="/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

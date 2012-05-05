@@ -24,6 +24,13 @@ interface
 uses
   Classes, glib2;
 
+const
+  {$ifdef windows}
+    LIBPURPLE = 'libpurple.dll';
+  {$else}
+    LIBPURPLE = 'purple';
+  {$endif}
+
 type
   {$ifdef cpu64}
     time_t = UInt64;
@@ -902,97 +909,90 @@ type
  *                                          *
  *   function imports from libpurple        *
  *                                          *
- *   All imported functions are declared    *
- *   as procedure variables and will be     *
- *   linked dnamically at runtime. Make     *
- *   sure that every new function that is   *
- *   added here will also be linked in our  *
- *   LoadImports() procedure below in the   *
- *   implementation section of this unit.   *
- *                                          *
  ********************************************)
 {$calling cdecl}
-var
-  purple_plugin_register: function(var Plugin: TPurplePlugin): GBoolean;
-  purple_timeout_add: function(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer;
-  purple_timeout_remove: function(handle: Integer): GBoolean;
-  purple_debug_info: procedure(category: PChar; format: PChar; args: array of const);
-  purple_debug_warning: procedure(category: PChar; format: PChar; args: array of const);
-  purple_debug_error: procedure(category: PChar; format: PChar; args: array of const);
-  purple_notify_message: function(var Plugin: TPurplePlugin;
-    typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
-    cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean;
 
-  (**
-   * Creates a new status type.
-   *
-   * @param primitive     The primitive status type.
-   * @param id            The ID of the status type, or @c NULL to use the id of
-   *                      the primitive status type.
-   * @param name          The name presented to the user, or @c NULL to use the
-   *                      name of the primitive status type.
-   * @param saveable      TRUE if the information set for this status by the
-   *                      user can be saved for future sessions.
-   * @param user_settable TRUE if this is a status the user can manually set.
-   * @param independent   TRUE if this is an independent (non-exclusive)
-   *                      status type.
-   *
-   * @return A new status type.
-   *)
-  purple_status_type_new_full: function(primitive: TPurpleStatusPrimitive;
-    id: PChar; name: Pchar;
-    saveable: GBoolean;
-    user_settable: GBoolean;
-    independent: GBoolean): PPurpleStatusType;
-  //PurpleStatusType *purple_status_type_new_full(PurpleStatusPrimitive primitive,
-  //                const char *id, const char *name,
-  //                gboolean saveable,
-  //                gboolean user_settable,
-  //                gboolean independent);purple_status_type_new_full: function();
+function purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
+function purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
+function purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
+procedure purple_debug_info(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
+procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
+procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
+function purple_notify_message(var Plugin: TPurplePlugin;
+  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
+  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
 
-  (**
-   * Sets the connection state.  PRPLs should call this and pass in
-   * the state #PURPLE_CONNECTED when the account is completely
-   * signed on.  What does it mean to be completely signed on?  If
-   * the core can call prpl->set_status, and it successfully changes
-   * your status, then the account is online.
-   *
-   * @param gc    The connection.
-   * @param state The connection state.
-   *)
-  purple_connection_set_state: procedure(gc: PPurpleConnection; state: TPurpleConnectionState);
-  //void purple_connection_set_state(PurpleConnection *gc, PurpleConnectionState state);
+(**
+ * Creates a new status type.
+ *
+ * @param primitive     The primitive status type.
+ * @param id            The ID of the status type, or @c NULL to use the id of
+ *                      the primitive status type.
+ * @param name          The name presented to the user, or @c NULL to use the
+ *                      name of the primitive status type.
+ * @param saveable      TRUE if the information set for this status by the
+ *                      user can be saved for future sessions.
+ * @param user_settable TRUE if this is a status the user can manually set.
+ * @param independent   TRUE if this is an independent (non-exclusive)
+ *                      status type.
+ *
+ * @return A new status type.
+ *)
+function purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
+  id: PChar; name: Pchar;
+  saveable: GBoolean;
+  user_settable: GBoolean;
+  independent: GBoolean): PPurpleStatusType; external LIBPURPLE;
+//PurpleStatusType *purple_status_type_new_full(PurpleStatusPrimitive primitive,
+//                const char *id, const char *name,
+//                gboolean saveable,
+//                gboolean user_settable,
+//                gboolean independent);purple_status_type_new_full: function();
 
-  (**
-   * Returns the primitive type of a status type.
-   *
-   * @param status_type The status type.
-   *
-   * @return The primitive type of the status type.
-   *)
-  purple_status_type_get_primitive: function(status_type: PPurpleStatusType): TPurpleStatusPrimitive;
-  //PurpleStatusPrimitive purple_status_type_get_primitive(
-  //  const PurpleStatusType *status_type);
+(**
+ * Sets the connection state.  PRPLs should call this and pass in
+ * the state #PURPLE_CONNECTED when the account is completely
+ * signed on.  What does it mean to be completely signed on?  If
+ * the core can call prpl->set_status, and it successfully changes
+ * your status, then the account is online.
+ *
+ * @param gc    The connection.
+ * @param state The connection state.
+ *)
+procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
+//void purple_connection_set_state(PurpleConnection *gc, PurpleConnectionState state);
 
-   (**
-    * Returns the status's type.
-    *
-    * @param status The status.
-    *
-    * @return The status's type.
-    *)
-   purple_status_get_type: function(status: PPurpleStatus): PPurpleStatusType;
-   //PurpleStatusType *purple_status_get_type(const PurpleStatus *status);
+(**
+ * Returns the primitive type of a status type.
+ *
+ * @param status_type The status type.
+ *
+ * @return The primitive type of the status type.
+ *)
+function purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; external LIBPURPLE;
+//PurpleStatusPrimitive purple_status_type_get_primitive(
+//  const PurpleStatusType *status_type);
 
-   (**
-    * Returns the active exclusive status from a presence.
-    *
-    * @param presence The presence.
-    *
-    * @return The active exclusive status.
-    *)
-   purple_presence_get_active_status: function(presence: PPurplePresence): PPurpleStatus;
-   //PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
+(**
+ * Returns the status's type.
+ *
+ * @param status The status.
+ *
+ * @return The status's type.
+ *)
+function purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
+//PurpleStatusType *purple_status_get_type(const PurpleStatus *status);
+
+
+(**
+ * Returns the active exclusive status from a presence.
+ *
+ * @param presence The presence.
+ *
+ * @return The active exclusive status.
+ *)
+function purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;
+//PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
 
 
 
@@ -1054,22 +1054,18 @@ var
 
 implementation
 uses
-  dynlibs, sysutils, StreamIO;
+  sysutils, StreamIO;
 
 var
-  HPurple: TLibHandle = NilHandle;
-  ImportsLoaded: Boolean = False;
   OldStdOut: Text;
   WritelnRedirect: TWritelnRedirect;
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
-  if ImportsLoaded then begin
-    case Level of
-      DEBUG_INFO: purple_debug_info(PluginInfo.id, PChar(Msg + LineEnding), []);
-      DEBUG_WARNING: purple_debug_warning(PluginInfo.id, PChar(Msg + LineEnding), []);
-      DEBUG_ERROR: purple_debug_error(PluginInfo.id, PChar(Msg + LineEnding), []);
-    end;
+  case Level of
+    DEBUG_INFO: purple_debug_info(PluginInfo.id, PChar(Msg + LineEnding), []);
+    DEBUG_WARNING: purple_debug_warning(PluginInfo.id, PChar(Msg + LineEnding), []);
+    DEBUG_ERROR: purple_debug_error(PluginInfo.id, PChar(Msg + LineEnding), []);
   end;
   {$ifdef DebugToConsole}
   try
@@ -1149,63 +1145,6 @@ begin
   WritelnRedirect.Free;
 end;
 
-procedure UnloadImports;
-begin
-  if HPurple <> NilHandle then begin
-    FreeLibrary(HPurple);
-    HPurple := NilHandle;
-    ImportsLoaded := False;
-  end;
-end;
-
-procedure LoadImports;
-var
-  PossibleNames : array[1..2] of string = ('libpurple', 'libpurple.so.0');
-  LibName: String;
-  Error: Boolean = False;
-
-  procedure Link(const ProcVar; ProcName: String);
-  var
-    P : Pointer;
-  begin
-    P := GetProcAddress(HPurple, ProcName);
-    if p <> nil then
-      PPointer(@ProcVar)^ := P
-    else begin
-      _error('could not find symbol "' + ProcName + '"');
-      Error := True;
-    end;
-  end;
-
-begin
-  if ImportsLoaded then
-    exit;
-  for LibName in PossibleNames do begin
-    HPurple := LoadLibrary(LibName);
-    if HPurple <> NilHandle then begin
-      Link(purple_plugin_register, 'purple_plugin_register');
-      Link(purple_timeout_add, 'purple_timeout_add');
-      Link(purple_timeout_remove, 'purple_timeout_remove');
-      Link(purple_debug_info, 'purple_debug_info');
-      Link(purple_debug_warning, 'purple_debug_warning');
-      Link(purple_debug_error, 'purple_debug_error');
-      Link(purple_notify_message, 'purple_notify_message');
-      Link(purple_status_type_new_full, 'purple_status_type_new_full');
-      Link(purple_connection_set_state, 'purple_connection_set_state');
-      Link(purple_status_type_get_primitive, 'purple_status_type_get_primitive');
-      Link(purple_status_get_type, 'purple_status_get_type');
-      Link(purple_presence_get_active_status, 'purple_presence_get_active_status');
-      if Error then
-        UnloadImports
-      else
-        ImportsLoaded := True;
-      break;
-    end;
-  end;
-  if HPurple = NilHandle then
-    _error('could not load libpurple');
-end;
-
 { This re-implements the stuff that is behind the PURPLE_INIT_PLUGIN macro.
   In C the macro would define the function and export it, here we only
   define it and the library must export it (because we can't export it
@@ -1216,16 +1155,8 @@ begin
   {$warning compiling with -dDebugToConsole. Not recommended for release.}
   _warning('Plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
-  LoadImports;
-  Result := False;
-  if ImportsLoaded then begin;
-    Plugin.info := @PluginInfo;
-    Result := purple_plugin_register(Plugin);
-  end
-  else begin
-    _error('plugin will not load');
-    Result := False;
-  end;
+  Plugin.info := @PluginInfo;
+  Result := purple_plugin_register(Plugin);
 end;
 
 initialization
@@ -1233,7 +1164,6 @@ initialization
   FillByte(PluginInfo, Sizeof(PluginInfo), 0);
   FillByte(PluginProtocolInfo, SizeOf(PluginProtocolInfo), 0);
 finalization
-  UnloadImports;
   UninstallWritelnRedirect;
 end.
 
