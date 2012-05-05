@@ -88,7 +88,7 @@ end;
 function ConfGetHiddenServiceName: String;
 var
   FileName: String;
-  HostnameFile: TFileStream;
+  HostnameFile: TFileStream = nil;
 const
   OnionLength = 16;
 begin
@@ -101,7 +101,7 @@ begin
   except
     Result := '';
   end;
-  HostnameFile.Free;
+  if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
 end;
 
 end.

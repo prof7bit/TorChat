@@ -1213,10 +1213,8 @@ end;
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   {$ifdef DebugToConsole}
-  {$ifndef windows}
   {$warning compiling with -dDebugToConsole. Not recommended.}
   _warning('Plugin has been compiled with -dDebugToConsole. Not recommended.');
-  {$endif}
   {$endif}
   LoadImports;
   Result := False;

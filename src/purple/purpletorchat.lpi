@@ -131,6 +131,9 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <UseHeaptrc Value="True"/>
+            </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
               <LinkerOptions Value="--stats --no-keep-memory --reduce-memory-overheads"/>
