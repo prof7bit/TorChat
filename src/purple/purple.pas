@@ -954,8 +954,39 @@ var
    * @param gc    The connection.
    * @param state The connection state.
    *)
-   purple_connection_set_state: procedure(gc: PPurpleConnection; state: TPurpleConnectionState);
-   //void purple_connection_set_state(PurpleConnection *gc, PurpleConnectionState state);
+  purple_connection_set_state: procedure(gc: PPurpleConnection; state: TPurpleConnectionState);
+  //void purple_connection_set_state(PurpleConnection *gc, PurpleConnectionState state);
+
+  (**
+   * Returns the primitive type of a status type.
+   *
+   * @param status_type The status type.
+   *
+   * @return The primitive type of the status type.
+   *)
+  purple_status_type_get_primitive: function(status_type: PPurpleStatusType): TPurpleStatusPrimitive;
+  //PurpleStatusPrimitive purple_status_type_get_primitive(
+  //  const PurpleStatusType *status_type);
+
+   (**
+    * Returns the status's type.
+    *
+    * @param status The status.
+    *
+    * @return The status's type.
+    *)
+   purple_status_get_type: function(status: PPurpleStatus): PPurpleStatusType;
+   //PurpleStatusType *purple_status_get_type(const PurpleStatus *status);
+
+   (**
+    * Returns the active exclusive status from a presence.
+    *
+    * @param presence The presence.
+    *
+    * @return The active exclusive status.
+    *)
+   purple_presence_get_active_status: function(presence: PPurplePresence): PPurpleStatus;
+   //PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
 
 
 // this is the only exported function, everything else will work with callbacks
@@ -1136,6 +1167,9 @@ begin
       Connect(purple_notify_message, 'purple_notify_message');
       Connect(purple_status_type_new_full, 'purple_status_type_new_full');
       Connect(purple_connection_set_state, 'purple_connection_set_state');
+      Connect(purple_status_type_get_primitive, 'purple_status_type_get_primitive');
+      Connect(purple_status_get_type, 'purple_status_get_type');
+      Connect(purple_presence_get_active_status, 'purple_presence_get_active_status');
       if Error then
         UnloadImports
       else
@@ -1154,7 +1188,10 @@ end;
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   {$ifdef DebugToConsole}
+  {$ifndef windows}
+  {$warning compiling with -dDebugToConsole. Not recommended.}
   _warning('Plugin has been compiled with -dDebugToConsole. Not recommended.');
+  {$endif}
   {$endif}
   LoadImports;
   Result := False;

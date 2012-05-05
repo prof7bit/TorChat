@@ -35,6 +35,14 @@ uses
   Classes, fpjson, networking;
 
 type
+  TTorchatStatus = (
+    TORCHAT_OFFLINE,
+    TORCHAT_CONNECTING,
+    TORCHAT_AVAILABLE,
+    TORCHAT_AWAY,
+    TORCHAT_EXTENDED_AWAY
+  );
+
   TABuddy = class;
   TABuddyList = class;
   TAHiddenConnection = class;
@@ -46,6 +54,7 @@ type
     FBuddyList: TABuddyList;
   public
     procedure ProcessMessages; virtual; abstract;
+    procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
     procedure OnNotifyGui; virtual; abstract;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;

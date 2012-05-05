@@ -78,6 +78,7 @@ type
     destructor Destroy; override;
     procedure Enqueue(AMessage: TAMessage); override;
     procedure ProcessMessages; override;
+    procedure SetStatus(AStatus: TTorchatStatus); override;
   end;
 
 implementation
@@ -285,6 +286,11 @@ begin
   CheckHiddenServiceName;
   PopNextMessage;
   BuddyList.CheckState;
+end;
+
+procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
+begin
+  writeln('setting own status to ', AStatus);
 end;
 
 procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; E: Exception);

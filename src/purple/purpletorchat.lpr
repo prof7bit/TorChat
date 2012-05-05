@@ -5,7 +5,7 @@ library purpletorchat;
 uses
   {$ifdef unix}cthreads,{$endif}
   Classes, sysutils, contnrs, glib2,
-  purple, torchatclient, miscfunc;
+  purple, torchatabstract, torchatclient, miscfunc;
 
 type
   { TTorchatPurpleClient }
@@ -51,22 +51,36 @@ end;
 
 function OnStatusTypes(account: PPurpleAccount): PGList; cdecl;
 begin
-  _info('OnStatusTypes()');
   Ignore(account);
-  // we neeed to define offline and online statuses
-  // or else it will not call our login callback
+  // pidgin (or libpurple or both) has a bug, it will offer "invisible" even
+  // if we don't register it (and it will not offer "extended away" even if
+  // we register it), so we are registerig all of them and will deal with them
+  // in the set_status callback.
   Result := nil;
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, nil, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, nil, nil, True, True, False));
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, nil, nil, True, True, False));
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_EXTENDED_AWAY, nil, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, nil, nil, True, True, False));
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, nil, nil, True, True, False));
 end;
 
 procedure OnSetStatus(account: PPurpleAccount; status: PPurpleStatus); cdecl;
+var
+  SP : TPurpleStatusPrimitive;
+  ST : TTorchatStatus;
+  C : TTorChatPurpleClient;
 begin
-  _info('OnSetStatus');
-  Ignore(account);
-  Ignore(status);
+  SP := purple_status_type_get_primitive(purple_status_get_type(status));
+  case SP of
+    PURPLE_STATUS_AVAILABLE: ST := TORCHAT_AVAILABLE;
+    PURPLE_STATUS_UNAVAILABLE: ST := TORCHAT_EXTENDED_AWAY;
+    PURPLE_STATUS_AWAY: ST := TORCHAT_AWAY;
+    PURPLE_STATUS_EXTENDED_AWAY: ST := TORCHAT_EXTENDED_AWAY;
+    PURPLE_STATUS_INVISIBLE: ST := TORCHAT_OFFLINE;
+  end;
+  C := Clients.Find(account^.username) as TTorChatPurpleClient;
+  C.SetStatus(ST);
 end;
 
 function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
@@ -82,6 +96,7 @@ end;
 procedure OnLogin(acc: PPurpleAccount); cdecl;
 var
   NewClient: TTorChatPurpleClient;
+  SP: PPurpleStatus;
 begin
   _info('OnLogin');
   NewClient := TTorChatPurpleClient.Create(nil);
@@ -90,6 +105,10 @@ begin
   Clients.Add(acc^.username, NewClient);
   purple_connection_set_state(acc^.gc, PURPLE_CONNECTED);
   _info('created torchat client object for ' + acc^.username);
+
+  // it won't call set_status after login, so we have to do it ourselves
+  SP := purple_presence_get_active_status(acc^.presence);
+  OnSetStatus(acc, SP);
 end;
 
 procedure OnClose(gc: PPurpleConnection); cdecl;
