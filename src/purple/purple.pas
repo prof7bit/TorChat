@@ -1096,6 +1096,24 @@ function purple_presence_get_active_status(presence: PPurplePresence): PPurpleSt
 //PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
 
 (**
+ * Creates a new buddy.
+ *
+ * This function only creates the PurpleBuddy. Use purple_blist_add_buddy
+ * to add the buddy to the list and purple_account_add_buddy to sync up
+ * with the server.
+ *
+ * @param account    The account this buddy will get added to
+ * @param name       The name of the new buddy
+ * @param alias      The alias of the new buddy (or NULL if unaliased)
+ * @return           A newly allocated buddy
+ *
+ * @see purple_account_add_buddy
+ * @see purple_blist_add_buddy
+  *)
+function purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
+//PurpleBuddy *purple_buddy_new(PurpleAccount *account, const char *name, const char *alias);
+
+(**
  * Adds a new buddy to the buddy list.
  *
  * The buddy will be inserted right after node or prepended to the
