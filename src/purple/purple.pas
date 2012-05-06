@@ -913,15 +913,114 @@ type
  ********************************************)
 {$calling cdecl}
 
+(**
+ * Registers a plugin and prepares it for loading.
+ *
+ * This shouldn't be called by anything but the internal module code.
+ * Plugins should use the PURPLE_INIT_PLUGIN() macro to register themselves
+ * with the core.
+ *
+ * @param plugin The plugin to register.
+ *
+ * @return @c TRUE if the plugin was registered successfully.  Otherwise
+ *         @c FALSE is returned (this happens if the plugin does not contain
+ *         the necessary information).
+ *)
 function purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
+//gboolean purple_plugin_register(PurplePlugin *plugin);
+
+(**
+ * Creates a callback timer.
+ *
+ * The timer will repeat until the function returns @c FALSE. The
+ * first call will be at the end of the first interval.
+ *
+ * If the timer is in a multiple of seconds, use purple_timeout_add_seconds()
+ * instead as it allows UIs to group timers for power efficiency.
+ *
+ * @param interval	The time between calls of the function, in
+ *                      milliseconds.
+ * @param function	The function to call.
+ * @param data		data to pass to @a function.
+ * @return A handle to the timer which can be passed to
+ *         purple_timeout_remove() to remove the timer.
+ *)
 function purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
+//guint purple_timeout_add(guint interval, GSourceFunc function, gpointer data);
+
+(**
+ * Removes a timeout handler.
+ *
+ * @param handle The handle, as returned by purple_timeout_add().
+ *
+ * @return @c TRUE if the handler was successfully removed.
+  *)
 function purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
+//gboolean purple_timeout_remove(guint handle);
+
+(**
+ * Outputs info level debug information.
+ *
+ * This is a wrapper for purple_debug(), and uses PURPLE_DEBUG_INFO as
+ * the level.
+ *
+ * @param category The category (or @c NULL).
+ * @param format   The format string.
+ *
+ * @see purple_debug()
+ *)
 procedure purple_debug_info(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
+//void purple_debug_info(const char *category, const char *format, ...) G_GNUC_PRINTF(2, 3);
+
+(**
+ * Outputs warning level debug information.
+ *
+ * This is a wrapper for purple_debug(), and uses PURPLE_DEBUG_WARNING as
+ * the level.
+ *
+ * @param category The category (or @c NULL).
+ * @param format   The format string.
+ *
+ * @see purple_debug()
+ *)
 procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
+//void purple_debug_warning(const char *category, const char *format, ...) G_GNUC_PRINTF(2, 3);
+
+(**
+ * Outputs error level debug information.
+ *
+ * This is a wrapper for purple_debug(), and uses PURPLE_DEBUG_ERROR as
+ * the level.
+ *
+ * @param category The category (or @c NULL).
+ * @param format   The format string.
+ *
+ * @see purple_debug()
+ *)
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
+//void purple_debug_error(const char *category, const char *format, ...) G_GNUC_PRINTF(2, 3);
+
+(**
+ * Displays a notification message to the user.
+ *
+ * @param handle    The plugin or connection handle.
+ * @param type      The notification type.
+ * @param title     The title of the message.
+ * @param primary   The main point of the message.
+ * @param secondary The secondary information.
+ * @param cb        The callback to call when the user closes
+ *                  the notification.
+ * @param user_data The data to pass to the callback.
+ *
+ * @return A UI-specific handle.
+ *)
 function purple_notify_message(var Plugin: TPurplePlugin;
-  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
-  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
+ typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
+ cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
+//void *purple_notify_message(void *handle, PurpleNotifyMsgType type,
+//						  const char *title, const char *primary,
+//						  const char *secondary, PurpleNotifyCloseCallback cb,
+//						  gpointer user_data);
 
 (**
  * Creates a new status type.
