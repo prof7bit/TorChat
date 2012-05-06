@@ -43,18 +43,18 @@ type
     procedure OnNotifyGui; override;
   end;
 
-  { TClients }
+  { TTorChatClients }
 
-  TClients = class(TFPHashObjectList)
+  TTorChatClients = class(TFPHashObjectList)
     function Get(Account: PPurpleAccount): TTorChatPurpleClient;
   end;
 
 var
-  Clients: TClients;
+  TorChatClients: TTorChatClients;
 
 function Client(Account: PPurpleAccount): TTorChatPurpleClient;
 begin
-  Result := Clients.Find(Account^.username) as TTorChatPurpleClient;
+  Result := TorChatClients.Find(Account^.username) as TTorChatPurpleClient;
 end;
 
 function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
@@ -74,7 +74,7 @@ end;
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
-  Clients := TClients.Create(False);
+  TorChatClients := TTorChatClients.Create(False);
   _info('plugin loaded');
   Result := True;
 end;
@@ -82,7 +82,7 @@ end;
 function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
-  Clients.Free;
+  TorChatClients.Free;
   _info('plugin unloaded');
   Result := True;
 end;
@@ -116,7 +116,7 @@ begin
     PURPLE_STATUS_EXTENDED_AWAY: TorchatStatus := TORCHAT_EXTENDED_AWAY;
     PURPLE_STATUS_INVISIBLE: TorchatStatus := TORCHAT_OFFLINE;
   end;
-  Clients.Get(Account).SetStatus(TorchatStatus);
+  TorChatClients.Get(Account).SetStatus(TorchatStatus);
 end;
 
 function OnListIcon(Account: PPurpleAccount; Buddy: PPurpleBuddy): PChar; cdecl;
@@ -131,34 +131,48 @@ end;
 
 procedure OnLogin(Account: PPurpleAccount); cdecl;
 var
-  NewClient: TTorChatPurpleClient;
+  Client: TTorChatPurpleClient;
   Status: PPurpleStatus;
-  Buddy: TABuddy;
+  TorChatBuddy: TABuddy;
   PurpleBuddy: PPurpleBuddy;
-  List: TABuddyList;
+  TorchatList: TABuddyList;
+  PurpleList: PGSList;
+  ID : String;
+
 begin
-  _info('OnLogin');
-  NewClient := TTorChatPurpleClient.Create(nil);
-  NewClient.PurpleAccount := Account;
-  NewClient.PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, NewClient);
-  Clients.Add(Account^.username, NewClient);
+  WriteLn('OnLogin');
+  Client := TTorChatPurpleClient.Create(nil);
+  Client.PurpleAccount := Account;
+  Client.PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, Client);
+  TorChatClients.Add(Account^.username, Client);
   purple_connection_set_state(Account^.gc, PURPLE_CONNECTED);
-  _info('created torchat client object for ' + Account^.username);
+  WriteLn('created torchat client object for ' + Account^.username);
+
+  // remove buddies from purple's list that not in TorChat's list
+  TorchatList := TorChatClients.Get(Account).BuddyList;
+  PurpleList := purple_find_buddies(Account, nil);
+  while Assigned(PurpleList) do begin
+    ID := purple_buddy_get_name(PurpleList^.data);
+    WriteLn('found ' + ID + ' on purple buddy list');
+    if not Assigned(TorchatList.FindBuddy(ID)) then begin
+      purple_blist_remove_buddy(PurpleList^.data);
+    end;
+    PurpleList := g_slist_delete_link(PurpleList, PurpleList);
+  end;
+
+  // add buddies to purple's buddy list that are not in purple's list
+  TorchatList.Lock;
+  for TorChatBuddy in TorchatList.Buddies do begin
+    if purple_find_buddy(Account, PChar(TorChatBuddy.ID)) = nil then begin
+      PurpleBuddy := purple_buddy_new(Account, PChar(TorChatBuddy.ID), PChar(TorChatBuddy.FriendlyName));
+      purple_blist_add_buddy(PurpleBuddy, nil, nil, nil);
+    end;
+  end;
+  TorchatList.Unlock;
 
   // it won't call set_status after login, so we have to do it ourselves
   Status := purple_presence_get_active_status(Account^.presence);
   OnSetStatus(Account, Status);
-
-  // add all our buddies to purple's buddy list
-  List := Clients.Get(Account).BuddyList;
-  List.Lock;
-  for Buddy in List.Buddies do begin
-    if purple_find_buddy(Account, PChar(Buddy.ID)) = nil then begin
-      PurpleBuddy := purple_buddy_new(Account, PChar(Buddy.ID), PChar(Buddy.FriendlyName));
-      purple_blist_add_buddy(PurpleBuddy, nil, nil, nil);
-    end;
-  end;
-  List.Unlock;
 end;
 
 procedure OnClose(gc: PPurpleConnection); cdecl;
@@ -169,7 +183,7 @@ begin
   ClientToClose := Client(gc^.account);
   if Assigned(ClientToClose) then begin
     purple_timeout_remove(ClientToClose.PurpleTimer);
-    Clients.Remove(ClientToClose);
+    TorChatClients.Remove(ClientToClose);
     ClientToClose.Free;
     _info('destroyed torchat client object for ' + gc^.account^.username);
   end;
@@ -177,7 +191,7 @@ end;
 
 { TClients }
 
-function TClients.Get(Account: PPurpleAccount): TTorChatPurpleClient;
+function TTorChatClients.Get(Account: PPurpleAccount): TTorChatPurpleClient;
 begin
   Result := Find(Account^.username) as TTorChatPurpleClient;
 end;

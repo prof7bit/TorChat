@@ -955,7 +955,7 @@ function purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Point
  * @param handle The handle, as returned by purple_timeout_add().
  *
  * @return @c TRUE if the handler was successfully removed.
-  *)
+ *)
 function purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
 //gboolean purple_timeout_remove(guint handle);
 
@@ -1084,7 +1084,6 @@ function purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurp
 function purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
 //PurpleStatusType *purple_status_get_type(const PurpleStatus *status);
 
-
 (**
  * Returns the active exclusive status from a presence.
  *
@@ -1096,12 +1095,33 @@ function purple_presence_get_active_status(presence: PPurplePresence): PPurpleSt
 //PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
 
 (**
+ * Returns a buddy's name
+ *
+ * @param buddy The buddy.
+ *
+ * @return The name.
+ *)
+function purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
+//const char *purple_buddy_get_name(const PurpleBuddy *buddy);
+
+(**
+ * Finds all PurpleBuddy structs given a name and an account
+ *
+ * @param account The account this buddy belongs to
+ * @param name    The buddy's name (or NULL to return all buddies for the account)
+ *
+ * @return        A GSList of buddies (which must be freed), or NULL if the buddy doesn't exist
+ *)
+function purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
+//GSList *purple_find_buddies(PurpleAccount *account, const char *name);
+
+(**
  * Finds the buddy struct given a name and an account
  *
  * @param account The account this buddy belongs to
  * @param name    The buddy's name
  * @return        The buddy or NULL if the buddy does not exist
-  *)
+ *)
 function purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
 //PurpleBuddy *purple_find_buddy(PurpleAccount *account, const char *name);
 
@@ -1119,7 +1139,7 @@ function purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy;
  *
  * @see purple_account_add_buddy
  * @see purple_blist_add_buddy
-  *)
+ *)
 function purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
 //PurpleBuddy *purple_buddy_new(PurpleAccount *account, const char *name, const char *alias);
 
@@ -1140,6 +1160,16 @@ procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
   group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
 // void purple_blist_add_buddy(PurpleBuddy *buddy, PurpleContact *contact, PurpleGroup *group, PurpleBlistNode *node);
 
+(**
+ * Removes a buddy from the buddy list and frees the memory allocated to it.
+ * This doesn't actually try to remove the buddy from the server list.
+ *
+ * @param buddy   The buddy to be removed
+ *
+ * @see purple_account_remove_buddy
+ *)
+procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
+// void purple_blist_remove_buddy(PurpleBuddy *buddy);
 
 
 (****************************************
