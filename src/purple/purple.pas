@@ -342,6 +342,7 @@ type
   end;
 
   PPurpleBuddy = Pointer;
+  PPurpleContact = Pointer;
   PPurpleGroup = Pointer;
   PPurpleUserInfo = Pointer;
   PPurpleStatus = Pointer;
@@ -993,6 +994,23 @@ function purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; exter
  *)
 function purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;
 //PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
+
+(**
+ * Adds a new buddy to the buddy list.
+ *
+ * The buddy will be inserted right after node or prepended to the
+ * group if node is NULL.  If both are NULL, the buddy will be added to
+ * the "Buddies" group.
+ *
+ * @param buddy   The new buddy who gets added
+ * @param contact The optional contact to place the buddy in.
+ * @param group   The group to add the new buddy to.
+ * @param node    The insertion point.  Pass in NULL to add the node as
+ *                the first child in the given group.
+ *)
+procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
+  group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
+// void purple_blist_add_buddy(PurpleBuddy *buddy, PurpleContact *contact, PurpleGroup *group, PurpleBlistNode *node);
 
 
 
