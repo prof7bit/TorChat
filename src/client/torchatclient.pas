@@ -39,6 +39,8 @@ type
     destructor Destroy; override;
     procedure CheckState; override;
     procedure SetOwnID(AID: String); override;
+    procedure Lock; override;
+    procedure Unlock; override;
     procedure Load; override;
     procedure Save; override;
     procedure RemoveBuddy(ABuddy: TABuddy); override;
@@ -112,6 +114,16 @@ begin
     AddBuddy(Buddy);
     Save;
   end;
+end;
+
+procedure TBuddyList.Lock;
+begin
+  EnterCriticalsection(FCritical);
+end;
+
+procedure TBuddyList.Unlock;
+begin
+  LeaveCriticalsection(FCritical);
 end;
 
 procedure TBuddyList.CheckState;

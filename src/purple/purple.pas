@@ -1096,6 +1096,16 @@ function purple_presence_get_active_status(presence: PPurplePresence): PPurpleSt
 //PurpleStatus *purple_presence_get_active_status(const PurplePresence *presence);
 
 (**
+ * Finds the buddy struct given a name and an account
+ *
+ * @param account The account this buddy belongs to
+ * @param name    The buddy's name
+ * @return        The buddy or NULL if the buddy does not exist
+  *)
+function purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
+//PurpleBuddy *purple_find_buddy(PurpleAccount *account, const char *name);
+
+(**
  * Creates a new buddy.
  *
  * This function only creates the PurpleBuddy. Use purple_blist_add_buddy

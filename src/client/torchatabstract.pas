@@ -43,11 +43,14 @@ type
     TORCHAT_EXTENDED_AWAY
   );
 
+
   TABuddy = class;
   TABuddyList = class;
   TAHiddenConnection = class;
   TAReceiver = class;
   TAMessage = class;
+
+  TBuddyArray = array of TABuddy;
 
   TAClient = class(TComponent)
   strict protected
@@ -64,16 +67,19 @@ type
   strict protected
     FClient: TAClient;
     FOwnID: String;
-    FList: array of TABuddy;
+    FList: TBuddyArray;
   public
     procedure CheckState; virtual; abstract;
     procedure SetOwnID(AID: String); virtual; abstract;
     procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
     procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
     function FindBuddy(AName: String): TABuddy; virtual; abstract;
+    procedure Lock; virtual; abstract;
+    procedure Unlock; virtual; abstract;
     procedure Load; virtual; abstract;
     procedure Save; virtual; abstract;
     function Count: Integer; virtual; abstract;
+    property Buddies: TBuddyArray read FList;
     property OwnID: String read FOwnID write SetOwnID;
   end;
 

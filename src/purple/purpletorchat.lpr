@@ -133,6 +133,9 @@ procedure OnLogin(Account: PPurpleAccount); cdecl;
 var
   NewClient: TTorChatPurpleClient;
   Status: PPurpleStatus;
+  Buddy: TABuddy;
+  PurpleBuddy: PPurpleBuddy;
+  List: TABuddyList;
 begin
   _info('OnLogin');
   NewClient := TTorChatPurpleClient.Create(nil);
@@ -145,6 +148,17 @@ begin
   // it won't call set_status after login, so we have to do it ourselves
   Status := purple_presence_get_active_status(Account^.presence);
   OnSetStatus(Account, Status);
+
+  // add all our buddies to purple's buddy list
+  List := Clients.Get(Account).BuddyList;
+  List.Lock;
+  for Buddy in List.Buddies do begin
+    if purple_find_buddy(Account, PChar(Buddy.ID)) = nil then begin
+      PurpleBuddy := purple_buddy_new(Account, PChar(Buddy.ID), PChar(Buddy.FriendlyName));
+      purple_blist_add_buddy(PurpleBuddy, nil, nil, nil);
+    end;
+  end;
+  List.Unlock;
 end;
 
 procedure OnClose(gc: PPurpleConnection); cdecl;
