@@ -24,8 +24,19 @@ type
     procedure OnNotifyGui; override;
   end;
 
+  { TClients }
+
+  TClients = class(TFPHashObjectList)
+    function Get(Account: PPurpleAccount): TTorChatPurpleClient;
+  end;
+
 var
-  Clients: TFPHashObjectList;
+  Clients: TClients;
+
+function Client(Account: PPurpleAccount): TTorChatPurpleClient;
+begin
+  Result := Clients.Find(Account^.username) as TTorChatPurpleClient;
+end;
 
 function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
 begin
@@ -44,7 +55,7 @@ end;
 function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
-  Clients := TFPHashObjectList.Create(False);
+  Clients := TClients.Create(False);
   _info('plugin loaded');
   Result := True;
 end;
@@ -57,9 +68,9 @@ begin
   Result := True;
 end;
 
-function OnStatusTypes(account: PPurpleAccount): PGList; cdecl;
+function OnStatusTypes(Account: PPurpleAccount): PGList; cdecl;
 begin
-  Ignore(account);
+  Ignore(Account);
   // pidgin (or libpurple or both) has a bug, it will offer "invisible" even
   // if we don't register it (and it will not offer "extended away" even if
   // we register it), so we are registerig all of them and will deal with them
@@ -73,50 +84,48 @@ begin
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, nil, nil, True, True, False));
 end;
 
-procedure OnSetStatus(account: PPurpleAccount; status: PPurpleStatus); cdecl;
+procedure OnSetStatus(Account: PPurpleAccount; Status: PPurpleStatus); cdecl;
 var
-  SP : TPurpleStatusPrimitive;
-  ST : TTorchatStatus;
-  C : TTorChatPurpleClient;
+  PurpleStatusP : TPurpleStatusPrimitive;
+  TorchatStatus : TTorchatStatus;
 begin
-  SP := purple_status_type_get_primitive(purple_status_get_type(status));
-  case SP of
-    PURPLE_STATUS_AVAILABLE: ST := TORCHAT_AVAILABLE;
-    PURPLE_STATUS_UNAVAILABLE: ST := TORCHAT_EXTENDED_AWAY;
-    PURPLE_STATUS_AWAY: ST := TORCHAT_AWAY;
-    PURPLE_STATUS_EXTENDED_AWAY: ST := TORCHAT_EXTENDED_AWAY;
-    PURPLE_STATUS_INVISIBLE: ST := TORCHAT_OFFLINE;
+  PurpleStatusP := purple_status_type_get_primitive(purple_status_get_type(Status));
+  case PurpleStatusP of
+    PURPLE_STATUS_AVAILABLE: TorchatStatus := TORCHAT_AVAILABLE;
+    PURPLE_STATUS_UNAVAILABLE: TorchatStatus := TORCHAT_EXTENDED_AWAY;
+    PURPLE_STATUS_AWAY: TorchatStatus := TORCHAT_AWAY;
+    PURPLE_STATUS_EXTENDED_AWAY: TorchatStatus := TORCHAT_EXTENDED_AWAY;
+    PURPLE_STATUS_INVISIBLE: TorchatStatus := TORCHAT_OFFLINE;
   end;
-  C := Clients.Find(account^.username) as TTorChatPurpleClient;
-  C.SetStatus(ST);
+  Clients.Get(Account).SetStatus(TorchatStatus);
 end;
 
-function OnListIcon(account: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
+function OnListIcon(Account: PPurpleAccount; Buddy: PPurpleBuddy): PChar; cdecl;
 begin
-  Ignore(account);
-  Ignore(buddy);
+  Ignore(Account);
+  Ignore(Buddy);
   Result := 'torchat';
   // now it will look for torchat.png in several resolutions
   // in the folders /usr/share/pixmaps/pidgin/protocols/*/
   // the installer for the plugin must install these files.
 end;
 
-procedure OnLogin(acc: PPurpleAccount); cdecl;
+procedure OnLogin(Account: PPurpleAccount); cdecl;
 var
   NewClient: TTorChatPurpleClient;
-  SP: PPurpleStatus;
+  Status: PPurpleStatus;
 begin
   _info('OnLogin');
   NewClient := TTorChatPurpleClient.Create(nil);
-  NewClient.PurpleAccount := acc;
+  NewClient.PurpleAccount := Account;
   NewClient.PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, NewClient);
-  Clients.Add(acc^.username, NewClient);
-  purple_connection_set_state(acc^.gc, PURPLE_CONNECTED);
-  _info('created torchat client object for ' + acc^.username);
+  Clients.Add(Account^.username, NewClient);
+  purple_connection_set_state(Account^.gc, PURPLE_CONNECTED);
+  _info('created torchat client object for ' + Account^.username);
 
   // it won't call set_status after login, so we have to do it ourselves
-  SP := purple_presence_get_active_status(acc^.presence);
-  OnSetStatus(acc, SP);
+  Status := purple_presence_get_active_status(Account^.presence);
+  OnSetStatus(Account, Status);
 end;
 
 procedure OnClose(gc: PPurpleConnection); cdecl;
@@ -124,13 +133,20 @@ var
   ClientToClose: TTorChatPurpleClient;
 begin
   _info('OnClose');
-  ClientToClose := Clients.Find(gc^.account^.username) as TTorChatPurpleClient;
+  ClientToClose := Client(gc^.account);
   if Assigned(ClientToClose) then begin
     purple_timeout_remove(ClientToClose.PurpleTimer);
     Clients.Remove(ClientToClose);
     ClientToClose.Free;
     _info('destroyed torchat client object for ' + gc^.account^.username);
   end;
+end;
+
+{ TClients }
+
+function TClients.Get(Account: PPurpleAccount): TTorChatPurpleClient;
+begin
+  Result := Find(Account^.username) as TTorChatPurpleClient;
 end;
 
 
