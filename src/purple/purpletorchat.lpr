@@ -24,15 +24,12 @@ library purpletorchat;
 uses
   {$ifdef UseHeapTrc} // do it with -dUseHeapTrc, not with -gh
     heaptrc,
-    {$ifdef windows}  // need config path for heaptrc output
-      clientconfig,
-    {$endif}
   {$endif}
   {$ifdef unix}
     cthreads,
   {$endif}
   Classes, sysutils, contnrs, glib2,
-  purple, torchatabstract, torchatclient, miscfunc;
+  purple, torchatabstract, torchatclient, clientconfig, miscfunc;
 
 type
   { TTorchatPurpleClient }
@@ -75,7 +72,7 @@ function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
   TorChatClients := TTorChatClients.Create(False);
-  _info('plugin loaded');
+  WriteLn('plugin loaded');
   Result := True;
 end;
 
@@ -83,7 +80,7 @@ function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@Plugin);
   TorChatClients.Free;
-  _info('plugin unloaded');
+  WriteLn('plugin unloaded');
   Result := True;
 end;
 
@@ -138,9 +135,14 @@ var
   TorchatList: TABuddyList;
   PurpleList: PGSList;
   ID : String;
+  TorExe: String;
 
 begin
   WriteLn('OnLogin');
+
+  TorExe := purple_account_get_string(Account, 'tor', nil);
+  WriteLn('Path to Tor configured for this account: ' + TorExe);
+
   Client := TTorChatPurpleClient.Create(nil);
   Client.PurpleAccount := Account;
   Client.PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, Client);
@@ -179,14 +181,24 @@ procedure OnClose(gc: PPurpleConnection); cdecl;
 var
   ClientToClose: TTorChatPurpleClient;
 begin
-  _info('OnClose');
+  WriteLn('OnClose');
   ClientToClose := Client(gc^.account);
   if Assigned(ClientToClose) then begin
     purple_timeout_remove(ClientToClose.PurpleTimer);
     TorChatClients.Remove(ClientToClose);
     ClientToClose.Free;
-    _info('destroyed torchat client object for ' + gc^.account^.username);
+    WriteLn('destroyed torchat client object for ' + String(gc^.account^.username));
   end;
+end;
+
+procedure OnInit(var Plugin: TPurplePlugin);
+var
+  Option: PPurpleAccountOption;
+  Tor: PChar;
+begin
+  Tor := PChar(ConfGetTorExe + '/');
+  Option := purple_account_option_string_new('Tor binary', 'tor', Tor);
+  PluginProtocolInfo.protocol_options := g_list_append(nil, Option);
 end;
 
 { TClients }
@@ -236,6 +248,8 @@ begin
     struct_size := SizeOf(PluginProtocolInfo);
   end;
 
+  PluginInitProc := @OnInit;
+
   {$ifdef UseHeapTrc}
     {$warning compiling with -dUseHeapTrc. Not recommended for release.}
     {$ifdef windows}
@@ -245,4 +259,21 @@ begin
   {$endif}
 end.
 
+{ Things happen in the following order:
 
+    * purple loads this library, unit initialization sections will execute:
+      + WriteLn() redirection will be installed (by purple.pas)
+      + PluginInfo and PluginProtocolInfo will be populated (see above)
+
+    * purple calls purple_init_plugin() (in purple.pas):
+      + PluginInitProc() callback is executed (if it is assigned)
+      + Info records are passed to purple, registration complete.
+
+    * load() callback is called by purple
+
+    the above happens only once during application start
+
+    * login() callback is called for each account when going online
+    * close() callback is called for each account when going offline
+
+}

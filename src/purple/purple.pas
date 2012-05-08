@@ -221,6 +221,7 @@ type
                                        prpl to avoid sending unneeded keepalives}
   end;
 
+  PPurpleAccountOption = Pointer;
   PPurpleBuddy = Pointer;
   PPurpleContact = Pointer;
   PPurpleGroup = Pointer;
@@ -375,6 +376,8 @@ function purple_presence_get_active_status(presence: PPurplePresence): PPurpleSt
 function purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
 function purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
+function purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
+function purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; cdecl; external;
 function purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
 procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
   group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
@@ -437,6 +440,7 @@ function AllocPurpleString(Str: String): PChar;
 var
   PluginInfo: TPurplePluginInfo;
   PluginProtocolInfo: TPurplePluginProtocolInfo;
+  PluginInitProc: procedure(var Plugin: TPurplePlugin) = nil;
 
 implementation
 uses
@@ -542,6 +546,7 @@ begin
   _warning('Plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
   Plugin.info := @PluginInfo;
+  if Assigned(PluginInitProc) then PluginInitProc(Plugin);
   Result := purple_plugin_register(Plugin);
 end;
 
