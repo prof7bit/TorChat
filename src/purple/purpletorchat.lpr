@@ -116,6 +116,14 @@ begin
   TorChatClients.Get(Account).SetStatus(TorchatStatus);
 end;
 
+function OnGetTextTable(Account: PPurpleAccount): PGHashTable; cdecl;
+begin
+  Ignore(Account);
+  WriteLn('OnGetTextTable');
+  Result := g_hash_table_new(@g_str_hash, @g_str_equal);
+  g_hash_table_insert(Result, PChar('login_label'), PChar('account'));
+end;
+
 function OnListIcon(Account: PPurpleAccount; Buddy: PPurpleBuddy): PChar; cdecl;
 begin
   Ignore(Account);
@@ -242,10 +250,11 @@ begin
     options := OPT_PROTO_NO_PASSWORD or OPT_PROTO_REGISTER_NOSCREENNAME;
     list_icon := @OnListIcon;
     status_types := @OnStatusTypes;
+    get_account_text_table := @OnGetTextTable;
     login := @OnLogin;
     close := @OnClose;
     set_status := @OnSetStatus;
-    struct_size := SizeOf(PluginProtocolInfo);
+    struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 
   PluginInitProc := @OnInit;

@@ -225,7 +225,7 @@ type
   PPurpleBuddy = Pointer;
   PPurpleContact = Pointer;
   PPurpleGroup = Pointer;
-  PPurpleUserInfo = Pointer;
+  PPurpleNotifyUserInfo = Pointer;
   PPurpleStatus = Pointer;
   PPurpleStatusType = Pointer;
   PPurpleStoredImage = Pointer;
@@ -240,6 +240,7 @@ type
   TPurpleMediaSessionType = Integer;
   TPurpleMediaCaps = Integer;
   TPurpleMood = Integer;
+  PPurpleAccountUnregistrationCallback = procedure();
   PPurpleSetPublicAliasSuccessCallback = procedure(); {$note fixme: define this}
   PPurpleSetPublicAliasFailureCallback = procedure();
   PPurpleGetPublicAliasSuccessCallback = procedure();
@@ -260,84 +261,80 @@ type
   );
 
   TPurplePluginProtocolInfo = packed record
-    options: TPurpleProtocolOptions;
-    user_splits: PGList;      // A GList of PurpleAccountUserSplit
-    protocol_options: PGList; // A GList of PurpleAccountOption
-    icon_spec: TPurpleBuddyIconSpec; // The icon spec.
-    list_icon: function(account: PPurpleAccount; buddy: PPurpleBuddy): PChar;
-    list_emblem: function(buddy: PPurpleBuddy): PChar;
-    status_text: function(buddy: PPurpleBuddy): PChar;
-    tooltip_text: procedure(buddy: PPurpleBuddy; user_info: PPurpleUserInfo; full: GBoolean);
-    status_types: function(account: PPurpleAccount): PGList;
-    blist_node_menu: function(node: PPurpleBlistNode): PGList;
-    chat_info: function(gc: PPurpleConnection): PGList;
-    chat_info_defaults: function(gc: PPurpleConnection; chat_name: PChar): PGHashTable;
-    login: procedure(acc: PPurpleAccount);
-    close: procedure(gc: PPurpleConnection);
-    send_im: function(gc: PPurpleConnection; who: PChar; message: PChar; flags: TPurpleMessageFlags): Integer;
-    set_info: procedure(gc: PPurpleConnection; info: PChar);
-    send_typing: function(gc: PPurpleConnection; name: PChar; state: TPurpleTypingState): Integer;
-    get_info: procedure(gc: PPurpleConnection; who: PChar);
-    set_status: procedure(account: PPurpleAccount; status: PPurpleStatus);
-    set_idle: procedure(gc: PPurpleConnection; idletime: Integer);
-    change_passwd: procedure(gc: PPurpleConnection; old_pass, newpass: PChar);
-    add_buddy: procedure(gc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
-    add_buddies: procedure(gc: PPurpleConnection; buddies: PGList; groups: PGList);
-    remove_buddy: procedure(gc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
-    remove_buddies: procedure(gc: PPurpleConnection; buddies: PGList; groups: PGList);
-    add_permit: procedure(gc: PPurpleConnection; name: PChar);
-    add_deny: procedure(gc: PPurpleConnection; name: PChar);
-    rem_permit: procedure(gc: PPurpleConnection; name: PChar);
-    rem_deny: procedure(gc: PPurpleConnection; name: PChar);
-    set_permit_deny: procedure(gc: PPurpleConnection);
-    join_chat: procedure(gc: PPurpleConnection; components: PGHashTable);
-    reject_chat: procedure(gc: PPurpleConnection; components: PGHashTable);
-    get_chat_name: function(components: PGHashTable): PChar;
-    chat_invite: procedure(gc: PPurpleConnection; id: Integer; message: PChar; who: PChar);
-    chat_leave: procedure(gc: PPurpleConnection);
-    chat_whisper: procedure(gc: PPurpleConnection; id: Integer; who: PChar; message: PChar);
-    chat_send: function(gc: PPurpleConnection; id: Integer; message: PChar; flags: TPurpleMessageFlags): Integer;
-    keepalive: procedure(gc: PPurpleConnection);
-    register_user: procedure(acc: PPurpleAccount);
-    get_cb_info: Pointer; // nothing because its deprecated
-    get_cb_away: Pointer; // nothing because its deprecated
-    alias_buddy: procedure(gc: PPurpleConnection; who: PChar; alias: PChar);
-    group_buddy: procedure(gc: PPurpleConnection; who, old_group, new_group: PChar);
-    rename_group: procedure(gc: PPurpleConnection; old_name: PChar; group: PPurpleGroup; moved_buddies: PGList);
-    buddy_free: procedure(buddy: PPurpleBuddy);
-    convo_closed: procedure(gc: PPurpleConnection; who: PChar);
-    normalize: function(acc: PPurpleAccount; who: PChar): PChar;
-    set_buddy_icon: procedure(gc: PPurpleConnection; img: PPurpleStoredImage);
-    remove_group: procedure(gc: PPurpleConnection; group: PPurpleGroup);
-    get_cb_real_name: function(gc: PPurpleConnection; id: Integer; who: PChar): PChar;
-    set_chat_topic: procedure(gc: PPurpleConnection; id: Integer; topic: PChar);
-    find_blist_chat: function(acc: PPurpleAccount; name: PChar): PPurpleChat;
-    roomlist_get_list: function(gc: PPurpleConnection): PPurpleRoomlist;
-    roomlist_cancel: procedure(list: PPurpleRoomlist);
-    roomlist_expand_category: procedure(list: PPurpleRoomlist; category: PPurpleRoomlistRoom);
-    can_receive_file: function(gc: PPurpleConnection; who: PChar): GBoolean;
-    send_file: procedure(gc: PPurpleConnection; who: PChar; filename: PChar);
-    new_xfer: function(gc: PPurpleConnection; who: PChar): PPurpleXfer;
-    offline_message: function(buddy: PPurpleBuddy): GBoolean;
+    options : TPurpleProtocolOptions;  (**< Protocol options.           *)
+    user_splits : PGList;  (**< A GList of PurpleAccountUserSplit  *)
+    protocol_options : PGList;  (**< A GList of PurpleAccountOption     *)
+    icon_spec : TPurpleBuddyIconSpec;  (**< The icon spec.  *)
+    list_icon : function(account: PPurpleAccount; buddy: PPurpleBuddy): PChar;
+    list_emblem : function(buddy: PPurpleBuddy): PChar;
+    status_text : function(buddy: PPurpleBuddy): PChar;
+    tooltip_text : procedure(buddy: PPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean);
+    status_types : function(account: PPurpleAccount): PGList;
+    blist_node_menu : function(node: PPurpleBlistNode): PGList;
+    chat_info : function(gc: PPurpleConnection): PGList;
+    chat_info_defaults : function(gc: PPurpleConnection; chat_name: PChar): PGHashTable;
+    login : procedure(account: PPurpleAccount);
+    close : procedure(gc: PPurpleConnection);
+    send_im : function(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): Integer;
+    set_info : procedure(gc: PPurpleConnection; info: PChar);
+    send_typing : function(gc: PPurpleConnection; name_: PChar; state: TPurpleTypingState): Integer;
+    get_info : procedure(gc: PPurpleConnection; who: PChar);
+    set_status : procedure(account: PPurpleAccount; status: PPurpleStatus);
+    set_idle : procedure(gc: PPurpleConnection; idletime: Integer);
+    change_passwd : procedure(gc: PPurpleConnection; old_pass, new_pass: PChar);
+    add_buddy : procedure(gc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
+    add_buddies : procedure(gc: PPurpleConnection; buddies, groups: PGList);
+    remove_buddy : procedure(gc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
+    remove_buddies : procedure(gc: PPurpleConnection; buddies, groups: PGList);
+    add_permit : procedure(gc: PPurpleConnection; name_: PChar);
+    add_deny : procedure(gc: PPurpleConnection; name_: PChar);
+    rem_permit : procedure(gc: PPurpleConnection; name_: PChar);
+    rem_deny : procedure(gc: PPurpleConnection; name_: PChar);
+    set_permit_deny : procedure(gc: PPurpleConnection);
+    join_chat : procedure(gc: PPurpleConnection; components: PGHashTable);
+    reject_chat : procedure(gc: PPurpleConnection; components: PGHashTable);
+    get_chat_name : function(components: PGHashTable): PChar;
+    chat_invite : procedure(gc: PPurpleConnection; id: Integer; message, who: PChar);
+    chat_leave : procedure(gc: PPurpleConnection; id: Integer);
+    chat_whisper : procedure(gc: PPurpleConnection; id: Integer; who, message: PChar);
+    chat_send : function(gc: PPurpleConnection; id: Integer; message: PChar; flags: TPurpleMessageFlags): Integer;
+    keepalive : procedure(gc: PPurpleConnection);
+    register_user : procedure(account: PPurpleAccount);
+    get_cb_info : procedure(gc: PPurpleConnection; par1: Integer; who: PChar);
+    get_cb_away : procedure(gc: PPurpleConnection; par1: Integer; who: PChar);
+    alias_buddy : procedure(gc: PPurpleConnection; who, alias_: PChar);
+    group_buddy : procedure(gc: PPurpleConnection; who, old_group, new_group: PChar);
+    rename_group : procedure(gc: PPurpleConnection; old_name: PChar; group: PPurpleGroup; moved_buddies: PGList);
+    buddy_free : procedure(buddy: PPurpleBuddy);
+    convo_closed : procedure(gc: PPurpleConnection; who: PChar);
+    normalize : function(account: PPurpleAccount; who: PChar): PChar;
+    set_buddy_icon : procedure(gc: PPurpleConnection; img: PPurpleStoredImage);
+    remove_group : procedure(gc: PPurpleConnection; group: PPurpleGroup);
+    get_cb_real_name : function(gc: PPurpleConnection; id: Integer; who: PChar): PChar;
+    set_chat_topic : procedure(gc: PPurpleConnection; id: Integer; topic: PChar);
+    find_blist_chat : function(account: PPurpleAccount; name_: PChar): PPurpleChat;
+    roomlist_get_list : function(gc: PPurpleConnection): PPurpleRoomlist;
+    roomlist_cancel : procedure(list: PPurpleRoomlist);
+    roomlist_expand_category : procedure(list: PPurpleRoomlist; category: PPurpleRoomlistRoom);
+    can_receive_file : function(gc: PPurpleConnection; who: PChar): gboolean;
+    send_file : procedure(gc: PPurpleConnection; who, filename: PChar);
+    new_xfer : function(gc: PPurpleConnection; who: PChar): PPurpleXfer;
+    offline_message : function(buddy: PPurpleBuddy): gboolean;
     whiteboard_prpl_ops : PPurpleWhiteboardPrplOps;
-    send_raw: function(gc: PPurpleConnection; buf: Pointer; len: Integer): Integer;
-    roomlist_room_serialize: function(room: PPurpleRoomlistRoom): PChar;
-    unregister_user: procedure(acc: PPurpleAccount; cb: Pointer; user_data: Pointer); {$note fixme: define the callback function}
-    send_attention: function(gc: PPurpleConnection; username: PChar; typ: UInt32): GBoolean;
-    get_attention_types: function(acc: PPurpleAccount): PGList;
-    struct_size: UInt32;
-    get_account_text_table: function(acc: PPurpleAccount): PGHashTable;
-    initiate_media: function(acc: PPurpleAccount; who: PChar; typ: TPurpleMediaSessionType): GBoolean;
-    get_media_caps: function(acc: PPurpleAccount; who: PChar): TPurpleMediaCaps;
-    get_moods: function(acc: PPurpleAccount): TPurpleMood;
-    set_public_alias: procedure(gc: PPurpleConnection; aalias: PChar;
-      success_cb: PPurpleSetPublicAliasSuccessCallback;
-      failure_cp: PPurpleSetPublicAliasFailureCallback);
-    get_public_alias: procedure(acc: PPurpleAccount;
-      success_cb: PPurpleGetPublicAliasSuccessCallback;
-      failure_cb: PPurpleGetPublicAliasFailureCallback);
-    add_buddy_with_invite: procedure(gc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup; message: PChar);
-    add_buddies_with_invite: procedure(gc: PPurpleConnection; buddies: PGList; groups: PGList; message: PChar);
+    send_raw : function(gc: PPurpleConnection; buf: PChar; len: Integer): Integer;
+    roomlist_room_serialize : function(room: PPurpleRoomlistRoom): PChar;
+    unregister_user : procedure(account: PPurpleAccount; cb: PPurpleAccountUnregistrationCallback; user_data: Pointer);
+    send_attention : function(gc: PPurpleConnection; username: PChar; type_: guint): gboolean;
+    get_attention_types : function(acct: PPurpleAccount): PGList;
+    struct_size : Integer;
+    get_account_text_table : function(account: PPurpleAccount): PGHashTable;
+    initiate_media : function(account: PPurpleAccount; who: PChar; type_: TPurpleMediaSessionType): gboolean;
+    get_media_caps : function(account: PPurpleAccount; who: PChar): TPurpleMediaCaps;
+    get_moods : function(account: PPurpleAccount): TPurpleMood;
+    set_public_alias : procedure(gc: PPurpleConnection; alias_: PChar; success_cb: PPurpleSetPublicAliasSuccessCallback; failure_cb: PPurpleSetPublicAliasFailureCallback);
+    get_public_alias : procedure(gc: PPurpleConnection; success_cb: PPurpleGetPublicAliasSuccessCallback; failure_cb: PPurpleGetPublicAliasFailureCallback);
+    add_buddy_with_invite : procedure(pc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup; message: PChar);
+    add_buddies_with_invite : procedure(pc: PPurpleConnection; buddies, groups: PGList; message: PChar);
   end;
 
   TPurpleNotifyMsgType = (
@@ -557,4 +554,5 @@ initialization
 finalization
   UninstallWritelnRedirect;
 end.
+
 
