@@ -204,6 +204,7 @@ var
   Option: PPurpleAccountOption;
   Tor: PChar;
 begin
+  Ignore(@Plugin);
   Tor := PChar(ConfGetTorExe + '/');
   Option := purple_account_option_string_new('Tor binary', 'tor', Tor);
   PluginProtocolInfo.protocol_options := g_list_append(nil, Option);
@@ -260,7 +261,7 @@ begin
   PluginInitProc := @OnInit;
 
   {$ifdef UseHeapTrc}
-    {$warning compiling with -dUseHeapTrc. Not recommended for release.}
+    WriteLn('(1) plugin has been compiled with -dUseHeapTrc. Not recommended.');
     {$ifdef windows}
       // we have no stdout when running on windows
       heaptrc.SetHeapTraceOutput(ConcatPaths([ConfGetDataDir, 'heaptrc.log']));

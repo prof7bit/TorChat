@@ -65,6 +65,8 @@ var
   R : String;
   M : String;
 begin
+  Output := FClient.StandardOut; // make writeln redirect work in this thread
+  FreeOnTerminate := True;
   repeat
     N := FConnection.Stream.Read(B, 1024);
     if N > 0 then begin
@@ -83,9 +85,11 @@ begin
         end;
       end;
     end;
-  until (N = 0) or Terminated;
+  until (N <= 0) or Terminated;
   FConnection.Stream.DoClose; // only shutdown and close the socket handle
-  FConnection.OnConnectionClose;
+  FConnection.OnTCPFail;      // this will free the stream and the connection
+  // the TReceiver will free itself now (FreeOnTerminate)
+  writeln('TReceiver.Execute() finished, TThread object will free itself now');
 end;
 
 procedure TReceiver.OnReceivedLine(Line: String);

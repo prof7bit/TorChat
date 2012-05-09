@@ -57,17 +57,17 @@ type
     property Closed: Boolean read FClosed;
   end;
 
-  TConnectionCallback = procedure(AStream: TTCPStream; E: Exception) of object;
+  PConnectionCallback = procedure(AStream: TTCPStream; E: Exception) of object;
 
   { TListenerThread }
   TListenerThread = class(TThread)
-    constructor Create(APort: DWord; ACallback: TConnectionCallback); reintroduce;
+    constructor Create(APort: DWord; ACallback: PConnectionCallback); reintroduce;
     procedure Execute; override;
     procedure Terminate;
   strict protected
     FPort             : DWord;
     FSocket           : THandle;
-    FCallback         : TConnectionCallback;
+    FCallback         : PConnectionCallback;
   end;
 
   { TSocketWrapper }
@@ -76,31 +76,34 @@ type
     FSocksProxyAddress  : String;
     FSocksProxyPort     : DWord;
     FSocksUser          : String;
-    FIncomingCallback   : TConnectionCallback;
+    FIncomingCallback   : PConnectionCallback;
     FListeners          : array of TListenerThread;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Bind(APort: DWord);
     function Connect(AServer: String; APort: DWord): TTCPStream;
-    procedure ConnectAsync(AServer: String; APort: DWord; ACallback: TConnectionCallback);
+    procedure ConnectAsync(AServer: String; APort: DWord; ACallback: PConnectionCallback);
     property SocksProxyAddress: String write FSocksProxyAddress;
     property SocksProxyPort: DWord write FSocksProxyPort;
-    property IncomingCallback: TConnectionCallback write FIncomingCallback;
+    property IncomingCallback: PConnectionCallback write FIncomingCallback;
   end;
 
   { TAsyncConnectThread }
 
   TAsyncConnectThread = class(TThread)
     constructor Create(ASocketWrapper: TSocketWrapper; AServer: String;
-      APort: DWord; ACallback: TConnectionCallback);
+      APort: DWord; ACallback: PConnectionCallback);
     procedure Execute; override;
   strict protected
     FSocketWrapper: TSocketWrapper;
-    FCallback: TConnectionCallback;
+    FCallback: PConnectionCallback;
     FServer: String;
     FPort: DWord;
   end;
+
+var
+  NetworkNoMoreErrors: Boolean = False;
 
 implementation
 
@@ -149,12 +152,15 @@ procedure ConnectTCP(ASocket: THandle; AServer: String; APort: DWord);
 var
   HostAddr: THostAddr;     // host byte order
   SockAddr: TInetSockAddr; // network byte order
+  N: Integer;
 begin
   HostAddr := NameResolve(AServer);
   SockAddr.sin_family := AF_INET;
   SockAddr.sin_port := ShortHostToNet(APort);
   SockAddr.sin_addr := HostToNet(HostAddr);
-  if Sockets.FpConnect(ASocket, @SockAddr, SizeOf(SockAddr))<>0 Then
+  N := Sockets.FpConnect(ASocket, @SockAddr, SizeOf(SockAddr));
+  if NetworkNoMoreErrors then exit;
+  if N <> 0 Then
     if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then
       raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
         [AServer, APort, LastErrorString]);
@@ -163,7 +169,7 @@ end;
 { TAsyncConnectThread }
 
 constructor TAsyncConnectThread.Create(ASocketWrapper: TSocketWrapper; AServer: String;
-  APort: DWord; ACallback: TConnectionCallback);
+  APort: DWord; ACallback: PConnectionCallback);
 begin
   FSocketWrapper := ASocketWrapper;
   FCallback := ACallback;
@@ -179,6 +185,7 @@ var
 begin
   try
     C := FSocketWrapper.Connect(FServer, FPort);
+    if NetworkNoMoreErrors then exit; // fixme?
     FCallback(C, nil);
   except
     on E: Exception do begin
@@ -186,6 +193,7 @@ begin
     end;
   end;
 end;
+
 
 { TSocketWrapper }
 
@@ -227,12 +235,16 @@ var
   HSocket: THandle;
   REQ : String;
   ANS : array[1..8] of Byte;
+  N   : Integer;
 begin
   HSocket := CreateHandle;
-  if (FSocksProxyAddress = '') or (FSocksProxyPort = 0) then
-    ConnectTCP(HSocket, AServer, APort)
+  if (FSocksProxyAddress = '') or (FSocksProxyPort = 0) then begin
+    ConnectTCP(HSocket, AServer, APort);
+    if NetworkNoMoreErrors then exit(nil);
+  end
   else begin
     ConnectTCP(HSocket, FSocksProxyAddress, FSocksProxyPort);
+    if NetworkNoMoreErrors then exit(nil);
     SetLength(REQ, 8);
     REQ[1] := #4; // Socks 4
     REQ[2] := #1; // CONNECT command
@@ -242,7 +254,9 @@ begin
     REQ := REQ + AServer + #0;
     fpSend(HSocket, @REQ[1], Length(REQ), SND_FLAGS);
     ANS[1] := $ff;
-    if (fpRecv(HSocket, @ANS, 8, RCV_FLAGS) <> 8) or (ANS[1] <> 0) then
+    N := fpRecv(HSocket, @ANS, 8, RCV_FLAGS);
+    if NetworkNoMoreErrors then exit(nil);
+    if (N <> 8) or (ANS[1] <> 0) then
       Raise ENetworkError.CreateFmt(
         'socks connect %s:%d via %s:%d handshake invalid response',
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort]
@@ -256,14 +270,14 @@ begin
   Result := TTCPStream.Create(HSocket);
 end;
 
-procedure TSocketWrapper.ConnectAsync(AServer: String; APort: DWord; ACallback: TConnectionCallback);
+procedure TSocketWrapper.ConnectAsync(AServer: String; APort: DWord; ACallback: PConnectionCallback);
 begin
   TAsyncConnectThread.Create(Self, AServer, APort, ACallback);
 end;
 
 { TListenerThread }
 
-constructor TListenerThread.Create(APort: DWord; ACallback: TConnectionCallback);
+constructor TListenerThread.Create(APort: DWord; ACallback: PConnectionCallback);
 begin
   FPort := APort;
   FCallback := ACallback;

@@ -162,7 +162,7 @@ type
   PPurplePrivacyType = Pointer;
   PPurplePresence = Pointer;
   PPurpleLog = Pointer;
-  PPurpleAccountRegistrationCb = procedure(); {$note fixme: define this}
+  PPurpleAccountRegistrationCb = procedure();
 
   PPurpleConnection = ^TPurpleConnection;
 
@@ -241,7 +241,7 @@ type
   TPurpleMediaCaps = Integer;
   TPurpleMood = Integer;
   PPurpleAccountUnregistrationCallback = procedure();
-  PPurpleSetPublicAliasSuccessCallback = procedure(); {$note fixme: define this}
+  PPurpleSetPublicAliasSuccessCallback = procedure();
   PPurpleSetPublicAliasFailureCallback = procedure();
   PPurpleGetPublicAliasSuccessCallback = procedure();
   PPurpleGetPublicAliasFailureCallback = procedure();
@@ -446,6 +446,7 @@ uses
 var
   OldStdOut: Text;
   WritelnRedirect: TWritelnRedirect;
+  PurpleThread: TThreadID;
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
@@ -495,14 +496,11 @@ begin
   end;
 end;
 
-{ TWritelnRedirect }
-function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
+function CBWritelnRedirectSynced(Data: Pointer): gboolean; cdecl;
 var
   Msg, Lvl, Txt: String;
 begin
-  Result := Count;
-  SetLength(Msg, Count);
-  Move(Buffer, Msg[1], Count);
+  Msg := AnsiString(PChar(Data));
   Msg := Trim(Msg);
   Lvl := LeftStr(Msg, 4);
   Txt := RightStr(Msg, Length(Msg)-4);
@@ -513,6 +511,24 @@ begin
   else
     _info(Msg);
   end;
+  Freememory(Data);
+  Result := False
+end;
+
+{ TWritelnRedirect }
+
+function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
+var
+  P : PChar;
+begin
+  Result := Count;
+  P := GetMemory(Count+1);
+  Move(Buffer, P[0], Count);
+  P[Count] := #0;
+  if ThreadID <> PurpleThread then
+    purple_timeout_add(0, @CBWritelnRedirectSynced, P)
+  else
+    CBWritelnRedirectSynced(P);
 end;
 
 { The TorChat units are logging their debug info with WriteLn(). It is
@@ -539,8 +555,7 @@ end;
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   {$ifdef DebugToConsole}
-  {$warning compiling with -dDebugToConsole. Not recommended for release.}
-  _warning('Plugin has been compiled with -dDebugToConsole. Not recommended.');
+  writeln('(1) Plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
   Plugin.info := @PluginInfo;
   if Assigned(PluginInitProc) then PluginInitProc(Plugin);
@@ -548,6 +563,7 @@ begin
 end;
 
 initialization
+  PurpleThread := ThreadID;
   InstallWritelnRedirect;
   FillByte(PluginInfo, Sizeof(PluginInfo), 0);
   FillByte(PluginProtocolInfo, SizeOf(PluginProtocolInfo), 0);

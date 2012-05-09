@@ -67,12 +67,11 @@ type
   TTorChatClient = class(TAClient)
   strict protected
     FTor: TTor;
-    FSock : TSocketWrapper;
     FQueue: TQueue;
     CS: TRTLCriticalSection;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
-    procedure IncomingConnection(AStream: TTCPStream; E: Exception);
+    procedure CbNetIn(AStream: TTCPStream; E: Exception);
     procedure PopNextMessage;
     procedure CheckHiddenServiceName;
   public
@@ -254,17 +253,18 @@ constructor TTorChatClient.Create(AOwner: TComponent);
 //  C : TAHiddenConnection;
 begin
   Inherited Create(AOwner);
+  self.FStandardOut := Output;
   InitCriticalSection(CS);
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
   FQueue := TQueue.Create;
-  //FTor := TTor.Create(self);
-  FSock := TSocketWrapper.Create(Self);
+  FTor := TTor.Create(self);
+  FNetwork := TSocketWrapper.Create(Self);
   FBuddyList := TBuddyList.Create(self);
-  with FSock do begin
+  with FNetwork do begin
     SocksProxyAddress := ConfGetTorHost;
     SocksProxyPort := ConfGetTorPort;
-    IncomingCallback := @IncomingConnection;
+    IncomingCallback := @CbNetIn;
     Bind(ConfGetListenPort);
   end;
 end;
@@ -273,6 +273,7 @@ destructor TTorChatClient.Destroy;
 var
   Msg: TAMessage;
 begin
+  NetworkNoMoreErrors := True; // FIXME: (networking) fix this ugly hack
   inherited Destroy;
   EnterCriticalsection(CS);
   while FQueue.Count > 0 do begin
@@ -305,14 +306,18 @@ begin
   writeln('setting own status to ', AStatus);
 end;
 
-procedure TTorChatClient.IncomingConnection(AStream: TTCPStream; E: Exception);
+procedure TTorChatClient.CbNetIn(AStream: TTCPStream; E: Exception);
 var
   C : THiddenConnection;
 begin
+  Output := self.StandardOut; // make writeln redirect work in this thread
+  writeln('TTorChatClient.CbNetIn()');
   C := THiddenConnection.Create(self, AStream);
   Ignore(C);
   Ignore(E);
-  writeln('(1) incoming connection. This code will leak memory, we simply ignore the object but it still exists!');
+
+  writeln('closing it again');
+  C.Stream.DoClose; // should free everything automatically
 end;
 
 procedure TTorChatClient.PopNextMessage;

@@ -31,11 +31,13 @@ type
   { THiddenConnection }
   THiddenConnection = class(TAHiddenConnection)
     constructor Create(AClient: TAClient; AStream: TTCPStream);
-    destructor Destroy; override;
     procedure Send(AData: String); override;
     procedure SendLine(ALine: String); override;
-    procedure OnConnectionClose; override;
+    procedure OnTCPFail; override;
     procedure SetBuddy(ABuddy: TABuddy); override;
+    function IsOutgoing: Boolean; override;
+  strict private
+    function DebugInfo: String;
   end;
 
 implementation
@@ -46,8 +48,15 @@ constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream);
 begin
   FTCPStream := AStream;
   FClient := AClient;
-  FReceiver := TReceiver.Create(Self);
+  FBuddy := nil; // will be set later when connection is assigned to a buddy
+  FReceiver := TReceiver.Create(Self); // this will have FreeOnTerminate=True
   WriteLn('created connection');
+  // This object will free all its stuff in OnTCPFail().
+  // Never call Connection.Free() directly. There is only one method
+  // to get rid of a THiddenConnection object: call the method
+  // Connection.Stream.DoClose(); This will trigger the same events
+  // that also happen when the TCP connection fails: It will call the
+  // buddie's OnXxxxFail method and then free itself automatically.
 end;
 
 procedure THiddenConnection.Send(AData: String);
@@ -60,9 +69,17 @@ begin
   Send(ALine + #10);
 end;
 
-procedure THiddenConnection.OnConnectionClose;
+procedure THiddenConnection.OnTCPFail;
 begin
-  WriteLn('*** OnConnectionClose');
+  WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo);
+  if Assigned(FBuddy) then begin
+    if IsOutgoing then
+      FBuddy.OnOutgoingConnectionFail
+    else
+      FBuddy.OnIncomingConnectionFail;
+  end;
+  FTCPStream.Free;
+  Self.Free;
 end;
 
 procedure THiddenConnection.SetBuddy(ABuddy: TABuddy);
@@ -70,12 +87,22 @@ begin
   FBuddy := ABuddy;
 end;
 
-destructor THiddenConnection.Destroy;
+function THiddenConnection.IsOutgoing: Boolean;
 begin
-  FTCPStream.Free; // this will also let the receiver leave the blocking recv()
-  FReceiver.Terminate;
-  FReceiver.Free;
-  inherited Destroy;
+  Result := Assigned(FBuddy) and (FBuddy.ConnOutgoing = self);
+end;
+
+function THiddenConnection.DebugInfo: String;
+begin
+  if Assigned(FBuddy) then begin
+    Result := ' (' + FBuddy.ID;
+    if IsOutgoing then
+      Result := Result + ' outgoing)'
+    else
+      Result := Result + ' incoming)';
+  end
+  else
+    Result := ' (unknown incoming)';
 end;
 
 end.

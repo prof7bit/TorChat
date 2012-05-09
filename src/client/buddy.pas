@@ -24,30 +24,73 @@ unit buddy;
 interface
 
 uses
-  Classes, SysUtils, fpjson, torchatabstract;
+  Classes, SysUtils, fpjson,
+  miscfunc, torchatabstract, connection, networking;
 
 type
-
   { TBuddy }
 
   TBuddy = class(TABuddy)
+  strict protected
+    procedure InitiateConnect; virtual;
+    procedure CbNetOut(ATCPStream: TTCPStream; E: Exception); virtual;
+    procedure SetIncoming(AConn: TAHiddenConnection); virtual;
+    procedure SetOutgoing(AConn: TAHiddenConnection); virtual;
+  public
+    constructor Create(AOwner: TAClient); reintroduce;
     procedure CheckState; override;
     function AsJsonObject: TJSONObject; override;
     procedure InitFromJsonObect(AObject: TJSONObject); override;
     procedure InitID(AID: String); override;
-    procedure SetIncoming(AConn: TAHiddenConnection); override;
-    procedure SetOutgoing(AConn: TAHiddenConnection); override;
     procedure OnOutgoingConnection; override;
     procedure OnOutgoingConnectionFail; override;
+    procedure OnIncomingConnection; override;
+    procedure OnIncomingConnectionFail; override;
   end;
 
 implementation
 
 { TBuddy }
 
+procedure TBuddy.InitiateConnect;
+begin
+  WriteLn(ID + '.InitiateConnect()');
+  FClient.Network.ConnectAsync(self.ID + '.onion', 11009, @self.CbNetOut);
+  FStateOut := STATE_TRYING;
+end;
+
+procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
+begin
+  Output := FClient.StandardOut; // make writeln redirect work in this thread
+  WriteLn(ID + '.CbNetOut()');
+  if assigned(ATCPStream) then begin
+    SetOutgoing(THiddenConnection.Create(FClient, ATCPStream));
+    OnOutgoingConnection;
+  end
+  else begin
+    WriteLn(E.Message);
+    FLastDisconnect := Now;
+    SetOutgoing(nil);
+  end;
+end;
+
+constructor TBuddy.Create(AOwner: TAClient);
+begin
+  inherited Create(AOwner);
+  FClient := AOwner;
+  FLastDisconnect := 0;
+  FStatus := TORCHAT_OFFLINE;
+  FStateOut := STATE_DISCONNECTED;
+  FStateIn := STATE_DISCONNECTED;
+end;
+
 procedure TBuddy.CheckState;
 begin
-
+  if FStateOut = STATE_DISCONNECTED then begin
+    if SecondsSince(FLastDisconnect) > 10 then begin
+      InitiateConnect;
+    end;
+  end;
 end;
 
 function TBuddy.AsJsonObject: TJSONObject;
@@ -82,21 +125,51 @@ end;
 procedure TBuddy.SetIncoming(AConn: TAHiddenConnection);
 begin
   FConnIncoming := AConn;
+  if Assigned(AConn) then begin
+    AConn.Buddy := self;
+    FStateIn := STATE_CONNECTED;
+  end
+  else
+    FStateIn := STATE_DISCONNECTED;
 end;
 
 procedure TBuddy.SetOutgoing(AConn: TAHiddenConnection);
 begin
   FConnOutgoing := AConn;
+  if Assigned(AConn) then begin
+    AConn.Buddy := self;
+    FStateOut := STATE_CONNECTED;
+  end
+  else
+    FStateOut := STATE_DISCONNECTED;
 end;
 
 procedure TBuddy.OnOutgoingConnection;
 begin
-
+  WriteLn(ID + '.OnOutgoingConnection()');
 end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
 begin
+  WriteLn(ID + '.OnOutgoingConnectionFail()');
+  SetOutgoing(nil);
+  if Assigned(ConnIncoming) then
+    ConnIncoming.Stream.DoClose;
+  FLastDisconnect := Now;
+end;
 
+procedure TBuddy.OnIncomingConnection;
+begin
+  Writeln(ID + '.OnIncomingConnection()');
+end;
+
+procedure TBuddy.OnIncomingConnectionFail;
+begin
+  Writeln(ID + '.OnIncomingConnectionFail()');
+  SetIncoming(nil);
+  if Assigned(ConnOutgoing) then
+    ConnOutgoing.Stream.DoClose;
+  FLastDisconnect := Now;
 end;
 
 end.

@@ -43,6 +43,11 @@ type
     TORCHAT_EXTENDED_AWAY
   );
 
+  TBuddyConnectionState = (
+    STATE_DISCONNECTED,
+    STATE_TRYING,
+    STATE_CONNECTED
+  );
 
   TABuddy = class;
   TABuddyList = class;
@@ -54,13 +59,17 @@ type
 
   TAClient = class(TComponent)
   strict protected
+    FStandardOut: text;
     FBuddyList: TABuddyList;
+    FNetwork: TSocketWrapper;
   public
+    property StandardOut: Text read FStandardOut;
     procedure ProcessMessages; virtual; abstract;
     procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
     procedure OnNotifyGui; virtual; abstract;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;
+    property Network: TSocketWrapper read FNetwork;
   end;
 
   TABuddyList = class(TComponent)
@@ -88,10 +97,12 @@ type
     FClient: TAClient;
     FID: String;
     FFriendlyName: String;
+    FStatus: TTorchatStatus;
+    FLastDisconnect: TDateTime;
+    FStateOut: TBuddyConnectionState;
+    FStateIn: TBuddyConnectionState;
     FConnIncoming: TAHiddenConnection;
     FConnOutgoing: TAHiddenConnection;
-    procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
-    procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
   public
     procedure CheckState; virtual; abstract;
     function AsJsonObject: TJSONObject; virtual; abstract;
@@ -99,10 +110,12 @@ type
     procedure InitID(AID: String); virtual; abstract;
     procedure OnOutgoingConnection; virtual; abstract;
     procedure OnOutgoingConnectionFail; virtual; abstract;
+    procedure OnIncomingConnection; virtual; abstract;
+    procedure OnIncomingConnectionFail; virtual; abstract;
     property ID: String read FID;
     property FriendlyName: String read FFriendlyName write FFriendlyName;
-    property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
-    property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
+    property ConnIncoming: TAHiddenConnection read FConnIncoming;
+    property ConnOutgoing: TAHiddenConnection read FConnOutgoing;
   end;
 
   TAHiddenConnection = class
@@ -115,7 +128,8 @@ type
   public
     procedure Send(AData: String); virtual; abstract;
     procedure SendLine(ALine: String); virtual; abstract;
-    procedure OnConnectionClose; virtual; abstract; // called by the receiver
+    procedure OnTCPFail; virtual; abstract; // called by the receiver
+    function IsOutgoing: Boolean; virtual; abstract;
     property Buddy: TABuddy read FBuddy write SetBuddy;
     property Client: TAClient read FClient;
     property Stream: TTCPStream read FTCPStream;

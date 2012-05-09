@@ -30,7 +30,7 @@ type
   EEndOfString = class(Exception)
   end;
 
-function SecondsSince(Start: TDateTime): Integer;
+function SecondsSince(Start: TDateTime): QWord;
 
 { split the string Line at the first occurrence of Sep, return the left part
   in the function result and the right part in var Line. If no separator is
@@ -46,7 +46,7 @@ function Ignore(P: Pointer): Pointer; Inline;
 
 implementation
 
-function SecondsSince(Start: TDateTime): Integer;
+function SecondsSince(Start: TDateTime): QWord;
 begin
   Result := Round((Now - Start) * 24 * 60 * 60);
 end;
