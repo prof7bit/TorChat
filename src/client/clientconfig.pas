@@ -45,12 +45,12 @@ var
   AppDataPath: Array[0..MaxPathLen] of Char;
 {$endif}
 begin
+  {$note need different home directories for different "accounts"}
   {$ifdef windows}
     SHGetSpecialFolderPath(0, AppDataPath, CSIDL_APPDATA, false);
     Result := ConcatPaths([AppDataPath, 'torchat2']);
     //{$fatal Windows is not yet supported}
   {$else}
-    {$warning home directory hardcoded, dirty hack}
     Result := ExpandFileName('~/.torchat2');
   {$endif}
   if not DirectoryExists(Result) then begin

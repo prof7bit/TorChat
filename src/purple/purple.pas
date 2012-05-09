@@ -357,6 +357,7 @@ type
 function purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
 function purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
 function purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
+procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_info(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
@@ -412,6 +413,7 @@ function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
 {$calling default}
 type
   TDebugLevel = (
+    DEBUG_MISC,
     DEBUG_INFO,
     DEBUG_WARNING,
     DEBUG_ERROR
@@ -423,10 +425,6 @@ type
   TWritelnRedirect = class(TStream)
     function Write(const Buffer; Count : Longint) : Longint; override;
   end;
-
-procedure _info(Msg: String);
-procedure _warning(Msg: String);
-procedure _error(Msg: String);
 
 { sometimes we need to allocate a char* for which
   libpurple will take ownership. This will allocate
@@ -451,32 +449,20 @@ var
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
   case Level of
+    DEBUG_MISC: purple_debug_misc(PluginInfo.id, PChar(Msg + LineEnding), []);
     DEBUG_INFO: purple_debug_info(PluginInfo.id, PChar(Msg + LineEnding), []);
     DEBUG_WARNING: purple_debug_warning(PluginInfo.id, PChar(Msg + LineEnding), []);
     DEBUG_ERROR: purple_debug_error(PluginInfo.id, PChar(Msg + LineEnding), []);
   end;
   {$ifdef DebugToConsole}
   try
-    WriteLn(OldStdOut, '[', PluginInfo.id, ' ', Level, '] ', Msg);
+    WriteLn(OldStdOut, '[', Level, '] ', Msg);
   except
-    // There is no stdout on windows if pidgin is not run with --debug
+    { There is no stdout on windows if pidgin is not run with --debug
+      and if you run it with --debug then there is not much need for
+      DebugToConsole anymore, it would be even more confusing instead. }
   end;
   {$endif}
-end;
-
-procedure _info(Msg: String);
-begin
-  _purple_debug(DEBUG_INFO, Msg);
-end;
-
-procedure _warning(Msg: String);
-begin
-  _purple_debug(DEBUG_WARNING, Msg);
-end;
-
-procedure _error(Msg: String);
-begin
-  _purple_debug(DEBUG_ERROR, Msg);
 end;
 
 function AllocPurpleString(Str: String): PChar;
@@ -502,14 +488,14 @@ var
 begin
   Msg := AnsiString(PChar(Data));
   Msg := Trim(Msg);
-  Lvl := LeftStr(Msg, 4);
-  Txt := RightStr(Msg, Length(Msg)-4);
+  Lvl := LeftStr(Msg, 2);
+  Txt := RightStr(Msg, Length(Msg) - 2);
   case Lvl of
-    '(0) ': _error(Txt);
-    '(1) ': _warning(Txt);
-    '(2) ': _info(Txt);
+    'E ': _purple_debug(DEBUG_ERROR, Txt);
+    'W ': _purple_debug(DEBUG_WARNING, Txt);
+    'I ': _purple_debug(DEBUG_INFO, Txt);
   else
-    _info(Msg);
+    _purple_debug(DEBUG_MISC, Msg);
   end;
   Freememory(Data);
   Result := False
@@ -555,7 +541,7 @@ end;
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   {$ifdef DebugToConsole}
-  writeln('(1) Plugin has been compiled with -dDebugToConsole. Not recommended.');
+  writeln('W plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
   Plugin.info := @PluginInfo;
   if Assigned(PluginInitProc) then PluginInitProc(Plugin);

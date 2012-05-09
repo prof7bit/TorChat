@@ -159,7 +159,7 @@ begin
         writeln('buddy ' + Buddy.ID + ' loaded');
       except
         FreeAndNil(Buddy);
-        writeln('(0) error while parsing buddy from saved list');
+        writeln('E error while parsing buddy from saved list');
       end;
     end;
     LeaveCriticalsection(FCritical);
@@ -195,7 +195,7 @@ begin
     FS.Write(JData[1], Length(JData));
   except
     on E: Exception do begin
-      writeln('(0) could not save buddy list: ' + E.Message);
+      writeln('E could not save buddy list: ' + E.Message);
     end;
   end;
   if assigned(FS) then FreeAndNil(FS);

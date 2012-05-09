@@ -261,7 +261,7 @@ begin
   PluginInitProc := @OnInit;
 
   {$ifdef UseHeapTrc}
-    WriteLn('(1) plugin has been compiled with -dUseHeapTrc. Not recommended.');
+    WriteLn('W plugin has been compiled with -dUseHeapTrc. Not recommended.');
     {$ifdef windows}
       // we have no stdout when running on windows
       heaptrc.SetHeapTraceOutput(ConcatPaths([ConfGetDataDir, 'heaptrc.log']));
