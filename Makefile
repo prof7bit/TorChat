@@ -1,16 +1,26 @@
-SUBDIRS = src/gui
-SUBMAKE = $(foreach DIR, $(SUBDIRS), $(MAKE) $(MAKEFLAGS) -C $(DIR) $(1) &&) exit 0;
+MPURPLE = $(MAKE) -C src/purple
+MGUI = $(MAKE) -C src/gui
 
-all:
-	$(call SUBMAKE, all)
-	@echo "*** Success! :-)"
+all: purple gui
+
+install: installpurple installgui
+
+purple:
+	$(MPURPLE) all
 	
-install:
-	$(call SUBMAKE, install)
+gui:
+	$(MGUI) all
+
+installpurple:
+	$(MPURPLE) install
 	
-uninstall:
-	$(call SUBMAKE, uninstall)
-	
+installgui:
+	$(MGUI) install
+		
 clean:
-	$(call SUBMAKE, clean)
-
+	$(MPURPLE) clean
+	$(MGUI) clean
+	$(RM) bin/*.exe 
+	$(RM) bin/*.so
+	$(RM) bin/torchat
+	
