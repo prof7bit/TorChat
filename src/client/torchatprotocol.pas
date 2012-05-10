@@ -24,7 +24,7 @@ unit torchatprotocol;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract;
+  Classes, SysUtils, torchatabstract, miscfunc;
 
 type
 
@@ -32,15 +32,24 @@ type
 
   TMsg = class(TAMessage)
   strict protected
-    FRaw : String;
+    FBinaryContent : String;
+    function GetSendConnection: TAHiddenConnection; virtual;
+    procedure Serialize; virtual; abstract;
   public
-    constructor Create(AConnection: TAHiddenConnection; AContent: String); override;
+    constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); override;
+    constructor Create(ABuddy: TABuddy);
+    procedure Send; override;
   end;
 
   { TMsgPing }
 
   TMsgPing = class(TMsg)
+    FCookie: String;
     class function GetCommand: String; override;
+    constructor Create(ABuddy: TABuddy; ACookie: String); reintroduce;
+    procedure Parse; override;
+    procedure Serialize; override;
+    procedure Execute; override;
   end;
 
   { TMsgPong }
@@ -59,6 +68,9 @@ const
   );
 
 function GetMsgClassFromCommand(ACommand: String): TMsgClass;
+function BinaryEncode(ABinary: String): String;
+function BinaryDecode(AEncoded: String): String;
+function PopFirstWord(var AString: String): String;
 
 implementation
 
@@ -72,10 +84,52 @@ begin
       exit(MsgClass);
 end;
 
-constructor TMsg.Create(AConnection: TAHiddenConnection; AContent: String);
+function BinaryEncode(ABinary: String): String;
+begin
+  Result := ABinary; {$warning implement me}
+end;
+
+function BinaryDecode(AEncoded: String): String;
+begin
+  Result := AEncoded; {$warning implement me}
+end;
+
+function PopFirstWord(var AString: String): String;
+begin
+  Result := Split(AString, ' ');
+end;
+
+function TMsg.GetSendConnection: TAHiddenConnection;
+begin
+  if Assigned(FBuddy) and Assigned(FBuddy.ConnOutgoing) then
+    Result := FBuddy.ConnOutgoing
+  else
+    Result := nil;
+end;
+
+{ this is the virtual constructor for incoming messages }
+constructor TMsg.Create(AConnection: TAHiddenConnection; AEncodedContent: String);
 begin
   FConnection := AConnection;
-  FRaw := AContent;
+  FBinaryContent := BinaryDecode(AEncodedContent);
+end;
+
+{ this is the constructor for outgoing messages }
+constructor TMsg.Create(ABuddy: TABuddy);
+begin
+  FBuddy := ABuddy;
+end;
+
+procedure TMsg.Send;
+var
+  C : TAHiddenConnection;
+begin
+  C := GetSendConnection;
+  if Assigned(C) then begin
+    Serialize;
+    C.SendLine(GetCommand + ' ' + BinaryEncode(FBinaryContent));
+  end;
+  self.Free;
 end;
 
 { TMsgPong }
@@ -90,6 +144,27 @@ end;
 class function TMsgPing.GetCommand: String;
 begin
   Result := 'ping';
+end;
+
+constructor TMsgPing.Create(ABuddy: TABuddy; ACookie: String);
+begin
+  inherited Create(ABuddy);
+  FCookie := ACookie;
+end;
+
+procedure TMsgPing.Parse;
+begin
+  FCookie := FBinaryContent;
+end;
+
+procedure TMsgPing.Serialize;
+begin
+  FBinaryContent := FCookie;
+end;
+
+procedure TMsgPing.Execute;
+begin
+
 end;
 
 end.

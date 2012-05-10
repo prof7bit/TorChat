@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, fpjson,
-  miscfunc, torchatabstract, connection, networking;
+  miscfunc, torchatabstract, torchatprotocol, connection, networking;
 
 type
   { TBuddy }
@@ -145,8 +145,12 @@ begin
 end;
 
 procedure TBuddy.OnOutgoingConnection;
+var
+  Msg: TMsgPing;
 begin
   WriteLn(ID + '.OnOutgoingConnection()');
+  Msg := TMsgPing.Create(self, 'foo');
+  Msg.Send;
 end;
 
 procedure TBuddy.OnOutgoingConnectionFail;

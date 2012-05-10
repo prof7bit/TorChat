@@ -127,7 +127,7 @@ type
     procedure SetBuddy(ABuddy: TABuddy); virtual; abstract;
   public
     procedure Send(AData: String); virtual; abstract;
-    procedure SendLine(ALine: String); virtual; abstract;
+    procedure SendLine(AEncodedLine: String); virtual; abstract;
     procedure OnTCPFail; virtual; abstract; // called by the receiver
     function IsOutgoing: Boolean; virtual; abstract;
     property Buddy: TABuddy read FBuddy write SetBuddy;
@@ -143,9 +143,10 @@ type
     FBuddy: TABuddy;
   public
     class function GetCommand: String; virtual; abstract;
-    constructor Create(AConnection: TAHiddenConnection; AContent: String); virtual; abstract;
+    constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); virtual; abstract;
     procedure Parse; virtual; abstract;
     procedure Execute; virtual; abstract;
+    procedure Send; virtual; abstract;
     property Client: TAClient read FClient write FClient;
     property Buddy: TABuddy read FBuddy write FBuddy;
   end;

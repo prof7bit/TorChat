@@ -37,7 +37,7 @@ type
     procedure Execute; override;
   strict private
     FIncompleteMessage: String;
-    procedure OnReceivedLine(Line: String);
+    procedure OnReceivedLine(EncodedLine: String);
   end;
 
 implementation
@@ -92,25 +92,24 @@ begin
   writeln('TReceiver.Execute() finished, TThread object will free itself now');
 end;
 
-procedure TReceiver.OnReceivedLine(Line: String);
+procedure TReceiver.OnReceivedLine(EncodedLine: String);
 var
   Command: String;
   Msg: TAMessage;
 begin
   try
-    Command := Split(Line, ' ');
+    Command := PopFirstWord(EncodedLine);
   except
     exit;
   end;
 
-  Msg := GetMsgClassFromCommand(Command).Create(Self.FConnection, Line);
+  Msg := GetMsgClassFromCommand(Command).Create(Self.FConnection, EncodedLine);
   try
     Msg.Parse;
   except
     on Ex: Exception do begin
       WriteLn(Ex.Message);
       Msg.Free;
-      Msg := nil;
     end;
   end;
 

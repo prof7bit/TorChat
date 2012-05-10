@@ -32,7 +32,7 @@ type
   THiddenConnection = class(TAHiddenConnection)
     constructor Create(AClient: TAClient; AStream: TTCPStream);
     procedure Send(AData: String); override;
-    procedure SendLine(ALine: String); override;
+    procedure SendLine(AEncodedLine: String); override;
     procedure OnTCPFail; override;
     procedure SetBuddy(ABuddy: TABuddy); override;
     function IsOutgoing: Boolean; override;
@@ -64,9 +64,9 @@ begin
   FTCPStream.Write(AData[1], Length(AData));
 end;
 
-procedure THiddenConnection.SendLine(ALine: String);
+procedure THiddenConnection.SendLine(AEncodedLine: String);
 begin
-  Send(ALine + #10);
+  Send(AEncodedLine + #10);
 end;
 
 procedure THiddenConnection.OnTCPFail;
