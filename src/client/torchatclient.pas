@@ -315,9 +315,6 @@ begin
   C := THiddenConnection.Create(self, AStream);
   Ignore(C);
   Ignore(E);
-
-  writeln('closing it again');
-  C.Stream.DoClose; // should free everything automatically
 end;
 
 procedure TTorChatClient.PopNextMessage;

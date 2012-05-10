@@ -164,7 +164,10 @@ end;
 
 procedure TMsgPing.Execute;
 begin
+  WriteLn('TMsgPing.Execute()');
 
+  WriteLn('will now simply close the connection to see if this would work without leaking memory');
+  FConnection.Stream.DoClose;
 end;
 
 end.
