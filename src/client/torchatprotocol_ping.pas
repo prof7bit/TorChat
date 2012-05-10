@@ -50,7 +50,7 @@ type
     empty space is a space character 0x20.)
 
     Example (received on an incoming connection):
-      ping lh7oap7zsprkypp5 {575F54C4-096E-4DDD-8204-593A89223590}
+      ping lh7oap7zsprkypp5 575F54C4-096E-4DDD-8204-593A89223590
 
     When this message is received then the client must connect
     back to <sender_id> (TorChat always uses two connections)
@@ -67,7 +67,7 @@ type
     The response in the above example would need to be sent
     through the outgoung connection to lh7oap7zsprkypp5:
 
-      pong {575F54C4-096E-4DDD-8204-593A89223590}
+      pong 575F54C4-096E-4DDD-8204-593A89223590
 
     Messages are always sent on the outgoing connection and
     always received on the incoming connection. The only
