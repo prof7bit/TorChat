@@ -47,8 +47,9 @@ type
     should now have both connections (in and out) established, the
     handshake is completed, the buddy status is "online".
 
-    When the cookie does not match any of our buddies then we
-    ignore the message and close the connection.
+    When the cookie does not match any of our buddies or something
+    else is wrong (buddy has already ConnIncoming assigned, etc.)
+    then we ignore the message and close the connection.
   }
   TMsgPong = class(TMsg)
   strict protected
