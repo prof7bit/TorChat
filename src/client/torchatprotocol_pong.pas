@@ -28,8 +28,28 @@ uses
   torchatprotocol;
 
 type
-  { TMsgPong }
+  { TMsgPong
 
+    The pong message must be sent as a response to the ping message.
+    It is the second message of the handshake. It has the following
+    structure:
+
+      pong <cookie>
+
+    <cookie>  is the exact same string that has been received in
+              the ping message.
+
+    When the pong message is received then we search through all
+    our buddies to find the one that has previously sent out a
+    ping with the same cookie. When we find it then we know beyond
+    any doubt that this incoming connection belongs to this buddy,
+    we assign the incoming connection to this buddy and the buddy
+    should now have both connections (in and out) established, the
+    handshake is completed, the buddy status is "online".
+
+    When the cookie does not match any of our buddies then we
+    ignore the message and close the connection.
+  }
   TMsgPong = class(TMsg)
   strict protected
     FCookie: String;
