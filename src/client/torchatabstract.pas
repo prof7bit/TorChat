@@ -86,6 +86,7 @@ type
     procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
     function FindBuddy(AName: String): TABuddy; virtual; abstract;
     function FindBuddyByCookie(ACookie: String): TABuddy; virtual; abstract;
+    procedure DoDisconnectAll; virtual; abstract;
     procedure Lock; virtual; abstract;
     procedure Unlock; virtual; abstract;
     procedure Load; virtual; abstract;
@@ -119,6 +120,7 @@ type
     procedure OnIncomingConnection; virtual; abstract;
     procedure OnIncomingConnectionFail; virtual; abstract;
     procedure MustSendPong(ACookie: String); virtual; abstract;
+    procedure DoDisconnect; virtual; abstract;
     property Client: TAClient read FClient;
     property ID: String read FID;
     property Cookie: String read FOwnCookie;

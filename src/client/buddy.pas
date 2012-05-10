@@ -58,6 +58,7 @@ type
     procedure OnIncomingConnection; override;
     procedure OnIncomingConnectionFail; override;
     procedure MustSendPong(ACookie: String); override;
+    procedure DoDisconnect; override;
   end;
 
 implementation
@@ -224,6 +225,12 @@ begin
   // immediately, otherwise it will happen on connect
   if FStateOut = STATE_CONNECTED then
     SendPong;
+end;
+
+procedure TBuddy.DoDisconnect;
+begin
+  if Assigned(ConnIncoming) then ConnIncoming.Stream.DoClose;
+  if Assigned(ConnOutgoing) then ConnOutgoing.Stream.DoClose;
 end;
 
 end.

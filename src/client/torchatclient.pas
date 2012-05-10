@@ -57,6 +57,7 @@ type
     procedure AddBuddy(ABuddy: TABuddy); override;
     function FindBuddy(AID: String): TABuddy; override;
     function FindBuddyByCookie(ACookie: String): TABuddy; override;
+    procedure DoDisconnectAll; override;
     function Count: Integer; override;
   end;
 
@@ -263,6 +264,17 @@ begin
   LeaveCriticalsection(FCritical);
 end;
 
+procedure TBuddyList.DoDisconnectAll;
+var
+  Buddy: TABuddy;
+begin
+  EnterCriticalsection(FCritical);
+  for Buddy in FList do begin
+    Buddy.DoDisconnect;
+  end;
+  LeaveCriticalsection(FCritical);
+end;
+
 function TBuddyList.Count: Integer;
 begin
   Result := Length(FList);
@@ -297,7 +309,7 @@ var
   Msg: TAMessage;
 begin
   NetworkNoMoreErrors := True; // FIXME: (networking) fix this ugly hack
-  inherited Destroy;
+  BuddyList.DoDisconnectAll;
   EnterCriticalsection(CS);
   while FQueue.Count > 0 do begin
     Msg := FQueue.Pop as TAMessage;
@@ -306,6 +318,7 @@ begin
   FQueue.Free;
   LeaveCriticalsection(CS);
   DoneCriticalsection(CS);
+  inherited Destroy;
 end;
 
 procedure TTorChatClient.Enqueue(AMessage: TAMessage);

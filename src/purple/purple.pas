@@ -446,7 +446,6 @@ uses
 var
   OldStdOut: Text;
   WritelnRedirect: TWritelnRedirect;
-  PurpleThread: TThreadID;
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
@@ -499,7 +498,7 @@ begin
   else
     _purple_debug(DEBUG_MISC, Msg);
   end;
-  Freememory(Data);
+  g_free(Data);
   Result := False
 end;
 
@@ -510,13 +509,10 @@ var
   P : PChar;
 begin
   Result := Count;
-  P := GetMemory(Count+1);
+  P := g_malloc(Count+1);
   Move(Buffer, P[0], Count);
   P[Count] := #0;
-  if ThreadID <> PurpleThread then
-    purple_timeout_add(0, @CBWritelnRedirectSynced, P)
-  else
-    CBWritelnRedirectSynced(P);
+  purple_timeout_add(0, @CBWritelnRedirectSynced, P)
 end;
 
 { The TorChat units are logging their debug info with WriteLn(). It is
@@ -551,7 +547,6 @@ begin
 end;
 
 initialization
-  PurpleThread := ThreadID;
   InstallWritelnRedirect;
   FillByte(PluginInfo, Sizeof(PluginInfo), 0);
   FillByte(PluginProtocolInfo, SizeOf(PluginProtocolInfo), 0);
