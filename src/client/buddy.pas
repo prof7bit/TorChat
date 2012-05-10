@@ -29,6 +29,7 @@ uses
   fpjson,
   torchatabstract,
   torchatprotocol_ping,
+  torchatprotocol_pong,
   miscfunc,
   connection,
   networking;
@@ -38,20 +39,25 @@ type
 
   TBuddy = class(TABuddy)
   strict protected
+    FMustSendPong: Boolean;
+    FReceivedCookie: String;
     procedure InitiateConnect; virtual;
     procedure CbNetOut(ATCPStream: TTCPStream; E: Exception); virtual;
-    procedure SetIncoming(AConn: TAHiddenConnection); virtual;
-    procedure SetOutgoing(AConn: TAHiddenConnection); virtual;
+    procedure SendPong; virtual;
+    function IsFullyConnected: Boolean;
   public
     constructor Create(AOwner: TAClient); reintroduce;
     procedure CheckState; override;
     function AsJsonObject: TJSONObject; override;
     procedure InitFromJsonObect(AObject: TJSONObject); override;
     procedure InitID(AID: String); override;
+    procedure SetIncoming(AConn: TAHiddenConnection); override;
+    procedure SetOutgoing(AConn: TAHiddenConnection); override;
     procedure OnOutgoingConnection; override;
     procedure OnOutgoingConnectionFail; override;
     procedure OnIncomingConnection; override;
     procedure OnIncomingConnectionFail; override;
+    procedure MustSendPong(ACookie: String); override;
   end;
 
 implementation
@@ -81,13 +87,20 @@ begin
 end;
 
 constructor TBuddy.Create(AOwner: TAClient);
+var
+  GUID: TGuid;
 begin
   inherited Create(AOwner);
   FClient := AOwner;
   FLastDisconnect := 0;
+  FMustSendPong := False;
+  FReceivedCookie := '';
   FStatus := TORCHAT_OFFLINE;
   FStateOut := STATE_DISCONNECTED;
   FStateIn := STATE_DISCONNECTED;
+  CreateGUID(GUID);
+  FOwnCookie := GUIDToString(GUID);
+  WriteLn('created GUID for buddy ' + FOwnCookie);
 end;
 
 procedure TBuddy.CheckState;
@@ -150,13 +163,33 @@ begin
     FStateOut := STATE_DISCONNECTED;
 end;
 
+procedure TBuddy.SendPong;
+var
+  Pong: TMsgPong;
+begin
+  Pong := TMsgPong.Create(Self, FReceivedCookie);
+  Pong.Send;
+  FMustSendPong := False;
+  FReceivedCookie := '';
+end;
+
+function TBuddy.IsFullyConnected: Boolean;
+begin
+  Result := Assigned(ConnOutgoing) and Assigned(ConnIncoming);
+end;
+
 procedure TBuddy.OnOutgoingConnection;
 var
   Msg: TMsgPing;
 begin
   WriteLn(ID + '.OnOutgoingConnection()');
-  Msg := TMsgPing.Create(self, 'foo');
+  Msg := TMsgPing.Create(self, FOwnCookie);
   Msg.Send;
+
+  // the other end has connected aleady and already
+  // sent us a ping, so we can answer with pong
+  if FMustSendPong then
+    SendPong;
 end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
@@ -180,6 +213,17 @@ begin
   if Assigned(ConnOutgoing) then
     ConnOutgoing.Stream.DoClose;
   FLastDisconnect := Now;
+end;
+
+procedure TBuddy.MustSendPong(ACookie: String);
+begin
+  FReceivedCookie := ACookie;
+  FMustSendPong := True;
+
+  // if we are connected already we can send it
+  // immediately, otherwise it will happen on connect
+  if FStateOut = STATE_CONNECTED then
+    SendPong;
 end;
 
 end.

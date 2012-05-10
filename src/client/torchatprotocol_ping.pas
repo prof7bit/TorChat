@@ -12,11 +12,14 @@ type
   { TMsgPing }
 
   TMsgPing = class(TMsg)
+  strict protected
+    FID: String;
     FCookie: String;
+    procedure Serialize; override;
+  public
     class function GetCommand: String; override;
     constructor Create(ABuddy: TABuddy; ACookie: String); reintroduce;
     procedure Parse; override;
-    procedure Serialize; override;
     procedure Execute; override;
   end;
 
@@ -37,21 +40,31 @@ end;
 
 procedure TMsgPing.Parse;
 begin
+  FID := PopFirstWord(FBinaryContent);
   FCookie := FBinaryContent;
 end;
 
 procedure TMsgPing.Serialize;
 begin
-  FBinaryContent := FCookie;
+  FBinaryContent := FBuddy.ID + ' ' + FCookie;
 end;
 
 procedure TMsgPing.Execute;
+var
+  ABuddy: TABuddy;
 begin
   WriteLn('TMsgPing.Execute()');
+  Writeln('ID=' + FID + ' cookie=' + FCookie);
 
-  WriteLn('will now simply close the connection to see if this would work without leaking memory');
-  FConnection.Stream.DoClose;
+  ABuddy := Client.BuddyList.FindBuddy(FID);
+  if Assigned(ABuddy) then
+    ABuddy.MustSendPong(FCookie)
+  else begin
+    Writeln('I got Ping from unknown Buddy: ' + FID);
+  end;
 end;
 
+begin
+  RegisterMessageClass(TMsgPing);
 end.
 

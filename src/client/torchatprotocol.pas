@@ -50,25 +50,18 @@ function GetMsgClassFromCommand(ACommand: String): TMsgClass;
 function BinaryEncode(ABinary: String): String;
 function BinaryDecode(AEncoded: String): String;
 function PopFirstWord(var AString: String): String;
+procedure RegisterMessageClass(AClass: TMsgClass);
 
 implementation
-uses
-  torchatprotocol_ping,
-  torchatprotocol_pong;
-
-const
-  CNT_MSG = 2;
-  MsgClasses : array[1..CNT_MSG] of TMsgClass = (
-    TMsgPing,
-    TMsgPong
-  );
+var
+  MessageClasses: array of TMsgClass;
 
 function GetMsgClassFromCommand(ACommand: String): TMsgClass;
 var
   MsgClass: TMsgClass;
 begin
   Result := TMsg; // default class if command is not recognized
-  for MsgClass in MsgClasses do
+  for MsgClass in MessageClasses do
     if MsgClass.GetCommand = ACommand then
       exit(MsgClass);
 end;
@@ -88,6 +81,15 @@ begin
   Result := Split(AString, ' ');
 end;
 
+procedure RegisterMessageClass(AClass: TMsgClass);
+var
+  L : Integer;
+begin
+  L := Length(MessageClasses);
+  SetLength(MessageClasses, L + 1);
+  MessageClasses[L] := AClass;
+end;
+
 function TMsg.GetSendConnection: TAHiddenConnection;
 begin
   if Assigned(FBuddy) and Assigned(FBuddy.ConnOutgoing) then
@@ -100,6 +102,7 @@ end;
 constructor TMsg.Create(AConnection: TAHiddenConnection; AEncodedContent: String);
 begin
   FConnection := AConnection;
+  FClient := FConnection.Client;
   FBinaryContent := BinaryDecode(AEncodedContent);
 end;
 
@@ -107,6 +110,7 @@ end;
 constructor TMsg.Create(ABuddy: TABuddy);
 begin
   FBuddy := ABuddy;
+  FClient := FBuddy.Client;
 end;
 
 procedure TMsg.Send;

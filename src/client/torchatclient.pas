@@ -56,6 +56,7 @@ type
     procedure RemoveBuddy(ABuddy: TABuddy); override;
     procedure AddBuddy(ABuddy: TABuddy); override;
     function FindBuddy(AID: String): TABuddy; override;
+    function FindBuddyByCookie(ACookie: String): TABuddy; override;
     function Count: Integer; override;
   end;
 
@@ -251,6 +252,17 @@ begin
   LeaveCriticalsection(FCritical);
 end;
 
+function TBuddyList.FindBuddyByCookie(ACookie: String): TABuddy;
+begin
+  Result := nil;
+  EnterCriticalsection(FCritical);
+  for Result in FList do begin
+    if Result.Cookie = ACookie then
+      break;
+  end;
+  LeaveCriticalsection(FCritical);
+end;
+
 function TBuddyList.Count: Integer;
 begin
   Result := Length(FList);
@@ -263,6 +275,7 @@ constructor TTorChatClient.Create(AOwner: TComponent);
 //  C : TAHiddenConnection;
 begin
   Inherited Create(AOwner);
+  Randomize;
   self.FStandardOut := Output;
   InitCriticalSection(CS);
   FHSNameOK := False;

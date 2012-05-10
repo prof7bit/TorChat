@@ -85,6 +85,7 @@ type
     procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
     procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
     function FindBuddy(AName: String): TABuddy; virtual; abstract;
+    function FindBuddyByCookie(ACookie: String): TABuddy; virtual; abstract;
     procedure Lock; virtual; abstract;
     procedure Unlock; virtual; abstract;
     procedure Load; virtual; abstract;
@@ -98,6 +99,7 @@ type
   strict protected
     FClient: TAClient;
     FID: String;
+    FOwnCookie: String;
     FFriendlyName: String;
     FStatus: TTorchatStatus;
     FLastDisconnect: TDateTime;
@@ -110,11 +112,16 @@ type
     function AsJsonObject: TJSONObject; virtual; abstract;
     procedure InitFromJsonObect(AObject: TJSONObject); virtual; abstract;
     procedure InitID(AID: String); virtual; abstract;
+    procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
+    procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
     procedure OnOutgoingConnection; virtual; abstract;
     procedure OnOutgoingConnectionFail; virtual; abstract;
     procedure OnIncomingConnection; virtual; abstract;
     procedure OnIncomingConnectionFail; virtual; abstract;
+    procedure MustSendPong(ACookie: String); virtual; abstract;
+    property Client: TAClient read FClient;
     property ID: String read FID;
+    property Cookie: String read FOwnCookie;
     property FriendlyName: String read FFriendlyName write FFriendlyName;
     property ConnIncoming: TAHiddenConnection read FConnIncoming;
     property ConnOutgoing: TAHiddenConnection read FConnOutgoing;
