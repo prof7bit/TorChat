@@ -58,17 +58,28 @@ uses
   miscfunc;
 
 type
+  { TMsg
 
-  { TMsg }
-
+    This is the base class for the other protocol messages.
+    It implements the basic infrastructure of binary decoding,
+    encoding, sending, etc. The concrete protocol message
+    classes will introduce additional fields and constructors
+    and override Parse(), Serialize(), Execute().
+    TMsg is also used when an incoming message is received
+    for which we have no class (an unknown message). the
+    default Execute() method that is implemented in TMsg will
+    simply respond with 'not_implemented' and do nothing else.
+  }
   TMsg = class(TAMessage)
   strict protected
     FBinaryContent : String;
     function GetSendConnection: TAHiddenConnection; virtual;
-    procedure Serialize; virtual; abstract;
+    procedure Serialize; virtual;
   public
     constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); override;
     constructor Create(ABuddy: TABuddy);
+    procedure Parse; override;
+    procedure Execute; override;
     procedure Send; override;
   end;
 
@@ -126,6 +137,11 @@ begin
     Result := nil;
 end;
 
+procedure TMsg.Serialize;
+begin
+  // do nothing. concrete message classes will override this.
+end;
+
 { this is the virtual constructor for incoming messages }
 constructor TMsg.Create(AConnection: TAHiddenConnection; AEncodedContent: String);
 begin
@@ -139,6 +155,16 @@ constructor TMsg.Create(ABuddy: TABuddy);
 begin
   FBuddy := ABuddy;
   FClient := FBuddy.Client;
+end;
+
+procedure TMsg.Parse;
+begin
+  // do nothing. concrete message classes will override this.
+end;
+
+procedure TMsg.Execute;
+begin
+  {$warning fixme: here we must send 'not_implemented'}
 end;
 
 procedure TMsg.Send;
