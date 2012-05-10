@@ -24,8 +24,14 @@ unit buddy;
 interface
 
 uses
-  Classes, SysUtils, fpjson,
-  miscfunc, torchatabstract, torchatprotocol, connection, networking;
+  Classes,
+  SysUtils,
+  fpjson,
+  torchatabstract,
+  torchatprotocol_ping,
+  miscfunc,
+  connection,
+  networking;
 
 type
   { TBuddy }

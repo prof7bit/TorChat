@@ -23,7 +23,8 @@ unit purple;
 
 interface
 uses
-  Classes, glib2;
+  Classes,
+  glib2;
 
 const
   {$ifdef windows}
@@ -439,7 +440,8 @@ var
 
 implementation
 uses
-  sysutils, StreamIO;
+  sysutils,
+  StreamIO;
 
 var
   OldStdOut: Text;

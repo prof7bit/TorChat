@@ -24,7 +24,11 @@ unit connection;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract, receiver, networking;
+  Classes,
+  SysUtils,
+  torchatabstract,
+  receiver,
+  networking;
 
 type
 

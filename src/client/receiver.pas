@@ -24,7 +24,11 @@ unit receiver;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract, torchatprotocol, miscfunc;
+  Classes,
+  SysUtils,
+  torchatabstract,
+  torchatprotocol,
+  miscfunc;
 
 type
   { TReceiver - Each conection contains a TAReceiver object which is

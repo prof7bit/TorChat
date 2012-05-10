@@ -32,7 +32,9 @@ unit torchatabstract;
 interface
 
 uses
-  Classes, fpjson, networking;
+  Classes,
+  fpjson,
+  networking;
 
 type
   TTorchatStatus = (

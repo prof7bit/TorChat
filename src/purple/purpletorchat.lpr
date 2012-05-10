@@ -28,8 +28,15 @@ uses
   {$ifdef unix}
     cthreads,
   {$endif}
-  Classes, sysutils, contnrs, glib2,
-  purple, torchatabstract, torchatclient, clientconfig, miscfunc;
+  Classes,
+  sysutils,
+  contnrs,
+  glib2,
+  purple,
+  torchatabstract,
+  torchatclient,
+  clientconfig,
+  miscfunc;
 
 type
   { TTorchatPurpleClient }

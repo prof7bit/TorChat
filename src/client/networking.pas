@@ -25,7 +25,10 @@ interface
 
 uses
   {$ifdef unix}errors,{$endif}
-  Classes, SysUtils, Sockets, resolve;
+  Classes,
+  SysUtils,
+  Sockets,
+  resolve;
 
 const
   Sys_EINPROGRESS = 115;

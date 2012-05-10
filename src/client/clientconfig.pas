@@ -24,8 +24,9 @@ unit clientconfig;
 interface
 
 uses
-  {$ifdef windows}shlobj,{$endif}
-  Classes, SysUtils;
+  {$ifdef windows}shlobj,{$endif} // for finding %APPDATA% etc.
+  Classes,
+  SysUtils;
 
 const
   SECONDS_WAIT_FOR_HOSTNAME_FILE = 20;

@@ -24,7 +24,10 @@ unit torchatprotocol;
 interface
 
 uses
-  Classes, SysUtils, torchatabstract, miscfunc;
+  Classes,
+  SysUtils,
+  torchatabstract,
+  miscfunc;
 
 type
 
@@ -41,31 +44,7 @@ type
     procedure Send; override;
   end;
 
-  { TMsgPing }
-
-  TMsgPing = class(TMsg)
-    FCookie: String;
-    class function GetCommand: String; override;
-    constructor Create(ABuddy: TABuddy; ACookie: String); reintroduce;
-    procedure Parse; override;
-    procedure Serialize; override;
-    procedure Execute; override;
-  end;
-
-  { TMsgPong }
-
-  TMsgPong = class(TMsg)
-    class function GetCommand: String; override;
-  end;
-
   TMsgClass = class of TAMessage;
-
-const
-  CNT_MSG = 2;
-  MsgClasses : array[1..CNT_MSG] of TMsgClass = (
-    TMsgPing,
-    TMsgPong
-  );
 
 function GetMsgClassFromCommand(ACommand: String): TMsgClass;
 function BinaryEncode(ABinary: String): String;
@@ -73,6 +52,16 @@ function BinaryDecode(AEncoded: String): String;
 function PopFirstWord(var AString: String): String;
 
 implementation
+uses
+  torchatprotocol_ping,
+  torchatprotocol_pong;
+
+const
+  CNT_MSG = 2;
+  MsgClasses : array[1..CNT_MSG] of TMsgClass = (
+    TMsgPing,
+    TMsgPong
+  );
 
 function GetMsgClassFromCommand(ACommand: String): TMsgClass;
 var
@@ -132,43 +121,6 @@ begin
   self.Free;
 end;
 
-{ TMsgPong }
-
-class function TMsgPong.GetCommand: String;
-begin
-  Result := 'pong';
-end;
-
-{ TMsgPing }
-
-class function TMsgPing.GetCommand: String;
-begin
-  Result := 'ping';
-end;
-
-constructor TMsgPing.Create(ABuddy: TABuddy; ACookie: String);
-begin
-  inherited Create(ABuddy);
-  FCookie := ACookie;
-end;
-
-procedure TMsgPing.Parse;
-begin
-  FCookie := FBinaryContent;
-end;
-
-procedure TMsgPing.Serialize;
-begin
-  FBinaryContent := FCookie;
-end;
-
-procedure TMsgPing.Execute;
-begin
-  WriteLn('TMsgPing.Execute()');
-
-  WriteLn('will now simply close the connection to see if this would work without leaking memory');
-  FConnection.Stream.DoClose;
-end;
 
 end.
 

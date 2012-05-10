@@ -24,8 +24,18 @@ unit torchatclient;
 interface
 
 uses
-  Classes, SysUtils, contnrs, fpjson, jsonparser, torchatabstract, buddy, clientconfig, torprocess, networking,
-  connection, miscfunc;
+  Classes,
+  SysUtils,
+  contnrs,
+  fpjson,
+  jsonparser,
+  torchatabstract,
+  buddy,
+  clientconfig,
+  torprocess,
+  networking,
+  connection,
+  miscfunc;
 
 type
   { TBuddyList contains all the buddy objects and implements all the boring

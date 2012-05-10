@@ -24,7 +24,10 @@ unit torprocess;
 interface
 
 uses
-  Classes, SysUtils, process, clientconfig;
+  Classes,
+  SysUtils,
+  process,
+  clientconfig;
 
 type
 

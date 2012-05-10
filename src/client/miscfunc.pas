@@ -24,7 +24,8 @@ unit miscfunc;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes,
+  SysUtils;
 
 type
   EEndOfString = class(Exception)

@@ -207,7 +207,7 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="12">
+    <Units Count="14">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -268,6 +268,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="buddy"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="../client/torchatprotocol_ping.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="torchatprotocol_ping"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../client/torchatprotocol_pong.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="torchatprotocol_pong"/>
+      </Unit13>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
