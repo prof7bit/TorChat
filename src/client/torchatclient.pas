@@ -67,7 +67,7 @@ type
   TTorChatClient = class(TAClient)
   strict protected
     FTor: TTor;
-    FQueue: TQueue;
+    FQueue: TObjectQueue;
     CS: TRTLCriticalSection;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
@@ -257,7 +257,7 @@ begin
   InitCriticalSection(CS);
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
-  FQueue := TQueue.Create;
+  FQueue := TObjectQueue.Create;
   FTor := TTor.Create(self);
   FNetwork := TSocketWrapper.Create(Self);
   FBuddyList := TBuddyList.Create(self);
@@ -277,7 +277,7 @@ begin
   inherited Destroy;
   EnterCriticalsection(CS);
   while FQueue.Count > 0 do begin
-    Msg := TAMessage(FQueue.Pop);
+    Msg := FQueue.Pop as TAMessage;
     Msg.Free;
   end;
   FQueue.Free;
@@ -326,7 +326,7 @@ var
 begin
   if FQueue.Count > 0 then begin
     EnterCriticalsection(CS);
-    Msg := TAMessage(FQueue.Pop);
+    Msg := FQueue.Pop as TAMessage;
     LeaveCriticalsection(CS);
     try
       Msg.Execute;
