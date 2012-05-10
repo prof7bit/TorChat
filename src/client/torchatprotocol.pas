@@ -1,4 +1,4 @@
-{ TorChat - Protocol messages, protocol specification
+{ TorChat - Protocol messages base class TMsg
 
   Copyright (C) 2012 Bernd Kreuss <prof7bit@gmail.com>
 
@@ -16,6 +16,46 @@
   at <http://www.gnu.org/copyleft/gpl.html>. You can also obtain it by writing
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
+}
+
+{ TMsg and all its TMsgXxx descendants which are defined in separate
+units are the core of the TorChat protocol. Each Message that is sent or
+received is represented by an instance of its corresponding class. Each
+message is transported over the socket as one long line of text, binary
+data is encoded (see below), 0x0a (line feed) marks the end of a message
+and the beginning of the next. The first part of the message is a string
+consisting of only the characters [a..z,_], separated by a space. This is
+the command. The rest of the line is the payload.
+
+Processing incoming messages works like this:
+  * read the entire line from the socket until 0x0a is found. (see also
+    TReceiver (in receiver.pas) where this mechanism is implemented.)
+  * separate the first word (delimited by space) from the rest of the line.
+    (The rest may also be empty, there exist messages without payload.)
+  * instantiate the appropriate message class (one of the TMsgXXX classes
+    depending on what command it is and feed the rest of the line to its
+    constructor. The constructor will do the binary decoding of the payload)
+  * call the message object's Parse() method, this will parse the decoded
+    payload (the payload after binary decoding is one binary blob, depending
+    on the type of the message it might be somethig as simple as an UTF8
+    string or it might be a part of a file transfer or something else, the
+    Parse() method is responsible for dissecting it and populating the
+    individual fields of the message object).
+  * enqueue the object into TorChat's message queue. The main thread
+    will pick it up from there and then call the message's Execute()
+    method. The Execute() method will do the actual work.
+
+Each message is defined in a separate class in a separate file, all
+of them also contain documentation. To unterstand the protocol and the
+meaning of each protocol message you should study the documentation
+for each message class, the Parse() and Serialize() methods will show
+you how the structure of the message looks like and and the Execute()
+method will show you how the client is supposed to react to an incoming
+message of this type.
+
+This unit contains TMsg which serves as a base class and implements
+the default behavior, it also contains some helper functions, most
+notably the binary encoding/decoding functions.
 }
 unit torchatprotocol;
 
