@@ -73,6 +73,7 @@ uses
   contnrs,
   glib2,
   purple,
+  purplehelper,
   torchatabstract,
   torchatclient,
   clientconfig,
@@ -249,17 +250,6 @@ begin
   end;
 end;
 
-procedure torchat_init(var plugin: TPurplePlugin);
-var
-  acc_opt: PPurpleAccountOption;
-  TorPath: PChar;
-begin
-  Ignore(@plugin);
-  TorPath := PChar(ConfGetTorExe + '/');
-  acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
-  plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
-end;
-
 { TClients }
 
 function TTorChatClients.Get(Account: PPurpleAccount): TTorChatPurpleClient;
@@ -289,8 +279,10 @@ begin
   purple_prpl_got_user_status(purple_account, PChar(ABuddy.ID), status_id);
 end;
 
-exports
-  purple_init_plugin;
+procedure Init;
+var
+  acc_opt: PPurpleAccountOption;
+  TorPath: PChar;
 
 begin
   with plugin_info do begin
@@ -322,7 +314,10 @@ begin
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 
-  PluginInitProc := @torchat_init;
+  // add additional fields to the settings dialog
+  TorPath := PChar(ConfGetTorExe + '/');
+  acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
+  plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
 
   {$ifdef UseHeapTrc}
     WriteLn('W plugin has been compiled with -dUseHeapTrc. Not recommended.');
@@ -331,6 +326,13 @@ begin
       heaptrc.SetHeapTraceOutput(ConcatPaths([ConfGetDataDir, 'heaptrc.log']));
     {$endif}
   {$endif}
+end;
+
+exports
+  purple_init_plugin;
+
+initialization
+  Init;
 end.
 
 { Things happen in the following order:
@@ -340,7 +342,6 @@ end.
       + PluginInfo and PluginProtocolInfo will be populated (see above)
 
     * purple calls purple_init_plugin() (in purple.pas):
-      + PluginInitProc() callback is executed (if it is assigned)
       + Info records are passed to purple, registration complete.
 
     * torchat_load() callback is called by purple

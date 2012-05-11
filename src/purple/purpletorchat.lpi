@@ -207,7 +207,7 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="15">
+    <Units Count="16">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -283,6 +283,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="internalmessage"/>
       </Unit14>
+      <Unit15>
+        <Filename Value="purplehelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="purplehelper"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -18,6 +18,21 @@
   MA 02111-1307, USA.
 }
 
+{ libpurple plugin API
+  This unit defines types and functions found in the
+  libpurple headers, needed for protocol plugins.
+
+  Most comments from the C headers have been removed
+  to keep this unit small, for complete documentation
+  refer to the original API docs.
+
+  There would be many more type definitions and zillions
+  of additional functions that could also be imported
+  from libpurple but here is only the absolute minimum
+  needed for a protocol plugin, so it could immediately
+  be tested for correctness. More stuff can be added later
+  once it is needed.
+}
 unit purple;
 {$mode objfpc}{$H+}
 
@@ -40,16 +55,6 @@ type
     time_t = UInt32;
   {$endif}
 
-(************************************************************************
- * Most comments from the C headers have been removed to keep this unit *
- * small, for complete documentation refer to the original API docs.    *
- *                                                                      *
- * There would be many more type definitions and zillions of additional *
- * functions that could also be imported from libpurple but here is     *
- * only the absolute minimum needed for a protocol plugin, so it could  *
- * immediately be tested for correctness. More stuff can be added later *
- * once it is needed.                                                   *
- ************************************************************************)
 
 (****************************************
  *                                      *
@@ -387,176 +392,36 @@ function  purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Poin
 function  purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
 
 
-
-
-(****************************************
- *                                      *
- *   This is the only exported symbol   *
- *                                      *
- *   It is called when libpurple is     *
- *   probing all libs in the plugin     *
- *   folder. In the C examples this     *
- *   is hidden behind the macro         *
- *   PURPLE_INIT_PLUGIN but here we     *
- *   don't have macros to hide such     *
- *   things and the plugin library      *
- *   using this unit must explicitly    *
- *   export it.                         *
- *                                      *
- ****************************************)
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
-
-
-
-(****************************************
- *                                      *
- *   Our own functions and helpers      *
- *                                      *
- *   from here on we also switch back   *
- *   to the default calling convention  *
- *                                      *
- ****************************************)
-{$calling default}
-type
-  TDebugLevel = (
-    DEBUG_MISC,
-    DEBUG_INFO,
-    DEBUG_WARNING,
-    DEBUG_ERROR
-  );
-
-  { TWritelnRedirect will catch everything that is WriteLn() to stdout and
-    redirects it to the libpurple debug logger. We will create an instance
-    of this and replace it with the standard output stream }
-  TWritelnRedirect = class(TStream)
-    function Write(const Buffer; Count : Longint) : Longint; override;
-  end;
-
-{ sometimes we need to allocate a char* for which
-  libpurple will take ownership. This will allocate
-  memory directly from the system and not from the
-  FPC heap manager! }
-function AllocPurpleString(Str: String): PChar;
+{ purple_init_plugin is the only exported symbol.
+  It is called when libpurple is probing all libs in the plugin
+  folder. In the C examples this is hidden behind the macro
+  PURPLE_INIT_PLUGIN but here we don't have macros to hide
+  such things and the plugin library that is using this unit
+  must explicitly export it. }
+function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
 
 var
   plugin_info: TPurplePluginInfo;
   plugin_protocol_info: TPurplePluginProtocolInfo;
-  PluginInitProc: procedure(var plugin: TPurplePlugin) = nil;
 
 implementation
-uses
-  sysutils,
-  StreamIO;
-
-var
-  OldStdOut: Text;
-  WritelnRedirect: TWritelnRedirect;
-
-procedure _purple_debug(Level: TDebugLevel; Msg: String);
-begin
-  case Level of
-    DEBUG_MISC: purple_debug_misc(plugin_info.id, PChar(Msg + LineEnding), []);
-    DEBUG_INFO: purple_debug_info(plugin_info.id, PChar(Msg + LineEnding), []);
-    DEBUG_WARNING: purple_debug_warning(plugin_info.id, PChar(Msg + LineEnding), []);
-    DEBUG_ERROR: purple_debug_error(plugin_info.id, PChar(Msg + LineEnding), []);
-  end;
-  {$ifdef DebugToConsole}
-  try
-    WriteLn(OldStdOut, '[', Level, '] ', Msg);
-  except
-    { There is no stdout on windows if pidgin is not run with --debug
-      and if you run it with --debug then there is not much need for
-      DebugToConsole anymore, it would be even more confusing instead. }
-  end;
-  {$endif}
-end;
-
-function AllocPurpleString(Str: String): PChar;
-var
-  L : Integer;
-begin
-  L := Length(Str);
-  if L = 0 then
-    Result := nil
-  else begin
-    // bypass the FPC heap manager and malloc() directly from the system.
-    // Of course we do this only for strings that we pass to libpurple and
-    // where libpurple promises to free it again.
-    Result := g_malloc(L+1);
-    Move(Str[1], Result[0], L);
-    Result[L] := #0;
-  end;
-end;
-
-function CBWritelnRedirectSynced(Data: Pointer): gboolean; cdecl;
-var
-  Msg, Lvl, Txt: String;
-begin
-  Msg := AnsiString(PChar(Data));
-  Msg := Trim(Msg);
-  Lvl := LeftStr(Msg, 2);
-  Txt := RightStr(Msg, Length(Msg) - 2);
-  case Lvl of
-    'E ': _purple_debug(DEBUG_ERROR, Txt);
-    'W ': _purple_debug(DEBUG_WARNING, Txt);
-    'I ': _purple_debug(DEBUG_INFO, Txt);
-  else
-    _purple_debug(DEBUG_MISC, Msg);
-  end;
-  g_free(Data);
-  Result := False
-end;
-
-{ TWritelnRedirect }
-
-function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
-var
-  P : PChar;
-begin
-  Result := Count;
-  P := g_malloc(Count+1);
-  Move(Buffer, P[0], Count);
-  P[Count] := #0;
-  purple_timeout_add(0, @CBWritelnRedirectSynced, P)
-end;
-
-{ The TorChat units are logging their debug info with WriteLn(). It is
-  the responsibility of the frontend to catch them and log them or display
-  them appropriately. Here we install the redirection that will do this. }
-procedure InstallWritelnRedirect;
-begin
-  OldStdOut := Output;
-  WritelnRedirect := TWritelnRedirect.Create();
-  AssignStream(Output, WritelnRedirect);
-  Rewrite(Output);
-end;
-
-procedure UninstallWritelnRedirect;
-begin
-  Output := OldStdOut;
-  WritelnRedirect.Free;
-end;
 
 { This re-implements the stuff that is behind the PURPLE_INIT_PLUGIN macro.
   In C the macro would define the function and export it, here we only
   define it and the library must export it (because we can't export it
   from within a unit directly). }
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
+function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
 begin
   {$ifdef DebugToConsole}
   writeln('W plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
   Plugin.info := @plugin_info;
-  if Assigned(PluginInitProc) then PluginInitProc(Plugin);
   Result := purple_plugin_register(Plugin);
 end;
 
 initialization
-  InstallWritelnRedirect;
   FillByte(plugin_info, Sizeof(plugin_info), 0);
   FillByte(plugin_protocol_info, SizeOf(plugin_protocol_info), 0);
-finalization
-  UninstallWritelnRedirect;
 end.
 
 
