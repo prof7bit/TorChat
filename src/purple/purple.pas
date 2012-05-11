@@ -376,6 +376,8 @@ function  purple_notify_message(var Plugin: TPurplePlugin;
 function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
 function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;
 procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); cdecl; external LIBPURPLE;
+procedure purple_prpl_got_user_status(account: PPurpleAccount;
+  aname, status_id: PChar); cdecl; external LIBPURPLE;
 function  purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
 function  purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; external LIBPURPLE;
 function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;

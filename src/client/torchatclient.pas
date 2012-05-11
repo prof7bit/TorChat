@@ -288,6 +288,7 @@ constructor TTorChatClient.Create(AOwner: TComponent);
 //  C : TAHiddenConnection;
 begin
   FIsDestriying := False;
+  NetworkNoMoreErrors := False; // FIXME: (networking) fix this ugly hack
   Inherited Create(AOwner);
   FMainThread := ThreadID;
   Randomize;

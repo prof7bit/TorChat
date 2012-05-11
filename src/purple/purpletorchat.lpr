@@ -277,22 +277,16 @@ end;
 
 procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: TABuddy);
 var
-  buddy: PPurpleBuddy;
-  presence : PPurplePresence;
   status_id: PChar;
 begin
   WriteLn('TTorChatPurpleClient.OnBuddyStatusChange()');
-  buddy := purple_find_buddy(purple_account, PChar(ABuddy.ID));
-  if Assigned(buddy) then begin
-    case ABuddy.Status of
-      TORCHAT_AVAILABLE: status_id := ID_AVAILABLE;
-      TORCHAT_AWAY: status_id := ID_AWAY;
-      TORCHAT_EXTENDED_AWAY: status_id := ID_XA;
-      TORCHAT_OFFLINE: status_id := ID_OFFLINE;
-    end;
-    presence := purple_buddy_get_presence(buddy);
-    purple_presence_switch_status(presence, status_id);
+  case ABuddy.Status of
+    TORCHAT_AVAILABLE: status_id := ID_AVAILABLE;
+    TORCHAT_AWAY: status_id := ID_AWAY;
+    TORCHAT_EXTENDED_AWAY: status_id := ID_XA;
+    TORCHAT_OFFLINE: status_id := ID_OFFLINE;
   end;
+  purple_prpl_got_user_status(purple_account, PChar(ABuddy.ID), status_id);
 end;
 
 exports
