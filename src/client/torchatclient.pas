@@ -274,6 +274,7 @@ begin
     Buddy.DoDisconnect;
   end;
   LeaveCriticalsection(FCritical);
+  Sleep(50); // FIXME!
 end;
 
 function TBuddyList.Count: Integer;
@@ -312,6 +313,7 @@ destructor TTorChatClient.Destroy;
 var
   Msg: TAMessage;
 begin
+  WriteLn(MilliTime, ' start destroying TorChatClient');
   FIsDestriying := True;
   NetworkNoMoreErrors := True; // FIXME: (networking) fix this ugly hack
   BuddyList.DoDisconnectAll;
@@ -323,6 +325,7 @@ begin
   FQueue.Free;
   LeaveCriticalsection(CS);
   DoneCriticalsection(CS);
+  WriteLn(MilliTime, ' start destroying child components');
   inherited Destroy;
 end;
 

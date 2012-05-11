@@ -141,7 +141,7 @@ begin
   FConnection.Stream.DoClose; // only shutdown and close the socket handle
   FConnection.OnTCPFail;      // this will free the stream and the connection
   // the TReceiver will free itself now (FreeOnTerminate)
-  writeln('TReceiver.Execute() finished, TThread object will free itself now');
+  WriteLn(MilliTime, 'TReceiver.Execute() finished, connection and stream freed, receiver will free itself now');
 end;
 
 procedure TReceiver.OnReceivedLine(EncodedLine: String);

@@ -45,6 +45,8 @@ function Split(var Line: String; Sep: Char): String;
   it does absolutely nothing and will therefore be optimized away completely. }
 function Ignore(P: Pointer): Pointer; Inline;
 
+function MilliTime: QWord;
+
 implementation
 
 function SecondsSince(Start: TDateTime): QWord;
@@ -68,6 +70,11 @@ end;
 function Ignore(P: Pointer): Pointer; inline;
 begin
   Result := P;
+end;
+
+function MilliTime: QWord;
+begin
+  Result := round(Now * 24 * 60 * 60 * 1000);
 end;
 
 end.
