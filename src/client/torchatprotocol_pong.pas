@@ -91,8 +91,7 @@ begin
   WriteLn(FCookie);
   ABuddy := Client.BuddyList.FindBuddyByCookie(FCookie);
   if Assigned(ABuddy) then begin
-    ABuddy.SetIncoming(FConnection);
-    ABuddy.OnIncomingConnection;
+    ABuddy.ConnIncoming := FConnection
   end;
 end;
 

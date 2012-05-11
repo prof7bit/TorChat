@@ -45,6 +45,7 @@ type
     PurpleAccount: PPurpleAccount;
     PurpleTimer: Integer;
     procedure OnNotifyGui; override;
+    procedure OnBuddyStatusChange(ABuddy: TABuddy); override;
   end;
 
   { TTorChatClients }
@@ -230,6 +231,12 @@ end;
 procedure TTorChatPurpleClient.OnNotifyGui;
 begin
   purple_timeout_add(0, @OnPurpleTimerOneShot, self);
+end;
+
+procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: TABuddy);
+begin
+  WriteLn('TTorChatPurpleClient.OnBuddyStatusChange()');
+
 end;
 
 exports

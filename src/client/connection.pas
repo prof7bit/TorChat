@@ -78,9 +78,9 @@ begin
   WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo);
   if Assigned(FBuddy) then begin
     if IsOutgoing then
-      FBuddy.OnOutgoingConnectionFail
+      FBuddy.ConnOutgoing := nil
     else
-      FBuddy.OnIncomingConnectionFail;
+      FBuddy.ConnIncoming := nil;
   end;
   FTCPStream.Free;
   Self.Free;

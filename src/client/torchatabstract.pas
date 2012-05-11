@@ -69,6 +69,7 @@ type
     procedure ProcessMessages; virtual; abstract;
     procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
     procedure OnNotifyGui; virtual; abstract;
+    procedure OnBuddyStatusChange(ABuddy: TABuddy); virtual; abstract;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;
     property Network: TSocketWrapper read FNetwork;
@@ -115,6 +116,7 @@ type
     procedure InitID(AID: String); virtual; abstract;
     procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
     procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
+    procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
     procedure OnOutgoingConnection; virtual; abstract;
     procedure OnOutgoingConnectionFail; virtual; abstract;
     procedure OnIncomingConnection; virtual; abstract;
@@ -125,8 +127,9 @@ type
     property ID: String read FID;
     property Cookie: String read FOwnCookie;
     property FriendlyName: String read FFriendlyName write FFriendlyName;
-    property ConnIncoming: TAHiddenConnection read FConnIncoming;
-    property ConnOutgoing: TAHiddenConnection read FConnOutgoing;
+    property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
+    property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
+    property Status: TTorchatStatus read FStatus write SetStatus;
   end;
 
   TAHiddenConnection = class

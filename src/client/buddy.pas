@@ -53,6 +53,7 @@ type
     procedure InitID(AID: String); override;
     procedure SetIncoming(AConn: TAHiddenConnection); override;
     procedure SetOutgoing(AConn: TAHiddenConnection); override;
+    procedure SetStatus(AStatus: TTorchatStatus); override;
     procedure OnOutgoingConnection; override;
     procedure OnOutgoingConnectionFail; override;
     procedure OnIncomingConnection; override;
@@ -77,13 +78,13 @@ begin
   Output := FClient.StandardOut; // make writeln redirect work in this thread
   WriteLn(ID + '.CbNetOut()');
   if assigned(ATCPStream) then begin
-    SetOutgoing(THiddenConnection.Create(FClient, ATCPStream));
-    OnOutgoingConnection;
+    ConnOutgoing := THiddenConnection.Create(FClient, ATCPStream);
   end
   else begin
     WriteLn(E.Message);
     FLastDisconnect := Now;
-    SetOutgoing(nil);
+    FStateOut := STATE_DISCONNECTED;
+    ConnOutgoing := nil;
   end;
 end;
 
@@ -144,24 +145,38 @@ end;
 
 procedure TBuddy.SetIncoming(AConn: TAHiddenConnection);
 begin
-  FConnIncoming := AConn;
-  if Assigned(AConn) then begin
-    AConn.Buddy := self;
-    FStateIn := STATE_CONNECTED;
-  end
-  else
-    FStateIn := STATE_DISCONNECTED;
+  if AConn <> FConnIncoming then begin
+    FConnIncoming := AConn;
+    if Assigned(AConn) then begin
+      AConn.Buddy := self;
+      OnIncomingConnection;
+    end
+    else begin
+      OnIncomingConnectionFail;
+    end;
+  end;
 end;
 
 procedure TBuddy.SetOutgoing(AConn: TAHiddenConnection);
 begin
-  FConnOutgoing := AConn;
-  if Assigned(AConn) then begin
-    AConn.Buddy := self;
-    FStateOut := STATE_CONNECTED;
-  end
-  else
-    FStateOut := STATE_DISCONNECTED;
+  if AConn <> FConnOutgoing then begin
+    FConnOutgoing := AConn;
+    if Assigned(AConn) then begin
+      AConn.Buddy := self;
+      OnOutgoingConnection;
+    end
+    else begin
+      OnOutgoingConnectionFail;
+    end;
+  end;
+end;
+
+procedure TBuddy.SetStatus(AStatus: TTorchatStatus);
+begin
+  if AStatus <> FStatus then begin
+    FStatus := AStatus;
+    Client.OnBuddyStatusChange(self);
+  end;
 end;
 
 procedure TBuddy.SendPong;
@@ -191,6 +206,8 @@ begin
   // sent us a ping, so we can answer with pong
   if FMustSendPong then
     SendPong;
+
+  FStateOut := STATE_CONNECTED;
 end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
@@ -200,11 +217,15 @@ begin
   if Assigned(ConnIncoming) then
     ConnIncoming.Stream.DoClose;
   FLastDisconnect := Now;
+  FStateOut := STATE_DISCONNECTED;
+  Status := TORCHAT_OFFLINE;
 end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
   Writeln(ID + '.OnIncomingConnection()');
+  FStateIn := STATE_CONNECTED;
+  Status := TORCHAT_AVAILABLE;
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
@@ -214,6 +235,8 @@ begin
   if Assigned(ConnOutgoing) then
     ConnOutgoing.Stream.DoClose;
   FLastDisconnect := Now;
+  FStateIn := STATE_DISCONNECTED;
+  Status := TORCHAT_OFFLINE;
 end;
 
 procedure TBuddy.MustSendPong(ACookie: String);
