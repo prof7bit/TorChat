@@ -355,32 +355,32 @@ type
  ********************************************)
 {$calling cdecl}
 
-function purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
-function purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
-function purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
+function purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
+function purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; cdecl; external;
+procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
+  group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
+procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
+function purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
+function purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
+procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
 procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_info(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
+function purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
+function purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
 function purple_notify_message(var Plugin: TPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
+function purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
+function purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;
+function purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
+function purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; external LIBPURPLE;
 function purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
   id: PChar; name: Pchar; saveable: GBoolean; user_settable: GBoolean;
   independent: GBoolean): PPurpleStatusType; external LIBPURPLE;
-procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
-function purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; external LIBPURPLE;
-function purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
-function purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;
-function purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
-function purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
-function purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
-function purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
-function purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; cdecl; external;
-function purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
-procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
-  group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
-procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
+function purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
+function purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
 
 
 
@@ -399,7 +399,7 @@ procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
  *   export it.                         *
  *                                      *
  ****************************************)
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
+function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 
 
 
