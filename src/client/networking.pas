@@ -53,11 +53,6 @@ type
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     procedure DoClose; virtual;
-  strict protected
-    FClosed: Boolean;
-    procedure SetClosed; virtual;
-  public
-    property Closed: Boolean read FClosed;
   end;
 
   PConnectionCallback = procedure(AStream: TTCPStream; E: Exception) of object;
@@ -351,17 +346,8 @@ end;
 
 procedure TTCPStream.DoClose;
 begin
-  if not Closed then begin
-    CloseHandle(Handle);
-    SetClosed;
-  end;
+  CloseHandle(Handle);
 end;
-
-procedure TTCPStream.SetClosed;
-begin
-  FClosed := True;
-end;
-
 
 end.
 

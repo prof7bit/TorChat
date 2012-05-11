@@ -167,7 +167,6 @@ begin
 
   if Assigned(Msg) then begin
     Client.Enqueue(Msg);
-    Client.OnNotifyGui;
   end;
 end;
 

@@ -38,6 +38,13 @@ uses
   clientconfig,
   miscfunc;
 
+const
+  ID_OFFLINE: PChar = 'offline';
+  ID_AVAILABLE: PChar = 'available';
+  ID_AWAY: PChar = 'away';
+  ID_XA: PChar = 'xa';
+  ID_INVISIBLE: PChar = 'invisible';
+
 type
   { TTorchatPurpleClient }
   TTorChatPurpleClient = class(TTorChatClient)
@@ -100,12 +107,11 @@ begin
   // we register it), so we are registerig all of them and will deal with them
   // in the set_status callback.
   Result := nil;
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, nil, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, nil, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, nil, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_EXTENDED_AWAY, nil, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, nil, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, nil, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, ID_AVAILABLE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, ID_AWAY, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, ID_XA, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, ID_INVISIBLE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, ID_OFFLINE, nil, True, True, False));
 end;
 
 procedure OnSetStatus(Account: PPurpleAccount; Status: PPurpleStatus); cdecl;
@@ -234,9 +240,23 @@ begin
 end;
 
 procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: TABuddy);
+var
+  buddy: PPurpleBuddy;
+  presence : PPurplePresence;
+  status_id: PChar;
 begin
   WriteLn('TTorChatPurpleClient.OnBuddyStatusChange()');
-
+  buddy := purple_find_buddy(PurpleAccount, PChar(ABuddy.ID));
+  if Assigned(buddy) then begin
+    case ABuddy.Status of
+      TORCHAT_AVAILABLE: status_id := ID_AVAILABLE;
+      TORCHAT_AWAY: status_id := ID_AWAY;
+      TORCHAT_EXTENDED_AWAY: status_id := ID_XA;
+      TORCHAT_OFFLINE: status_id := ID_OFFLINE;
+    end;
+    presence := purple_buddy_get_presence(buddy);
+    purple_presence_switch_status(presence, status_id);
+  end;
 end;
 
 exports

@@ -61,10 +61,12 @@ type
 
   TAClient = class(TComponent)
   strict protected
+    FMainThread: TThreadID;
     FStandardOut: text;
     FBuddyList: TABuddyList;
     FNetwork: TSocketWrapper;
   public
+    property MainThread: TThreadID read FMainThread;
     property StandardOut: Text read FStandardOut;
     procedure ProcessMessages; virtual; abstract;
     procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;

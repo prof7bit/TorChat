@@ -78,6 +78,7 @@ type
     nothing else to do it will just return.}
   TTorChatClient = class(TAClient)
   strict protected
+    FIsDestriying: Boolean;
     FTor: TTor;
     FQueue: TObjectQueue;
     CS: TRTLCriticalSection;
@@ -286,7 +287,9 @@ constructor TTorChatClient.Create(AOwner: TComponent);
 //var
 //  C : TAHiddenConnection;
 begin
+  FIsDestriying := False;
   Inherited Create(AOwner);
+  FMainThread := ThreadID;
   Randomize;
   self.FStandardOut := Output;
   InitCriticalSection(CS);
@@ -308,6 +311,7 @@ destructor TTorChatClient.Destroy;
 var
   Msg: TAMessage;
 begin
+  FIsDestriying := True;
   NetworkNoMoreErrors := True; // FIXME: (networking) fix this ugly hack
   BuddyList.DoDisconnectAll;
   EnterCriticalsection(CS);
@@ -323,14 +327,23 @@ end;
 
 procedure TTorChatClient.Enqueue(AMessage: TAMessage);
 begin
-  writeln('enqueue new incoming message');
-  EnterCriticalsection(CS);
-  FQueue.Push(AMessage);
-  LeaveCriticalsection(CS);
+  if FIsDestriying then begin
+    // no more messages during destruction, they won't be processed
+    // anyways and we also don't want to generate any new timer events.
+    // just free the message, throw it away.
+    AMessage.Free;
+  end
+  else begin
+    EnterCriticalsection(CS);
+    FQueue.Push(AMessage);
+    LeaveCriticalsection(CS);
+    OnNotifyGui;
+  end;
 end;
 
 procedure TTorChatClient.ProcessMessages;
 begin
+  if FIsDestriying then exit;
   if FTimeStarted = 0 then FTimeStarted := Now;
   CheckHiddenServiceName;
   PopNextMessage;

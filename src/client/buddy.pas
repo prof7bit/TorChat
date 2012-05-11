@@ -32,9 +32,12 @@ uses
   torchatprotocol_pong,
   miscfunc,
   connection,
-  networking;
+  networking,
+  internalmessage;
 
 type
+  TMethod = procedure of object;
+
   { TBuddy }
 
   TBuddy = class(TABuddy)
@@ -45,6 +48,7 @@ type
     procedure CbNetOut(ATCPStream: TTCPStream; E: Exception); virtual;
     procedure SendPong; virtual;
     function IsFullyConnected: Boolean;
+    procedure CallFromMainThread(AMethod: TMethod); virtual;
   public
     constructor Create(AOwner: TAClient); reintroduce;
     procedure CheckState; override;
@@ -149,10 +153,10 @@ begin
     FConnIncoming := AConn;
     if Assigned(AConn) then begin
       AConn.Buddy := self;
-      OnIncomingConnection;
+      CallFromMainThread(@OnIncomingConnection);
     end
     else begin
-      OnIncomingConnectionFail;
+      CallFromMainThread(@OnIncomingConnectionFail);
     end;
   end;
 end;
@@ -163,10 +167,10 @@ begin
     FConnOutgoing := AConn;
     if Assigned(AConn) then begin
       AConn.Buddy := self;
-      OnOutgoingConnection;
+      CallFromMainThread(@OnOutgoingConnection);
     end
     else begin
-      OnOutgoingConnectionFail;
+      CallFromMainThread(@OnOutgoingConnectionFail);
     end;
   end;
 end;
@@ -192,6 +196,20 @@ end;
 function TBuddy.IsFullyConnected: Boolean;
 begin
   Result := Assigned(ConnOutgoing) and Assigned(ConnIncoming);
+end;
+
+procedure TBuddy.CallFromMainThread(AMethod: TMethod);
+var
+  Msg: TMsgCallMethod;
+begin
+  if ThreadID = Client.MainThread then
+    AMethod()
+  else begin
+    WriteLn('enqueuing method for execution in main thread');
+    Msg := TMsgCallMethod.Create;
+    Msg.Method := AMethod;
+    Client.Enqueue(Msg);
+  end
 end;
 
 procedure TBuddy.OnOutgoingConnection;
