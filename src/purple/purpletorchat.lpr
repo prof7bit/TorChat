@@ -19,6 +19,46 @@
 }
 library purpletorchat;
 
+{ Naming Conventions:
+
+  Type names:
+  -----------
+  Normally in Pascal we have Uppercase/CamelCase identifiers and
+  type names start with 'T', pointer types with 'P' which will then
+  look like TSomeThing or PSomeThing.
+
+  C programmers on the other hand normally don't define separate
+  names to denote pointer types, they just use the asterisk
+  everywhere in their code and write SomeType and SomeType*
+
+  I don't do the Pascal equivalent of * here (which would be
+  ^SomeType) because it would make it totally inconsistent.
+  Type names are the most important names of all, they should
+  be clear and consistent. I have translated the purple types:
+
+    PurpleSomething  is now TPurpleSomething
+    PurpleSomething* is now PPurpleSomething
+
+  and I am trying to avoid using the name PurpleSomething (without
+  T or P) entirely. (PurpleSomething would be a good name for a
+  variable in Pascal but this would confuse the hell out of every
+  libpurple dev who is used to know this as a type name. So I'm
+  not using it at all.)
+
+  Variable names and function names
+  ---------------------------------
+  Since this is a wrapper and an interface between a Pascal'ish
+  API and a C'ish API and contains callbacks from both sides and
+  has many variables that hold libpurple types and their
+  equivalents from the Pascal units with similar names appearing
+  side by side in the same functions it can become very confusing.
+  I am trying to name the libpurple callback functions and
+  variables that hold libpurple or glib types with lowercase and
+  under_score and all other variables are using the normal Pascal
+  naming conventions. I know this is ugly but it will help the
+  people who are familiar with libpurple avoid some confusion.
+}
+
 {$mode objfpc}{$H+}
 
 uses
@@ -46,17 +86,17 @@ const
   ID_INVISIBLE: PChar = 'invisible';
 
 type
-  { TTorchatPurpleClient }
+  { TTorchatPurpleClient wraps the TorChat client}
   TTorChatPurpleClient = class(TTorChatClient)
   public
-    PurpleAccount: PPurpleAccount;
-    PurpleTimer: Integer;
+    purple_account: PPurpleAccount;
+    purple_timer: Integer;
     procedure OnNotifyGui; override;
     procedure OnBuddyStatusChange(ABuddy: TABuddy); override;
   end;
 
-  { TTorChatClients }
-
+  { TTorChatClients holds a list of clients since we can have
+    multiple "sccounts" in pidgin at the same time }
   TTorChatClients = class(TFPHashObjectList)
     function Get(Account: PPurpleAccount): TTorChatPurpleClient;
   end;
@@ -64,44 +104,44 @@ type
 var
   TorChatClients: TTorChatClients;
 
-function Client(Account: PPurpleAccount): TTorChatPurpleClient;
+function Client(acc: PPurpleAccount): TTorChatPurpleClient;
 begin
-  Result := TorChatClients.Find(Account^.username) as TTorChatPurpleClient;
+  Result := TorChatClients.Find(acc^.username) as TTorChatPurpleClient;
 end;
 
-function OnPurpleTimer(Data: Pointer): GBoolean; cdecl;
+function cb_purple_timer(data: Pointer): GBoolean; cdecl;
 begin
-  Ignore(Data);
-  TTorChatPurpleClient(Data).ProcessMessages;
+  Ignore(data);
+  TTorChatPurpleClient(data).ProcessMessages;
   Result := True;
 end;
 
-function OnPurpleTimerOneShot(Data: Pointer): GBoolean; cdecl;
+function cb_purple_timer_oneshot(data: Pointer): GBoolean; cdecl;
 begin
-  Ignore(Data);
-  TTorChatPurpleClient(Data).ProcessMessages;
+  Ignore(data);
+  TTorChatPurpleClient(data).ProcessMessages;
   Result := False; // purple timer will not fire again
 end;
 
-function OnLoad(var Plugin: TPurplePlugin): GBoolean; cdecl;
+function torchat_load(var plugin: TPurplePlugin): GBoolean; cdecl;
 begin
-  Ignore(@Plugin);
+  Ignore(@plugin);
   TorChatClients := TTorChatClients.Create(False);
   WriteLn('plugin loaded');
   Result := True;
 end;
 
-function OnUnload(var Plugin: TPurplePlugin): GBoolean; cdecl;
+function torchat_unload(var plugin: TPurplePlugin): GBoolean; cdecl;
 begin
-  Ignore(@Plugin);
+  Ignore(@plugin);
   TorChatClients.Free;
   WriteLn('plugin unloaded');
   Result := True;
 end;
 
-function OnStatusTypes(Account: PPurpleAccount): PGList; cdecl;
+function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
 begin
-  Ignore(Account);
+  Ignore(acc);
   // pidgin (or libpurple or both) has a bug, it will offer "invisible" even
   // if we don't register it (and it will not offer "extended away" even if
   // we register it), so we are registerig all of them and will deal with them
@@ -114,114 +154,110 @@ begin
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, ID_OFFLINE, nil, True, True, False));
 end;
 
-procedure OnSetStatus(Account: PPurpleAccount; Status: PPurpleStatus); cdecl;
+procedure torchat_set_status(acc: PPurpleAccount; status: PPurpleStatus); cdecl;
 var
-  PurpleStatusP : TPurpleStatusPrimitive;
+  status_prim   : TPurpleStatusPrimitive;
   TorchatStatus : TTorchatStatus;
 begin
-  PurpleStatusP := purple_status_type_get_primitive(purple_status_get_type(Status));
-  case PurpleStatusP of
+  status_prim := purple_status_type_get_primitive(purple_status_get_type(status));
+  case status_prim of
     PURPLE_STATUS_AVAILABLE: TorchatStatus := TORCHAT_AVAILABLE;
     PURPLE_STATUS_UNAVAILABLE: TorchatStatus := TORCHAT_EXTENDED_AWAY;
     PURPLE_STATUS_AWAY: TorchatStatus := TORCHAT_AWAY;
     PURPLE_STATUS_EXTENDED_AWAY: TorchatStatus := TORCHAT_EXTENDED_AWAY;
     PURPLE_STATUS_INVISIBLE: TorchatStatus := TORCHAT_OFFLINE;
   end;
-  TorChatClients.Get(Account).SetStatus(TorchatStatus);
+  TorChatClients.Get(acc).SetStatus(TorchatStatus);
 end;
 
-function OnGetTextTable(Account: PPurpleAccount): PGHashTable; cdecl;
+function torchat_get_text_table(acc: PPurpleAccount): PGHashTable; cdecl;
 begin
-  Ignore(Account);
+  Ignore(acc);
   WriteLn('OnGetTextTable');
   Result := g_hash_table_new(@g_str_hash, @g_str_equal);
-  g_hash_table_insert(Result, PChar('login_label'), PChar('account'));
+  g_hash_table_insert(Result, PChar('login_label'), PChar('profile name'));
 end;
 
-function OnListIcon(Account: PPurpleAccount; Buddy: PPurpleBuddy): PChar; cdecl;
+function torchat_list_icon(acc: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
-  Ignore(Account);
-  Ignore(Buddy);
+  Ignore(acc);
+  Ignore(buddy);
   Result := 'torchat';
   // now it will look for torchat.png in several resolutions
   // in the folders /usr/share/pixmaps/pidgin/protocols/*/
   // the installer for the plugin must install these files.
 end;
 
-procedure OnLogin(Account: PPurpleAccount); cdecl;
+procedure torchat_login(acc: PPurpleAccount); cdecl;
 var
-  Client: TTorChatPurpleClient;
-  Status: PPurpleStatus;
-  TorChatBuddy: TABuddy;
-  PurpleBuddy: PPurpleBuddy;
+  NewClient: TTorChatPurpleClient;
+  TorchatBuddy: TABuddy;
   TorchatList: TABuddyList;
-  PurpleList: PGSList;
-  ID : String;
-  TorExe: String;
+  TorchatID : String;
+  purple_status: PPurpleStatus;
+  purple_buddy: PPurpleBuddy;
+  purple_list: PGSList;
 
 begin
   WriteLn('OnLogin');
 
-  TorExe := purple_account_get_string(Account, 'tor', nil);
-  WriteLn('Path to Tor configured for this account: ' + TorExe);
+  NewClient := TTorChatPurpleClient.Create(nil);
+  NewClient.purple_account := acc;
+  NewClient.purple_timer := purple_timeout_add(1000, @cb_purple_timer, NewClient);
+  TorChatClients.Add(acc^.username, NewClient);
+  purple_connection_set_state(acc^.gc, PURPLE_CONNECTED);
+  WriteLn('created torchat client object for ' + acc^.username);
 
-  Client := TTorChatPurpleClient.Create(nil);
-  Client.PurpleAccount := Account;
-  Client.PurpleTimer := purple_timeout_add(1000, @OnPurpleTimer, Client);
-  TorChatClients.Add(Account^.username, Client);
-  purple_connection_set_state(Account^.gc, PURPLE_CONNECTED);
-  WriteLn('created torchat client object for ' + Account^.username);
-
-  // remove buddies from purple's list that not in TorChat's list
-  TorchatList := TorChatClients.Get(Account).BuddyList;
-  PurpleList := purple_find_buddies(Account, nil);
-  while Assigned(PurpleList) do begin
-    ID := purple_buddy_get_name(PurpleList^.data);
-    WriteLn('found ' + ID + ' on purple buddy list');
-    if not Assigned(TorchatList.FindBuddy(ID)) then begin
-      purple_blist_remove_buddy(PurpleList^.data);
+  // remove buddies from purple's list that not in TorChat's TorchatList
+  TorchatList := NewClient.BuddyList;
+  purple_list := purple_find_buddies(acc, nil);
+  while Assigned(purple_list) do begin
+    TorchatID := purple_buddy_get_name(purple_list^.data);
+    WriteLn('found ' + TorchatID + ' on purple buddy list');
+    if not Assigned(TorchatList.FindBuddy(TorchatID)) then begin
+      purple_blist_remove_buddy(purple_list^.data);
     end;
-    PurpleList := g_slist_delete_link(PurpleList, PurpleList);
+    purple_list := g_slist_delete_link(purple_list, purple_list);
   end;
 
-  // add buddies to purple's buddy list that are not in purple's list
+  // add buddies to purple's buddy list that are not in purple's TorchatList
   TorchatList.Lock;
-  for TorChatBuddy in TorchatList.Buddies do begin
-    if purple_find_buddy(Account, PChar(TorChatBuddy.ID)) = nil then begin
-      PurpleBuddy := purple_buddy_new(Account, PChar(TorChatBuddy.ID), PChar(TorChatBuddy.FriendlyName));
-      purple_blist_add_buddy(PurpleBuddy, nil, nil, nil);
+  for TorchatBuddy in TorchatList.Buddies do begin
+    if purple_find_buddy(acc, PChar(TorchatBuddy.ID)) = nil then begin
+      purple_buddy := purple_buddy_new(acc, PChar(TorchatBuddy.ID), PChar(TorchatBuddy.FriendlyName));
+      purple_blist_add_buddy(purple_buddy, nil, nil, nil);
     end;
   end;
   TorchatList.Unlock;
 
   // it won't call set_status after login, so we have to do it ourselves
-  Status := purple_presence_get_active_status(Account^.presence);
-  OnSetStatus(Account, Status);
+  purple_status := purple_presence_get_active_status(acc^.presence);
+  torchat_set_status(acc, purple_status);
 end;
 
-procedure OnClose(gc: PPurpleConnection); cdecl;
+procedure torchat_close(gc: PPurpleConnection); cdecl;
 var
   ClientToClose: TTorChatPurpleClient;
 begin
   WriteLn('OnClose');
   ClientToClose := Client(gc^.account);
   if Assigned(ClientToClose) then begin
-    purple_timeout_remove(ClientToClose.PurpleTimer);
+    purple_timeout_remove(ClientToClose.purple_timer);
     TorChatClients.Remove(ClientToClose);
     ClientToClose.Free;
     WriteLn('destroyed torchat client object for ' + String(gc^.account^.username));
   end;
 end;
 
-procedure OnInit(var Plugin: TPurplePlugin);
+procedure torchat_init(var plugin: TPurplePlugin);
 var
-  Option: PPurpleAccountOption;
-  Tor: PChar;
+  acc_opt: PPurpleAccountOption;
+  TorPath: PChar;
 begin
-  Ignore(@Plugin);
-  Tor := PChar(ConfGetTorExe + '/');
-  Option := purple_account_option_string_new('Tor binary', 'tor', Tor);
-  PluginProtocolInfo.protocol_options := g_list_append(nil, Option);
+  Ignore(@plugin);
+  TorPath := PChar(ConfGetTorExe + '/');
+  acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
+  plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
 end;
 
 { TClients }
@@ -236,7 +272,7 @@ end;
 
 procedure TTorChatPurpleClient.OnNotifyGui;
 begin
-  purple_timeout_add(0, @OnPurpleTimerOneShot, self);
+  purple_timeout_add(0, @cb_purple_timer_oneshot, self);
 end;
 
 procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: TABuddy);
@@ -246,7 +282,7 @@ var
   status_id: PChar;
 begin
   WriteLn('TTorChatPurpleClient.OnBuddyStatusChange()');
-  buddy := purple_find_buddy(PurpleAccount, PChar(ABuddy.ID));
+  buddy := purple_find_buddy(purple_account, PChar(ABuddy.ID));
   if Assigned(buddy) then begin
     case ABuddy.Status of
       TORCHAT_AVAILABLE: status_id := ID_AVAILABLE;
@@ -263,7 +299,7 @@ exports
   purple_init_plugin;
 
 begin
-  with PluginInfo do begin
+  with plugin_info do begin
     magic := PURPLE_PLUGIN_MAGIC;
     major_version := PURPLE_MAJOR_VERSION;
     minor_version := PURPLE_MINOR_VERSION;
@@ -276,23 +312,23 @@ begin
     description := 'TorChat protocol plugin for libpurple / Pidgin';
     author := 'Bernd Kreuss <prof7bit@gmail.com>';
     homepage := 'https://github.com/prof7bit/TorChat';
-    load := @OnLoad;
-    unload := @OnUnload;
-    extra_info := @PluginProtocolInfo;
+    load := @torchat_load;
+    unload := @torchat_unload;
+    extra_info := @plugin_protocol_info;
   end;
 
-  with PluginProtocolInfo do begin
+  with plugin_protocol_info do begin
     options := OPT_PROTO_NO_PASSWORD or OPT_PROTO_REGISTER_NOSCREENNAME;
-    list_icon := @OnListIcon;
-    status_types := @OnStatusTypes;
-    get_account_text_table := @OnGetTextTable;
-    login := @OnLogin;
-    close := @OnClose;
-    set_status := @OnSetStatus;
+    list_icon := @torchat_list_icon;
+    status_types := @torchat_status_types;
+    get_account_text_table := @torchat_get_text_table;
+    login := @torchat_login;
+    close := @torchat_close;
+    set_status := @torchat_set_status;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 
-  PluginInitProc := @OnInit;
+  PluginInitProc := @torchat_init;
 
   {$ifdef UseHeapTrc}
     WriteLn('W plugin has been compiled with -dUseHeapTrc. Not recommended.');
@@ -313,11 +349,11 @@ end.
       + PluginInitProc() callback is executed (if it is assigned)
       + Info records are passed to purple, registration complete.
 
-    * load() callback is called by purple
+    * torchat_load() callback is called by purple
 
     the above happens only once during application start
 
-    * login() callback is called for each account when going online
-    * close() callback is called for each account when going offline
+    * torchat_login() callback is called for each account when going online
+    * torchat_close() callback is called for each account when going offline
 
 }

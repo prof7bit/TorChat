@@ -437,9 +437,9 @@ type
 function AllocPurpleString(Str: String): PChar;
 
 var
-  PluginInfo: TPurplePluginInfo;
-  PluginProtocolInfo: TPurplePluginProtocolInfo;
-  PluginInitProc: procedure(var Plugin: TPurplePlugin) = nil;
+  plugin_info: TPurplePluginInfo;
+  plugin_protocol_info: TPurplePluginProtocolInfo;
+  PluginInitProc: procedure(var plugin: TPurplePlugin) = nil;
 
 implementation
 uses
@@ -453,10 +453,10 @@ var
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
   case Level of
-    DEBUG_MISC: purple_debug_misc(PluginInfo.id, PChar(Msg + LineEnding), []);
-    DEBUG_INFO: purple_debug_info(PluginInfo.id, PChar(Msg + LineEnding), []);
-    DEBUG_WARNING: purple_debug_warning(PluginInfo.id, PChar(Msg + LineEnding), []);
-    DEBUG_ERROR: purple_debug_error(PluginInfo.id, PChar(Msg + LineEnding), []);
+    DEBUG_MISC: purple_debug_misc(plugin_info.id, PChar(Msg + LineEnding), []);
+    DEBUG_INFO: purple_debug_info(plugin_info.id, PChar(Msg + LineEnding), []);
+    DEBUG_WARNING: purple_debug_warning(plugin_info.id, PChar(Msg + LineEnding), []);
+    DEBUG_ERROR: purple_debug_error(plugin_info.id, PChar(Msg + LineEnding), []);
   end;
   {$ifdef DebugToConsole}
   try
@@ -544,15 +544,15 @@ begin
   {$ifdef DebugToConsole}
   writeln('W plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
-  Plugin.info := @PluginInfo;
+  Plugin.info := @plugin_info;
   if Assigned(PluginInitProc) then PluginInitProc(Plugin);
   Result := purple_plugin_register(Plugin);
 end;
 
 initialization
   InstallWritelnRedirect;
-  FillByte(PluginInfo, Sizeof(PluginInfo), 0);
-  FillByte(PluginProtocolInfo, SizeOf(PluginProtocolInfo), 0);
+  FillByte(plugin_info, Sizeof(plugin_info), 0);
+  FillByte(plugin_protocol_info, SizeOf(plugin_protocol_info), 0);
 finalization
   UninstallWritelnRedirect;
 end.
