@@ -19,9 +19,10 @@
 }
 
 { This unit contains TMsg which serves as a base class and
-  implements the default behavior (decoding, encoding sending)
-  of protocol messags, it also contains some helper functions,
-  most notably the binary encoding/decoding functions.
+  implements the default behavior (decoding, encoding and
+  sending) of protocol messags, it also contains some helper
+  functions, most notably the binary encoding/decoding
+  functions.
 
   TMsg and all its TMsgXxx descendants which are defined in
   separate units are the core of the TorChat protocol. Each
@@ -31,11 +32,11 @@
   of them also contain detailed documentation.
 
   To unterstand the protocol and the meaning of each protocol
-  message you should study the documentation for each message
-  class, the Parse() and Serialize() methods will show you how
-  the structure of the message looks like and the Execute()
-  method will show you how the client is supposed to react to
-  an incoming message of this type.
+  message you should study the documentation for each
+  message class, the Parse() and Serialize() methods will
+  show you how the structure of the message looks like and
+  the Execute() method will show you how the client is
+  supposed to react to an incoming message of this type.
 
   * See also TReceiver (receiver.pas) for the handling of the
   incoming bytes from the TCP socket.
