@@ -208,7 +208,12 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="16">
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="17">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -289,6 +294,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="purplehelper"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="../client/buddylist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="buddylist"/>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
