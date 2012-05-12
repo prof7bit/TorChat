@@ -52,7 +52,7 @@ type
   {$ifdef cpu64}
     time_t = UInt64;
   {$else}
-    time_t = UInt32;
+    time_t = DWord;
   {$endif}
 
 

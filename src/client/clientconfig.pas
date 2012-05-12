@@ -63,9 +63,14 @@ begin
 end;
 
 function ConfGetTorExe: String;
+{$ifdef windows}
+var
+  ProgramsPath: Array[0..MaxPathLen] of Char;
+{$endif}
 begin
   {$ifdef windows}
-    Result := GetCurrentDir + '\tor\tor.exe';
+    SHGetSpecialFolderPath(0, ProgramsPath, CSIDL_PROGRAM_FILES, false);
+    Result := ConcatPaths([ProgramsPath, 'Tor', 'tor.exe']);
   {$else}
     Result := '/usr/sbin/tor';
   {$endif}

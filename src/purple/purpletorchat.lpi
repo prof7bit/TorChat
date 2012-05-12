@@ -146,8 +146,9 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole 
--dUseHeapTrc"/>
+            <CustomOptions Value="-d_DebugToConsole 
+-d_UseHeapTrc
+-Xm"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -204,16 +205,11 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <HostApplicationFilename Value="/usr/bin/pidgin"/>
+        <HostApplicationFilename Value="C:/Programme/Pidgin/pidgin.exe"/>
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="1">
-      <Item1>
-        <PackageName Value="LCL"/>
-      </Item1>
-    </RequiredPackages>
-    <Units Count="18">
+    <Units Count="17">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -299,10 +295,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="buddylist"/>
       </Unit16>
-      <Unit17>
-        <Filename Value="wtf.txt"/>
-        <IsPartOfProject Value="True"/>
-      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

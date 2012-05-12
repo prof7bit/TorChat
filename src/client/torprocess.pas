@@ -51,7 +51,14 @@ begin
   Executable := ConfGetTorExe;
   Parameters.Add('-f');
   Parameters.Add('torrc.txt');
-  Execute;
+  try
+    Execute;
+  except
+    on E: Exception do begin
+      writeln('E could not start Tor process: ' + Executable);
+      writeln('E ' + E.Message);
+    end;
+  end;
 end;
 
 destructor TTor.Destroy;

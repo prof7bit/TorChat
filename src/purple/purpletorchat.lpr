@@ -282,7 +282,6 @@ procedure Init;
 var
   acc_opt: PPurpleAccountOption;
   TorPath: PChar;
-
 begin
   with plugin_info do begin
     magic := PURPLE_PLUGIN_MAGIC;

@@ -6,6 +6,7 @@
 *.so
 *.dll
 *.exe
+*.map
 src/gui/lib
 src/purple/lib
 bin/torchat
