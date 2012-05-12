@@ -87,8 +87,7 @@ procedure TMsgPong.Execute;
 var
   ABuddy: TABuddy;
 begin
-  WriteLn('TMsgPong.Execute');
-  WriteLn(FCookie);
+  WriteLn('TMsgPong.Execute() received pong: cookie=' + FCookie);
   ABuddy := Client.BuddyList.FindBuddyByCookie(FCookie);
   if Assigned(ABuddy) then begin
     ABuddy.ConnIncoming := FConnection

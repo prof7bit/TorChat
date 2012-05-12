@@ -117,9 +117,7 @@ procedure TMsgPing.Execute;
 var
   ABuddy: TABuddy;
 begin
-  WriteLn('TMsgPing.Execute()');
-  Writeln('ID=' + FID + ' cookie=' + FCookie);
-
+  WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
   ABuddy := Client.BuddyList.FindBuddy(FID);
   if Assigned(ABuddy) then
     ABuddy.MustSendPong(FCookie)
