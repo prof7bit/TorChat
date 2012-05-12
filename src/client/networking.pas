@@ -46,6 +46,8 @@ type
   ENetworkError = class(Exception)
   end;
 
+  TAsyncConnectThread = class;
+
   { TTCPStream wraps a TCP connection}
   TTCPStream = class(THandleStream)
     constructor Create(AHandle: THandle);
@@ -80,8 +82,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Bind(APort: DWord);
-    function Connect(AServer: String; APort: DWord): TTCPStream;
-    procedure ConnectAsync(AServer: String; APort: DWord; ACallback: PConnectionCallback);
+    { this method will block, close HSocket to interrupt it! }
+    function Connect(AServer: String; APort: DWord;
+      out HSocket: THandle): TTCPStream;
+    function ConnectAsync(AServer: String; APort: DWord;
+      ACallback: PConnectionCallback): TAsyncConnectThread;
     property SocksProxyAddress: String write FSocksProxyAddress;
     property SocksProxyPort: DWord write FSocksProxyPort;
     property IncomingCallback: PConnectionCallback write FIncomingCallback;
@@ -93,15 +98,15 @@ type
     constructor Create(ASocketWrapper: TSocketWrapper; AServer: String;
       APort: DWord; ACallback: PConnectionCallback);
     procedure Execute; override;
+    { terminate the connect attempt }
+    procedure Terminate;
   strict protected
+    FSocket: THandle;
     FSocketWrapper: TSocketWrapper;
     FCallback: PConnectionCallback;
     FServer: String;
     FPort: DWord;
   end;
-
-var
-  NetworkNoMoreErrors: Boolean = False;
 
 implementation
 
@@ -157,11 +162,12 @@ begin
   SockAddr.sin_port := ShortHostToNet(APort);
   SockAddr.sin_addr := HostToNet(HostAddr);
   N := Sockets.FpConnect(ASocket, @SockAddr, SizeOf(SockAddr));
-  if NetworkNoMoreErrors then exit;
   if N <> 0 Then
-    if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then
+    if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then begin
+      CloseHandle(ASocket);
       raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
         [AServer, APort, LastErrorString]);
+    end;
 end;
 
 { TAsyncConnectThread }
@@ -182,14 +188,19 @@ var
   C : TTCPStream;
 begin
   try
-    C := FSocketWrapper.Connect(FServer, FPort);
-    if NetworkNoMoreErrors then exit; // fixme?
+    C := FSocketWrapper.Connect(FServer, FPort, FSocket);
     FCallback(C, nil);
   except
     on E: Exception do begin
       FCallback(nil, E);
     end;
   end;
+end;
+
+procedure TAsyncConnectThread.Terminate;
+begin
+  CloseHandle(FSocket);
+  inherited Terminate;
 end;
 
 
@@ -228,9 +239,8 @@ begin
   FListeners[Length(FListeners)-1] := Listener;
 end;
 
-function TSocketWrapper.Connect(AServer: String; APort: DWord): TTCPStream;
+function TSocketWrapper.Connect(AServer: String; APort: DWord; out HSocket: THandle): TTCPStream;
 var
-  HSocket: THandle;
   REQ : String;
   ANS : array[1..8] of Byte;
   N   : Integer;
@@ -238,11 +248,9 @@ begin
   HSocket := CreateHandle;
   if (FSocksProxyAddress = '') or (FSocksProxyPort = 0) then begin
     ConnectTCP(HSocket, AServer, APort);
-    if NetworkNoMoreErrors then exit(nil);
   end
   else begin
     ConnectTCP(HSocket, FSocksProxyAddress, FSocksProxyPort);
-    if NetworkNoMoreErrors then exit(nil);
     SetLength(REQ, 8);
     REQ[1] := #4; // Socks 4
     REQ[2] := #1; // CONNECT command
@@ -253,24 +261,28 @@ begin
     fpSend(HSocket, @REQ[1], Length(REQ), SND_FLAGS);
     ANS[1] := $ff;
     N := fpRecv(HSocket, @ANS, 8, RCV_FLAGS);
-    if NetworkNoMoreErrors then exit(nil);
-    if (N <> 8) or (ANS[1] <> 0) then
+    if (N <> 8) or (ANS[1] <> 0) then begin
+      CloseHandle(HSocket);
       Raise ENetworkError.CreateFmt(
         'socks connect %s:%d via %s:%d handshake invalid response',
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort]
       );
-    if ANS[2] <> 90 then
+    end;
+    if ANS[2] <> 90 then begin
+      CloseHandle(HSocket);
       Raise ENetworkError.CreateFmt(
         'socks connect %s:%d via %s:%d failed (error %d)',
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort, ANS[2]]
       );
+    end;
   end;
   Result := TTCPStream.Create(HSocket);
 end;
 
-procedure TSocketWrapper.ConnectAsync(AServer: String; APort: DWord; ACallback: PConnectionCallback);
+function TSocketWrapper.ConnectAsync(AServer: String; APort: DWord;
+  ACallback: PConnectionCallback): TAsyncConnectThread;
 begin
-  TAsyncConnectThread.Create(Self, AServer, APort, ACallback);
+  Result := TAsyncConnectThread.Create(Self, AServer, APort, ACallback);
 end;
 
 { TListenerThread }

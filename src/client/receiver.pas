@@ -138,10 +138,11 @@ begin
       end;
     end;
   until (N <= 0) or Terminated;
-  FConnection.Stream.DoClose; // only shutdown and close the socket handle
+  WriteLn(MilliTime, ' TReceiver.Execute()' + FConnection.DebugInfo + ' detected end of life, beginning termination');
+  FConnection.Stream.DoClose; // might have happened already but does not hurt
   FConnection.OnTCPFail;      // this will free the stream and the connection
   // the TReceiver will free itself now (FreeOnTerminate)
-  WriteLn(MilliTime, 'TReceiver.Execute() finished, connection and stream freed, receiver will free itself now');
+  WriteLn(MilliTime, ' TReceiver.Execute() stream is free, conection is free, receiver thread will end now');
 end;
 
 procedure TReceiver.OnReceivedLine(EncodedLine: String);

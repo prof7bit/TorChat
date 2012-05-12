@@ -44,6 +44,7 @@ type
   strict protected
     FMustSendPong: Boolean;
     FReceivedCookie: String;
+    FConnectThread: TAsyncConnectThread;
     procedure InitiateConnect; virtual;
     procedure CbNetOut(ATCPStream: TTCPStream; E: Exception); virtual;
     procedure SendPong; virtual;
@@ -51,6 +52,7 @@ type
     procedure CallFromMainThread(AMethod: TMethod); virtual;
   public
     constructor Create(AOwner: TAClient); reintroduce;
+    destructor Destroy; override;
     procedure CheckState; override;
     function AsJsonObject: TJSONObject; override;
     procedure InitFromJsonObect(AObject: TJSONObject); override;
@@ -73,21 +75,20 @@ implementation
 procedure TBuddy.InitiateConnect;
 begin
   WriteLn(ID + '.InitiateConnect()');
-  FClient.Network.ConnectAsync(self.ID + '.onion', 11009, @self.CbNetOut);
-  FStateOut := STATE_TRYING;
+  FConnectThread := FClient.Network.ConnectAsync(self.ID + '.onion', 11009, @self.CbNetOut);
 end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
 begin
   Output := FClient.StandardOut; // make writeln redirect work in this thread
-  WriteLn(ID + '.CbNetOut()');
+  FConnectThread := nil;
+  WriteLn(MilliTime, ' ' + ID + '.CbNetOut()');
   if assigned(ATCPStream) then begin
     ConnOutgoing := THiddenConnection.Create(FClient, ATCPStream);
   end
   else begin
     WriteLn(E.Message);
     FLastDisconnect := Now;
-    FStateOut := STATE_DISCONNECTED;
     ConnOutgoing := nil;
   end;
 end;
@@ -97,21 +98,30 @@ var
   GUID: TGuid;
 begin
   inherited Create(AOwner);
+  FConnectThread := nil;
   FClient := AOwner;
   FLastDisconnect := 0;
   FMustSendPong := False;
   FReceivedCookie := '';
   FStatus := TORCHAT_OFFLINE;
-  FStateOut := STATE_DISCONNECTED;
-  FStateIn := STATE_DISCONNECTED;
   CreateGUID(GUID);
   FOwnCookie := GUIDToString(GUID);
   WriteLn('created GUID for buddy ' + FOwnCookie);
 end;
 
+destructor TBuddy.Destroy;
+begin
+  if Assigned(FConnectThread) then begin
+    WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' there is an ongoing connection attempt, terminating it.');
+    FConnectThread.Terminate;
+    Sleep(50);
+  end;
+  inherited Destroy;
+end;
+
 procedure TBuddy.CheckState;
 begin
-  if FStateOut = STATE_DISCONNECTED then begin
+  if not (Assigned(ConnOutgoing) or Assigned(FConnectThread)) then begin
     if SecondsSince(FLastDisconnect) > 10 then begin
       InitiateConnect;
     end;
@@ -205,7 +215,6 @@ begin
   if ThreadID = Client.MainThread then
     AMethod()
   else begin
-    WriteLn('enqueuing method for execution in main thread');
     Msg := TMsgCallMethod.Create;
     Msg.Method := AMethod;
     Client.Enqueue(Msg);
@@ -216,7 +225,7 @@ procedure TBuddy.OnOutgoingConnection;
 var
   Msg: TMsgPing;
 begin
-  WriteLn(ID + '.OnOutgoingConnection()');
+  WriteLn('TBuddy.OnOutgoingConnection() ' + ID);
   Msg := TMsgPing.Create(self, FOwnCookie);
   Msg.Send;
 
@@ -224,36 +233,31 @@ begin
   // sent us a ping, so we can answer with pong
   if FMustSendPong then
     SendPong;
-
-  FStateOut := STATE_CONNECTED;
 end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
 begin
-  WriteLn(ID + '.OnOutgoingConnectionFail()');
+  WriteLn('TBuddy.OnOutgoingConnectionFail()' + ID);
   SetOutgoing(nil);
   if Assigned(ConnIncoming) then
     ConnIncoming.Stream.DoClose;
   FLastDisconnect := Now;
-  FStateOut := STATE_DISCONNECTED;
   Status := TORCHAT_OFFLINE;
 end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
-  Writeln(ID + '.OnIncomingConnection()');
-  FStateIn := STATE_CONNECTED;
+  Writeln('TBuddy.OnIncomingConnection()' + ID);
   Status := TORCHAT_AVAILABLE;
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
 begin
-  Writeln(ID + '.OnIncomingConnectionFail()');
+  Writeln('TBuddy.OnIncomingConnectionFail()' + ID);
   SetIncoming(nil);
   if Assigned(ConnOutgoing) then
     ConnOutgoing.Stream.DoClose;
   FLastDisconnect := Now;
-  FStateIn := STATE_DISCONNECTED;
   Status := TORCHAT_OFFLINE;
 end;
 
@@ -264,14 +268,19 @@ begin
 
   // if we are connected already we can send it
   // immediately, otherwise it will happen on connect
-  if FStateOut = STATE_CONNECTED then
+  if Assigned(ConnOutgoing) then
     SendPong;
 end;
 
 procedure TBuddy.DoDisconnect;
 begin
-  if Assigned(ConnIncoming) then ConnIncoming.Stream.DoClose;
-  if Assigned(ConnOutgoing) then ConnOutgoing.Stream.DoClose;
+  if Assigned(ConnIncoming) or Assigned(ConnOutgoing) then begin
+    WriteLn(MilliTime, ' TBuddy.DoDisconnect() ' + ID + ' begin');
+    if Assigned(ConnIncoming) then ConnIncoming.Stream.DoClose;
+    if Assigned(ConnOutgoing) then ConnOutgoing.Stream.DoClose;
+    Sleep(50);
+    WriteLn(MilliTime, ' TBuddy.DoDisconnect() ' + ID + ' end');
+  end;
 end;
 
 end.

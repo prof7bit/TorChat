@@ -34,7 +34,6 @@ implementation
 
 procedure TMsgCallMethod.Execute;
 begin
-  WriteLn('executing enqueued method call');
   Method();
 end;
 

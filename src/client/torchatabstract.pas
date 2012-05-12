@@ -45,12 +45,6 @@ type
     TORCHAT_EXTENDED_AWAY
   );
 
-  TBuddyConnectionState = (
-    STATE_DISCONNECTED,
-    STATE_TRYING,
-    STATE_CONNECTED
-  );
-
   TABuddy = class;
   TABuddyList = class;
   TAHiddenConnection = class;
@@ -107,8 +101,6 @@ type
     FFriendlyName: String;
     FStatus: TTorchatStatus;
     FLastDisconnect: TDateTime;
-    FStateOut: TBuddyConnectionState;
-    FStateIn: TBuddyConnectionState;
     FConnIncoming: TAHiddenConnection;
     FConnOutgoing: TAHiddenConnection;
   public
@@ -146,6 +138,7 @@ type
     procedure SendLine(AEncodedLine: String); virtual; abstract;
     procedure OnTCPFail; virtual; abstract; // called by the receiver
     function IsOutgoing: Boolean; virtual; abstract;
+    function DebugInfo: String; virtual; abstract;
     property Buddy: TABuddy read FBuddy write SetBuddy;
     property Client: TAClient read FClient;
     property Stream: TTCPStream read FTCPStream;

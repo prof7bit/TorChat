@@ -149,8 +149,12 @@ begin
 end;
 
 initialization
-  InstallWritelnRedirect;
+  {$ifndef NoOutputRedirect}
+    InstallWritelnRedirect;
+  {$endif}
 finalization
-  UninstallWritelnRedirect;
+  {$ifndef NoOutputRedirect}
+    UninstallWritelnRedirect;
+  {$endif}
 end.
 

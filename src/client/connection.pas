@@ -40,8 +40,7 @@ type
     procedure OnTCPFail; override;
     procedure SetBuddy(ABuddy: TABuddy); override;
     function IsOutgoing: Boolean; override;
-  strict private
-    function DebugInfo: String;
+    function DebugInfo: String; override;
   end;
 
 implementation

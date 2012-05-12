@@ -274,7 +274,6 @@ begin
     Buddy.DoDisconnect;
   end;
   LeaveCriticalsection(FCritical);
-  Sleep(50); // FIXME!
 end;
 
 function TBuddyList.Count: Integer;
@@ -289,7 +288,6 @@ constructor TTorChatClient.Create(AOwner: TComponent);
 //  C : TAHiddenConnection;
 begin
   FIsDestriying := False;
-  NetworkNoMoreErrors := False; // FIXME: (networking) fix this ugly hack
   Inherited Create(AOwner);
   FMainThread := ThreadID;
   Randomize;
@@ -315,7 +313,6 @@ var
 begin
   WriteLn(MilliTime, ' start destroying TorChatClient');
   FIsDestriying := True;
-  NetworkNoMoreErrors := True; // FIXME: (networking) fix this ugly hack
   BuddyList.DoDisconnectAll;
   EnterCriticalsection(CS);
   while FQueue.Count > 0 do begin
@@ -335,6 +332,7 @@ begin
     // no more messages during destruction, they won't be processed
     // anyways and we also don't want to generate any new timer events.
     // just free the message, throw it away.
+    WriteLn('TTorChatClient.Enqueue() not enqueuing message during shutdown');
     AMessage.Free;
   end
   else begin
