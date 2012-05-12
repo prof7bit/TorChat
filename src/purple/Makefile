@@ -12,6 +12,10 @@ FPCOPT = \
 all:
 	mkdir -p lib
 	fpc $(FPCOPT) purpletorchat.lpr
+	
+foo:
+	mkdir -p lib
+	fpc $(FPCOPT) -dNoOutputRedirect -dUseHeapTrc purpletorchat.lpr
 
 install:
 

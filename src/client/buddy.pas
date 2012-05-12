@@ -82,7 +82,7 @@ procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
 begin
   Output := FClient.StandardOut; // make writeln redirect work in this thread
   FConnectThread := nil;
-  WriteLn(MilliTime, ' ' + ID + '.CbNetOut()');
+  WriteLn(MilliTime, ' TBuddy.CbNetOut() ' + ID);
   if assigned(ATCPStream) then begin
     ConnOutgoing := THiddenConnection.Create(FClient, ATCPStream);
   end
@@ -237,7 +237,7 @@ end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
 begin
-  WriteLn('TBuddy.OnOutgoingConnectionFail()' + ID);
+  WriteLn('TBuddy.OnOutgoingConnectionFail() ' + ID);
   SetOutgoing(nil);
   if Assigned(ConnIncoming) then
     ConnIncoming.Stream.DoClose;
@@ -247,13 +247,13 @@ end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
-  Writeln('TBuddy.OnIncomingConnection()' + ID);
+  Writeln('TBuddy.OnIncomingConnection() ' + ID);
   Status := TORCHAT_AVAILABLE;
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
 begin
-  Writeln('TBuddy.OnIncomingConnectionFail()' + ID);
+  Writeln('TBuddy.OnIncomingConnectionFail() ' + ID);
   SetIncoming(nil);
   if Assigned(ConnOutgoing) then
     ConnOutgoing.Stream.DoClose;

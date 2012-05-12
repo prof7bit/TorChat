@@ -77,6 +77,7 @@ uses
   torchatabstract,
   torchatclient,
   clientconfig,
+  strings,
   miscfunc;
 
 const
@@ -193,7 +194,6 @@ var
   NewClient: TTorChatPurpleClient;
   TorchatBuddy: TABuddy;
   TorchatList: TABuddyList;
-  TorchatID : String;
   purple_id: PChar;
   purple_alias: PChar;
   purple_status: PPurpleStatus;
@@ -211,8 +211,8 @@ begin
   TorchatList := NewClient.BuddyList;
   purple_list := purple_find_buddies(acc, nil);
   while Assigned(purple_list) do begin
-    TorchatID := purple_buddy_get_name(purple_list^.data);
-    if not Assigned(TorchatList.FindBuddy(TorchatID)) then begin
+    purple_id := purple_buddy_get_name(purple_list^.data);
+    if not Assigned(TorchatList.FindBuddy(purple_id)) then begin
       purple_blist_remove_buddy(purple_list^.data);
     end;
     purple_list := g_slist_delete_link(purple_list, purple_list);
@@ -222,10 +222,12 @@ begin
   TorchatList.Lock;
   for TorchatBuddy in TorchatList.Buddies do begin
     if purple_find_buddy(acc, PChar(TorchatBuddy.ID)) = nil then begin
-      purple_id := PChar(TorchatBuddy.ID);
-      purple_alias := PChar(TorchatBuddy.FriendlyName);
+      purple_id := GetMem(TorchatBuddy.ID);
+      purple_alias := GetMem(TorchatBuddy.FriendlyName);
       purple_buddy := purple_buddy_new(acc, purple_id, purple_alias);
       purple_blist_add_buddy(purple_buddy, nil, nil, nil);
+      FreeMem(purple_id);
+      FreeMem(purple_alias);
     end;
   end;
   TorchatList.Unlock;
@@ -267,7 +269,7 @@ var
   status_id: PChar;
   buddy_id: PChar;
 begin
-  buddy_id := PChar(ABuddy.ID);
+  buddy_id := GetMem(ABuddy.ID);
   case ABuddy.Status of
     TORCHAT_AVAILABLE: status_id := ID_AVAILABLE;
     TORCHAT_AWAY: status_id := ID_AWAY;
@@ -275,6 +277,7 @@ begin
     TORCHAT_OFFLINE: status_id := ID_OFFLINE;
   end;
   purple_prpl_got_user_status(purple_account, buddy_id, status_id);
+  Freemem(buddy_id);
 end;
 
 procedure Init;

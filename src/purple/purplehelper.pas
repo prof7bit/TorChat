@@ -36,11 +36,28 @@ uses
   sysutils,
   StreamIO;
 
-{ sometimes we need to allocate a char* for which
-  libpurple will take ownership. This will allocate
+{ This will allocate memory from the FPC heap,
+  copy the sring and return the pointer. The memory
+  must be freed with FreeMem(), leaks can be traced
+  with heaptrc. }
+function GetMem(Str: String): PChar; overload;
+
+{ allocate a string that is supposed to be given
+  to and owned by libpurple. This will allocate
   memory directly from the system and not from the
-  FPC heap manager! }
-function AllocPurpleString(Str: String): PChar;
+  FPC heap manager, heaptrc will not show leaks! }
+function PurpleGetMem(Str: String): PChar;
+
+{ allocate memory that is supposed to be given to
+  and owned by libpurple. This will allocate
+  memory directly from the system and not from the
+  FPC heap manager, heaptrc will not show leaks! }
+function PurpleGetMem(Size: PtrUInt): PChar; overload;
+
+{ free the memory that was allocated by PurpleGetMem()
+  or by any other purple function and must be freed. }
+procedure PurpleFreeMem(P: Pointer);
+
 
 implementation
 
@@ -63,6 +80,47 @@ var
   OldStdOut: Text;
   WritelnRedirect: TWritelnRedirect;
 
+function GetMem(Str: String): PChar;
+var
+  L : Integer;
+begin
+  L := Length(Str);
+  if L = 0 then
+    Result := nil
+  else begin
+    Result := GetMem(L+1);
+    Move(Str[1], Result[0], L);
+    Result[L] := #0;
+  end;
+end;
+
+function PurpleGetMem(Str: String): PChar;
+var
+  L : Integer;
+begin
+  L := Length(Str);
+  if L = 0 then
+    Result := nil
+  else begin
+    // bypass the FPC heap manager and malloc() directly from the system.
+    // Of course we do this only for strings that we pass to libpurple and
+    // where libpurple promises to free it again.
+    Result := g_malloc(L+1);
+    Move(Str[1], Result[0], L);
+    Result[L] := #0;
+  end;
+end;
+
+function PurpleGetMem(Size: PtrUInt): PChar;
+begin
+  Result := g_malloc(Size);
+end;
+
+procedure PurpleFreeMem(P: Pointer);
+begin
+  g_free(P);
+end;
+
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
   case Level of
@@ -82,23 +140,6 @@ begin
   {$endif}
 end;
 
-function AllocPurpleString(Str: String): PChar;
-var
-  L : Integer;
-begin
-  L := Length(Str);
-  if L = 0 then
-    Result := nil
-  else begin
-    // bypass the FPC heap manager and malloc() directly from the system.
-    // Of course we do this only for strings that we pass to libpurple and
-    // where libpurple promises to free it again.
-    Result := g_malloc(L+1);
-    Move(Str[1], Result[0], L);
-    Result[L] := #0;
-  end;
-end;
-
 function CBWritelnRedirectSynced(Data: Pointer): gboolean; cdecl;
 var
   Msg, Lvl, Txt: String;
@@ -114,7 +155,7 @@ begin
   else
     _purple_debug(DEBUG_MISC, Msg);
   end;
-  g_free(Data);
+  PurpleFreeMem(Data);
   Result := False
 end;
 
@@ -125,7 +166,7 @@ var
   P : PChar;
 begin
   Result := Count;
-  P := g_malloc(Count+1);
+  P := PurpleGetMem(Count+1);
   Move(Buffer, P[0], Count);
   P[Count] := #0;
   purple_timeout_add(0, @CBWritelnRedirectSynced, P)
