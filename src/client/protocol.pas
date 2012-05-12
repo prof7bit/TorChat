@@ -45,7 +45,7 @@
   every new TCP connection and constitutes the beginning of
   the handshake.
 }
-unit torchatprotocol;
+unit protocol;
 
 {$mode objfpc}{$H+}
 

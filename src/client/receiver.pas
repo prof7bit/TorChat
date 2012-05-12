@@ -73,7 +73,7 @@ uses
   Classes,
   SysUtils,
   torchatabstract,
-  torchatprotocol,
+  protocol,
   miscfunc;
 
 type

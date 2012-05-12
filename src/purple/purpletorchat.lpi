@@ -239,9 +239,9 @@
         <UnitName Value="miscfunc"/>
       </Unit5>
       <Unit6>
-        <Filename Value="../client/torchatprotocol.pas"/>
+        <Filename Value="../client/protocol.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="torchatprotocol"/>
+        <UnitName Value="protocol"/>
       </Unit6>
       <Unit7>
         <Filename Value="../client/connection.pas"/>
@@ -269,14 +269,14 @@
         <UnitName Value="buddy"/>
       </Unit11>
       <Unit12>
-        <Filename Value="../client/torchatprotocol_ping.pas"/>
+        <Filename Value="../client/protocol_ping.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="torchatprotocol_ping"/>
+        <UnitName Value="protocol_ping"/>
       </Unit12>
       <Unit13>
-        <Filename Value="../client/torchatprotocol_pong.pas"/>
+        <Filename Value="../client/protocol_pong.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="torchatprotocol_pong"/>
+        <UnitName Value="protocol_pong"/>
       </Unit13>
       <Unit14>
         <Filename Value="../client/internalmessage.pas"/>

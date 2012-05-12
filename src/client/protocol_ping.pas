@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit torchatprotocol_ping;
+unit protocol_ping;
 
 {$mode objfpc}{$H+}
 
@@ -25,7 +25,7 @@ interface
 
 uses
   torchatabstract,
-  torchatprotocol;
+  protocol;
 
 type
   { TMsgPing
