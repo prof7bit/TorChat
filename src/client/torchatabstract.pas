@@ -95,8 +95,8 @@ type
 
   TABuddy = class(TComponent)
   strict protected
-    FClient: TAClient;
     FID: String;
+    FClient: TAClient;
     FOwnCookie: String;
     FFriendlyName: String;
     FStatus: TTorchatStatus;

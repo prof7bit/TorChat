@@ -40,13 +40,13 @@ uses
   copy the sring and return the pointer. The memory
   must be freed with FreeMem(), leaks can be traced
   with heaptrc. }
-function GetMem(Str: String): PChar; overload;
+function GetMemAndCopy(Str: String): PChar; overload;
 
 { allocate a string that is supposed to be given
   to and owned by libpurple. This will allocate
   memory directly from the system and not from the
   FPC heap manager, heaptrc will not show leaks! }
-function PurpleGetMem(Str: String): PChar;
+function PurpleGetMemAndCopy(Str: String): PChar;
 
 { allocate memory that is supposed to be given to
   and owned by libpurple. This will allocate
@@ -80,7 +80,7 @@ var
   OldStdOut: Text;
   WritelnRedirect: TWritelnRedirect;
 
-function GetMem(Str: String): PChar;
+function GetMemAndCopy(Str: String): PChar;
 var
   L : Integer;
 begin
@@ -94,7 +94,7 @@ begin
   end;
 end;
 
-function PurpleGetMem(Str: String): PChar;
+function PurpleGetMemAndCopy(Str: String): PChar;
 var
   L : Integer;
 begin

@@ -213,7 +213,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="17">
+    <Units Count="18">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -299,6 +299,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="buddylist"/>
       </Unit16>
+      <Unit17>
+        <Filename Value="wtf.txt"/>
+        <IsPartOfProject Value="True"/>
+      </Unit17>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

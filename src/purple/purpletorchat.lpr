@@ -77,15 +77,14 @@ uses
   torchatabstract,
   torchatclient,
   clientconfig,
-  strings,
   miscfunc;
 
 const
-  ID_OFFLINE: PChar = 'offline';
-  ID_AVAILABLE: PChar = 'available';
-  ID_AWAY: PChar = 'away';
-  ID_XA: PChar = 'xa';
-  ID_INVISIBLE: PChar = 'invisible';
+  PRPL_OFFLINE = 'offline';
+  PRPL_AVAILABLE = 'available';
+  PRPL_AWAY = 'away';
+  PRPL_XA = 'xa';
+  PRPL_INVISIBLE = 'invisible';
 
 type
   { TTorchatPurpleClient wraps the TorChat client}
@@ -149,11 +148,11 @@ begin
   // we register it), so we are registerig all of them and will deal with them
   // in the set_status callback.
   Result := nil;
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, ID_AVAILABLE, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, ID_AWAY, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, ID_XA, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, ID_INVISIBLE, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, ID_OFFLINE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, PRPL_AVAILABLE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, PRPL_AWAY, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, PRPL_XA, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, PRPL_INVISIBLE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, PRPL_OFFLINE, nil, True, True, False));
 end;
 
 procedure torchat_set_status(acc: PPurpleAccount; status: PPurpleStatus); cdecl;
@@ -222,8 +221,8 @@ begin
   TorchatList.Lock;
   for TorchatBuddy in TorchatList.Buddies do begin
     if purple_find_buddy(acc, PChar(TorchatBuddy.ID)) = nil then begin
-      purple_id := GetMem(TorchatBuddy.ID);
-      purple_alias := GetMem(TorchatBuddy.FriendlyName);
+      purple_id := GetMemAndCopy(TorchatBuddy.ID);
+      purple_alias := GetMemAndCopy(TorchatBuddy.FriendlyName);
       purple_buddy := purple_buddy_new(acc, purple_id, purple_alias);
       purple_blist_add_buddy(purple_buddy, nil, nil, nil);
       FreeMem(purple_id);
@@ -266,18 +265,17 @@ end;
 
 procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: TABuddy);
 var
-  status_id: PChar;
   buddy_id: PChar;
+  status_id: PChar;
 begin
-  buddy_id := GetMem(ABuddy.ID);
+  buddy_id := PChar(ABuddy.ID);
   case ABuddy.Status of
-    TORCHAT_AVAILABLE: status_id := ID_AVAILABLE;
-    TORCHAT_AWAY: status_id := ID_AWAY;
-    TORCHAT_EXTENDED_AWAY: status_id := ID_XA;
-    TORCHAT_OFFLINE: status_id := ID_OFFLINE;
+    TORCHAT_AVAILABLE: status_id := PRPL_AVAILABLE;
+    TORCHAT_AWAY: status_id := PRPL_AWAY;
+    TORCHAT_EXTENDED_AWAY: status_id := PRPL_XA;
+    TORCHAT_OFFLINE: status_id := PRPL_OFFLINE;
   end;
   purple_prpl_got_user_status(purple_account, buddy_id, status_id);
-  Freemem(buddy_id);
 end;
 
 procedure Init;
@@ -329,7 +327,7 @@ begin
   {$endif}
 
   {$ifdef NoOutputRedirect}
-    WriteLn('w plugin has been compiled with -dNoOutputRedirect. This will crash on windows.');
+    WriteLn('W plugin has been compiled with -dNoOutputRedirect. This will crash on windows.');
   {$endif}
 end;
 
