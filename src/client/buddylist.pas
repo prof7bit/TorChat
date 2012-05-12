@@ -174,6 +174,7 @@ begin
     end;
   end;
   LeaveCriticalsection(FCritical);
+  {$warning TODO: must notify GUI}
 end;
 
 procedure TBuddyList.AddBuddy(ABuddy: TABuddy);
@@ -185,6 +186,7 @@ begin
   SetLength(FList, P+1);
   FList[P] := ABuddy;
   LeaveCriticalsection(FCritical);
+  {$warning TODO: must notify GUI}
 end;
 
 function TBuddyList.FindBuddy(AID: String): TABuddy;
