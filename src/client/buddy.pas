@@ -165,7 +165,7 @@ begin
     end
     else begin
       CallFromMainThread(@OnIncomingConnectionFail);
-      if Assigned(ConnOutgoing) then ConnOutgoing.Stream.DoClose;
+      if Assigned(ConnOutgoing) then ConnOutgoing.DoClose;
     end;
   end;
 end;
@@ -180,7 +180,7 @@ begin
     end
     else begin
       CallFromMainThread(@OnOutgoingConnectionFail);
-      if Assigned(ConnIncoming) then ConnIncoming.Stream.DoClose;
+      if Assigned(ConnIncoming) then ConnIncoming.DoClose;
     end;
   end;
 end;
