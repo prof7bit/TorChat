@@ -325,7 +325,7 @@ var
   SockAddr  : TInetSockAddr;
   SockAddrx : TInetSockAddr;
   AddrLen   : PtrInt;
-  Incoming  : THandle;
+  Incoming  : PtrInt;
 begin
   Output := FStdOut;
   TrueValue := 1;
