@@ -148,6 +148,7 @@
             </CompilerMessages>
             <CustomOptions Value="-d_DebugToConsole 
 -d_UseHeapTrc
+-dNoOutputRedirect
 -Xm"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
