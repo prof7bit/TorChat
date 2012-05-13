@@ -169,7 +169,7 @@ begin
   Move(Buffer, Msg[1], Count);
   Msg := Trim(Msg);
   if ThreadID <> PurpleThread then begin
-    Msg := Format('%s (msg from thread %p)', [Msg, Pointer(ThreadID)]);
+    Msg := Format('%s (msg from thread %x)', [Msg, ThreadID]);
     purple_timeout_add(0, @CBDebugToPurple, PurpleGetMemAndCopy(Msg));
   end
   else begin

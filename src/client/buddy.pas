@@ -74,16 +74,16 @@ implementation
 
 procedure TBuddy.InitiateConnect;
 begin
-  WriteLn(ID + '.InitiateConnect()');
+  WriteLn('TBuddy.InitiateConnect() ' + ID);
   FConnectThread := FClient.Network.ConnectAsync(self.ID + '.onion', 11009, @self.CbNetOut);
 end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
 begin
-  FConnectThread := nil;
   WriteLn(MilliTime, ' TBuddy.CbNetOut() ' + ID);
+  FConnectThread := nil;
   if assigned(ATCPStream) then begin
-    ConnOutgoing := THiddenConnection.Create(FClient, ATCPStream);
+    ConnOutgoing := THiddenConnection.Create(FClient, ATCPStream, Self);
   end
   else begin
     WriteLn(E.Message);
@@ -105,7 +105,7 @@ begin
   FStatus := TORCHAT_OFFLINE;
   CreateGUID(GUID);
   FOwnCookie := GUIDToString(GUID);
-  WriteLn('created GUID for buddy ' + FOwnCookie);
+  WriteLn('TBuddy.Create() created random cookie: ' + FOwnCookie);
 end;
 
 destructor TBuddy.Destroy;
@@ -146,8 +146,7 @@ begin
   try
     // nothing yet
   except
-    // ignore from here on (this all followig fields) because it
-    // was created by an older TorChat. Fields have resonable defaults.
+    // ignore from here on
   end;
 end;
 

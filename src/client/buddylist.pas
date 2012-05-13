@@ -63,7 +63,7 @@ var
 begin
   FOwnID := AID;
   if FindBuddy(AID) = nil then begin
-    writeln('adding "myself"-buddy ' + AID + ' to the list');
+    writeln('TBuddyList.SetOwnID() adding "myself"-buddy ' + AID);
     Buddy := TBuddy.Create(FClient);
     Buddy.InitID(AID);
     Buddy.FriendlyName := 'myself';
@@ -102,7 +102,7 @@ var
   Buddy: TABuddy;
 begin
   try
-    writeln('trying to load saved buddy list');
+    writeln('TBuddyList.Load()');
     FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmOpenRead);
     JParser :=TJSONParser.Create(FS);
     JList := JParser.Parse as TJSONArray;
@@ -113,16 +113,16 @@ begin
         Buddy := TBuddy.Create(FClient);
         Buddy.InitFromJsonObect(JList.Objects[I]); // this may raise exception
         AddBuddy(Buddy);
-        writeln('buddy ' + Buddy.ID + ' loaded');
+        writeln('TBuddyList.Load() ' + Buddy.ID + ' loaded');
       except
         FreeAndNil(Buddy);
-        writeln('E error while parsing buddy from saved list');
+        writeln('E TBuddyList.Load() error while parsing buddy');
       end;
     end;
     LeaveCriticalsection(FCritical);
   except
     on E: Exception do begin
-      WriteLn('(1) could not load buddy list: ' + E.Message);
+      WriteLn('W TBuddyList.Load() could not load: ' + E.Message);
     end;
   end;
   if assigned(JList) then FreeAndNil(JList);
@@ -138,7 +138,7 @@ var
   JData: String;
   FS: TFileStream = nil;
 begin
-  writeln('saving buddy list');
+  writeln('TBuddyList.Save()');
   JArr := TJSONArray.Create;
   EnterCriticalsection(FCritical);
   for Buddy in FList do begin
@@ -152,7 +152,7 @@ begin
     FS.Write(JData[1], Length(JData));
   except
     on E: Exception do begin
-      writeln('E could not save buddy list: ' + E.Message);
+      writeln('E TBuddyList.Save() could not save: ' + E.Message);
     end;
   end;
   if assigned(FS) then FreeAndNil(FS);

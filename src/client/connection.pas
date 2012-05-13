@@ -34,7 +34,7 @@ type
 
   { THiddenConnection }
   THiddenConnection = class(TAHiddenConnection)
-    constructor Create(AClient: TAClient; AStream: TTCPStream);
+    constructor Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
     procedure Send(AData: String); override;
     procedure SendLine(AEncodedLine: String); override;
     procedure OnTCPFail; override;
@@ -47,13 +47,13 @@ implementation
 
 { THiddenConnection }
 
-constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream);
+constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
 begin
   FTCPStream := AStream;
   FClient := AClient;
-  FBuddy := nil; // will be set later when connection is assigned to a buddy
+  FBuddy := ABuddy;
   FReceiver := TReceiver.Create(Self); // this will have FreeOnTerminate=True
-  WriteLn('created connection' + DebugInfo);
+  WriteLn('THiddenConnection.Create() ' + DebugInfo);
   // This object will free all its stuff in OnTCPFail().
   // Never call Connection.Free() directly. There is only one way
   // to get rid of a THiddenConnection object: call the method
@@ -92,7 +92,13 @@ end;
 
 function THiddenConnection.IsOutgoing: Boolean;
 begin
-  Result := Assigned(FBuddy) and (FBuddy.ConnOutgoing = self);
+  if not Assigned(FBuddy) then
+    Exit(False);
+  if FBuddy.ConnOutgoing = self then
+    Exit(True);
+  if (FBuddy.ConnIncoming = nil) and (FBuddy.ConnOutgoing = nil) then
+    Exit(True);
+  Result := False;
 end;
 
 function THiddenConnection.DebugInfo: String;

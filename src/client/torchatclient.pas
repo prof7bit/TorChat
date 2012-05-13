@@ -146,7 +146,7 @@ end;
 
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
 begin
-  writeln('setting own status to ', AStatus);
+  writeln('TTorChatClient.SetStatus(', AStatus, ')');
 end;
 
 procedure TTorChatClient.CbNetIn(AStream: TTCPStream; E: Exception);
@@ -154,7 +154,7 @@ var
   C : THiddenConnection;
 begin
   writeln('TTorChatClient.CbNetIn()');
-  C := THiddenConnection.Create(self, AStream);
+  C := THiddenConnection.Create(self, AStream, nil);
   Ignore(C);
   Ignore(E);
 end;
@@ -186,10 +186,12 @@ begin
     if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
       HSName := ConfGetHiddenServiceName;
       if HSName <> '' then begin
-        writeln('found own name: ' + HSName);
+        writeln('TTorChatClient.CheckHiddenServiceName() found: ' + HSName);
         BuddyList.OwnID := HSName;
         FHSNameOK := True;
-      end;
+      end
+      else
+        writeln('TTorChatClient.CheckHiddenServiceName() not found');
     end;
   end;
 end;
