@@ -49,12 +49,13 @@ type
     nothing else to do it will just return.}
   TTorChatClient = class(TAClient)
   strict protected
-    FIsDestriying: Boolean;
+    FIsDestroying: Boolean;
     FTor: TTor;
     FQueue: TObjectQueue;
     CS: TRTLCriticalSection;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
+    FConnInList: TFPObjectList;
     procedure CbNetIn(AStream: TTCPStream; E: Exception);
     procedure PopNextMessage;
     procedure CheckHiddenServiceName;
@@ -64,6 +65,8 @@ type
     procedure Enqueue(AMessage: TAMessage); override;
     procedure ProcessMessages; override;
     procedure SetStatus(AStatus: TTorchatStatus); override;
+    procedure RegisterConnection(AConn: TAHiddenConnection); override;
+    procedure UnregisterConnection(AConn: TAHiddenConnection); override;
   end;
 
 
@@ -80,13 +83,14 @@ constructor TTorChatClient.Create(AOwner: TComponent);
 //var
 //  C : TAHiddenConnection;
 begin
-  FIsDestriying := False;
+  FIsDestroying := False;
   Inherited Create(AOwner);
   FMainThread := ThreadID;
   Randomize;
   InitCriticalSection(CS);
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
+  FConnInList := TFPObjectList.Create(False);
   FQueue := TObjectQueue.Create;
   FTor := TTor.Create(self);
   FNetwork := TSocketWrapper.Create(Self);
@@ -104,7 +108,7 @@ var
   Msg: TAMessage;
 begin
   WriteLn(MilliTime, ' start destroying TorChatClient');
-  FIsDestriying := True;
+  FIsDestroying := True;
   BuddyList.DoDisconnectAll;
   EnterCriticalsection(CS);
   while FQueue.Count > 0 do begin
@@ -112,6 +116,7 @@ begin
     Msg.Free;
   end;
   FQueue.Free;
+  FConnInList.Free;
   LeaveCriticalsection(CS);
   DoneCriticalsection(CS);
   WriteLn(MilliTime, ' start destroying child components');
@@ -120,7 +125,7 @@ end;
 
 procedure TTorChatClient.Enqueue(AMessage: TAMessage);
 begin
-  if FIsDestriying then begin
+  if FIsDestroying then begin
     // no more messages during destruction, they won't be processed
     // anyways and we also don't want to generate any new timer events.
     // just free the message, throw it away.
@@ -137,7 +142,7 @@ end;
 
 procedure TTorChatClient.ProcessMessages;
 begin
-  if FIsDestriying then exit;
+  if FIsDestroying then exit;
   if FTimeStarted = 0 then FTimeStarted := Now;
   CheckHiddenServiceName;
   PopNextMessage;
@@ -149,13 +154,32 @@ begin
   writeln('TTorChatClient.SetStatus(', AStatus, ')');
 end;
 
+procedure TTorChatClient.RegisterConnection(AConn: TAHiddenConnection);
+begin
+  FConnInList.Add(AConn);
+  WriteLn(_F(
+    'TTorChatClient.RegisterConnection() have now %d incoming connections',
+    [FConnInList.Count]));
+end;
+
+procedure TTorChatClient.UnregisterConnection(AConn: TAHiddenConnection);
+begin
+  // only incoming connections are in this list
+  if FConnInList.IndexOf(AConn) <> -1 then begin
+    FConnInList.Remove(AConn);
+    WriteLn(_F(
+      'TTorChatClient.UnregisterConnection() removed %s, %d incoming connections left',
+      [AConn.DebugInfo, FConnInList.Count]));
+  end;
+end;
+
 procedure TTorChatClient.CbNetIn(AStream: TTCPStream; E: Exception);
 var
   C : THiddenConnection;
 begin
   writeln('TTorChatClient.CbNetIn()');
   C := THiddenConnection.Create(self, AStream, nil);
-  Ignore(C);
+  RegisterConnection(C);
   Ignore(E);
 end;
 

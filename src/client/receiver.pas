@@ -100,6 +100,7 @@ implementation
 
 constructor TReceiver.Create(AConn: TAHiddenConnection);
 begin
+  FStdOut := Output;
   FConnection := AConn;
   FClient := AConn.Client; // the torchat client object
   FIncompleteMessage := '';
@@ -143,7 +144,7 @@ begin
   FConnection.Stream.DoClose; // might have happened already but does not hurt
   FConnection.OnTCPFail;      // this will free the stream and the connection
   // the TReceiver will free itself now (FreeOnTerminate)
-  WriteLn(MilliTime, ' TReceiver.Execute() stream is free, conection is free, receiver thread will end now');
+  WriteLn(MilliTime, ' TReceiver.Execute() stream is free, connection is free, receiver thread will end now');
 end;
 
 procedure TReceiver.OnReceivedLine(EncodedLine: String);

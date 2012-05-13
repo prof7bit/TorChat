@@ -45,6 +45,9 @@ function Split(var Line: String; Sep: Char): String;
   it does absolutely nothing and will therefore be optimized away completely. }
 function Ignore(P: Pointer): Pointer; Inline;
 
+{ works like Format() but will catch exceptions at runtime }
+function _F(S: String; Args: array of const): String;
+
 function MilliTime: QWord;
 
 implementation
@@ -70,6 +73,15 @@ end;
 function Ignore(P: Pointer): Pointer; inline;
 begin
   Result := P;
+end;
+
+function _F(S: String; Args: array of const): String;
+begin
+  try
+    Result := Format(S, Args);
+  except
+    Result := 'E Eror while formatting: "' + S + '"';
+  end;
 end;
 
 function MilliTime: QWord;

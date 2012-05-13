@@ -65,6 +65,8 @@ type
     procedure OnBuddyAdded(ABuddy: TABuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: TABuddy); virtual; abstract;
     procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
+    procedure RegisterConnection(AConn: TAHiddenConnection); virtual; abstract;
+    procedure UnregisterConnection(AConn: TAHiddenConnection); virtual; abstract;
     property MainThread: TThreadID read FMainThread;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;

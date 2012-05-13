@@ -55,7 +55,7 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole 
+            <CustomOptions Value="-d_DebugToConsole 
 -dUseHeapTrc
 -dNoOutputRedirect"/>
             <CompilerPath Value="$(CompPath)"/>

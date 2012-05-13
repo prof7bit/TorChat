@@ -35,6 +35,7 @@ type
   { THiddenConnection }
   THiddenConnection = class(TAHiddenConnection)
     constructor Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
+    destructor Destroy; override;
     procedure Send(AData: String); override;
     procedure SendLine(AEncodedLine: String); override;
     procedure OnTCPFail; override;
@@ -60,6 +61,12 @@ begin
   // Connection.Stream.DoClose(); This will trigger the same events
   // that also happen when the TCP connection fails: It will call the
   // buddie's OnXxxxFail method and then free itself automatically.
+end;
+
+destructor THiddenConnection.Destroy;
+begin
+  Client.UnregisterConnection(self);
+  inherited Destroy;
 end;
 
 procedure THiddenConnection.Send(AData: String);
