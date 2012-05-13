@@ -65,6 +65,7 @@ type
     procedure Execute; override;
     procedure Terminate;
   strict protected
+    FStdOut           : Text;
     FPort             : DWord;
     FSocket           : THandle;
     FCallback         : PConnectionCallback;
@@ -101,6 +102,7 @@ type
     { terminate the connect attempt }
     procedure Terminate;
   strict protected
+    FStdOut: Text;
     FSocket: THandle;
     FSocketWrapper: TSocketWrapper;
     FCallback: PConnectionCallback;
@@ -175,6 +177,7 @@ end;
 constructor TAsyncConnectThread.Create(ASocketWrapper: TSocketWrapper; AServer: String;
   APort: DWord; ACallback: PConnectionCallback);
 begin
+  FStdOut := Output;
   FSocketWrapper := ASocketWrapper;
   FCallback := ACallback;
   FServer := AServer;
@@ -187,6 +190,7 @@ procedure TAsyncConnectThread.Execute;
 var
   C : TTCPStream;
 begin
+  Output := FStdOut;
   try
     C := FSocketWrapper.Connect(FServer, FPort, FSocket);
     FCallback(C, nil);
@@ -291,6 +295,7 @@ constructor TListenerThread.Create(APort: DWord; ACallback: PConnectionCallback)
 begin
   FPort := APort;
   FCallback := ACallback;
+  FStdOut := Output;
   Inherited Create(false);
 end;
 
@@ -302,6 +307,7 @@ var
   AddrLen   : PtrInt;
   Incoming  : THandle;
 begin
+  Output := FStdOut;
   TrueValue := 1;
   AddrLen := SizeOf(SockAddr);
 

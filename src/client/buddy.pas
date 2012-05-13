@@ -80,7 +80,6 @@ end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
 begin
-  Output := FClient.StandardOut; // make writeln redirect work in this thread
   FConnectThread := nil;
   WriteLn(MilliTime, ' TBuddy.CbNetOut() ' + ID);
   if assigned(ATCPStream) then begin

@@ -88,6 +88,7 @@ type
     destructor Destroy; override;
     procedure Execute; override;
   strict private
+    FStdOut: Text;
     FIncompleteMessage: String;
     procedure OnReceivedLine(EncodedLine: String);
   end;
@@ -117,8 +118,8 @@ var
   R : String;
   M : String;
 begin
-  Output := FClient.StandardOut; // make writeln redirect work in this thread
   FreeOnTerminate := True;
+  Output := FStdOut;
   repeat
     N := FConnection.Stream.Read(B, 1024);
     if N > 0 then begin

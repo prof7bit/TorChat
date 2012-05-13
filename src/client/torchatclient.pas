@@ -84,7 +84,6 @@ begin
   Inherited Create(AOwner);
   FMainThread := ThreadID;
   Randomize;
-  self.FStandardOut := Output;
   InitCriticalSection(CS);
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
@@ -154,7 +153,6 @@ procedure TTorChatClient.CbNetIn(AStream: TTCPStream; E: Exception);
 var
   C : THiddenConnection;
 begin
-  Output := self.StandardOut; // make writeln redirect work in this thread
   writeln('TTorChatClient.CbNetIn()');
   C := THiddenConnection.Create(self, AStream);
   Ignore(C);

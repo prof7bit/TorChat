@@ -79,6 +79,7 @@ type
 var
   OldStdOut: Text;
   WritelnRedirect: TWritelnRedirect;
+  PurpleThread: TThreadID;
 
 function GetMemAndCopy(Str: String): PChar;
 var
@@ -103,8 +104,6 @@ begin
     Result := nil
   else begin
     // bypass the FPC heap manager and malloc() directly from the system.
-    // Of course we do this only for strings that we pass to libpurple and
-    // where libpurple promises to free it again.
     Result := g_malloc(L+1);
     Move(Str[1], Result[0], L);
     Result[L] := #0;
@@ -140,7 +139,7 @@ begin
   {$endif}
 end;
 
-function CBWritelnRedirectSynced(Data: Pointer): gboolean; cdecl;
+function CBDebugToPurple(Data: Pointer): gboolean; cdecl;
 var
   Msg, Lvl, Txt: String;
 begin
@@ -163,20 +162,28 @@ end;
 
 function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
 var
-  P : PChar;
+  Msg : String;
 begin
   Result := Count;
-  P := PurpleGetMem(Count+1);
-  Move(Buffer, P[0], Count);
-  P[Count] := #0;
-  purple_timeout_add(0, @CBWritelnRedirectSynced, P)
+  SetLength(Msg, Count);
+  Move(Buffer, Msg[1], Count);
+  Msg := Trim(Msg);
+  if ThreadID <> PurpleThread then begin
+    Msg := Format('%s (msg from thread %p)', [Msg, Pointer(ThreadID)]);
+    purple_timeout_add(0, @CBDebugToPurple, PurpleGetMemAndCopy(Msg));
+  end
+  else begin
+    CBDebugToPurple(PurpleGetMemAndCopy(Msg));
+  end;
 end;
+
 
 { The TorChat units are logging their debug info with WriteLn(). It is
   the responsibility of the frontend to catch them and log them or display
   them appropriately. Here we install the redirection that will do this. }
 procedure InstallWritelnRedirect;
 begin
+  PurpleThread := ThreadID;
   OldStdOut := Output;
   WritelnRedirect := TWritelnRedirect.Create();
   AssignStream(Output, WritelnRedirect);

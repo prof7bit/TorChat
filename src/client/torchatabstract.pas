@@ -56,7 +56,6 @@ type
   TAClient = class(TComponent)
   strict protected
     FMainThread: TThreadID;
-    FStandardOut: text;
     FBuddyList: TABuddyList;
     FNetwork: TSocketWrapper;
   public
@@ -67,7 +66,6 @@ type
     procedure OnBuddyRemoved(ABuddy: TABuddy); virtual; abstract;
     procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
     property MainThread: TThreadID read FMainThread;
-    property StandardOut: Text read FStandardOut;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;
     property Network: TSocketWrapper read FNetwork;

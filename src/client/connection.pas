@@ -53,9 +53,9 @@ begin
   FClient := AClient;
   FBuddy := nil; // will be set later when connection is assigned to a buddy
   FReceiver := TReceiver.Create(Self); // this will have FreeOnTerminate=True
-  WriteLn('created connection');
+  WriteLn('created connection' + DebugInfo);
   // This object will free all its stuff in OnTCPFail().
-  // Never call Connection.Free() directly. There is only one method
+  // Never call Connection.Free() directly. There is only one way
   // to get rid of a THiddenConnection object: call the method
   // Connection.Stream.DoClose(); This will trigger the same events
   // that also happen when the TCP connection fails: It will call the
