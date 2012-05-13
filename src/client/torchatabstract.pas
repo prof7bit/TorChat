@@ -42,7 +42,7 @@ type
     TORCHAT_CONNECTING,
     TORCHAT_AVAILABLE,
     TORCHAT_AWAY,
-    TORCHAT_EXTENDED_AWAY
+    TORCHAT_XA
   );
 
   TABuddy = class;

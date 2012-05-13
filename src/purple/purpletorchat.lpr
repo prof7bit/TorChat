@@ -80,11 +80,11 @@ uses
   miscfunc;
 
 const
-  PRPL_OFFLINE = 'offline';
-  PRPL_AVAILABLE = 'available';
-  PRPL_AWAY = 'away';
-  PRPL_XA = 'xa';
-  PRPL_INVISIBLE = 'invisible';
+  PRPL_ID_OFFLINE = 'offline';
+  PRPL_ID_AVAILABLE = 'available';
+  PRPL_ID_AWAY = 'away';
+  PRPL_ID_XA = 'xa';
+  PRPL_ID_INVISIBLE = 'invisible';
 
 type
   { TTorchatPurpleClient wraps the TorChat client}
@@ -150,11 +150,11 @@ begin
   // we register it), so we are registerig all of them and will deal with them
   // in the set_status callback.
   Result := nil;
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, PRPL_AVAILABLE, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, PRPL_AWAY, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, PRPL_XA, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, PRPL_INVISIBLE, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, PRPL_OFFLINE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, PRPL_ID_XA, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, PRPL_ID_INVISIBLE, nil, True, True, False));
+  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, nil, True, True, False));
 end;
 
 procedure torchat_set_status(acc: PPurpleAccount; status: PPurpleStatus); cdecl;
@@ -165,9 +165,9 @@ begin
   status_prim := purple_status_type_get_primitive(purple_status_get_type(status));
   case status_prim of
     PURPLE_STATUS_AVAILABLE: TorchatStatus := TORCHAT_AVAILABLE;
-    PURPLE_STATUS_UNAVAILABLE: TorchatStatus := TORCHAT_EXTENDED_AWAY;
+    PURPLE_STATUS_UNAVAILABLE: TorchatStatus := TORCHAT_XA;
     PURPLE_STATUS_AWAY: TorchatStatus := TORCHAT_AWAY;
-    PURPLE_STATUS_EXTENDED_AWAY: TorchatStatus := TORCHAT_EXTENDED_AWAY;
+    PURPLE_STATUS_EXTENDED_AWAY: TorchatStatus := TORCHAT_XA;
     PURPLE_STATUS_INVISIBLE: TorchatStatus := TORCHAT_OFFLINE;
   end;
   TorChatClients.Get(acc).SetStatus(TorchatStatus);
@@ -267,27 +267,48 @@ end;
 
 procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: TABuddy);
 var
-  buddy_id: PChar;
+  buddy_name: PChar;
   status_id: PChar;
 begin
-  buddy_id := PChar(ABuddy.ID);
+  buddy_name := GetMemAndCopy(ABuddy.ID);
   case ABuddy.Status of
-    TORCHAT_AVAILABLE: status_id := PRPL_AVAILABLE;
-    TORCHAT_AWAY: status_id := PRPL_AWAY;
-    TORCHAT_EXTENDED_AWAY: status_id := PRPL_XA;
-    TORCHAT_OFFLINE: status_id := PRPL_OFFLINE;
+    TORCHAT_AVAILABLE: status_id := GetMemAndCopy(PRPL_ID_AVAILABLE);
+    TORCHAT_AWAY: status_id := GetMemAndCopy(PRPL_ID_AWAY);
+    TORCHAT_XA: status_id := GetMemAndCopy(PRPL_ID_XA);
+    TORCHAT_OFFLINE: status_id := GetMemAndCopy(PRPL_ID_OFFLINE);
   end;
-  purple_prpl_got_user_status(purple_account, buddy_id, status_id);
+  purple_prpl_got_user_status(purple_account, buddy_name, status_id);
+  FreeMem(status_id);
+  FreeMem(buddy_name);
 end;
 
 procedure TTorChatPurpleClient.OnBuddyAdded(ABuddy: TABuddy);
+var
+  buddy_name: PChar;
+  buddy_alias: PChar;
+  purple_buddy: PPurpleBuddy;
 begin
-
+  buddy_name := GetMemAndCopy(ABuddy.ID);
+  buddy_alias := GetMemAndCopy(ABuddy.FriendlyName);
+  if not assigned(purple_find_buddy(purple_account, buddy_name)) then begin
+    purple_buddy := purple_buddy_new(purple_account, buddy_name, buddy_alias);
+    purple_blist_add_buddy(purple_buddy, nil, nil, nil);
+  end;
+  FreeMem(buddy_alias);
+  FreeMem(buddy_name);
 end;
 
 procedure TTorChatPurpleClient.OnBuddyRemoved(ABuddy: TABuddy);
+var
+  buddy_name: PChar;
+  purple_buddy: PPurpleBuddy;
 begin
-
+  buddy_name := GetMemAndCopy(ABuddy.ID);
+  purple_buddy := purple_find_buddy(purple_account, buddy_name);
+  if Assigned(purple_buddy) then begin
+    purple_blist_remove_buddy(purple_buddy);
+  end;
+  FreeMem(buddy_name);
 end;
 
 procedure Init;
