@@ -94,6 +94,8 @@ type
     purple_timer: Integer;
     procedure OnNotifyGui; override;
     procedure OnBuddyStatusChange(ABuddy: TABuddy); override;
+    procedure OnBuddyAdded(ABuddy: TABuddy); override;
+    procedure OnBuddyRemoved(ABuddy: TABuddy); override;
   end;
 
   { TTorChatClients holds a list of clients since we can have
@@ -276,6 +278,16 @@ begin
     TORCHAT_OFFLINE: status_id := PRPL_OFFLINE;
   end;
   purple_prpl_got_user_status(purple_account, buddy_id, status_id);
+end;
+
+procedure TTorChatPurpleClient.OnBuddyAdded(ABuddy: TABuddy);
+begin
+
+end;
+
+procedure TTorChatPurpleClient.OnBuddyRemoved(ABuddy: TABuddy);
+begin
+
 end;
 
 procedure Init;

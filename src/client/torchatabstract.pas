@@ -60,12 +60,14 @@ type
     FBuddyList: TABuddyList;
     FNetwork: TSocketWrapper;
   public
-    property MainThread: TThreadID read FMainThread;
-    property StandardOut: Text read FStandardOut;
     procedure ProcessMessages; virtual; abstract;
-    procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
     procedure OnNotifyGui; virtual; abstract;
     procedure OnBuddyStatusChange(ABuddy: TABuddy); virtual; abstract;
+    procedure OnBuddyAdded(ABuddy: TABuddy); virtual; abstract;
+    procedure OnBuddyRemoved(ABuddy: TABuddy); virtual; abstract;
+    procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
+    property MainThread: TThreadID read FMainThread;
+    property StandardOut: Text read FStandardOut;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
     property BuddyList: TABuddyList read FBuddyList;
     property Network: TSocketWrapper read FNetwork;
