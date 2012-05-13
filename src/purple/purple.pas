@@ -412,9 +412,6 @@ implementation
   from within a unit directly). }
 function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
 begin
-  {$ifdef DebugToConsole}
-  writeln('W plugin has been compiled with -dDebugToConsole. Not recommended.');
-  {$endif}
   Plugin.info := @plugin_info;
   Result := purple_plugin_register(Plugin);
 end;

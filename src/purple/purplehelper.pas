@@ -188,6 +188,9 @@ begin
   WritelnRedirect := TWritelnRedirect.Create();
   AssignStream(Output, WritelnRedirect);
   Rewrite(Output);
+  {$ifdef DebugToConsole}
+  writeln('W plugin has been compiled with -dDebugToConsole. Not recommended.');
+  {$endif}
 end;
 
 procedure UninstallWritelnRedirect;
