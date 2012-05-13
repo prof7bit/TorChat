@@ -139,6 +139,7 @@ type
     procedure Send(AData: String); virtual; abstract;
     procedure SendLine(AEncodedLine: String); virtual; abstract;
     procedure OnTCPFail; virtual; abstract; // called by the receiver
+    procedure DoClose; virtual; abstract;
     function IsOutgoing: Boolean; virtual; abstract;
     function DebugInfo: String; virtual; abstract;
     property Buddy: TABuddy read FBuddy write SetBuddy;

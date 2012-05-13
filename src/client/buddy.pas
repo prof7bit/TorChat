@@ -113,7 +113,7 @@ begin
   if Assigned(FConnectThread) then begin
     WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' there is an ongoing connection attempt, terminating it.');
     FConnectThread.Terminate;
-    Sleep(50);
+    WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' connection attempt terminated.');
   end;
   inherited Destroy;
 end;
@@ -165,6 +165,7 @@ begin
     end
     else begin
       CallFromMainThread(@OnIncomingConnectionFail);
+      if Assigned(ConnOutgoing) then ConnOutgoing.Stream.DoClose;
     end;
   end;
 end;
@@ -179,6 +180,7 @@ begin
     end
     else begin
       CallFromMainThread(@OnOutgoingConnectionFail);
+      if Assigned(ConnIncoming) then ConnIncoming.Stream.DoClose;
     end;
   end;
 end;
@@ -236,9 +238,6 @@ end;
 procedure TBuddy.OnOutgoingConnectionFail;
 begin
   WriteLn('TBuddy.OnOutgoingConnectionFail() ' + ID);
-  SetOutgoing(nil);
-  if Assigned(ConnIncoming) then
-    ConnIncoming.Stream.DoClose;
   FLastDisconnect := Now;
   Status := TORCHAT_OFFLINE;
 end;
@@ -252,9 +251,6 @@ end;
 procedure TBuddy.OnIncomingConnectionFail;
 begin
   Writeln('TBuddy.OnIncomingConnectionFail() ' + ID);
-  SetIncoming(nil);
-  if Assigned(ConnOutgoing) then
-    ConnOutgoing.Stream.DoClose;
   FLastDisconnect := Now;
   Status := TORCHAT_OFFLINE;
 end;
@@ -274,9 +270,8 @@ procedure TBuddy.DoDisconnect;
 begin
   if Assigned(ConnIncoming) or Assigned(ConnOutgoing) then begin
     WriteLn(MilliTime, ' TBuddy.DoDisconnect() ' + ID + ' begin');
-    if Assigned(ConnIncoming) then ConnIncoming.Stream.DoClose;
-    if Assigned(ConnOutgoing) then ConnOutgoing.Stream.DoClose;
-    Sleep(50);
+    if Assigned(ConnIncoming) then ConnIncoming.DoClose;
+    if Assigned(ConnOutgoing) then ConnOutgoing.DoClose;
     WriteLn(MilliTime, ' TBuddy.DoDisconnect() ' + ID + ' end');
   end;
 end;

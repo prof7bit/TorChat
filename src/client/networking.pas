@@ -62,10 +62,12 @@ type
   { TListenerThread }
   TListenerThread = class(TThread)
     constructor Create(APort: DWord; ACallback: PConnectionCallback); reintroduce;
+    destructor Destroy; override;
     procedure Execute; override;
     procedure Terminate;
   strict protected
     FStdOut           : Text;
+    FEvtClose         : PRTLEvent;
     FPort             : DWord;
     FSocket           : THandle;
     FCallback         : PConnectionCallback;
@@ -98,11 +100,13 @@ type
   TAsyncConnectThread = class(TThread)
     constructor Create(ASocketWrapper: TSocketWrapper; AServer: String;
       APort: DWord; ACallback: PConnectionCallback);
+    destructor Destroy; override;
     procedure Execute; override;
     { terminate the connect attempt }
     procedure Terminate;
   strict protected
     FStdOut: Text;
+    FEvtTerminate: PRTLEvent;
     FSocket: THandle;
     FSocketWrapper: TSocketWrapper;
     FCallback: PConnectionCallback;
@@ -178,12 +182,19 @@ constructor TAsyncConnectThread.Create(ASocketWrapper: TSocketWrapper; AServer: 
   APort: DWord; ACallback: PConnectionCallback);
 begin
   FStdOut := Output;
+  FEvtTerminate := RTLEventCreate;
   FSocketWrapper := ASocketWrapper;
   FCallback := ACallback;
   FServer := AServer;
   FPort := APort;
   FreeOnTerminate := True;
   Inherited Create(False);
+end;
+
+destructor TAsyncConnectThread.Destroy;
+begin
+  RTLeventdestroy(FEvtTerminate);
+  inherited Destroy;
 end;
 
 procedure TAsyncConnectThread.Execute;
@@ -199,11 +210,13 @@ begin
       FCallback(nil, E);
     end;
   end;
+  RTLeventSetEvent(FEvtTerminate);
 end;
 
 procedure TAsyncConnectThread.Terminate;
 begin
   CloseHandle(FSocket);
+  RTLeventWaitFor(FEvtTerminate);
   inherited Terminate;
 end;
 
@@ -293,10 +306,17 @@ end;
 
 constructor TListenerThread.Create(APort: DWord; ACallback: PConnectionCallback);
 begin
+  FEvtClose := RTLEventCreate;
   FPort := APort;
   FCallback := ACallback;
   FStdOut := Output;
   Inherited Create(false);
+end;
+
+destructor TListenerThread.Destroy;
+begin
+  RTLeventdestroy(FEvtClose);
+  inherited Destroy;
 end;
 
 procedure TListenerThread.Execute;
@@ -329,11 +349,13 @@ begin
     else
       break;
   until Terminated;
+  RTLeventSetEvent(FEvtClose);
 end;
 
 procedure TListenerThread.Terminate;
 begin
   CloseHandle(FSocket);
+  RTLeventWaitFor(FEvtClose);
   inherited Terminate;
 end;
 

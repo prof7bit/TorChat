@@ -34,11 +34,15 @@ type
 
   { THiddenConnection }
   THiddenConnection = class(TAHiddenConnection)
+  strict protected
+    FEvtClose: PRTLEvent;
+  public
     constructor Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
     destructor Destroy; override;
     procedure Send(AData: String); override;
     procedure SendLine(AEncodedLine: String); override;
     procedure OnTCPFail; override;
+    procedure DoClose; override;
     procedure SetBuddy(ABuddy: TABuddy); override;
     function IsOutgoing: Boolean; override;
     function DebugInfo: String; override;
@@ -50,6 +54,7 @@ implementation
 
 constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
 begin
+  FEvtClose := RTLEventCreate;
   FTCPStream := AStream;
   FClient := AClient;
   FBuddy := ABuddy;
@@ -66,6 +71,7 @@ end;
 destructor THiddenConnection.Destroy;
 begin
   Client.UnregisterConnection(self);
+  RTLeventdestroy(FEvtClose);
   inherited Destroy;
 end;
 
@@ -89,7 +95,14 @@ begin
       FBuddy.ConnIncoming := nil;
   end;
   FTCPStream.Free;
+  RTLeventSetEvent(FEvtClose);   // <-- in DoClose() we will wait for this
   Self.Free;
+end;
+
+procedure THiddenConnection.DoClose;
+begin
+  Stream.DoClose;
+  RTLeventWaitFor(FEvtClose);   // <-- wait for OnTCPFail() to complete
 end;
 
 procedure THiddenConnection.SetBuddy(ABuddy: TABuddy);

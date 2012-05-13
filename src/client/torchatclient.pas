@@ -52,7 +52,8 @@ type
     FIsDestroying: Boolean;
     FTor: TTor;
     FQueue: TObjectQueue;
-    CS: TRTLCriticalSection;
+    FCSQueue: TRTLCriticalSection;
+    FCSConnList: TRTLCriticalSection;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
     FConnInList: TFPObjectList;
@@ -87,7 +88,8 @@ begin
   Inherited Create(AOwner);
   FMainThread := ThreadID;
   Randomize;
-  InitCriticalSection(CS);
+  InitCriticalSection(FCSQueue);
+  InitCriticalSection(FCSConnList);
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
   FConnInList := TFPObjectList.Create(False);
@@ -109,18 +111,29 @@ var
 begin
   WriteLn(MilliTime, ' start destroying TorChatClient');
   FIsDestroying := True;
+
+  // disconnect all buddies
   BuddyList.DoDisconnectAll;
-  EnterCriticalsection(CS);
+
+  // disconnect all remaining incoming connections
+  while FConnInList.Count > 0 do
+    TAHiddenConnection(FConnInList.Items[0]).DoClose;
+  FConnInList.Free;
+
+  // empty the message queue
+  EnterCriticalsection(FCSQueue);
   while FQueue.Count > 0 do begin
     Msg := FQueue.Pop as TAMessage;
     Msg.Free;
   end;
   FQueue.Free;
-  FConnInList.Free;
-  LeaveCriticalsection(CS);
-  DoneCriticalsection(CS);
+  LeaveCriticalsection(FCSQueue);
+
+  DoneCriticalsection(FCSQueue);
+  DoneCriticalsection(FCSConnList);
   WriteLn(MilliTime, ' start destroying child components');
   inherited Destroy;
+  WriteLn(MilliTime, ' done destroying child components');
 end;
 
 procedure TTorChatClient.Enqueue(AMessage: TAMessage);
@@ -133,9 +146,9 @@ begin
     AMessage.Free;
   end
   else begin
-    EnterCriticalsection(CS);
+    EnterCriticalsection(FCSQueue);
     FQueue.Push(AMessage);
-    LeaveCriticalsection(CS);
+    LeaveCriticalsection(FCSQueue);
     OnNotifyGui;
   end;
 end;
@@ -156,7 +169,9 @@ end;
 
 procedure TTorChatClient.RegisterConnection(AConn: TAHiddenConnection);
 begin
+  EnterCriticalsection(FCSConnList);
   FConnInList.Add(AConn);
+  LeaveCriticalsection(FCSConnList);
   WriteLn(_F(
     'TTorChatClient.RegisterConnection() have now %d incoming connections',
     [FConnInList.Count]));
@@ -164,13 +179,17 @@ end;
 
 procedure TTorChatClient.UnregisterConnection(AConn: TAHiddenConnection);
 begin
+  EnterCriticalsection(FCSConnList);
   // only incoming connections are in this list
   if FConnInList.IndexOf(AConn) <> -1 then begin
     FConnInList.Remove(AConn);
+    LeaveCriticalsection(FCSConnList);
     WriteLn(_F(
       'TTorChatClient.UnregisterConnection() removed %s, %d incoming connections left',
       [AConn.DebugInfo, FConnInList.Count]));
-  end;
+  end
+  else
+    LeaveCriticalsection(FCSConnList);
 end;
 
 procedure TTorChatClient.CbNetIn(AStream: TTCPStream; E: Exception);
@@ -178,9 +197,13 @@ var
   C : THiddenConnection;
 begin
   writeln('TTorChatClient.CbNetIn()');
-  C := THiddenConnection.Create(self, AStream, nil);
-  RegisterConnection(C);
   Ignore(E);
+  if FIsDestroying then
+    AStream.Free
+  else begin
+    C := THiddenConnection.Create(self, AStream, nil);
+    RegisterConnection(C);
+  end;
 end;
 
 procedure TTorChatClient.PopNextMessage;
@@ -188,9 +211,9 @@ var
   Msg: TAMessage;
 begin
   if FQueue.Count > 0 then begin
-    EnterCriticalsection(CS);
+    EnterCriticalsection(FCSQueue);
     Msg := FQueue.Pop as TAMessage;
-    LeaveCriticalsection(CS);
+    LeaveCriticalsection(FCSQueue);
     try
       Msg.Execute;
     except
