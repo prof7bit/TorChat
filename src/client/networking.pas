@@ -67,7 +67,6 @@ type
     procedure Terminate;
   strict protected
     FStdOut           : Text;
-    FEvtClose         : PRTLEvent;
     FPort             : DWord;
     FSocket           : THandle;
     FCallback         : PConnectionCallback;
@@ -106,7 +105,6 @@ type
     procedure Terminate;
   strict protected
     FStdOut: Text;
-    FEvtTerminate: PRTLEvent;
     FSocket: THandle;
     FSocketWrapper: TSocketWrapper;
     FCallback: PConnectionCallback;
@@ -182,7 +180,6 @@ constructor TAsyncConnectThread.Create(ASocketWrapper: TSocketWrapper; AServer: 
   APort: DWord; ACallback: PConnectionCallback);
 begin
   FStdOut := Output;
-  FEvtTerminate := RTLEventCreate;
   FSocketWrapper := ASocketWrapper;
   FCallback := ACallback;
   FServer := AServer;
@@ -193,7 +190,6 @@ end;
 
 destructor TAsyncConnectThread.Destroy;
 begin
-  RTLeventdestroy(FEvtTerminate);
   inherited Destroy;
 end;
 
@@ -210,13 +206,11 @@ begin
       FCallback(nil, E);
     end;
   end;
-  RTLeventSetEvent(FEvtTerminate);
 end;
 
 procedure TAsyncConnectThread.Terminate;
 begin
   CloseHandle(FSocket);
-  RTLeventWaitFor(FEvtTerminate);
   inherited Terminate;
 end;
 
@@ -306,7 +300,6 @@ end;
 
 constructor TListenerThread.Create(APort: DWord; ACallback: PConnectionCallback);
 begin
-  FEvtClose := RTLEventCreate;
   FPort := APort;
   FCallback := ACallback;
   FStdOut := Output;
@@ -315,7 +308,6 @@ end;
 
 destructor TListenerThread.Destroy;
 begin
-  RTLeventdestroy(FEvtClose);
   inherited Destroy;
 end;
 
@@ -349,13 +341,11 @@ begin
     else
       break;
   until Terminated;
-  RTLeventSetEvent(FEvtClose);
 end;
 
 procedure TListenerThread.Terminate;
 begin
   CloseHandle(FSocket);
-  RTLeventWaitFor(FEvtClose);
   inherited Terminate;
 end;
 

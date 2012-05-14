@@ -35,10 +35,10 @@ type
   { THiddenConnection }
   THiddenConnection = class(TAHiddenConnection)
   strict protected
-    FEvtClose: PRTLEvent;
+    FDebugInfoDefault: String;
+    procedure NotifyOthersAboutDeath; virtual;
   public
     constructor Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
-    destructor Destroy; override;
     procedure Send(AData: String); override;
     procedure SendLine(AEncodedLine: String); override;
     procedure OnTCPFail; override;
@@ -49,30 +49,36 @@ type
   end;
 
 implementation
+uses
+  miscfunc;
 
 { THiddenConnection }
 
+procedure THiddenConnection.NotifyOthersAboutDeath;
+begin
+  Client.UnregisterConnection(self);
+  if Assigned(FBuddy) then begin
+    if IsOutgoing then
+      FBuddy.ConnOutgoing := nil
+    else
+      FBuddy.ConnIncoming := nil;
+  end;
+end;
+
 constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
 begin
-  FEvtClose := RTLEventCreate;
   FTCPStream := AStream;
   FClient := AClient;
   FBuddy := ABuddy;
   FReceiver := TReceiver.Create(Self); // this will have FreeOnTerminate=True
+  FDebugInfoDefault := '(unknown incoming)';
   WriteLn('THiddenConnection.Create() ' + DebugInfo);
   // This object will free all its stuff in OnTCPFail().
   // Never call Connection.Free() directly. There is only one way
   // to get rid of a THiddenConnection object: call the method
-  // Connection.Stream.DoClose(); This will trigger the same events
+  // Connection.DoClose(); This will trigger the same events
   // that also happen when the TCP connection fails: It will call the
   // buddie's OnXxxxFail method and then free itself automatically.
-end;
-
-destructor THiddenConnection.Destroy;
-begin
-  Client.UnregisterConnection(self);
-  RTLeventdestroy(FEvtClose);
-  inherited Destroy;
 end;
 
 procedure THiddenConnection.Send(AData: String);
@@ -88,21 +94,34 @@ end;
 procedure THiddenConnection.OnTCPFail;
 begin
   WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo);
-  if Assigned(FBuddy) then begin
-    if IsOutgoing then
-      FBuddy.ConnOutgoing := nil
-    else
-      FBuddy.ConnIncoming := nil;
-  end;
+  NotifyOthersAboutDeath;
   FTCPStream.Free;
-  RTLeventSetEvent(FEvtClose);   // <-- in DoClose() we will wait for this
   Self.Free;
 end;
 
 procedure THiddenConnection.DoClose;
 begin
+  WriteLn(MilliTime, ' THiddenConnection.DoClose()' + DebugInfo);
+  FDebugInfoDefault := DebugInfo;
+
+  // we are here because the main thread wants to
+  // forcefully close and destroy this connection.
+  // To avoid any race conditions we will not rely
+  // on the receiver thread do the notifications
+  // eventually once it detects the TCP connection
+  // end, instead we are doing it here ourselves
+  // immeditely and only *after* this is completed
+  // we initiate the actual disconnect.
+  NotifyOthersAboutDeath;
+
+  // now we remove the reference to the buddy and
+  // initiate disconnect. Now since there are no
+  // references between buddy and connection anymore
+  // the receiver thread can't interfere with anything
+  // anymore, it will soon terminate and free itself
+  // and this object silently in the background.
+  FBuddy := nil;
   Stream.DoClose;
-  RTLeventWaitFor(FEvtClose);   // <-- wait for OnTCPFail() to complete
 end;
 
 procedure THiddenConnection.SetBuddy(ABuddy: TABuddy);
@@ -131,7 +150,7 @@ begin
       Result := Result + ' incoming)';
   end
   else
-    Result := ' (unknown incoming)';
+    Result := FDebugInfoDefault;
 end;
 
 end.

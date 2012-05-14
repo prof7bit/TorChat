@@ -163,10 +163,8 @@ begin
       AConn.Buddy := self;
       CallFromMainThread(@OnIncomingConnection);
     end
-    else begin
+    else
       CallFromMainThread(@OnIncomingConnectionFail);
-      if Assigned(ConnOutgoing) then ConnOutgoing.DoClose;
-    end;
   end;
 end;
 
@@ -178,10 +176,8 @@ begin
       AConn.Buddy := self;
       CallFromMainThread(@OnOutgoingConnection);
     end
-    else begin
+    else
       CallFromMainThread(@OnOutgoingConnectionFail);
-      if Assigned(ConnIncoming) then ConnIncoming.DoClose;
-    end;
   end;
 end;
 
@@ -239,6 +235,8 @@ procedure TBuddy.OnOutgoingConnectionFail;
 begin
   WriteLn('TBuddy.OnOutgoingConnectionFail() ' + ID);
   FLastDisconnect := Now;
+  if Assigned(ConnIncoming) then
+    ConnIncoming.DoClose;
   Status := TORCHAT_OFFLINE;
 end;
 
@@ -252,6 +250,8 @@ procedure TBuddy.OnIncomingConnectionFail;
 begin
   Writeln('TBuddy.OnIncomingConnectionFail() ' + ID);
   FLastDisconnect := Now;
+  if Assigned(ConnOutgoing) then
+    ConnOutgoing.DoClose;
   Status := TORCHAT_OFFLINE;
 end;
 
@@ -269,10 +269,8 @@ end;
 procedure TBuddy.DoDisconnect;
 begin
   if Assigned(ConnIncoming) or Assigned(ConnOutgoing) then begin
-    WriteLn(MilliTime, ' TBuddy.DoDisconnect() ' + ID + ' begin');
     if Assigned(ConnIncoming) then ConnIncoming.DoClose;
     if Assigned(ConnOutgoing) then ConnOutgoing.DoClose;
-    WriteLn(MilliTime, ' TBuddy.DoDisconnect() ' + ID + ' end');
   end;
 end;
 

@@ -147,7 +147,7 @@
               <UseMsgFile Value="True"/>
             </CompilerMessages>
             <CustomOptions Value="-d_DebugToConsole 
--d_UseHeapTrc
+-dUseHeapTrc
 -dNoOutputRedirect
 -Xm"/>
             <CompilerPath Value="$(CompPath)"/>
