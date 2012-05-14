@@ -13,7 +13,7 @@ type
   { TInternalMessage }
 
   TInternalMessage = class(TAMessage)
-    constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); override;
+    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); override;
     constructor Create; reintroduce;
     procedure Parse; override;
     procedure Execute; override;
@@ -39,7 +39,7 @@ end;
 
 { TInternalMessage }
 
-constructor TInternalMessage.Create(AConnection: TAHiddenConnection; AEncodedContent: String);
+constructor TInternalMessage.Create(AConnection: IHiddenConnection; AEncodedContent: String);
 begin
   Ignore(AConnection);
   Ignore(@AEncodedContent);

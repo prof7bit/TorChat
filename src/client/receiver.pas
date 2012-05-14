@@ -84,7 +84,7 @@ type
     the connection is closing/failing it will notify its containing
     connection object. See also THiddenConnection. }
   TReceiver = class(TAReceiver)
-    constructor Create(AConn: TAHiddenConnection);
+    constructor Create(AConn: IHiddenConnection);
     destructor Destroy; override;
     procedure Execute; override;
   strict private
@@ -98,7 +98,7 @@ implementation
 
 { TReceiver }
 
-constructor TReceiver.Create(AConn: TAHiddenConnection);
+constructor TReceiver.Create(AConn: IHiddenConnection);
 begin
   FStdOut := Output;
   FConnection := AConn;

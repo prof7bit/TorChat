@@ -47,7 +47,7 @@ type
 
   IBuddy = interface;
   IBuddyList = interface;
-  TAHiddenConnection = interface;
+  IHiddenConnection = interface;
   TAReceiver = class;
   TAMessage = class;
 
@@ -64,8 +64,8 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
     procedure SetStatus(AStatus: TTorchatStatus);
-    procedure RegisterConnection(AConn: TAHiddenConnection);
-    procedure UnregisterConnection(AConn: TAHiddenConnection);
+    procedure RegisterConnection(AConn: IHiddenConnection);
+    procedure UnregisterConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
     procedure Enqueue(AMessage: TAMessage);
     function BuddyList: IBuddyList;
@@ -104,16 +104,16 @@ type
     function ID: String;
     function Cookie: String;
     function FriendlyName: String;
-    function ConnIncoming: TAHiddenConnection;
-    function ConnOutgoing: TAHiddenConnection;
+    function ConnIncoming: IHiddenConnection;
+    function ConnOutgoing: IHiddenConnection;
     function Status: TTorchatStatus;
     procedure SetFriendlyName(AName: String);
-    procedure SetIncoming(AConn: TAHiddenConnection);
-    procedure SetOutgoing(AConn: TAHiddenConnection);
+    procedure SetIncoming(AConn: IHiddenConnection);
+    procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
   end;
 
-  TAHiddenConnection = interface
+  IHiddenConnection = interface
     procedure SetBuddy(ABuddy: IBuddy);
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
@@ -129,12 +129,12 @@ type
   { TAMessage represents a protocol message }
   TAMessage = class
   strict protected
-    FConnection: TAHiddenConnection;
+    FConnection: IHiddenConnection;
     FClient: IClient;
     FBuddy: IBuddy;
   public
     class function GetCommand: String; virtual; abstract;
-    constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); virtual; abstract;
+    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); virtual; abstract;
     procedure Parse; virtual; abstract;
     procedure Execute; virtual; abstract;
     procedure Send; virtual; abstract;
@@ -145,7 +145,7 @@ type
   TAReceiver = class(TThread)
   strict protected
     FClient: IClient;
-    FConnection: TAHiddenConnection;
+    FConnection: IHiddenConnection;
   public
     property Client: IClient read FClient;
   end;

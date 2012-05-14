@@ -74,10 +74,10 @@ type
   TMsg = class(TAMessage)
   strict protected
     FBinaryContent : String;
-    function GetSendConnection: TAHiddenConnection; virtual;
+    function GetSendConnection: IHiddenConnection; virtual;
     procedure Serialize; virtual;
   public
-    constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); override;
+    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); override;
     constructor Create(ABuddy: IBuddy);
     procedure Parse; override;
     procedure Execute; override;
@@ -131,7 +131,7 @@ begin
   MessageClasses[L] := AClass;
 end;
 
-function TMsg.GetSendConnection: TAHiddenConnection;
+function TMsg.GetSendConnection: IHiddenConnection;
 begin
   if Assigned(FBuddy) and Assigned(FBuddy.ConnOutgoing) then
     Result := FBuddy.ConnOutgoing
@@ -145,7 +145,7 @@ begin
 end;
 
 { this is the virtual constructor for incoming messages }
-constructor TMsg.Create(AConnection: TAHiddenConnection; AEncodedContent: String);
+constructor TMsg.Create(AConnection: IHiddenConnection; AEncodedContent: String);
 begin
   FConnection := AConnection;
   FClient := FConnection.Client;
@@ -171,7 +171,7 @@ end;
 
 procedure TMsg.Send;
 var
-  C : TAHiddenConnection;
+  C : IHiddenConnection;
 begin
   C := GetSendConnection;
   if Assigned(C) then begin

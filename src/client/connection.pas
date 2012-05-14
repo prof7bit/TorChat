@@ -33,7 +33,7 @@ uses
 type
 
   { THiddenConnection }
-  THiddenConnection = class(TInterfacedObject, TAHiddenConnection)
+  THiddenConnection = class(TInterfacedObject, IHiddenConnection)
   strict protected
     FTCPStream: TTCPStream;
     FClient: IClient;
@@ -145,7 +145,7 @@ function THiddenConnection.IsOutgoing: Boolean;
 begin
   if not Assigned(FBuddy) then
     Exit(False);
-  if FBuddy.ConnOutgoing = TAHiddenConnection(self) then
+  if FBuddy.ConnOutgoing = IHiddenConnection(self) then
     Exit(True);
   if (FBuddy.ConnIncoming = nil) and (FBuddy.ConnOutgoing = nil) then
     Exit(True);

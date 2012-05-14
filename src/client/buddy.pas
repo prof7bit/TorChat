@@ -48,8 +48,8 @@ type
     FFriendlyName: String;
     FStatus: TTorchatStatus;
     FLastDisconnect: TDateTime;
-    FConnIncoming: TAHiddenConnection;
-    FConnOutgoing: TAHiddenConnection;
+    FConnIncoming: IHiddenConnection;
+    FConnOutgoing: IHiddenConnection;
     FMustSendPong: Boolean;
     FReceivedCookie: String;
     FConnectThread: TAsyncConnectThread;
@@ -75,11 +75,11 @@ type
     function ID: String;
     function Cookie: String;
     function FriendlyName: String;
-    function ConnIncoming: TAHiddenConnection;
-    function ConnOutgoing: TAHiddenConnection;
+    function ConnIncoming: IHiddenConnection;
+    function ConnOutgoing: IHiddenConnection;
     function Status: TTorchatStatus;
-    procedure SetIncoming(AConn: TAHiddenConnection); virtual;
-    procedure SetOutgoing(AConn: TAHiddenConnection); virtual;
+    procedure SetIncoming(AConn: IHiddenConnection); virtual;
+    procedure SetOutgoing(AConn: IHiddenConnection); virtual;
     procedure SetStatus(AStatus: TTorchatStatus); virtual;
     procedure SetFriendlyName(AName: String);
   end;
@@ -277,12 +277,12 @@ begin
   Result := FFriendlyName;
 end;
 
-function TBuddy.ConnIncoming: TAHiddenConnection;
+function TBuddy.ConnIncoming: IHiddenConnection;
 begin
   Result := FConnIncoming;
 end;
 
-function TBuddy.ConnOutgoing: TAHiddenConnection;
+function TBuddy.ConnOutgoing: IHiddenConnection;
 begin
   Result := FConnOutgoing;
 end;
@@ -292,7 +292,7 @@ begin
   Result := FStatus;
 end;
 
-procedure TBuddy.SetIncoming(AConn: TAHiddenConnection);
+procedure TBuddy.SetIncoming(AConn: IHiddenConnection);
 begin
   if AConn <> FConnIncoming then begin
     FConnIncoming := AConn;
@@ -305,7 +305,7 @@ begin
   end;
 end;
 
-procedure TBuddy.SetOutgoing(AConn: TAHiddenConnection);
+procedure TBuddy.SetOutgoing(AConn: IHiddenConnection);
 begin
   if AConn <> FConnOutgoing then begin
     FConnOutgoing := AConn;

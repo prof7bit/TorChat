@@ -76,8 +76,8 @@ type
     procedure Enqueue(AMessage: TAMessage); virtual;
     procedure ProcessMessages; virtual;
     procedure SetStatus(AStatus: TTorchatStatus); virtual;
-    procedure RegisterConnection(AConn: TAHiddenConnection); virtual;
-    procedure UnregisterConnection(AConn: TAHiddenConnection); virtual;
+    procedure RegisterConnection(AConn: IHiddenConnection); virtual;
+    procedure UnregisterConnection(AConn: IHiddenConnection); virtual;
   end;
 
 
@@ -92,7 +92,7 @@ uses
 
 constructor TTorChatClient.Create(AOwner: TComponent);
 //var
-//  C : TAHiddenConnection;
+//  C : IHiddenConnection;
 begin
   FIsDestroying := False;
   Inherited Create(AOwner);
@@ -118,7 +118,7 @@ end;
 destructor TTorChatClient.Destroy;
 var
   Msg: TAMessage;
-  Conn: TAHiddenConnection;
+  Conn: IHiddenConnection;
 begin
   WriteLn(MilliTime, ' start destroying TorChatClient');
   FIsDestroying := True;
@@ -128,7 +128,7 @@ begin
 
   // disconnect all remaining incoming connections
   while FConnInList.Count > 0 do begin
-    Conn := TAHiddenConnection(FConnInList.Items[0]);
+    Conn := IHiddenConnection(FConnInList.Items[0]);
     Conn.DoClose;
   end;
 
@@ -199,7 +199,7 @@ begin
   writeln('TTorChatClient.SetStatus(', AStatus, ')');
 end;
 
-procedure TTorChatClient.RegisterConnection(AConn: TAHiddenConnection);
+procedure TTorChatClient.RegisterConnection(AConn: IHiddenConnection);
 begin
   EnterCriticalsection(FCSConnList);
   FConnInList.Add(AConn);
@@ -209,7 +209,7 @@ begin
     [FConnInList.Count]));
 end;
 
-procedure TTorChatClient.UnregisterConnection(AConn: TAHiddenConnection);
+procedure TTorChatClient.UnregisterConnection(AConn: IHiddenConnection);
 begin
   EnterCriticalsection(FCSConnList);
   // only incoming connections are in this list
