@@ -109,7 +109,7 @@ begin
   // To avoid any race conditions we will not rely
   // on the receiver thread do the notifications
   // eventually once it detects the TCP connection
-  // end and the buddy itself might be gone already,
+  // end while the buddy itself might be gone already,
   // instead we are doing this here ourselves
   // immediately and *before* we actually disconnect.
   NotifyOthersAboutDeath;
@@ -117,8 +117,9 @@ begin
 
   // Now since there are no references between buddy
   // and connection anymore we can now safely trigger
-  // the shutdown and the receiver thread can not call
-  // any TBuddy methods anymore.
+  // the shutdown and the receiver thread may then do
+  // what it wants because it can not call any TBuddy
+  // methods anymore.
   Stream.DoClose;
 end;
 
