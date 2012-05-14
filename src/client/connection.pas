@@ -109,8 +109,9 @@ begin
   // To avoid any race conditions we will not rely
   // on the receiver thread do the notifications
   // eventually once it detects the TCP connection
-  // end, instead we are doing it here ourselves
-  // immeditely and *before* we actually disconnect.
+  // end and the buddy itself might be gone already,
+  // instead we are doing this here ourselves
+  // immediately and *before* we actually disconnect.
   NotifyOthersAboutDeath;
   FBuddy := nil;
 
