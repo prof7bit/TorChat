@@ -40,8 +40,16 @@ type
 
   { TBuddy }
 
-  TBuddy = class(TABuddy)
+  TBuddy = class(TInterfacedObject, IBuddy)
   strict protected
+    FID: String;
+    FClient: TAClient;
+    FOwnCookie: String;
+    FFriendlyName: String;
+    FStatus: TTorchatStatus;
+    FLastDisconnect: TDateTime;
+    FConnIncoming: TAHiddenConnection;
+    FConnOutgoing: TAHiddenConnection;
     FMustSendPong: Boolean;
     FReceivedCookie: String;
     FConnectThread: TAsyncConnectThread;
@@ -51,21 +59,29 @@ type
     function IsFullyConnected: Boolean;
     procedure CallFromMainThread(AMethod: TMethod); virtual;
   public
-    constructor Create(AOwner: TAClient); reintroduce;
+    constructor Create(AClient: TAClient); reintroduce;
     destructor Destroy; override;
-    procedure CheckState; override;
-    function AsJsonObject: TJSONObject; override;
-    procedure InitFromJsonObect(AObject: TJSONObject); override;
-    procedure InitID(AID: String); override;
-    procedure SetIncoming(AConn: TAHiddenConnection); override;
-    procedure SetOutgoing(AConn: TAHiddenConnection); override;
-    procedure SetStatus(AStatus: TTorchatStatus); override;
-    procedure OnOutgoingConnection; override;
-    procedure OnOutgoingConnectionFail; override;
-    procedure OnIncomingConnection; override;
-    procedure OnIncomingConnectionFail; override;
-    procedure MustSendPong(ACookie: String); override;
-    procedure DoDisconnect; override;
+    procedure CheckState; virtual;
+    function AsJsonObject: TJSONObject; virtual;
+    procedure InitFromJsonObect(AObject: TJSONObject); virtual;
+    procedure InitID(AID: String); virtual;
+    procedure OnOutgoingConnection; virtual;
+    procedure OnOutgoingConnectionFail; virtual;
+    procedure OnIncomingConnection; virtual;
+    procedure OnIncomingConnectionFail; virtual;
+    procedure MustSendPong(ACookie: String); virtual;
+    procedure DoDisconnect; virtual;
+    function Client: TAClient;
+    function ID: String;
+    function Cookie: String;
+    function FriendlyName: String;
+    function ConnIncoming: TAHiddenConnection;
+    function ConnOutgoing: TAHiddenConnection;
+    function Status: TTorchatStatus;
+    procedure SetIncoming(AConn: TAHiddenConnection); virtual;
+    procedure SetOutgoing(AConn: TAHiddenConnection); virtual;
+    procedure SetStatus(AStatus: TTorchatStatus); virtual;
+    procedure SetFriendlyName(AName: String);
   end;
 
 implementation
@@ -83,22 +99,22 @@ begin
   WriteLn(MilliTime, ' TBuddy.CbNetOut() ' + ID);
   FConnectThread := nil;
   if assigned(ATCPStream) then begin
-    ConnOutgoing := THiddenConnection.Create(FClient, ATCPStream, Self);
+    SetOutgoing(THiddenConnection.Create(FClient, ATCPStream, Self));
   end
   else begin
     WriteLn(E.Message);
     FLastDisconnect := Now;
-    ConnOutgoing := nil;
+    SetOutgoing(nil);
   end;
 end;
 
-constructor TBuddy.Create(AOwner: TAClient);
+constructor TBuddy.Create(AClient: TAClient);
 var
   GUID: TGuid;
 begin
-  inherited Create(AOwner);
+  inherited Create;
   FConnectThread := nil;
-  FClient := AOwner;
+  FClient := AClient;
   FLastDisconnect := 0;
   FMustSendPong := False;
   FReceivedCookie := '';
@@ -110,10 +126,11 @@ end;
 
 destructor TBuddy.Destroy;
 begin
+  writeln(MilliTime, ' TBuddy.Destroy() ' + ID);
   if Assigned(FConnectThread) then begin
-    WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' there is an ongoing connection attempt, terminating it.');
+    //WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' there is an ongoing connection attempt, terminating it.');
     FConnectThread.Terminate;
-    WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' connection attempt terminated.');
+    //WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' connection attempt terminated.');
   end;
   inherited Destroy;
 end;
@@ -153,40 +170,6 @@ end;
 procedure TBuddy.InitID(AID: String);
 begin
   FID := AID;
-end;
-
-procedure TBuddy.SetIncoming(AConn: TAHiddenConnection);
-begin
-  if AConn <> FConnIncoming then begin
-    FConnIncoming := AConn;
-    if Assigned(AConn) then begin
-      AConn.Buddy := self;
-      CallFromMainThread(@OnIncomingConnection);
-    end
-    else
-      CallFromMainThread(@OnIncomingConnectionFail);
-  end;
-end;
-
-procedure TBuddy.SetOutgoing(AConn: TAHiddenConnection);
-begin
-  if AConn <> FConnOutgoing then begin
-    FConnOutgoing := AConn;
-    if Assigned(AConn) then begin
-      AConn.Buddy := self;
-      CallFromMainThread(@OnOutgoingConnection);
-    end
-    else
-      CallFromMainThread(@OnOutgoingConnectionFail);
-  end;
-end;
-
-procedure TBuddy.SetStatus(AStatus: TTorchatStatus);
-begin
-  if AStatus <> FStatus then begin
-    FStatus := AStatus;
-    Client.OnBuddyStatusChange(self);
-  end;
 end;
 
 procedure TBuddy.SendPong;
@@ -237,13 +220,13 @@ begin
   FLastDisconnect := Now;
   if Assigned(ConnIncoming) then
     ConnIncoming.DoClose;
-  Status := TORCHAT_OFFLINE;
+  SetStatus(TORCHAT_OFFLINE);
 end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
   Writeln('TBuddy.OnIncomingConnection() ' + ID);
-  Status := TORCHAT_AVAILABLE;
+  SetStatus(TORCHAT_AVAILABLE);
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
@@ -252,7 +235,7 @@ begin
   FLastDisconnect := Now;
   if Assigned(ConnOutgoing) then
     ConnOutgoing.DoClose;
-  Status := TORCHAT_OFFLINE;
+  SetStatus(TORCHAT_OFFLINE);
 end;
 
 procedure TBuddy.MustSendPong(ACookie: String);
@@ -272,6 +255,80 @@ begin
     if Assigned(ConnIncoming) then ConnIncoming.DoClose;
     if Assigned(ConnOutgoing) then ConnOutgoing.DoClose;
   end;
+end;
+
+function TBuddy.Client: TAClient;
+begin
+  Result := FClient;
+end;
+
+function TBuddy.ID: String;
+begin
+  Result := FID;
+end;
+
+function TBuddy.Cookie: String;
+begin
+  Result := FOwnCookie;
+end;
+
+function TBuddy.FriendlyName: String;
+begin
+  Result := FFriendlyName;
+end;
+
+function TBuddy.ConnIncoming: TAHiddenConnection;
+begin
+  Result := FConnIncoming;
+end;
+
+function TBuddy.ConnOutgoing: TAHiddenConnection;
+begin
+  Result := FConnOutgoing;
+end;
+
+function TBuddy.Status: TTorchatStatus;
+begin
+  Result := FStatus;
+end;
+
+procedure TBuddy.SetIncoming(AConn: TAHiddenConnection);
+begin
+  if AConn <> FConnIncoming then begin
+    FConnIncoming := AConn;
+    if Assigned(AConn) then begin
+      AConn.SetBuddy(self);
+      CallFromMainThread(@OnIncomingConnection);
+    end
+    else
+      CallFromMainThread(@OnIncomingConnectionFail);
+  end;
+end;
+
+procedure TBuddy.SetOutgoing(AConn: TAHiddenConnection);
+begin
+  if AConn <> FConnOutgoing then begin
+    FConnOutgoing := AConn;
+    if Assigned(AConn) then begin
+      AConn.SetBuddy(self);
+      CallFromMainThread(@OnOutgoingConnection);
+    end
+    else
+      CallFromMainThread(@OnOutgoingConnectionFail);
+  end;
+end;
+
+procedure TBuddy.SetStatus(AStatus: TTorchatStatus);
+begin
+  if AStatus <> FStatus then begin
+    FStatus := AStatus;
+    Client.OnBuddyStatusChange(self);
+  end;
+end;
+
+procedure TBuddy.SetFriendlyName(AName: String);
+begin
+  FFriendlyName := AName;
 end;
 
 end.

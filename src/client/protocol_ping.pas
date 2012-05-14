@@ -82,7 +82,7 @@ type
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
-    constructor Create(ABuddy: TABuddy; ACookie: String); reintroduce;
+    constructor Create(ABuddy: IBuddy; ACookie: String); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;
@@ -96,7 +96,7 @@ begin
   Result := 'ping';
 end;
 
-constructor TMsgPing.Create(ABuddy: TABuddy; ACookie: String);
+constructor TMsgPing.Create(ABuddy: IBuddy; ACookie: String);
 begin
   inherited Create(ABuddy);
   FCookie := ACookie;
@@ -115,7 +115,7 @@ end;
 
 procedure TMsgPing.Execute;
 var
-  ABuddy: TABuddy;
+  ABuddy: IBuddy;
 begin
   WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
   ABuddy := Client.BuddyList.FindBuddy(FID);

@@ -78,13 +78,14 @@ type
     procedure Serialize; virtual;
   public
     constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); override;
-    constructor Create(ABuddy: TABuddy);
+    constructor Create(ABuddy: IBuddy);
     procedure Parse; override;
     procedure Execute; override;
     procedure Send; override;
   end;
 
   TMsgClass = class of TAMessage;
+
 
 function GetMsgClassFromCommand(ACommand: String): TMsgClass;
 function BinaryEncode(ABinary: String): String;
@@ -152,7 +153,7 @@ begin
 end;
 
 { this is the constructor for outgoing messages }
-constructor TMsg.Create(ABuddy: TABuddy);
+constructor TMsg.Create(ABuddy: IBuddy);
 begin
   FBuddy := ABuddy;
   FClient := FBuddy.Client;

@@ -45,106 +45,90 @@ type
     TORCHAT_XA
   );
 
-  TABuddy = class;
-  TABuddyList = class;
-  TAHiddenConnection = class;
+  IBuddy = interface;
+  IBuddyList = interface;
+  TAHiddenConnection = interface;
   TAReceiver = class;
   TAMessage = class;
 
-  TBuddyArray = array of TABuddy;
+  TABuddyEnumerator = class
+    function GetCurrent: IBuddy; virtual; abstract;
+    function MoveNext: Boolean; virtual; abstract;
+    property Current: IBuddy read GetCurrent;
+  end;
 
   TAClient = class(TComponent)
   strict protected
     FMainThread: TThreadID;
-    FBuddyList: TABuddyList;
+    FBuddyList: IBuddyList;
     FNetwork: TSocketWrapper;
   public
     procedure ProcessMessages; virtual; abstract;
     procedure OnNotifyGui; virtual; abstract;
-    procedure OnBuddyStatusChange(ABuddy: TABuddy); virtual; abstract;
-    procedure OnBuddyAdded(ABuddy: TABuddy); virtual; abstract;
-    procedure OnBuddyRemoved(ABuddy: TABuddy); virtual; abstract;
+    procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
+    procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
+    procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
     procedure RegisterConnection(AConn: TAHiddenConnection); virtual; abstract;
     procedure UnregisterConnection(AConn: TAHiddenConnection); virtual; abstract;
     property MainThread: TThreadID read FMainThread;
     procedure Enqueue(AMessage: TAMessage); virtual; abstract;
-    property BuddyList: TABuddyList read FBuddyList;
+    property BuddyList: IBuddyList read FBuddyList;
     property Network: TSocketWrapper read FNetwork;
   end;
 
-  TABuddyList = class(TComponent)
-  strict protected
-    FClient: TAClient;
-    FOwnID: String;
-    FList: TBuddyArray;
-  public
-    procedure CheckState; virtual; abstract;
-    procedure SetOwnID(AID: String); virtual; abstract;
-    procedure AddBuddy(ABuddy: TABuddy); virtual; abstract;
-    procedure RemoveBuddy(ABuddy: TABuddy); virtual; abstract;
-    function FindBuddy(AName: String): TABuddy; virtual; abstract;
-    function FindBuddyByCookie(ACookie: String): TABuddy; virtual; abstract;
-    procedure DoDisconnectAll; virtual; abstract;
-    procedure Lock; virtual; abstract;
-    procedure Unlock; virtual; abstract;
-    procedure Load; virtual; abstract;
-    procedure Save; virtual; abstract;
-    function Count: Integer; virtual; abstract;
-    property Buddies: TBuddyArray read FList;
-    property OwnID: String read FOwnID write SetOwnID;
+  IBuddyListTemp = interface(IInterfaceList)
+    procedure CheckState;
+    procedure AddBuddy(ABuddy: IBuddy);
+    procedure RemoveBuddy(ABuddy: IBuddy);
+    function FindBuddy(AName: String): IBuddy;
+    function FindBuddyByCookie(ACookie: String): IBuddy;
+    procedure DoDisconnectAll;
+    function GetEnumerator: TABuddyEnumerator;
   end;
 
-  TABuddy = class(TComponent)
-  strict protected
-    FID: String;
-    FClient: TAClient;
-    FOwnCookie: String;
-    FFriendlyName: String;
-    FStatus: TTorchatStatus;
-    FLastDisconnect: TDateTime;
-    FConnIncoming: TAHiddenConnection;
-    FConnOutgoing: TAHiddenConnection;
-  public
-    procedure CheckState; virtual; abstract;
-    function AsJsonObject: TJSONObject; virtual; abstract;
-    procedure InitFromJsonObect(AObject: TJSONObject); virtual; abstract;
-    procedure InitID(AID: String); virtual; abstract;
-    procedure SetIncoming(AConn: TAHiddenConnection); virtual; abstract;
-    procedure SetOutgoing(AConn: TAHiddenConnection); virtual; abstract;
-    procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
-    procedure OnOutgoingConnection; virtual; abstract;
-    procedure OnOutgoingConnectionFail; virtual; abstract;
-    procedure OnIncomingConnection; virtual; abstract;
-    procedure OnIncomingConnectionFail; virtual; abstract;
-    procedure MustSendPong(ACookie: String); virtual; abstract;
-    procedure DoDisconnect; virtual; abstract;
-    property Client: TAClient read FClient;
-    property ID: String read FID;
-    property Cookie: String read FOwnCookie;
-    property FriendlyName: String read FFriendlyName write FFriendlyName;
-    property ConnIncoming: TAHiddenConnection read FConnIncoming write SetIncoming;
-    property ConnOutgoing: TAHiddenConnection read FConnOutgoing write SetOutgoing;
-    property Status: TTorchatStatus read FStatus write SetStatus;
+  IBuddyList = interface(IBuddyListTemp)
+    procedure Load;
+    procedure Save;
+    function OwnID: String;
+    procedure SetOwnID(AID: String);
   end;
 
-  TAHiddenConnection = class
-  strict protected
-    FTCPStream: TTCPStream;
-    FClient: TAClient;
-    FBuddy: TABuddy;
-    FReceiver: TAReceiver;
-    procedure SetBuddy(ABuddy: TABuddy); virtual; abstract;
-  public
-    procedure Send(AData: String); virtual; abstract;
-    procedure SendLine(AEncodedLine: String); virtual; abstract;
-    procedure OnTCPFail; virtual; abstract; // called by the receiver
-    procedure DoClose; virtual; abstract;
-    function IsOutgoing: Boolean; virtual; abstract;
-    function DebugInfo: String; virtual; abstract;
-    property Buddy: TABuddy read FBuddy write SetBuddy;
-    property Client: TAClient read FClient;
-    property Stream: TTCPStream read FTCPStream;
+  IBuddy = interface
+    procedure CheckState;
+    function AsJsonObject: TJSONObject;
+    procedure InitFromJsonObect(AObject: TJSONObject);
+    procedure InitID(AID: String);
+    procedure OnOutgoingConnection;
+    procedure OnOutgoingConnectionFail;
+    procedure OnIncomingConnection;
+    procedure OnIncomingConnectionFail;
+    procedure MustSendPong(ACookie: String);
+    procedure DoDisconnect;
+    function Client: TAClient;
+    function ID: String;
+    function Cookie: String;
+    function FriendlyName: String;
+    function ConnIncoming: TAHiddenConnection;
+    function ConnOutgoing: TAHiddenConnection;
+    function Status: TTorchatStatus;
+    procedure SetFriendlyName(AName: String);
+    procedure SetIncoming(AConn: TAHiddenConnection);
+    procedure SetOutgoing(AConn: TAHiddenConnection);
+    procedure SetStatus(AStatus: TTorchatStatus);
+  end;
+
+  TAHiddenConnection = interface
+    procedure SetBuddy(ABuddy: IBuddy);
+    procedure Send(AData: String);
+    procedure SendLine(AEncodedLine: String);
+    procedure OnTCPFail;// called by the receiver
+    procedure DoClose;
+    function IsOutgoing: Boolean;
+    function DebugInfo: String;
+    function Buddy: IBuddy;
+    function Client: TAClient;
+    function Stream: TTCPStream;
   end;
 
   { TAMessage represents a protocol message }
@@ -152,7 +136,7 @@ type
   strict protected
     FConnection: TAHiddenConnection;
     FClient: TAClient;
-    FBuddy: TABuddy;
+    FBuddy: IBuddy;
   public
     class function GetCommand: String; virtual; abstract;
     constructor Create(AConnection: TAHiddenConnection; AEncodedContent: String); virtual; abstract;
@@ -160,7 +144,7 @@ type
     procedure Execute; virtual; abstract;
     procedure Send; virtual; abstract;
     property Client: TAClient read FClient write FClient;
-    property Buddy: TABuddy read FBuddy write FBuddy;
+    property Buddy: IBuddy read FBuddy write FBuddy;
   end;
 
   TAReceiver = class(TThread)
@@ -172,6 +156,8 @@ type
   end;
 
 implementation
+
+
 
 end.
 

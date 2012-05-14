@@ -24,8 +24,8 @@ library purpletorchat;
   Type names:
   -----------
   Normally in Pascal we have Uppercase/CamelCase identifiers and
-  type names start with 'T', pointer types with 'P' which will then
-  look like TSomeThing or PSomeThing.
+  type names start with 'T', pointer types with 'P', interfaces
+  with 'I', which will then look like TSomeThing or PSomeThing.
 
   C programmers on the other hand normally don't define separate
   names to denote pointer types, they just use the asterisk
@@ -93,9 +93,9 @@ type
     purple_account: PPurpleAccount;
     purple_timer: Integer;
     procedure OnNotifyGui; override;
-    procedure OnBuddyStatusChange(ABuddy: TABuddy); override;
-    procedure OnBuddyAdded(ABuddy: TABuddy); override;
-    procedure OnBuddyRemoved(ABuddy: TABuddy); override;
+    procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
+    procedure OnBuddyAdded(ABuddy: IBuddy); override;
+    procedure OnBuddyRemoved(ABuddy: IBuddy); override;
   end;
 
   { TTorChatClients holds a list of clients since we can have
@@ -193,8 +193,8 @@ end;
 procedure torchat_login(acc: PPurpleAccount); cdecl;
 var
   NewClient: TTorChatPurpleClient;
-  TorchatBuddy: TABuddy;
-  TorchatList: TABuddyList;
+  TorchatBuddy: IBuddy;
+  TorchatList: IBuddyList;
   purple_id: PChar;
   purple_alias: PChar;
   purple_status: PPurpleStatus;
@@ -221,7 +221,7 @@ begin
 
   // add buddies to purple's buddy list that are not in purple's TorchatList
   TorchatList.Lock;
-  for TorchatBuddy in TorchatList.Buddies do begin
+  for TorchatBuddy in TorchatList do begin
     if purple_find_buddy(acc, PChar(TorchatBuddy.ID)) = nil then begin
       purple_id := GetMemAndCopy(TorchatBuddy.ID);
       purple_alias := GetMemAndCopy(TorchatBuddy.FriendlyName);
@@ -265,7 +265,7 @@ begin
   purple_timeout_add(0, @cb_purple_timer_oneshot, self);
 end;
 
-procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: TABuddy);
+procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: IBuddy);
 var
   buddy_name: PChar;
   status_id: PChar;
@@ -282,7 +282,7 @@ begin
   FreeMem(buddy_name);
 end;
 
-procedure TTorChatPurpleClient.OnBuddyAdded(ABuddy: TABuddy);
+procedure TTorChatPurpleClient.OnBuddyAdded(ABuddy: IBuddy);
 var
   buddy_name: PChar;
   buddy_alias: PChar;
@@ -298,7 +298,7 @@ begin
   FreeMem(buddy_name);
 end;
 
-procedure TTorChatPurpleClient.OnBuddyRemoved(ABuddy: TABuddy);
+procedure TTorChatPurpleClient.OnBuddyRemoved(ABuddy: IBuddy);
 var
   buddy_name: PChar;
   purple_buddy: PPurpleBuddy;

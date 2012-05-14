@@ -33,19 +33,27 @@ uses
 type
 
   { THiddenConnection }
-  THiddenConnection = class(TAHiddenConnection)
+  THiddenConnection = class(TInterfacedObject, TAHiddenConnection)
   strict protected
+    FTCPStream: TTCPStream;
+    FClient: TAClient;
+    FBuddy: IBuddy;
+    FReceiver: TAReceiver;
     FDebugInfoDefault: String;
     procedure NotifyOthersAboutDeath; virtual;
   public
-    constructor Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
-    procedure Send(AData: String); override;
-    procedure SendLine(AEncodedLine: String); override;
-    procedure OnTCPFail; override;
-    procedure DoClose; override;
-    procedure SetBuddy(ABuddy: TABuddy); override;
-    function IsOutgoing: Boolean; override;
-    function DebugInfo: String; override;
+    constructor Create(AClient: TAClient; AStream: TTCPStream; ABuddy: IBuddy);
+    destructor Destroy; override;
+    procedure Send(AData: String); virtual;
+    procedure SendLine(AEncodedLine: String); virtual;
+    procedure OnTCPFail; virtual;
+    procedure DoClose; virtual;
+    procedure SetBuddy(ABuddy: IBuddy); virtual;
+    function IsOutgoing: Boolean; virtual;
+    function DebugInfo: String; virtual;
+    function Buddy: IBuddy;
+    function Client: TAClient;
+    function Stream: TTCPStream;
   end;
 
 implementation
@@ -59,13 +67,13 @@ begin
   Client.UnregisterConnection(self);
   if Assigned(FBuddy) then begin
     if IsOutgoing then
-      FBuddy.ConnOutgoing := nil
+      FBuddy.SetOutgoing(nil)
     else
-      FBuddy.ConnIncoming := nil;
+      FBuddy.SetIncoming(nil);
   end;
 end;
 
-constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream; ABuddy: TABuddy);
+constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream; ABuddy: IBuddy);
 begin
   FTCPStream := AStream;
   FClient := AClient;
@@ -79,6 +87,12 @@ begin
   // Connection.DoClose(); This will trigger the same events
   // that also happen when the TCP connection fails: It will call the
   // buddie's OnXxxxFail method and then free itself automatically.
+end;
+
+destructor THiddenConnection.Destroy;
+begin
+  WriteLn(MilliTime, ' THiddenConnection.Destroy()');
+  inherited Destroy;
 end;
 
 procedure THiddenConnection.Send(AData: String);
@@ -96,7 +110,6 @@ begin
   WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo);
   NotifyOthersAboutDeath;
   FTCPStream.Free;
-  Self.Free;
 end;
 
 procedure THiddenConnection.DoClose;
@@ -123,7 +136,7 @@ begin
   Stream.DoClose;
 end;
 
-procedure THiddenConnection.SetBuddy(ABuddy: TABuddy);
+procedure THiddenConnection.SetBuddy(ABuddy: IBuddy);
 begin
   FBuddy := ABuddy;
 end;
@@ -132,7 +145,7 @@ function THiddenConnection.IsOutgoing: Boolean;
 begin
   if not Assigned(FBuddy) then
     Exit(False);
-  if FBuddy.ConnOutgoing = self then
+  if FBuddy.ConnOutgoing = TAHiddenConnection(self) then
     Exit(True);
   if (FBuddy.ConnIncoming = nil) and (FBuddy.ConnOutgoing = nil) then
     Exit(True);
@@ -150,6 +163,21 @@ begin
   end
   else
     Result := FDebugInfoDefault;
+end;
+
+function THiddenConnection.Buddy: IBuddy;
+begin
+  Result := FBuddy;
+end;
+
+function THiddenConnection.Client: TAClient;
+begin
+  Result := FClient;
+end;
+
+function THiddenConnection.Stream: TTCPStream;
+begin
+  Result := FTCPStream;
 end;
 
 end.

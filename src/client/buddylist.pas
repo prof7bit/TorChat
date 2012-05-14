@@ -6,30 +6,22 @@ interface
 
 uses
   Classes,
-  torchatabstract;
+  torchatabstract,
+  buddylisttemp;
 
 type
   { TBuddyList contains all the buddy objects and implements all the boring
   CRUD mechanisms, persisting on disk, etc. Its essentialy an array of
-  TABuddy with a few helper methods to manage it. TBuddyList is thread safe.}
-  TBuddyList = class(TABuddyList)
+  IBuddy with a few helper methods to manage it. TBuddyList is thread safe.}
+  TBuddyList = class(TBuddyListTemp, IBuddyList)
   strict protected
-    FCritical: TRTLCriticalSection;
+    FOwnID: String;
   public
     constructor Create(AClient: TAClient); reintroduce;
-    destructor Destroy; override;
-    procedure CheckState; override;
-    procedure SetOwnID(AID: String); override;
-    procedure Lock; override;
-    procedure Unlock; override;
-    procedure Load; override;
-    procedure Save; override;
-    procedure RemoveBuddy(ABuddy: TABuddy); override;
-    procedure AddBuddy(ABuddy: TABuddy); override;
-    function FindBuddy(AID: String): TABuddy; override;
-    function FindBuddyByCookie(ACookie: String): TABuddy; override;
-    procedure DoDisconnectAll; override;
-    function Count: Integer; override;
+    procedure SetOwnID(AID: String); virtual;
+    function OwnID: String; virtual;
+    procedure Load; virtual;
+    procedure Save; virtual;
   end;
 
 
@@ -45,52 +37,28 @@ uses
 
 constructor TBuddyList.Create(AClient: TAClient);
 begin
-  InitCriticalSection(FCritical);
-  inherited Create(AClient);
-  FClient := AClient;
+  Inherited Create(AClient);
   Load;
-end;
-
-destructor TBuddyList.Destroy;
-begin
-  inherited Destroy;
-  DoneCriticalsection(FCritical);
 end;
 
 procedure TBuddyList.SetOwnID(AID: String);
 var
-  Buddy : TABuddy;
+  Buddy : IBuddy;
 begin
   FOwnID := AID;
   if FindBuddy(AID) = nil then begin
     writeln('TBuddyList.SetOwnID() adding "myself"-buddy ' + AID);
     Buddy := TBuddy.Create(FClient);
     Buddy.InitID(AID);
-    Buddy.FriendlyName := 'myself';
+    Buddy.SetFriendlyName('myself');
     AddBuddy(Buddy);
     Save;
   end;
 end;
 
-procedure TBuddyList.Lock;
+function TBuddyList.OwnID: String;
 begin
-  EnterCriticalsection(FCritical);
-end;
-
-procedure TBuddyList.Unlock;
-begin
-  LeaveCriticalsection(FCritical);
-end;
-
-procedure TBuddyList.CheckState;
-var
-  Buddy: TABuddy;
-begin
-  EnterCriticalsection(FCritical);
-  for Buddy in FList do begin
-    Buddy.CheckState;
-  end;
-  LeaveCriticalsection(FCritical);
+  Result := FOwnID;
 end;
 
 procedure TBuddyList.Load;
@@ -98,17 +66,16 @@ var
   FS: TFileStream = nil;
   JParser: TJSONParser = nil;
   JList: TJSONArray = nil;
-  Last, I: Integer;
-  Buddy: TABuddy;
+  LastI, I: Integer;
+  Buddy: IBuddy;
 begin
   try
     writeln('TBuddyList.Load()');
     FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmOpenRead);
     JParser :=TJSONParser.Create(FS);
     JList := JParser.Parse as TJSONArray;
-    Last := JList.Count - 1;
-    EnterCriticalsection(FCritical);
-    for I := 0 to Last do begin
+    LastI := JList.Count - 1;
+    for I := 0 to LastI do begin
       try
         Buddy := TBuddy.Create(FClient);
         Buddy.InitFromJsonObect(JList.Objects[I]); // this may raise exception
@@ -119,7 +86,6 @@ begin
         writeln('E TBuddyList.Load() error while parsing buddy');
       end;
     end;
-    LeaveCriticalsection(FCritical);
   except
     on E: Exception do begin
       WriteLn('W TBuddyList.Load() could not load: ' + E.Message);
@@ -133,18 +99,17 @@ end;
 
 procedure TBuddyList.Save;
 var
-  Buddy: TABuddy;
+  Buddy: IBuddy;
   JArr : TJSONArray;
   JData: String;
   FS: TFileStream = nil;
 begin
   writeln('TBuddyList.Save()');
   JArr := TJSONArray.Create;
-  EnterCriticalsection(FCritical);
-  for Buddy in FList do begin
+
+  for Buddy in self do
     JArr.Add(Buddy.AsJsonObject);
-  end;
-  LeaveCriticalsection(FCritical);
+
   JData := JArr.FormatJSON([foSingleLineObject]);
   JArr.Free;
   try
@@ -156,75 +121,6 @@ begin
     end;
   end;
   if assigned(FS) then FreeAndNil(FS);
-end;
-
-procedure TBuddyList.RemoveBuddy(ABuddy: TABuddy);
-var
-  I,J,Last : Integer;
-begin
-  EnterCriticalsection(FCritical);
-  Last := Length(FList) - 1;
-  for I := 0 to Last do begin
-    if FList[I] = ABuddy then begin
-      for J := I to Last-1 do begin
-        FList[J] := FList[J+1];
-      end;
-      SetLength(FList, Last);
-      break;
-    end;
-  end;
-  LeaveCriticalsection(FCritical);
-  FClient.OnBuddyRemoved(ABuddy);
-end;
-
-procedure TBuddyList.AddBuddy(ABuddy: TABuddy);
-var
-  P : Integer;
-begin
-  EnterCriticalsection(FCritical);
-  P := Length(FList);
-  SetLength(FList, P+1);
-  FList[P] := ABuddy;
-  LeaveCriticalsection(FCritical);
-  FClient.OnBuddyAdded(ABuddy);
-end;
-
-function TBuddyList.FindBuddy(AID: String): TABuddy;
-begin
-  Result := nil;
-  EnterCriticalsection(FCritical);
-  for Result in FList do begin
-    if Result.ID = AID then
-      break;
-  end;
-  LeaveCriticalsection(FCritical);
-end;
-
-function TBuddyList.FindBuddyByCookie(ACookie: String): TABuddy;
-begin
-  Result := nil;
-  EnterCriticalsection(FCritical);
-  for Result in FList do begin
-    if Result.Cookie = ACookie then
-      break;
-  end;
-  LeaveCriticalsection(FCritical);
-end;
-
-procedure TBuddyList.DoDisconnectAll;
-var
-  Buddy: TABuddy;
-begin
-  EnterCriticalsection(FCritical);
-  for Buddy in FList do begin
-    Buddy.DoDisconnect;
-  end;
-  LeaveCriticalsection(FCritical);
-end;
-
-function TBuddyList.Count: Integer;
-begin
-  Result := Length(FList);
 end;
 
 end.

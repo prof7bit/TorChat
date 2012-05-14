@@ -56,7 +56,7 @@ type
     FCSConnList: TRTLCriticalSection;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
-    FConnInList: TFPObjectList;
+    FConnInList: IInterfaceList;
     procedure CbNetIn(AStream: TTCPStream; E: Exception);
     procedure PopNextMessage;
     procedure CheckHiddenServiceName;
@@ -92,7 +92,7 @@ begin
   InitCriticalSection(FCSConnList);
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
-  FConnInList := TFPObjectList.Create(False);
+  FConnInList := TInterfaceList.Create;
   FQueue := TObjectQueue.Create;
   FTor := TTor.Create(self);
   FNetwork := TSocketWrapper.Create(Self);
@@ -108,6 +108,7 @@ end;
 destructor TTorChatClient.Destroy;
 var
   Msg: TAMessage;
+  Conn: TAHiddenConnection;
 begin
   WriteLn(MilliTime, ' start destroying TorChatClient');
   FIsDestroying := True;
@@ -116,9 +117,12 @@ begin
   BuddyList.DoDisconnectAll;
 
   // disconnect all remaining incoming connections
-  while FConnInList.Count > 0 do
-    TAHiddenConnection(FConnInList.Items[0]).DoClose;
-  FConnInList.Free;
+  while FConnInList.Count > 0 do begin
+    Conn := TAHiddenConnection(FConnInList.Items[0]);
+    Conn.DoClose;
+  end;
+
+  FBuddyList.Clear;
 
   // empty the message queue
   EnterCriticalsection(FCSQueue);
@@ -234,7 +238,7 @@ begin
       HSName := ConfGetHiddenServiceName;
       if HSName <> '' then begin
         writeln('TTorChatClient.CheckHiddenServiceName() found: ' + HSName);
-        BuddyList.OwnID := HSName;
+        BuddyList.SetOwnID(HSName);
         FHSNameOK := True;
       end
       else
