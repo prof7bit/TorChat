@@ -110,17 +110,14 @@ begin
   // on the receiver thread do the notifications
   // eventually once it detects the TCP connection
   // end, instead we are doing it here ourselves
-  // immeditely and only *after* this is completed
-  // we initiate the actual disconnect.
+  // immeditely and *before* we actually disconnect.
   NotifyOthersAboutDeath;
-
-  // now we remove the reference to the buddy and
-  // initiate disconnect. Now since there are no
-  // references between buddy and connection anymore
-  // the receiver thread can't interfere with anything
-  // anymore, it will soon terminate and free itself
-  // and this object silently in the background.
   FBuddy := nil;
+
+  // Now since there are no references between buddy
+  // and connection anymore we can now safely trigger
+  // the shutdown and the receiver thread can not call
+  // any TBuddy methods anymore.
   Stream.DoClose;
 end;
 
