@@ -36,13 +36,13 @@ type
   THiddenConnection = class(TInterfacedObject, TAHiddenConnection)
   strict protected
     FTCPStream: TTCPStream;
-    FClient: TAClient;
+    FClient: IClient;
     FBuddy: IBuddy;
     FReceiver: TAReceiver;
     FDebugInfoDefault: String;
     procedure NotifyOthersAboutDeath; virtual;
   public
-    constructor Create(AClient: TAClient; AStream: TTCPStream; ABuddy: IBuddy);
+    constructor Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
     destructor Destroy; override;
     procedure Send(AData: String); virtual;
     procedure SendLine(AEncodedLine: String); virtual;
@@ -52,7 +52,7 @@ type
     function IsOutgoing: Boolean; virtual;
     function DebugInfo: String; virtual;
     function Buddy: IBuddy;
-    function Client: TAClient;
+    function Client: IClient;
     function Stream: TTCPStream;
   end;
 
@@ -73,7 +73,7 @@ begin
   end;
 end;
 
-constructor THiddenConnection.Create(AClient: TAClient; AStream: TTCPStream; ABuddy: IBuddy);
+constructor THiddenConnection.Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
 begin
   FTCPStream := AStream;
   FClient := AClient;
@@ -170,7 +170,7 @@ begin
   Result := FBuddy;
 end;
 
-function THiddenConnection.Client: TAClient;
+function THiddenConnection.Client: IClient;
 begin
   Result := FClient;
 end;

@@ -14,9 +14,9 @@ type
 
   TBuddyListTemp = class(TInterfaceList, IBuddyListTemp)
   strict protected
-    FClient: TAClient;
+    FClient: IClient;
   public
-    constructor Create(AClient: TAClient);
+    constructor Create(AClient: IClient);
     destructor Destroy; override;
     procedure CheckState; virtual;
     procedure AddBuddy(ABuddy: IBuddy); virtual;
@@ -65,7 +65,7 @@ end;
 
 { TBuddyListTemp }
 
-constructor TBuddyListTemp.Create(AClient: TAClient);
+constructor TBuddyListTemp.Create(AClient: IClient);
 begin
   FClient := AClient;
   inherited Create;

@@ -17,7 +17,7 @@ type
   strict protected
     FOwnID: String;
   public
-    constructor Create(AClient: TAClient); reintroduce;
+    constructor Create(AClient: IClient); reintroduce;
     procedure SetOwnID(AID: String); virtual;
     function OwnID: String; virtual;
     procedure Load; virtual;
@@ -35,7 +35,7 @@ uses
 
 { TBuddyList }
 
-constructor TBuddyList.Create(AClient: TAClient);
+constructor TBuddyList.Create(AClient: IClient);
 begin
   Inherited Create(AClient);
   Load;

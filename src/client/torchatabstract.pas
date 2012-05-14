@@ -57,24 +57,19 @@ type
     property Current: IBuddy read GetCurrent;
   end;
 
-  TAClient = class(TComponent)
-  strict protected
-    FMainThread: TThreadID;
-    FBuddyList: IBuddyList;
-    FNetwork: TSocketWrapper;
-  public
-    procedure ProcessMessages; virtual; abstract;
-    procedure OnNotifyGui; virtual; abstract;
-    procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
-    procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
-    procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
-    procedure SetStatus(AStatus: TTorchatStatus); virtual; abstract;
-    procedure RegisterConnection(AConn: TAHiddenConnection); virtual; abstract;
-    procedure UnregisterConnection(AConn: TAHiddenConnection); virtual; abstract;
-    property MainThread: TThreadID read FMainThread;
-    procedure Enqueue(AMessage: TAMessage); virtual; abstract;
-    property BuddyList: IBuddyList read FBuddyList;
-    property Network: TSocketWrapper read FNetwork;
+  IClient = interface
+    procedure ProcessMessages;
+    procedure OnNotifyGui;
+    procedure OnBuddyStatusChange(ABuddy: IBuddy);
+    procedure OnBuddyAdded(ABuddy: IBuddy);
+    procedure OnBuddyRemoved(ABuddy: IBuddy);
+    procedure SetStatus(AStatus: TTorchatStatus);
+    procedure RegisterConnection(AConn: TAHiddenConnection);
+    procedure UnregisterConnection(AConn: TAHiddenConnection);
+    function  MainThread: TThreadID;
+    procedure Enqueue(AMessage: TAMessage);
+    function BuddyList: IBuddyList;
+    function Network: TSocketWrapper;
   end;
 
   IBuddyListTemp = interface(IInterfaceList)
@@ -105,7 +100,7 @@ type
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
     procedure DoDisconnect;
-    function Client: TAClient;
+    function Client: IClient;
     function ID: String;
     function Cookie: String;
     function FriendlyName: String;
@@ -127,7 +122,7 @@ type
     function IsOutgoing: Boolean;
     function DebugInfo: String;
     function Buddy: IBuddy;
-    function Client: TAClient;
+    function Client: IClient;
     function Stream: TTCPStream;
   end;
 
@@ -135,7 +130,7 @@ type
   TAMessage = class
   strict protected
     FConnection: TAHiddenConnection;
-    FClient: TAClient;
+    FClient: IClient;
     FBuddy: IBuddy;
   public
     class function GetCommand: String; virtual; abstract;
@@ -143,16 +138,16 @@ type
     procedure Parse; virtual; abstract;
     procedure Execute; virtual; abstract;
     procedure Send; virtual; abstract;
-    property Client: TAClient read FClient write FClient;
+    property Client: IClient read FClient write FClient;
     property Buddy: IBuddy read FBuddy write FBuddy;
   end;
 
   TAReceiver = class(TThread)
   strict protected
-    FClient: TAClient;
+    FClient: IClient;
     FConnection: TAHiddenConnection;
   public
-    property Client: TAClient read FClient;
+    property Client: IClient read FClient;
   end;
 
 implementation

@@ -32,11 +32,11 @@ uses
   networking;
 
 type
-  { TTorChatClient implements the abstract TAClient. Together with all its
+  { TTorChatClient implements the abstract IClient. Together with all its
     contained objects this represents a fully functional TorChat client.
     The GUI (or libpurpletorchat or a command line client) will derive a class
     from TTorChatClient overriding the virtual event methods (the methods that
-    start with On (see the definition of TAClient) to hook into the events and
+    start with On (see the definition of IClient) to hook into the events and
     then create an instance of it.
     The GUI also must call the TorChatClient.ProcessMessages method in regular
     intervals (1 second or so) from within the GUI-thread. Aditionally whenever
@@ -47,8 +47,11 @@ type
     calling TorChatClient.ProcessMessages. This method will process one queued
     message per call, it will never block and if there are no messages and
     nothing else to do it will just return.}
-  TTorChatClient = class(TAClient)
+  TTorChatClient = class(TComponent, IClient)
   strict protected
+    FMainThread: TThreadID;
+    FBuddyList: IBuddyList;
+    FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
     FTor: TTor;
     FQueue: TObjectQueue;
@@ -61,13 +64,20 @@ type
     procedure PopNextMessage;
     procedure CheckHiddenServiceName;
   public
+    procedure OnNotifyGui; virtual; abstract;
+    procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
+    procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
+    procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
-    procedure Enqueue(AMessage: TAMessage); override;
-    procedure ProcessMessages; override;
-    procedure SetStatus(AStatus: TTorchatStatus); override;
-    procedure RegisterConnection(AConn: TAHiddenConnection); override;
-    procedure UnregisterConnection(AConn: TAHiddenConnection); override;
+    function MainThread: TThreadID; virtual;
+    function BuddyList: IBuddyList; virtual;
+    function Network: TSocketWrapper; virtual;
+    procedure Enqueue(AMessage: TAMessage); virtual;
+    procedure ProcessMessages; virtual;
+    procedure SetStatus(AStatus: TTorchatStatus); virtual;
+    procedure RegisterConnection(AConn: TAHiddenConnection); virtual;
+    procedure UnregisterConnection(AConn: TAHiddenConnection); virtual;
   end;
 
 
@@ -95,7 +105,7 @@ begin
   FConnInList := TInterfaceList.Create;
   FQueue := TObjectQueue.Create;
   FTor := TTor.Create(self);
-  FNetwork := TSocketWrapper.Create(Self);
+  FNetwork := TSocketWrapper.Create(self);
   FBuddyList := TBuddyList.Create(self);
   with FNetwork do begin
     SocksProxyAddress := ConfGetTorHost;
@@ -135,9 +145,27 @@ begin
 
   DoneCriticalsection(FCSQueue);
   DoneCriticalsection(FCSConnList);
+
   WriteLn(MilliTime, ' start destroying child components');
+  //FTor.Free;
+  //FNetwork.Free;
   inherited Destroy;
   WriteLn(MilliTime, ' done destroying child components');
+end;
+
+function TTorChatClient.MainThread: TThreadID;
+begin
+  Result := FMainThread;
+end;
+
+function TTorChatClient.BuddyList: IBuddyList;
+begin
+  Result := FBuddyList;
+end;
+
+function TTorChatClient.Network: TSocketWrapper;
+begin
+  Result := FNetwork;
 end;
 
 procedure TTorChatClient.Enqueue(AMessage: TAMessage);

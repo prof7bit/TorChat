@@ -43,7 +43,7 @@ type
   TBuddy = class(TInterfacedObject, IBuddy)
   strict protected
     FID: String;
-    FClient: TAClient;
+    FClient: IClient;
     FOwnCookie: String;
     FFriendlyName: String;
     FStatus: TTorchatStatus;
@@ -59,7 +59,7 @@ type
     function IsFullyConnected: Boolean;
     procedure CallFromMainThread(AMethod: TMethod); virtual;
   public
-    constructor Create(AClient: TAClient); reintroduce;
+    constructor Create(AClient: IClient); reintroduce;
     destructor Destroy; override;
     procedure CheckState; virtual;
     function AsJsonObject: TJSONObject; virtual;
@@ -71,7 +71,7 @@ type
     procedure OnIncomingConnectionFail; virtual;
     procedure MustSendPong(ACookie: String); virtual;
     procedure DoDisconnect; virtual;
-    function Client: TAClient;
+    function Client: IClient;
     function ID: String;
     function Cookie: String;
     function FriendlyName: String;
@@ -108,7 +108,7 @@ begin
   end;
 end;
 
-constructor TBuddy.Create(AClient: TAClient);
+constructor TBuddy.Create(AClient: IClient);
 var
   GUID: TGuid;
 begin
@@ -257,7 +257,7 @@ begin
   end;
 end;
 
-function TBuddy.Client: TAClient;
+function TBuddy.Client: IClient;
 begin
   Result := FClient;
 end;
