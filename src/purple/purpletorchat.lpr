@@ -378,17 +378,28 @@ end.
 { Things happen in the following order:
 
     * purple loads this library, unit initialization sections will execute:
-      + WriteLn() redirection will be installed (by purplehelper.pas)
-      + PluginInfo and PluginProtocolInfo will be populated (see above)
+      + WriteLn redirection will be installed (by purplehelper.pas)
+      + Init() procedure is exected (PluginInfo and PluginProtocolInfo
+        will be initialized, see above)
 
-    * libpurple calls purple_init_plugin() (in purple.pas):
-      + Info records are passed to purple, registration complete.
+    * libpurple calls purple_init_plugin() (implementd in purple.pas):
+      + PluginInfo records are passed to purple, registration complete.
 
     * torchat_load() callback is called by purple
 
-    the above happens only once during application start
+    the above happens only once during application start.
+    Then for every account (TorChat profile) that is configured in
+    Pidgin and activated it will call the login function:
 
-    * torchat_login() callback is called for each account when going online
-    * torchat_close() callback is called for each account when going offline
+    * torchat_login() once for every account when going online
+    * torchat_close() once for every account when going offline
+
+    when unloading the plugin (on pidgin shutdown) it will
+
+    * switch all accounts to offline (call the above mentioned
+      torchat_close() for every account that is currrently online)
+
+    * torchat_unload() which will be the last function it will
+      ever call, after this it will unload the library.
 
 }
