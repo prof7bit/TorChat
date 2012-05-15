@@ -27,7 +27,7 @@ uses
   Classes,
   SysUtils,
   fpjson,
-  torchatabstract,
+  interfaces,
   protocol_ping,
   protocol_pong,
   miscfunc,

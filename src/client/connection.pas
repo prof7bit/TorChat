@@ -26,7 +26,7 @@ interface
 uses
   Classes,
   SysUtils,
-  torchatabstract,
+  interfaces,
   receiver,
   networking;
 

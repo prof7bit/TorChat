@@ -262,9 +262,9 @@
         <UnitName Value="receiver"/>
       </Unit9>
       <Unit10>
-        <Filename Value="../client/torchatabstract.pas"/>
+        <Filename Value="../client/interfaces.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="torchatabstract"/>
+        <UnitName Value="interfaces"/>
       </Unit10>
       <Unit11>
         <Filename Value="../client/buddy.pas"/>

@@ -24,7 +24,7 @@ unit protocol_ping;
 interface
 
 uses
-  torchatabstract,
+  interfaces,
   protocol;
 
 type

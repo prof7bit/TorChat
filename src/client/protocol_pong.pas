@@ -24,7 +24,7 @@ unit protocol_pong;
 interface
 
 uses
-  torchatabstract,
+  interfaces,
   protocol;
 
 type

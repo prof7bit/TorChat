@@ -5,7 +5,7 @@ unit internalmessage;
 interface
 
 uses
-  torchatabstract,
+  interfaces,
   miscfunc;
 
 type

@@ -72,7 +72,7 @@ interface
 uses
   Classes,
   SysUtils,
-  torchatabstract,
+  interfaces,
   protocol,
   miscfunc;
 

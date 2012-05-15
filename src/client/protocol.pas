@@ -55,7 +55,7 @@ interface
 uses
   Classes,
   SysUtils,
-  torchatabstract,
+  interfaces,
   miscfunc;
 
 type

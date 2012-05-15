@@ -6,7 +6,7 @@ interface
 
 uses
   Classes,
-  torchatabstract;
+  interfaces;
 
 type
 

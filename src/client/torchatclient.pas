@@ -27,7 +27,7 @@ uses
   Classes,
   SysUtils,
   contnrs,
-  torchatabstract,
+  interfaces,
   torprocess,
   networking;
 

@@ -74,7 +74,7 @@ uses
   glib2,
   purple,
   purplehelper,
-  torchatabstract,
+  interfaces,
   torchatclient,
   clientconfig,
   miscfunc;
