@@ -5,72 +5,32 @@ unit internalmessage;
 interface
 
 uses
-  interfaces,
-  miscfunc;
+  interfaces;
 
 type
-
-  { TInternalMessage }
-
-  TInternalMessage = class(TAMessage)
-    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); override;
-    constructor Create; reintroduce;
-    procedure Parse; override;
-    procedure Execute; override;
-    procedure Send; override;
-    class function GetCommand: String; override;
-  end;
-
-  { TMsgCallMethod }
-
-  TMsgCallMethod = class(TInternalMessage)
-    Method : procedure of object;
-    procedure Execute; override;
+  { TMsgCallMethod call a method without arguments from the main thread }
+  TMsgCallMethod = class(TInterfacedObject, IMessage)
+  strict private
+    FMethod : TMethodOfObject;
+  public
+    constructor Create(AMethod: TMethodOfObject);
+    procedure Execute;
   end;
 
 implementation
 
 { TMsgCallMethod }
 
+constructor TMsgCallMethod.Create(AMethod: TMethodOfObject);
+begin
+  FMethod := AMethod;
+end;
+
 procedure TMsgCallMethod.Execute;
 begin
-  Method();
+  FMethod();
 end;
 
-{ TInternalMessage }
-
-constructor TInternalMessage.Create(AConnection: IHiddenConnection; AEncodedContent: String);
-begin
-  Ignore(AConnection);
-  Ignore(@AEncodedContent);
-  // nothing
-end;
-
-constructor TInternalMessage.Create;
-begin
-  // nothing
-end;
-
-procedure TInternalMessage.Parse;
-begin
-  // nothing
-end;
-
-procedure TInternalMessage.Execute;
-begin
-  // nothing
-end;
-
-procedure TInternalMessage.Send;
-begin
-  // nothing
-end;
-
-class function TInternalMessage.GetCommand: String;
-begin
-  // nothing
-  Result := '';
-end;
 
 end.
 

@@ -56,16 +56,21 @@ type
     FCookie: String;
     procedure Serialize; override;
   public
+    class function GetCommand: String; override;
     constructor Create(ABuddy: IBuddy; ACookie: String); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
-    class function GetCommand: String; override;
   end;
 
 
 implementation
 
 { TMsgPong }
+
+class function TMsgPong.GetCommand: String;
+begin
+  Result := 'pong';
+end;
 
 constructor TMsgPong.Create(ABuddy: IBuddy; ACookie: String);
 begin
@@ -88,15 +93,10 @@ var
   ABuddy: IBuddy;
 begin
   WriteLn('TMsgPong.Execute() received pong: cookie=' + FCookie);
-  ABuddy := Client.BuddyList.FindBuddyByCookie(FCookie);
+  ABuddy := FClient.BuddyList.FindBuddyByCookie(FCookie);
   if Assigned(ABuddy) then begin
     ABuddy.SetIncoming(FConnection);
   end;
-end;
-
-class function TMsgPong.GetCommand: String;
-begin
-  Result := 'pong';
 end;
 
 begin

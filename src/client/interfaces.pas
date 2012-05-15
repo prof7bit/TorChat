@@ -41,11 +41,14 @@ type
     TORCHAT_XA
   );
 
+  TMethodOfObject = procedure of object;
+
   IBuddy = interface;
   IBuddyList = interface;
   IHiddenConnection = interface;
   TAReceiver = class;
-  TAMessage = class;
+  IMessage = interface;
+  IProtocolMessage = interface;
 
   TABuddyEnumerator = class
     function GetCurrent: IBuddy; virtual; abstract;
@@ -63,7 +66,7 @@ type
     procedure RegisterConnection(AConn: IHiddenConnection);
     procedure UnregisterConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
-    procedure Enqueue(AMessage: TAMessage);
+    procedure Enqueue(AMessage: IMessage);
     function BuddyList: IBuddyList;
     function Network: TSocketWrapper;
   end;
@@ -122,20 +125,14 @@ type
     function Stream: TTCPStream;
   end;
 
-  { TAMessage represents a protocol message }
-  TAMessage = class
-  strict protected
-    FConnection: IHiddenConnection;
-    FClient: IClient;
-    FBuddy: IBuddy;
-  public
-    class function GetCommand: String; virtual; abstract;
-    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); virtual; abstract;
-    procedure Parse; virtual; abstract;
-    procedure Execute; virtual; abstract;
-    procedure Send; virtual; abstract;
-    property Client: IClient read FClient write FClient;
-    property Buddy: IBuddy read FBuddy write FBuddy;
+  IMessage = interface
+    procedure Execute;
+  end;
+
+  { IProtocolMessage represents a protocol message }
+  IProtocolMessage = interface(IMessage)
+    procedure Parse;
+    procedure Send;
   end;
 
   TAReceiver = class(TThread)

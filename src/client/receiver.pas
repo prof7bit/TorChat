@@ -150,7 +150,7 @@ end;
 procedure TReceiver.OnReceivedLine(EncodedLine: String);
 var
   Command: String;
-  Msg: TAMessage;
+  Msg: IProtocolMessage;
 begin
   try
     Command := PopFirstWord(EncodedLine);
@@ -164,7 +164,6 @@ begin
   except
     on Ex: Exception do begin
       WriteLn(Ex.Message);
-      Msg.Free;
     end;
   end;
 

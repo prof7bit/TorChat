@@ -71,20 +71,24 @@ type
     default Execute() method that is implemented in TMsg will
     simply respond with 'not_implemented' and do nothing else.
   }
-  TMsg = class(TAMessage)
+  TMsg = class(TInterfacedObject, IProtocolMessage)
   strict protected
+    FConnection: IHiddenConnection;
+    FClient: IClient;
+    FBuddy: IBuddy;
     FBinaryContent : String;
     function GetSendConnection: IHiddenConnection; virtual;
     procedure Serialize; virtual;
   public
-    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); override;
+    class function GetCommand: String; virtual; abstract;
+    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); virtual;
     constructor Create(ABuddy: IBuddy);
-    procedure Parse; override;
-    procedure Execute; override;
-    procedure Send; override;
+    procedure Parse; virtual;
+    procedure Execute; virtual;
+    procedure Send; virtual;
   end;
 
-  TMsgClass = class of TAMessage;
+  TMsgClass = class of TMsg;
 
 
 function GetMsgClassFromCommand(ACommand: String): TMsgClass;

@@ -35,11 +35,9 @@ uses
   networking,
   internalmessage;
 
+
 type
-  TMethod = procedure of object;
-
   { TBuddy }
-
   TBuddy = class(TInterfacedObject, IBuddy)
   strict protected
     FID: String;
@@ -57,7 +55,7 @@ type
     procedure CbNetOut(ATCPStream: TTCPStream; E: Exception); virtual;
     procedure SendPong; virtual;
     function IsFullyConnected: Boolean;
-    procedure CallFromMainThread(AMethod: TMethod); virtual;
+    procedure CallFromMainThread(AMethod: TMethodOfObject); virtual;
   public
     constructor Create(AClient: IClient); reintroduce;
     destructor Destroy; override;
@@ -187,15 +185,14 @@ begin
   Result := Assigned(ConnOutgoing) and Assigned(ConnIncoming);
 end;
 
-procedure TBuddy.CallFromMainThread(AMethod: TMethod);
+procedure TBuddy.CallFromMainThread(AMethod: TMethodOfObject);
 var
-  Msg: TMsgCallMethod;
+  Msg: IMessage;
 begin
   if ThreadID = Client.MainThread then
     AMethod()
   else begin
-    Msg := TMsgCallMethod.Create;
-    Msg.Method := AMethod;
+    Msg := TMsgCallMethod.Create(AMethod);
     Client.Enqueue(Msg);
   end
 end;

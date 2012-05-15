@@ -26,7 +26,6 @@ interface
 uses
   Classes,
   SysUtils,
-  contnrs,
   interfaces,
   torprocess,
   networking;
@@ -54,7 +53,7 @@ type
     FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
     FTor: TTor;
-    FQueue: TObjectQueue;
+    FQueue: IInterfaceList;
     FCSQueue: TRTLCriticalSection;
     FCSConnList: TRTLCriticalSection;
     FTimeStarted: TDateTime;
@@ -73,7 +72,7 @@ type
     function MainThread: TThreadID; virtual;
     function BuddyList: IBuddyList; virtual;
     function Network: TSocketWrapper; virtual;
-    procedure Enqueue(AMessage: TAMessage); virtual;
+    procedure Enqueue(AMessage: IMessage); virtual;
     procedure ProcessMessages; virtual;
     procedure SetStatus(AStatus: TTorchatStatus); virtual;
     procedure RegisterConnection(AConn: IHiddenConnection); virtual;
@@ -103,7 +102,7 @@ begin
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
   FConnInList := TInterfaceList.Create;
-  FQueue := TObjectQueue.Create;
+  FQueue := TInterfaceList.Create;
   FTor := TTor.Create(self);
   FNetwork := TSocketWrapper.Create(self);
   FBuddyList := TBuddyList.Create(self);
@@ -117,7 +116,6 @@ end;
 
 destructor TTorChatClient.Destroy;
 var
-  Msg: TAMessage;
   Conn: IHiddenConnection;
 begin
   WriteLn(MilliTime, ' start destroying TorChatClient');
@@ -133,15 +131,7 @@ begin
   end;
 
   FBuddyList.Clear;
-
-  // empty the message queue
-  EnterCriticalsection(FCSQueue);
-  while FQueue.Count > 0 do begin
-    Msg := FQueue.Pop as TAMessage;
-    Msg.Free;
-  end;
-  FQueue.Free;
-  LeaveCriticalsection(FCSQueue);
+  FQueue.Clear;
 
   DoneCriticalsection(FCSQueue);
   DoneCriticalsection(FCSConnList);
@@ -168,18 +158,17 @@ begin
   Result := FNetwork;
 end;
 
-procedure TTorChatClient.Enqueue(AMessage: TAMessage);
+procedure TTorChatClient.Enqueue(AMessage: IMessage);
 begin
   if FIsDestroying then begin
     // no more messages during destruction, they won't be processed
     // anyways and we also don't want to generate any new timer events.
     // just free the message, throw it away.
     WriteLn('TTorChatClient.Enqueue() not enqueuing message during shutdown');
-    AMessage.Free;
   end
   else begin
     EnterCriticalsection(FCSQueue);
-    FQueue.Push(AMessage);
+    FQueue.Add(AMessage);
     LeaveCriticalsection(FCSQueue);
     OnNotifyGui;
   end;
@@ -240,11 +229,12 @@ end;
 
 procedure TTorChatClient.PopNextMessage;
 var
-  Msg: TAMessage;
+  Msg: IMessage;
 begin
   if FQueue.Count > 0 then begin
     EnterCriticalsection(FCSQueue);
-    Msg := FQueue.Pop as TAMessage;
+    Msg := IMessage(FQueue.First);
+    FQueue.Remove(Msg);
     LeaveCriticalsection(FCSQueue);
     try
       Msg.Execute;
@@ -253,7 +243,6 @@ begin
         WriteLn(E.Message);
       end;
     end;
-    Msg.Free;
   end;
 end;
 
