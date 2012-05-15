@@ -139,7 +139,6 @@ type
     procedure Execute;
   end;
 
-  { IProtocolMessage represents a protocol message }
   IProtocolMessage = interface(IMessage)
     procedure Parse;
     procedure Send;
