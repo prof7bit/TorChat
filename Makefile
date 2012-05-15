@@ -1,7 +1,7 @@
 MPURPLE = $(MAKE) -C src/purple
 MGUI = $(MAKE) -C src/gui
 
-all: purple gui
+all: purple
 
 install: installpurple installgui
 
