@@ -61,31 +61,42 @@ uses
 type
   { TMsg
 
-    This is the base class for the other protocol messages.
-    It implements the basic infrastructure of binary decoding,
-    encoding, sending, etc. The concrete protocol message
-    classes will introduce additional fields and constructors
-    and override Parse(), Serialize(), Execute().
-    TMsg is also used when an incoming message is received
-    for which we have no class (an unknown message). the
-    default Execute() method that is implemented in TMsg will
-    simply respond with 'not_implemented' and do nothing else.
+    This is the abstract base class for the other protocol
+    messages. It implements the basic infrastructure of
+    binary decoding, encoding, sending, etc. The concrete
+    protocol message classes will introduce additional
+    fields and constructors and override GetCommand(),
+    Serialize(), Parse() and Execute().
   }
   TMsg = class(TInterfacedObject, IProtocolMessage)
   strict protected
     FConnection: IHiddenConnection;
     FClient: IClient;
     FBuddy: IBuddy;
+    FCommand: String;
     FBinaryContent : String;
     function GetSendConnection: IHiddenConnection; virtual;
     procedure Serialize; virtual; abstract;
   public
     class function GetCommand: String; virtual; abstract;
-    constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); virtual;
+    constructor Create(AConnection: IHiddenConnection; ACommand, AEncodedContent: String); virtual;
     constructor Create(ABuddy: IBuddy);
     procedure Parse; virtual; abstract;
-    procedure Execute; virtual;
+    procedure Execute; virtual; abstract;
     procedure Send; virtual;
+  end;
+
+  { TMsgDefault
+
+    This message is instantiated when we receive an
+    unknown command. If the connection has a buddy It
+    will reply with 'not_implemented', if it does not
+    have a buddy then it will close the connection.
+  }
+  TMsgDefault = class(TMsg)
+    procedure Serialize; override;
+    procedure Parse; override;
+    procedure Execute; override;
   end;
 
   TMsgClass = class of TMsg;
@@ -105,7 +116,7 @@ function GetMsgClassFromCommand(ACommand: String): TMsgClass;
 var
   MsgClass: TMsgClass;
 begin
-  Result := TMsg; // default class if command is not recognized
+  Result := TMsgDefault; // default class if command is not recognized
   for MsgClass in MessageClasses do
     if MsgClass.GetCommand = ACommand then
       exit(MsgClass);
@@ -135,6 +146,23 @@ begin
   MessageClasses[L] := AClass;
 end;
 
+{ TMsgDefault }
+
+procedure TMsgDefault.Serialize;
+begin
+  // nothing
+end;
+
+procedure TMsgDefault.Parse;
+begin
+  // nothing
+end;
+
+procedure TMsgDefault.Execute;
+begin
+  {$warning implement send not_implemented}
+end;
+
 function TMsg.GetSendConnection: IHiddenConnection;
 begin
   if Assigned(FBuddy) and Assigned(FBuddy.ConnOutgoing) then
@@ -144,10 +172,11 @@ begin
 end;
 
 { this is the virtual constructor for incoming messages }
-constructor TMsg.Create(AConnection: IHiddenConnection; AEncodedContent: String);
+constructor TMsg.Create(AConnection: IHiddenConnection; ACommand, AEncodedContent: String);
 begin
   FConnection := AConnection;
   FClient := FConnection.Client;
+  FCommand := ACommand;
   FBinaryContent := BinaryDecode(AEncodedContent);
 end;
 
@@ -156,11 +185,6 @@ constructor TMsg.Create(ABuddy: IBuddy);
 begin
   FBuddy := ABuddy;
   FClient := FBuddy.Client;
-end;
-
-procedure TMsg.Execute;
-begin
-  {$warning fixme: here we must send 'not_implemented'}
 end;
 
 procedure TMsg.Send;

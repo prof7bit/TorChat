@@ -158,7 +158,8 @@ begin
     exit;
   end;
 
-  Msg := GetMsgClassFromCommand(Command).Create(Self.FConnection, EncodedLine);
+  Msg := GetMsgClassFromCommand(Command).Create(
+    Self.FConnection, Command, EncodedLine);
   try
     Msg.Parse;
   except
