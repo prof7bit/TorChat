@@ -173,6 +173,19 @@ begin
   TorChatClients.Get(acc).SetStatus(TorchatStatus);
 end;
 
+procedure torchat_alias_buddy(gc: PPurpleConnection; who, aalias: PChar); cdecl;
+var
+  TorChat: TTorChatPurpleClient;
+  Buddy: IBuddy;
+begin
+  TorChat := Client(gc^.account);
+  if Assigned(TorChat) then begin
+    Buddy := TorChat.BuddyList.FindBuddy(who);
+    Buddy.SetFriendlyName(aalias);
+    serv_got_alias(gc, who, aalias);
+  end;
+end;
+
 function torchat_get_text_table(acc: PPurpleAccount): PGHashTable; cdecl;
 begin
   Ignore(acc);
@@ -347,6 +360,7 @@ begin
     login := @torchat_login;
     close := @torchat_close;
     set_status := @torchat_set_status;
+    alias_buddy := @torchat_alias_buddy;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 

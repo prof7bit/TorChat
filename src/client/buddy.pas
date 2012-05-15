@@ -325,7 +325,10 @@ end;
 
 procedure TBuddy.SetFriendlyName(AName: String);
 begin
-  FFriendlyName := AName;
+  if AName <> FFriendlyName then begin
+    FFriendlyName := AName;
+    Client.BuddyList.Save;
+  end;
 end;
 
 end.
