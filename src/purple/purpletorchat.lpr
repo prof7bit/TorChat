@@ -378,10 +378,10 @@ end.
 { Things happen in the following order:
 
     * purple loads this library, unit initialization sections will execute:
-      + WriteLn() redirection will be installed (by purple.pas)
+      + WriteLn() redirection will be installed (by purplehelper.pas)
       + PluginInfo and PluginProtocolInfo will be populated (see above)
 
-    * purple calls purple_init_plugin() (in purple.pas):
+    * libpurple calls purple_init_plugin() (in purple.pas):
       + Info records are passed to purple, registration complete.
 
     * torchat_load() callback is called by purple
