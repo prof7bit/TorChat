@@ -364,6 +364,7 @@ function  purple_account_option_string_new(text, pref_name, default_value: PChar
 function  purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; cdecl; external;
 procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
   group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
+procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; external LIBPURPLE;
 procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
 function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; cdecl; external LIBPURPLE;
@@ -390,6 +391,7 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
   independent: GBoolean): PPurpleStatusType; external LIBPURPLE;
 function  purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
 function  purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
+procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); cdecl; external LIBPURPLE;
 
 
 { purple_init_plugin is the only exported symbol.
