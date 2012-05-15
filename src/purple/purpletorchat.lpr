@@ -76,6 +76,7 @@ uses
   purplehelper,
   interfaces,
   torchatclient,
+  clientconfig,
   miscfunc;
 
 const
@@ -201,7 +202,7 @@ var
   purple_list: PGSList;
 
 begin
-  NewClient := TTorChatPurpleClient.Create(nil);
+  NewClient := TTorChatPurpleClient.Create(nil, acc^.username);
   NewClient.purple_account := acc;
   NewClient.purple_timer := purple_timeout_add(1000, @cb_purple_timer, NewClient);
   TorChatClients.Add(acc^.username, NewClient);
@@ -345,7 +346,7 @@ begin
   end;
 
   // add additional fields to the settings dialog
-  TorPath := PChar(''); {$note get default tor client name}
+  TorPath := PChar(DefaultPathTorExe);
   acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
   plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
 

@@ -49,6 +49,7 @@ type
   TTorChatClient = class(TComponent, IClient)
   strict protected
     FMainThread: TThreadID;
+    FProfileName: String;
     FClientConfig: IClientConfig;
     FBuddyList: IBuddyList;
     FNetwork: TSocketWrapper;
@@ -64,7 +65,7 @@ type
     procedure PopNextMessage;
     procedure CheckHiddenServiceName;
   public
-    constructor Create(AOwner: TComponent); reintroduce;
+    constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
     destructor Destroy; override;
     procedure OnNotifyGui; virtual; abstract;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
@@ -91,12 +92,13 @@ uses
 
 { TTorChatClient }
 
-constructor TTorChatClient.Create(AOwner: TComponent);
+constructor TTorChatClient.Create(AOwner: TComponent; AProfileName: String);
 begin
   FIsDestroying := False;
   Inherited Create(AOwner);
   FMainThread := ThreadID;
-  FClientConfig := TClientConfig.Create;
+  FProfileName := AProfileName;
+  FClientConfig := TClientConfig.Create(AProfileName);
   Randomize;
   InitCriticalSection(FCSQueue);
   InitCriticalSection(FCSConnList);

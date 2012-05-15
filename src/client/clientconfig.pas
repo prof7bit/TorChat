@@ -32,11 +32,16 @@ uses
 const
   SECONDS_WAIT_FOR_HOSTNAME_FILE = 20;
 
-type
 
+type
   { TClientConfig }
 
   TClientConfig = class(TInterfacedObject, IClientConfig)
+  strict protected
+    FProfileName: String;
+    FPathTorExe: String;
+  public
+    constructor Create(AProfileName: String);
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
@@ -45,9 +50,17 @@ type
     function HiddenServiceName: String;
   end;
 
+function DefaultPathTorExe: String;
+
 implementation
 
 { TClientConfig }
+
+constructor TClientConfig.Create(AProfileName: String);
+begin
+  FProfileName := AProfileName;
+  FPathTorExe := DefaultPathTorExe;
+end;
 
 function TClientConfig.DataDir: String;
 {$ifdef windows}
@@ -72,17 +85,8 @@ begin
 end;
 
 function TClientConfig.PathTorExe: String;
-{$ifdef windows}
-var
-  ProgramsPath: Array[0..MaxPathLen] of Char;
-{$endif}
 begin
-  {$ifdef windows}
-    SHGetSpecialFolderPath(0, ProgramsPath, CSIDL_PROGRAM_FILES, false);
-    Result := ConcatPaths([ProgramsPath, 'Tor', 'tor.exe']);
-  {$else}
-    Result := '/usr/sbin/tor';
-  {$endif}
+  Result := FPathTorExe;
 end;
 
 function TClientConfig.ListenPort: DWord;
@@ -119,6 +123,19 @@ begin
   if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
 end;
 
+function DefaultPathTorExe: String;
+{$ifdef windows}
+var
+  ProgramsPath: Array[0..MaxPathLen] of Char;
+{$endif}
+begin
+  {$ifdef windows}
+    SHGetSpecialFolderPath(0, ProgramsPath, CSIDL_PROGRAM_FILES, false);
+    Result := ConcatPaths([ProgramsPath, 'Tor', 'tor.exe']);
+  {$else}
+    Result := '/usr/sbin/tor';
+  {$endif}
+end;
 
 end.
 
