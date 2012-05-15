@@ -78,12 +78,12 @@ type
     FBuddy: IBuddy;
     FBinaryContent : String;
     function GetSendConnection: IHiddenConnection; virtual;
-    procedure Serialize; virtual;
+    procedure Serialize; virtual; abstract;
   public
     class function GetCommand: String; virtual; abstract;
     constructor Create(AConnection: IHiddenConnection; AEncodedContent: String); virtual;
     constructor Create(ABuddy: IBuddy);
-    procedure Parse; virtual;
+    procedure Parse; virtual; abstract;
     procedure Execute; virtual;
     procedure Send; virtual;
   end;
@@ -143,11 +143,6 @@ begin
     Result := nil;
 end;
 
-procedure TMsg.Serialize;
-begin
-  // do nothing. concrete message classes will override this.
-end;
-
 { this is the virtual constructor for incoming messages }
 constructor TMsg.Create(AConnection: IHiddenConnection; AEncodedContent: String);
 begin
@@ -161,11 +156,6 @@ constructor TMsg.Create(ABuddy: IBuddy);
 begin
   FBuddy := ABuddy;
   FClient := FBuddy.Client;
-end;
-
-procedure TMsg.Parse;
-begin
-  // do nothing. concrete message classes will override this.
 end;
 
 procedure TMsg.Execute;
