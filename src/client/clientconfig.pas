@@ -26,21 +26,30 @@ interface
 uses
   {$ifdef windows}shlobj,{$endif} // for finding %APPDATA% etc.
   Classes,
-  SysUtils;
+  SysUtils,
+  interfaces;
 
 const
   SECONDS_WAIT_FOR_HOSTNAME_FILE = 20;
 
-  function ConfGetDataDir: String;
-  function ConfGetTorExe: String;
-  function ConfGetListenPort: DWord;
-  function ConfGetTorHost: String;
-  function ConfGetTorPort: DWord;
-  function ConfGetHiddenServiceName: String;
+type
+
+  { TClientConfig }
+
+  TClientConfig = class(TInterfacedObject, IClientConfig)
+    function DataDir: String;
+    function PathTorExe: String;
+    function ListenPort: DWord;
+    function TorHostName: String;
+    function TorPort: DWord;
+    function HiddenServiceName: String;
+  end;
 
 implementation
 
-function ConfGetDataDir: String;
+{ TClientConfig }
+
+function TClientConfig.DataDir: String;
 {$ifdef windows}
 var
   AppDataPath: Array[0..MaxPathLen] of Char;
@@ -62,7 +71,7 @@ begin
   end;
 end;
 
-function ConfGetTorExe: String;
+function TClientConfig.PathTorExe: String;
 {$ifdef windows}
 var
   ProgramsPath: Array[0..MaxPathLen] of Char;
@@ -76,29 +85,29 @@ begin
   {$endif}
 end;
 
-function ConfGetListenPort: DWord;
+function TClientConfig.ListenPort: DWord;
 begin
   Result := 11009;
 end;
 
-function ConfGetTorHost: String;
+function TClientConfig.TorHostName: String;
 begin
   Result := 'localhost'
 end;
 
-function ConfGetTorPort: DWord;
+function TClientConfig.TorPort: DWord;
 begin
   Result := 11109;
 end;
 
-function ConfGetHiddenServiceName: String;
+function TClientConfig.HiddenServiceName: String;
 var
   FileName: String;
   HostnameFile: TFileStream = nil;
 const
   OnionLength = 16;
 begin
-  FileName := ConcatPaths([ConfGetDataDir, 'tor/hidden_service/hostname']);
+  FileName := ConcatPaths([DataDir, 'tor/hidden_service/hostname']);
   SetLength(Result, OnionLength);
   try
     HostnameFile := TFileStream.Create(FileName, fmOpenRead);
@@ -109,6 +118,7 @@ begin
   end;
   if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
 end;
+
 
 end.
 

@@ -19,7 +19,7 @@
 }
 
 { This unit defines the interfaces between the various classes
-  of the client.
+  of the TorChat client.
 }
 unit interfaces;
 
@@ -56,6 +56,15 @@ type
     property Current: IBuddy read GetCurrent;
   end;
 
+  IClientConfig = interface
+    function DataDir: String;
+    function PathTorExe: String;
+    function ListenPort: DWord;
+    function TorHostName: String;
+    function TorPort: DWord;
+    function HiddenServiceName: String;
+  end;
+
   IClient = interface
     procedure ProcessMessages;
     procedure OnNotifyGui;
@@ -69,6 +78,7 @@ type
     procedure Enqueue(AMessage: IMessage);
     function BuddyList: IBuddyList;
     function Network: TSocketWrapper;
+    function Config: IClientConfig;
   end;
 
   IBuddyListTemp = interface(IInterfaceList)

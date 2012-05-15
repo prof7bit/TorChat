@@ -76,7 +76,6 @@ uses
   purplehelper,
   interfaces,
   torchatclient,
-  clientconfig,
   miscfunc;
 
 const
@@ -346,7 +345,7 @@ begin
   end;
 
   // add additional fields to the settings dialog
-  TorPath := PChar(ConfGetTorExe + '/');
+  TorPath := PChar(''); {$note get default tor client name}
   acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
   plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
 

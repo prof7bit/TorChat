@@ -29,7 +29,6 @@ implementation
 uses
   sysutils,
   buddy,
-  clientconfig,
   fpjson,
   jsonparser;
 
@@ -71,7 +70,7 @@ var
 begin
   try
     writeln('TBuddyList.Load()');
-    FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmOpenRead);
+    FS := TFileStream.Create(ConcatPaths([FClient.Config.DataDir, 'buddylist.json']), fmOpenRead);
     JParser :=TJSONParser.Create(FS);
     JList := JParser.Parse as TJSONArray;
     LastI := JList.Count - 1;
@@ -113,7 +112,7 @@ begin
   JData := JArr.FormatJSON([foSingleLineObject]);
   JArr.Free;
   try
-    FS := TFileStream.Create(ConcatPaths([ConfGetDataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
+    FS := TFileStream.Create(ConcatPaths([FClient.Config.DataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
     FS.Write(JData[1], Length(JData));
   except
     on E: Exception do begin

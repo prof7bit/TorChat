@@ -27,15 +27,17 @@ uses
   Classes,
   SysUtils,
   process,
-  clientconfig;
+  interfaces;
 
 type
 
   { TTor }
 
   TTor = class(TProcess)
-    constructor Create(AOwner: TComponent); override;
+  strict protected
+    FClient: IClient;
   public
+    constructor Create(AOwner: TComponent; AClient: IClient); reintroduce;
     destructor Destroy; override;
   end;
 
@@ -43,12 +45,13 @@ implementation
 
 { TTor }
 
-constructor TTor.Create(AOwner: TComponent);
+constructor TTor.Create(AOwner: TComponent; AClient: IClient);
 begin
   inherited Create(AOwner);
+  FClient := AClient;
   Options := [poStderrToOutPut];
-  CurrentDirectory := ConcatPaths([ConfGetDataDir, 'tor']);
-  Executable := ConfGetTorExe;
+  CurrentDirectory := ConcatPaths([FClient.Config.DataDir, 'tor']);
+  Executable := FClient.Config.PathTorExe;
   Parameters.Add('-f');
   Parameters.Add('torrc.txt');
   try

@@ -49,6 +49,7 @@ type
   TTorChatClient = class(TComponent, IClient)
   strict protected
     FMainThread: TThreadID;
+    FClientConfig: IClientConfig;
     FBuddyList: IBuddyList;
     FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
@@ -63,15 +64,16 @@ type
     procedure PopNextMessage;
     procedure CheckHiddenServiceName;
   public
+    constructor Create(AOwner: TComponent); reintroduce;
+    destructor Destroy; override;
     procedure OnNotifyGui; virtual; abstract;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
-    constructor Create(AOwner: TComponent); reintroduce;
-    destructor Destroy; override;
     function MainThread: TThreadID; virtual;
     function BuddyList: IBuddyList; virtual;
     function Network: TSocketWrapper; virtual;
+    function Config: IClientConfig; virtual;
     procedure Enqueue(AMessage: IMessage); virtual;
     procedure ProcessMessages; virtual;
     procedure SetStatus(AStatus: TTorchatStatus); virtual;
@@ -90,12 +92,11 @@ uses
 { TTorChatClient }
 
 constructor TTorChatClient.Create(AOwner: TComponent);
-//var
-//  C : IHiddenConnection;
 begin
   FIsDestroying := False;
   Inherited Create(AOwner);
   FMainThread := ThreadID;
+  FClientConfig := TClientConfig.Create;
   Randomize;
   InitCriticalSection(FCSQueue);
   InitCriticalSection(FCSConnList);
@@ -103,14 +104,14 @@ begin
   FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
   FConnInList := TInterfaceList.Create;
   FQueue := TInterfaceList.Create;
-  FTor := TTor.Create(self);
+  FTor := TTor.Create(Self, Self);
   FNetwork := TSocketWrapper.Create(self);
   FBuddyList := TBuddyList.Create(self);
   with FNetwork do begin
-    SocksProxyAddress := ConfGetTorHost;
-    SocksProxyPort := ConfGetTorPort;
+    SocksProxyAddress := Config.TorHostName;
+    SocksProxyPort := Config.TorPort;
     IncomingCallback := @CbNetIn;
-    Bind(ConfGetListenPort);
+    Bind(Config.ListenPort);
   end;
 end;
 
@@ -156,6 +157,11 @@ end;
 function TTorChatClient.Network: TSocketWrapper;
 begin
   Result := FNetwork;
+end;
+
+function TTorChatClient.Config: IClientConfig;
+begin
+  Result := FClientConfig;
 end;
 
 procedure TTorChatClient.Enqueue(AMessage: IMessage);
@@ -252,7 +258,7 @@ var
 begin
   if not FHSNameOK then begin;
     if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
-      HSName := ConfGetHiddenServiceName;
+      HSName := Config.HiddenServiceName;
       if HSName <> '' then begin
         writeln('TTorChatClient.CheckHiddenServiceName() found: ' + HSName);
         BuddyList.SetOwnID(HSName);
