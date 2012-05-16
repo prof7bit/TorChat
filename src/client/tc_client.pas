@@ -56,13 +56,12 @@ type
     FMainThread: TThreadID;
     FProfileName: String;
     FClientConfig: IClientConfig;
-    FBuddyList: IRoster;
+    FRoster: IRoster;
+    FTempList: ITempList;
     FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
     FTor: TTor;
     FQueue: IMsgQueue;
-    FCSQueue: TRTLCriticalSection;
-    FCSConnList: TRTLCriticalSection;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
     FConnInList: IInterfaceList;
@@ -77,6 +76,7 @@ type
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     function MainThread: TThreadID; virtual;
     function Roster: IRoster; virtual;
+    function TempList: ITempList;
     function Network: TSocketWrapper; virtual;
     function Queue: IMsgQueue;
     function Config: IClientConfig; virtual;
@@ -90,6 +90,7 @@ type
 
 implementation
 uses
+  tc_templist,
   tc_roster,
   tc_config,
   tc_misc,
@@ -105,15 +106,14 @@ begin
   FProfileName := AProfileName;
   FClientConfig := TClientConfig.Create(AProfileName);
   Randomize;
-  InitCriticalSection(FCSQueue);
-  InitCriticalSection(FCSConnList);
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first Pump() call
   FConnInList := TInterfaceList.Create;
   FQueue := TMsgQueue.Create(self);
   FTor := TTor.Create(Self, Self);
   FNetwork := TSocketWrapper.Create(self);
-  FBuddyList := TRoster.Create(self);
+  FRoster := TRoster.Create(self);
+  FTempList := TTempList.Create(self);
   with FNetwork do begin
     SocksProxyAddress := Config.TorHostName;
     SocksProxyPort := Config.TorPort;
@@ -138,11 +138,9 @@ begin
     Conn.DoClose;
   end;
 
-  FBuddyList.Clear;
+  FRoster.Clear;
+  FTempList.Clear;
   FQueue.Clear;
-
-  DoneCriticalsection(FCSQueue);
-  DoneCriticalsection(FCSConnList);
 
   WriteLn(MilliTime, ' start destroying child components');
   //FTor.Free;
@@ -158,7 +156,12 @@ end;
 
 function TTorChatClient.Roster: IRoster;
 begin
-  Result := FBuddyList;
+  Result := FRoster;
+end;
+
+function TTorChatClient.TempList: ITempList;
+begin
+  Result := FTempList;
 end;
 
 function TTorChatClient.Network: TSocketWrapper;
@@ -197,9 +200,7 @@ end;
 
 procedure TTorChatClient.RegisterConnection(AConn: IHiddenConnection);
 begin
-  EnterCriticalsection(FCSConnList);
   FConnInList.Add(AConn);
-  LeaveCriticalsection(FCSConnList);
   WriteLn(_F(
     'TTorChatClient.RegisterConnection() have now %d incoming connections',
     [FConnInList.Count]));
@@ -207,17 +208,13 @@ end;
 
 procedure TTorChatClient.UnregisterConnection(AConn: IHiddenConnection);
 begin
-  EnterCriticalsection(FCSConnList);
   // only incoming connections are in this list
   if FConnInList.IndexOf(AConn) <> -1 then begin
     FConnInList.Remove(AConn);
-    LeaveCriticalsection(FCSConnList);
     WriteLn(_F(
       'TTorChatClient.UnregisterConnection() removed %s, %d incoming connections left',
       [AConn.DebugInfo, FConnInList.Count]));
-  end
-  else
-    LeaveCriticalsection(FCSConnList);
+  end;
 end;
 
 procedure TTorChatClient.CbNetIn(AStream: TTCPStream; E: Exception);

@@ -59,7 +59,7 @@ implementation
 uses
   tc_misc;
 
-{ TMsgPong }
+{ TMsgNotImplemented }
 
 class function TMsgNotImplemented.GetCommand: String;
 begin

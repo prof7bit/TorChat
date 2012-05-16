@@ -210,7 +210,7 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="18">
+    <Units Count="20">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -277,9 +277,9 @@
         <UnitName Value="tc_prot_ping"/>
       </Unit12>
       <Unit13>
-        <Filename Value="../client/tc_prot_not_implemented.pas"/>
+        <Filename Value="../client/tc_prot_add_me.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_not_implemented"/>
+        <UnitName Value="tc_prot_add_me"/>
       </Unit13>
       <Unit14>
         <Filename Value="../client/tc_msgqueue.pas"/>
@@ -301,6 +301,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_templist"/>
       </Unit17>
+      <Unit18>
+        <Filename Value="../client/tc_prot_not_implemented.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_not_implemented"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../client/tc_prot_pong.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_pong"/>
+      </Unit19>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

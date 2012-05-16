@@ -88,6 +88,8 @@ type
   end;
 
 implementation
+uses
+  tc_buddy;
 
 { TMsgPing }
 
@@ -117,12 +119,16 @@ procedure TMsgPing.Execute;
 var
   ABuddy: IBuddy;
 begin
+  {$warning must check ID for wellformedness}
   WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
   ABuddy := FClient.Roster.FindBuddy(FID);
   if Assigned(ABuddy) then
     ABuddy.MustSendPong(FCookie)
   else begin
-    Writeln('I got Ping from unknown Buddy: ' + FID);
+    Writeln('I got Ping from unknown Buddy, creating temporary buddy: ' + FID);
+    ABuddy := TBuddy.Create(FClient);
+    ABuddy.InitID(FID);
+    FClient.TempList.AddBuddy(ABuddy);
   end;
 end;
 

@@ -30,6 +30,7 @@ uses
   tc_interface,
   tc_prot_ping,
   tc_prot_pong,
+  tc_prot_add_me,
   tc_misc,
   tc_conn,
   tc_sock,
@@ -172,10 +173,12 @@ end;
 
 procedure TBuddy.SendPong;
 var
-  Pong: IProtocolMessage;
+  Message: IProtocolMessage;
 begin
-  Pong := TMsgPong.Create(Self, FReceivedCookie);
-  Pong.Send;
+  Message := TMsgPong.Create(Self, FReceivedCookie);
+  Message.Send;
+  Message := TMsgAddMe.Create(Self);
+  Message.Send;
   FMustSendPong := False;
   FReceivedCookie := '';
 end;

@@ -45,6 +45,7 @@ type
 
   IBuddy = interface;
   IRoster = interface;
+  ITempList = interface;
   IHiddenConnection = interface;
   IMessage = interface;
   IProtocolMessage = interface;
@@ -77,6 +78,7 @@ type
     procedure UnregisterConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
     function Roster: IRoster;
+    function TempList: ITempList;
     function Queue: IMsgQueue;
     function Network: TSocketWrapper;
     function Config: IClientConfig;
@@ -90,6 +92,7 @@ type
     procedure RemoveBuddy(ABuddy: IBuddy);
     function FindBuddy(AName: String): IBuddy;
     function FindBuddyByCookie(ACookie: String): IBuddy;
+    function HasBuddy(ABuddy: IBuddy): Boolean;
     procedure DoDisconnectAll;
     function GetEnumerator: TABuddyEnumerator;
   end;

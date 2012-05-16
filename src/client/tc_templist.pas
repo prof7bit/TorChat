@@ -23,6 +23,7 @@ type
     procedure RemoveBuddy(ABuddy: IBuddy); virtual;
     function FindBuddy(AName: String): IBuddy; virtual;
     function FindBuddyByCookie(ACookie: String): IBuddy; virtual;
+    function HasBuddy(ABuddy: IBuddy): Boolean; virtual;
     procedure DoDisconnectAll; virtual;
     function GetEnumerator: TABuddyEnumerator; virtual;
   end;
@@ -115,6 +116,16 @@ begin
   for Buddy in Self do
     if Buddy.Cookie = ACookie then
       exit(Buddy);
+end;
+
+function TTempList.HasBuddy(ABuddy: IBuddy): Boolean;
+var
+  Buddy: IBuddy;
+begin
+  Result := False;
+  for Buddy in Self do
+    if Buddy = ABuddy then
+      Exit(True);
 end;
 
 procedure TTempList.DoDisconnectAll;
