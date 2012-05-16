@@ -93,7 +93,7 @@ var
   ABuddy: IBuddy;
 begin
   WriteLn('TMsgPong.Execute() received pong: cookie=' + FCookie);
-  ABuddy := FClient.BuddyList.FindBuddyByCookie(FCookie);
+  ABuddy := FClient.Roster.FindBuddyByCookie(FCookie);
   if Assigned(ABuddy) then begin
     ABuddy.SetIncoming(FConnection);
   end;

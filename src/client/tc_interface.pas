@@ -44,7 +44,7 @@ type
   TMethodOfObject = procedure of object;
 
   IBuddy = interface;
-  IBuddyList = interface;
+  IRoster = interface;
   IHiddenConnection = interface;
   TAReceiver = class;
   IMessage = interface;
@@ -76,12 +76,13 @@ type
     procedure UnregisterConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
     procedure Enqueue(AMessage: IMessage);
-    function BuddyList: IBuddyList;
+    function Roster: IRoster;
     function Network: TSocketWrapper;
     function Config: IClientConfig;
   end;
 
-  IBuddyListTemp = interface(IInterfaceList)
+  { a temporary list of buddies}
+  ITempList = interface(IInterfaceList)
     procedure CheckState;
     procedure AddBuddy(ABuddy: IBuddy);
     procedure RemoveBuddy(ABuddy: IBuddy);
@@ -91,7 +92,8 @@ type
     function GetEnumerator: TABuddyEnumerator;
   end;
 
-  IBuddyList = interface(IBuddyListTemp)
+  { the buddy list }
+  IRoster = interface(ITempList)
     procedure Load;
     procedure Save;
     function OwnID: String;

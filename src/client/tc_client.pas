@@ -51,7 +51,7 @@ type
     FMainThread: TThreadID;
     FProfileName: String;
     FClientConfig: IClientConfig;
-    FBuddyList: IBuddyList;
+    FBuddyList: IRoster;
     FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
     FTor: TTor;
@@ -72,7 +72,7 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     function MainThread: TThreadID; virtual;
-    function BuddyList: IBuddyList; virtual;
+    function Roster: IRoster; virtual;
     function Network: TSocketWrapper; virtual;
     function Config: IClientConfig; virtual;
     procedure Enqueue(AMessage: IMessage); virtual;
@@ -108,7 +108,7 @@ begin
   FQueue := TInterfaceList.Create;
   FTor := TTor.Create(Self, Self);
   FNetwork := TSocketWrapper.Create(self);
-  FBuddyList := TBuddyList.Create(self);
+  FBuddyList := TRoster.Create(self);
   with FNetwork do begin
     SocksProxyAddress := Config.TorHostName;
     SocksProxyPort := Config.TorPort;
@@ -125,7 +125,7 @@ begin
   FIsDestroying := True;
 
   // disconnect all buddies
-  BuddyList.DoDisconnectAll;
+  Roster.DoDisconnectAll;
 
   // disconnect all remaining incoming connections
   while FConnInList.Count > 0 do begin
@@ -151,7 +151,7 @@ begin
   Result := FMainThread;
 end;
 
-function TTorChatClient.BuddyList: IBuddyList;
+function TTorChatClient.Roster: IRoster;
 begin
   Result := FBuddyList;
 end;
@@ -188,7 +188,7 @@ begin
   if FTimeStarted = 0 then FTimeStarted := Now;
   CheckHiddenServiceName;
   PopNextMessage;
-  BuddyList.CheckState;
+  Roster.CheckState;
 end;
 
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
@@ -263,7 +263,7 @@ begin
       HSName := Config.HiddenServiceName;
       if HSName <> '' then begin
         writeln('TTorChatClient.CheckHiddenServiceName() found: ' + HSName);
-        BuddyList.SetOwnID(HSName);
+        Roster.SetOwnID(HSName);
         FHSNameOK := True;
       end
       else

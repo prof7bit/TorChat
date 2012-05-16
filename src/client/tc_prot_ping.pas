@@ -118,7 +118,7 @@ var
   ABuddy: IBuddy;
 begin
   WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
-  ABuddy := FClient.BuddyList.FindBuddy(FID);
+  ABuddy := FClient.Roster.FindBuddy(FID);
   if Assigned(ABuddy) then
     ABuddy.MustSendPong(FCookie)
   else begin

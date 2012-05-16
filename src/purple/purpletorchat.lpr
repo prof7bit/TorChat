@@ -180,7 +180,7 @@ var
 begin
   TorChat := Client(gc^.account);
   if Assigned(TorChat) then begin
-    Buddy := TorChat.BuddyList.FindBuddy(who);
+    Buddy := TorChat.Roster.FindBuddy(who);
     Buddy.SetFriendlyName(aalias);
     serv_got_alias(gc, who, aalias);
   end;
@@ -205,9 +205,8 @@ end;
 
 procedure torchat_login(acc: PPurpleAccount); cdecl;
 var
-  NewClient: TTorChatPurpleClient;
-  TorchatBuddy: IBuddy;
-  TorchatList: IBuddyList;
+  TorChat: TTorChatPurpleClient;
+  Buddy: IBuddy;
   purple_id: PChar;
   purple_alias: PChar;
   purple_status: PPurpleStatus;
@@ -215,28 +214,27 @@ var
   purple_list: PGSList;
 
 begin
-  NewClient := TTorChatPurpleClient.Create(nil, acc^.username);
-  NewClient.purple_account := acc;
-  NewClient.purple_timer := purple_timeout_add(1000, @cb_purple_timer, NewClient);
-  TorChatClients.Add(acc^.username, NewClient);
+  TorChat := TTorChatPurpleClient.Create(nil, acc^.username);
+  TorChat.purple_account := acc;
+  TorChat.purple_timer := purple_timeout_add(1000, @cb_purple_timer, TorChat);
+  TorChatClients.Add(acc^.username, TorChat);
   purple_connection_set_state(acc^.gc, PURPLE_CONNECTED);
 
   // remove buddies from purple's list that not in TorChat's list
-  TorchatList := NewClient.BuddyList;
   purple_list := purple_find_buddies(acc, nil);
   while Assigned(purple_list) do begin
     purple_id := purple_buddy_get_name(purple_list^.data);
-    if not Assigned(TorchatList.FindBuddy(purple_id)) then begin
+    if not Assigned(TorChat.Roster.FindBuddy(purple_id)) then begin
       purple_blist_remove_buddy(purple_list^.data);
     end;
     purple_list := g_slist_delete_link(purple_list, purple_list);
   end;
 
   // add buddies to purple's buddy list that are not in purple's list
-  TorchatList.Lock;
-  for TorchatBuddy in TorchatList do begin
-    purple_id := GetMemAndCopy(TorchatBuddy.ID);
-    purple_alias := GetMemAndCopy(TorchatBuddy.FriendlyName);
+  TorChat.Roster.Lock;
+  for Buddy in TorChat.Roster do begin
+    purple_id := GetMemAndCopy(Buddy.ID);
+    purple_alias := GetMemAndCopy(Buddy.FriendlyName);
     purple_buddy := purple_find_buddy(acc, purple_id);
     if not Assigned(purple_buddy) then begin
       purple_buddy := purple_buddy_new(acc, purple_id, purple_alias);
@@ -249,7 +247,7 @@ begin
     FreeMem(purple_id);
     FreeMem(purple_alias);
   end;
-  TorchatList.Unlock;
+  TorChat.Roster.Unlock;
 
   // it won't call set_status after login, so we have to do it ourselves
   purple_status := purple_presence_get_active_status(acc^.presence);
@@ -258,13 +256,13 @@ end;
 
 procedure torchat_close(gc: PPurpleConnection); cdecl;
 var
-  ClientToClose: TTorChatPurpleClient;
+  TorChat: TTorChatPurpleClient;
 begin
-  ClientToClose := Client(gc^.account);
-  if Assigned(ClientToClose) then begin
-    purple_timeout_remove(ClientToClose.purple_timer);
-    TorChatClients.Remove(ClientToClose);
-    ClientToClose.Free;
+  TorChat := Client(gc^.account);
+  if Assigned(TorChat) then begin
+    purple_timeout_remove(TorChat.purple_timer);
+    TorChatClients.Remove(TorChat);
+    TorChat.Free;
   end;
 end;
 

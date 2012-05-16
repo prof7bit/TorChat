@@ -38,8 +38,8 @@
   the Execute() method will show you how the client is
   supposed to react to an incoming message of this type.
 
-  * See also TReceiver (receiver.pas) for the handling of the
-  incoming bytes from the TCP socket.
+  * See also TReceiver (tc_conn_rcv.pas) for the handling
+  of the incoming bytes from the TCP socket.
 
   * See also TMsgPing (torchatprotocol_ping.pas) which is the
   very first protocol message that is sent (and received) on

@@ -10,10 +10,10 @@ uses
   tc_templist;
 
 type
-  { TBuddyList contains all the buddy objects and implements all the boring
+  { TRoster contains all the buddy objects and implements all the boring
   CRUD mechanisms, persisting on disk, etc. Its essentialy an array of
   IBuddy with a few helper methods to manage it. TBuddyList is thread safe.}
-  TBuddyList = class(TBuddyListTemp, IBuddyList)
+  TRoster = class(TTempList, IRoster)
   strict protected
     FOwnID: String;
   public
@@ -32,15 +32,15 @@ uses
   fpjson,
   jsonparser;
 
-{ TBuddyList }
+{ TRoster }
 
-constructor TBuddyList.Create(AClient: IClient);
+constructor TRoster.Create(AClient: IClient);
 begin
   Inherited Create(AClient);
   Load;
 end;
 
-procedure TBuddyList.SetOwnID(AID: String);
+procedure TRoster.SetOwnID(AID: String);
 var
   tc_buddy : IBuddy;
 begin
@@ -55,12 +55,12 @@ begin
   end;
 end;
 
-function TBuddyList.OwnID: String;
+function TRoster.OwnID: String;
 begin
   Result := FOwnID;
 end;
 
-procedure TBuddyList.Load;
+procedure TRoster.Load;
 var
   FS: TFileStream = nil;
   JParser: TJSONParser = nil;
@@ -96,7 +96,7 @@ begin
   Save;
 end;
 
-procedure TBuddyList.Save;
+procedure TRoster.Save;
 var
   tc_buddy: IBuddy;
   JArr : TJSONArray;

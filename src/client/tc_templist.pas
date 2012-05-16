@@ -10,9 +10,9 @@ uses
 
 type
 
-  { TBuddyListTemp }
+  { TTempList }
 
-  TBuddyListTemp = class(TInterfaceList, IBuddyListTemp)
+  TTempList = class(TInterfaceList, ITempList)
   strict protected
     FClient: IClient;
   public
@@ -63,21 +63,21 @@ begin
   Result := FPosition < FList.Count;
 end;
 
-{ TBuddyListTemp }
+{ TTempList }
 
-constructor TBuddyListTemp.Create(AClient: IClient);
+constructor TTempList.Create(AClient: IClient);
 begin
   FClient := AClient;
   inherited Create;
 end;
 
-destructor TBuddyListTemp.Destroy;
+destructor TTempList.Destroy;
 begin
   inherited Destroy;
   WriteLn(MilliTime, ' TBuddyListTemp.Destroy() finished');
 end;
 
-procedure TBuddyListTemp.CheckState;
+procedure TTempList.CheckState;
 var
   Buddy: IBuddy;
 begin
@@ -86,18 +86,18 @@ begin
   end;
 end;
 
-procedure TBuddyListTemp.AddBuddy(ABuddy: IBuddy);
+procedure TTempList.AddBuddy(ABuddy: IBuddy);
 begin
   Self.Add(ABuddy);
   FClient.OnBuddyAdded(ABuddy);
 end;
 
-procedure TBuddyListTemp.RemoveBuddy(ABuddy: IBuddy);
+procedure TTempList.RemoveBuddy(ABuddy: IBuddy);
 begin
   Self.Remove(ABuddy);
 end;
 
-function TBuddyListTemp.FindBuddy(AName: String): IBuddy;
+function TTempList.FindBuddy(AName: String): IBuddy;
 var
   Buddy: IBuddy;
 begin
@@ -107,7 +107,7 @@ begin
       exit(Buddy);
 end;
 
-function TBuddyListTemp.FindBuddyByCookie(ACookie: String): IBuddy;
+function TTempList.FindBuddyByCookie(ACookie: String): IBuddy;
 var
   Buddy: IBuddy;
 begin
@@ -117,7 +117,7 @@ begin
       exit(Buddy);
 end;
 
-procedure TBuddyListTemp.DoDisconnectAll;
+procedure TTempList.DoDisconnectAll;
 var
   Buddy: IBuddy;
 begin
@@ -125,7 +125,7 @@ begin
     Buddy.DoDisconnect;
 end;
 
-function TBuddyListTemp.GetEnumerator: TABuddyEnumerator;
+function TTempList.GetEnumerator: TABuddyEnumerator;
 begin
   Result := TBuddyEnumerator.Create(self);
 end;
