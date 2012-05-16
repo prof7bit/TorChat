@@ -49,6 +49,7 @@ type
   TAReceiver = class;
   IMessage = interface;
   IProtocolMessage = interface;
+  IMsgQueue = interface;
 
   TABuddyEnumerator = class
     function GetCurrent: IBuddy; virtual; abstract;
@@ -66,7 +67,7 @@ type
   end;
 
   IClient = interface
-    procedure ProcessMessages;
+    procedure Pump;
     procedure OnNotifyGui;
     procedure OnBuddyStatusChange(ABuddy: IBuddy);
     procedure OnBuddyAdded(ABuddy: IBuddy);
@@ -75,10 +76,11 @@ type
     procedure RegisterConnection(AConn: IHiddenConnection);
     procedure UnregisterConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
-    procedure Enqueue(AMessage: IMessage);
     function Roster: IRoster;
+    function Queue: IMsgQueue;
     function Network: TSocketWrapper;
     function Config: IClientConfig;
+    function IsDestroying: Boolean;
   end;
 
   { a temporary list of buddies}
@@ -144,6 +146,12 @@ type
   IProtocolMessage = interface(IMessage)
     procedure Parse;
     procedure Send;
+  end;
+
+  IMsgQueue = interface
+    procedure Put(Msg: IMessage);
+    procedure PumpNext;
+    procedure Clear;
   end;
 
   TAReceiver = class(TThread)

@@ -169,7 +169,7 @@ begin
   end;
 
   if Assigned(Msg) then begin
-    Client.Enqueue(Msg);
+    Client.Queue.Put(Msg);
   end;
 end;
 

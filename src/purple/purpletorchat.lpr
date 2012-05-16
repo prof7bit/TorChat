@@ -115,14 +115,14 @@ end;
 function cb_purple_timer(data: Pointer): GBoolean; cdecl;
 begin
   Ignore(data);
-  TTorChatPurpleClient(data).ProcessMessages;
+  TTorChatPurpleClient(data).Pump;
   Result := True;
 end;
 
 function cb_purple_timer_oneshot(data: Pointer): GBoolean; cdecl;
 begin
   Ignore(data);
-  TTorChatPurpleClient(data).ProcessMessages;
+  TTorChatPurpleClient(data).Pump;
   Result := False; // purple timer will not fire again
 end;
 

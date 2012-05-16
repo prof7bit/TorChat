@@ -193,7 +193,7 @@ begin
     AMethod()
   else begin
     Msg := TMsgCallMethod.Create(AMethod);
-    Client.Enqueue(Msg);
+    Client.Queue.Put(Msg);
   end
 end;
 

@@ -27,25 +27,30 @@ uses
   Classes,
   SysUtils,
   tc_interface,
+  tc_msgqueue,
   tc_tor,
   tc_sock;
 
 type
-  { TTorChatClient implements the abstract IClient. Together with all its
-    contained objects this represents a fully functional TorChat client.
-    The GUI (or libpurpletorchat or a command line client) will derive a class
-    from TTorChatClient overriding the virtual event methods (the methods that
-    start with On (see the definition of IClient) to hook into the events and
-    then create an instance of it.
-    The GUI also must call the TorChatClient.ProcessMessages method in regular
-    intervals (1 second or so) from within the GUI-thread. Aditionally whenever
-    there is an incoming chat message, status change or other event then
-    TorChatClient will fire the OnNotifyGui event and as a response the GUI should
-    schedule an additional call to ProcessMessages a soon as possible. All other
-    event method calls will then always originate from the thread that is
-    calling TorChatClient.ProcessMessages. This method will process one queued
-    message per call, it will never block and if there are no messages and
-    nothing else to do it will just return.}
+  { TTorChatClient implements the abstract IClient.
+    Together with all its contained objects this represents
+    a fully functional TorChat client. The GUI (or
+    libpurpletorchat or a command line client) will
+    derive a class from TTorChatClient overriding the
+    virtual event methods (the methods that start with On
+    (see the definition of IClient) to hook into the
+    events and then create an instance of it.
+    The GUI also must call TorChatClient.Pump() in regular
+    intervals (1 second or so) from within the GUI-thread.
+    Aditionally whenever there is an incoming chat message,
+    status change or other event then TorChatClient will
+    fire the OnNotifyGui event and as a response the
+    GUI should schedule an additional call to Pump()
+    from the GUI thread immediately. All other event method
+    calls will then always originate from the thread that
+    is calling Pump(), this method will process one queued
+    event per call, it will never block and if there are
+    no events and nothing else to do it will just return.}
   TTorChatClient = class(TComponent, IClient)
   strict protected
     FMainThread: TThreadID;
@@ -55,14 +60,13 @@ type
     FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
     FTor: TTor;
-    FQueue: IInterfaceList;
+    FQueue: IMsgQueue;
     FCSQueue: TRTLCriticalSection;
     FCSConnList: TRTLCriticalSection;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
     FConnInList: IInterfaceList;
     procedure CbNetIn(AStream: TTCPStream; E: Exception);
-    procedure PopNextMessage;
     procedure CheckHiddenServiceName;
   public
     constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
@@ -74,9 +78,10 @@ type
     function MainThread: TThreadID; virtual;
     function Roster: IRoster; virtual;
     function Network: TSocketWrapper; virtual;
+    function Queue: IMsgQueue;
     function Config: IClientConfig; virtual;
-    procedure Enqueue(AMessage: IMessage); virtual;
-    procedure ProcessMessages; virtual;
+    function IsDestroying: Boolean;
+    procedure Pump; virtual;
     procedure SetStatus(AStatus: TTorchatStatus); virtual;
     procedure RegisterConnection(AConn: IHiddenConnection); virtual;
     procedure UnregisterConnection(AConn: IHiddenConnection); virtual;
@@ -103,9 +108,9 @@ begin
   InitCriticalSection(FCSQueue);
   InitCriticalSection(FCSConnList);
   FHSNameOK := False;
-  FTimeStarted := 0; // we will initialize it on first ProcessMessages() call
+  FTimeStarted := 0; // we will initialize it on first Pump() call
   FConnInList := TInterfaceList.Create;
-  FQueue := TInterfaceList.Create;
+  FQueue := TMsgQueue.Create(self);
   FTor := TTor.Create(Self, Self);
   FNetwork := TSocketWrapper.Create(self);
   FBuddyList := TRoster.Create(self);
@@ -161,33 +166,27 @@ begin
   Result := FNetwork;
 end;
 
+function TTorChatClient.Queue: IMsgQueue;
+begin
+  Result := FQueue;
+end;
+
 function TTorChatClient.Config: IClientConfig;
 begin
   Result := FClientConfig;
 end;
 
-procedure TTorChatClient.Enqueue(AMessage: IMessage);
+function TTorChatClient.IsDestroying: Boolean;
 begin
-  if FIsDestroying then begin
-    // no more messages during destruction, they won't be processed
-    // anyways and we also don't want to generate any new timer events.
-    // just free the message, throw it away.
-    WriteLn('TTorChatClient.Enqueue() not enqueuing message during shutdown');
-  end
-  else begin
-    EnterCriticalsection(FCSQueue);
-    FQueue.Add(AMessage);
-    LeaveCriticalsection(FCSQueue);
-    OnNotifyGui;
-  end;
+  Result := FIsDestroying;
 end;
 
-procedure TTorChatClient.ProcessMessages;
+procedure TTorChatClient.Pump;
 begin
   if FIsDestroying then exit;
   if FTimeStarted = 0 then FTimeStarted := Now;
   CheckHiddenServiceName;
-  PopNextMessage;
+  Queue.PumpNext;
   Roster.CheckState;
 end;
 
@@ -232,25 +231,6 @@ begin
   else begin
     C := THiddenConnection.Create(self, AStream, nil);
     RegisterConnection(C);
-  end;
-end;
-
-procedure TTorChatClient.PopNextMessage;
-var
-  Msg: IMessage;
-begin
-  if FQueue.Count > 0 then begin
-    EnterCriticalsection(FCSQueue);
-    Msg := IMessage(FQueue.First);
-    FQueue.Remove(Msg);
-    LeaveCriticalsection(FCSQueue);
-    try
-      Msg.Execute;
-    except
-      on E: Exception do begin
-        WriteLn(E.Message);
-      end;
-    end;
   end;
 end;
 
