@@ -124,12 +124,16 @@ end;
 
 function BinaryEncode(ABinary: String): String;
 begin
-  Result := ABinary; {$warning implement me}
+  Result := StringReplace(StringReplace(ABinary,
+                '\', '\/', [rfReplaceAll]),
+                #10, '\n', [rfReplaceAll]);
 end;
 
 function BinaryDecode(AEncoded: String): String;
 begin
-  Result := AEncoded; {$warning implement me}
+  Result := StringReplace(StringReplace(AEncoded,
+                '\n', #10, [rfReplaceAll]),
+                '\/', '\', [rfReplaceAll]);
 end;
 
 function PopFirstWord(var AString: String): String;
