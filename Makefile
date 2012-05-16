@@ -20,7 +20,9 @@ installgui:
 clean:
 	$(MPURPLE) clean
 	$(MGUI) clean
-	$(RM) bin/*.exe 
+	$(RM) bin/*.dll 
 	$(RM) bin/*.so
 	$(RM) bin/torchat
+	$(RM) bin/torchat.exe 
+	$(RM) bin/*.map 
 	
