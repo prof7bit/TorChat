@@ -91,8 +91,8 @@ end;
 
 destructor THiddenConnection.Destroy;
 begin
-  WriteLn(MilliTime, ' THiddenConnection.Destroy()');
   inherited Destroy;
+  WriteLn(MilliTime, ' THiddenConnection.Destroy() finished');
 end;
 
 procedure THiddenConnection.Send(AData: String);

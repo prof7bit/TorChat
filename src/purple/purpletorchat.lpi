@@ -277,9 +277,9 @@
         <UnitName Value="tc_prot_ping"/>
       </Unit12>
       <Unit13>
-        <Filename Value="../client/tc_prot_pong.pas"/>
+        <Filename Value="../client/tc_prot_not_implemented.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_pong"/>
+        <UnitName Value="tc_prot_not_implemented"/>
       </Unit13>
       <Unit14>
         <Filename Value="../client/tc_msgqueue.pas"/>

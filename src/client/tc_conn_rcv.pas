@@ -33,6 +33,10 @@
   a space. This is the command. The rest of the line is the
   payload.
 
+  NOTE: TorChat is a binary protocol! We are strictly
+  using always only the byte 0x0a as the message delimiter,
+  no automatic conversion of CR or CRLF will be done here.
+
   Processing incoming messages works like this:
   * read the entire line from the socket until 0x0a is found.
     (see also TReceiver (in receiver.pas) where this mechanism
@@ -40,14 +44,15 @@
   * separate the first word (delimited by space) from the rest
     of the line. (The rest may also be empty, there exist
     messages without payload.)
-  * instantiate the appropriate message class (one of the
+  * find the appropriate message class for it (one of the
     TMsgXXX classes depending on what command it is) and feed
     the rest of the line to its constructor. The constructor
-    will do the binary decoding of the payload. (The Paylod
-    is always encoded, no matter what it contains, so it will
-    also always be decoded. Please note that simple ascii
-    strings without '\' or 0x0a will be invariant under this
-    encoding, so it might look the same before and after,
+    will do the binary decoding of the payload. (The payload
+    is always encoded, no matter what it contains (because
+    obviously there may not appear a 0x0a in the line), so
+    it will also always be decoded. Please note that simple
+    ascii strings without '\' or 0x0a will be invariant under
+    this encoding, so it might look the same before and after,
     this doesn't mean its not encoded. It is. Always.)
   * call the message object's Parse() method, this will parse
     the decoded payload (the payload after binary decoding is
@@ -110,6 +115,7 @@ end;
 destructor TReceiver.Destroy;
 begin
   inherited Destroy;
+  WriteLn(MilliTime, ' TReceiver.Destroy() finished');
 end;
 
 procedure TReceiver.Execute;
@@ -144,7 +150,6 @@ begin
   FConnection.Stream.DoClose; // might have happened already but does not hurt
   FConnection.OnTCPFail;      // this will free the stream and the connection
   // the TReceiver will free itself now (FreeOnTerminate)
-  WriteLn(MilliTime, ' TReceiver.Execute() stream is free, connection is free, receiver thread will end now');
 end;
 
 procedure TReceiver.OnReceivedLine(EncodedLine: String);
@@ -155,7 +160,10 @@ begin
   try
     Command := PopFirstWord(EncodedLine);
   except
-    exit;
+    // reached the end of the line without finding a
+    // space, so this is a command without arguments.
+    Command := Trim(EncodedLine);
+    EncodedLine := '';
   end;
 
   Msg := GetMsgClassFromCommand(Command).Create(

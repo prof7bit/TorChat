@@ -76,6 +76,7 @@ type
     FCommand: String;
     FBinaryContent : String;
     function GetSendConnection: IHiddenConnection; virtual;
+    procedure LogWarningAndClose(AInfo: String='');
     procedure Serialize; virtual; abstract;
   public
     class function GetCommand: String; virtual; abstract;
@@ -97,6 +98,7 @@ type
     procedure Serialize; override;
     procedure Parse; override;
     procedure Execute; override;
+    class function GetCommand: String; override;
   end;
 
   TMsgClass = class of TMsg;
@@ -109,6 +111,9 @@ function PopFirstWord(var AString: String): String;
 procedure RegisterMessageClass(AClass: TMsgClass);
 
 implementation
+uses
+  tc_prot_not_implemented;
+
 var
   MessageClasses: array of TMsgClass;
 
@@ -163,8 +168,22 @@ begin
 end;
 
 procedure TMsgDefault.Execute;
+var
+  Buddy: IBuddy;
+  Msg: IProtocolMessage;
 begin
-  {$warning implement send not_implemented}
+  Buddy := FConnection.Buddy;
+  if not Assigned(Buddy) then
+    LogWarningAndClose
+  else begin
+    Msg := TMsgNotImplemented.Create(Buddy, FCommand);
+    Msg.Send;
+  end;
+end;
+
+class function TMsgDefault.GetCommand: String;
+begin
+  Result := '';
 end;
 
 function TMsg.GetSendConnection: IHiddenConnection;
@@ -173,6 +192,21 @@ begin
     Result := FBuddy.ConnOutgoing
   else
     Result := nil;
+end;
+
+procedure TMsg.LogWarningAndClose(AInfo: String);
+begin
+  if (FCommand = '') and (AInfo = '') then
+    AInfo := '(empty line)';
+  if AInfo = '' then
+    AInfo := '(data: ' + IntToStr(Length(FBinaryContent)) + ' bytes)';
+  if Assigned(FConnection.Buddy) then
+    WriteLn(_F('W received %s %s from %s, closing connection.',
+      [FCommand, AInfo, FConnection.Buddy.ID]))
+  else
+    WriteLn(_F('W received %s %s on unknown connection, closing.',
+      [FCommand, AInfo]));
+  FConnection.DoClose;
 end;
 
 { this is the virtual constructor for incoming messages }
@@ -200,7 +234,6 @@ begin
     Serialize;
     C.SendLine(GetCommand + ' ' + BinaryEncode(FBinaryContent));
   end;
-  self.Free;
 end;
 
 

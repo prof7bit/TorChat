@@ -172,7 +172,7 @@ end;
 
 procedure TBuddy.SendPong;
 var
-  Pong: TMsgPong;
+  Pong: IProtocolMessage;
 begin
   Pong := TMsgPong.Create(Self, FReceivedCookie);
   Pong.Send;
@@ -199,7 +199,7 @@ end;
 
 procedure TBuddy.OnOutgoingConnection;
 var
-  Msg: TMsgPing;
+  Msg: IProtocolMessage;
 begin
   WriteLn('TBuddy.OnOutgoingConnection() ' + ID);
   Msg := TMsgPing.Create(self, FOwnCookie);
