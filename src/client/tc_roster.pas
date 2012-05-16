@@ -1,4 +1,4 @@
-unit buddylist;
+unit tc_roster;
 
 {$mode objfpc}{$H+}
 
@@ -6,8 +6,8 @@ interface
 
 uses
   Classes,
-  interfaces,
-  buddylisttemp;
+  tc_interface,
+  tc_templist;
 
 type
   { TBuddyList contains all the buddy objects and implements all the boring
@@ -28,7 +28,7 @@ type
 implementation
 uses
   sysutils,
-  buddy,
+  tc_buddy,
   fpjson,
   jsonparser;
 
@@ -42,15 +42,15 @@ end;
 
 procedure TBuddyList.SetOwnID(AID: String);
 var
-  Buddy : IBuddy;
+  tc_buddy : IBuddy;
 begin
   FOwnID := AID;
   if FindBuddy(AID) = nil then begin
     writeln('TBuddyList.SetOwnID() adding "myself"-buddy ' + AID);
-    Buddy := TBuddy.Create(FClient);
-    Buddy.InitID(AID);
-    Buddy.SetFriendlyName('myself');
-    AddBuddy(Buddy);
+    tc_buddy := TBuddy.Create(FClient);
+    tc_buddy.InitID(AID);
+    tc_buddy.SetFriendlyName('myself');
+    AddBuddy(tc_buddy);
     Save;
   end;
 end;
@@ -66,7 +66,7 @@ var
   JParser: TJSONParser = nil;
   JList: TJSONArray = nil;
   LastI, I: Integer;
-  Buddy: IBuddy;
+  tc_buddy: IBuddy;
 begin
   try
     writeln('TBuddyList.Load()');
@@ -76,12 +76,12 @@ begin
     LastI := JList.Count - 1;
     for I := 0 to LastI do begin
       try
-        Buddy := TBuddy.Create(FClient);
-        Buddy.InitFromJsonObect(JList.Objects[I]); // this may raise exception
-        AddBuddy(Buddy);
-        writeln('TBuddyList.Load() ' + Buddy.ID + ' loaded');
+        tc_buddy := TBuddy.Create(FClient);
+        tc_buddy.InitFromJsonObect(JList.Objects[I]); // this may raise exception
+        AddBuddy(tc_buddy);
+        writeln('TBuddyList.Load() ' + tc_buddy.ID + ' loaded');
       except
-        FreeAndNil(Buddy);
+        FreeAndNil(tc_buddy);
         writeln('E TBuddyList.Load() error while parsing buddy');
       end;
     end;
@@ -98,7 +98,7 @@ end;
 
 procedure TBuddyList.Save;
 var
-  Buddy: IBuddy;
+  tc_buddy: IBuddy;
   JArr : TJSONArray;
   JData: String;
   FS: TFileStream = nil;
@@ -106,8 +106,8 @@ begin
   writeln('TBuddyList.Save()');
   JArr := TJSONArray.Create;
 
-  for Buddy in self do
-    JArr.Add(Buddy.AsJsonObject);
+  for tc_buddy in self do
+    JArr.Add(tc_buddy.AsJsonObject);
 
   JData := JArr.FormatJSON([foSingleLineObject]);
   JArr.Free;

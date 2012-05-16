@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit torchatclient;
+unit tc_client;
 
 {$mode objfpc}{$H+}
 
@@ -26,9 +26,9 @@ interface
 uses
   Classes,
   SysUtils,
-  interfaces,
-  torprocess,
-  networking;
+  tc_interface,
+  tc_tor,
+  tc_sock;
 
 type
   { TTorChatClient implements the abstract IClient. Together with all its
@@ -85,10 +85,10 @@ type
 
 implementation
 uses
-  buddylist,
-  clientconfig,
-  miscfunc,
-  connection;
+  tc_roster,
+  tc_config,
+  tc_misc,
+  tc_conn;
 
 { TTorChatClient }
 

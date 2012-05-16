@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit torprocess;
+unit tc_tor;
 
 {$mode objfpc}{$H+}
 
@@ -27,7 +27,7 @@ uses
   Classes,
   SysUtils,
   process,
-  interfaces;
+  tc_interface;
 
 type
 

@@ -63,7 +63,7 @@
     do, trigger responses, manipulate other objects, call the
     GUI, etc.
 }
-unit receiver;
+unit tc_conn_rcv;
 
 {$mode objfpc}{$H+}
 
@@ -72,9 +72,9 @@ interface
 uses
   Classes,
   SysUtils,
-  interfaces,
-  protocol,
-  miscfunc;
+  tc_interface,
+  tc_protocol,
+  tc_misc;
 
 type
   { TReceiver - Each conection contains a TAReceiver object which is

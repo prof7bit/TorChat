@@ -17,15 +17,15 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit protocol_ping;
+unit tc_prot_ping;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  interfaces,
-  protocol;
+  tc_interface,
+  tc_protocol;
 
 type
   { TMsgPing

@@ -1,11 +1,11 @@
-unit internalmessage;
+unit tc_msgqueue;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  interfaces;
+  tc_interface;
 
 type
   { TMsgCallMethod call a method without arguments from the main thread }

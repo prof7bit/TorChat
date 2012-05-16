@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit connection;
+unit tc_conn;
 
 {$mode objfpc}{$H+}
 
@@ -26,9 +26,9 @@ interface
 uses
   Classes,
   SysUtils,
-  interfaces,
-  receiver,
-  networking;
+  tc_interface,
+  tc_conn_rcv,
+  tc_sock;
 
 type
 
@@ -58,7 +58,7 @@ type
 
 implementation
 uses
-  miscfunc;
+  tc_misc;
 
 { THiddenConnection }
 

@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit buddy;
+unit tc_buddy;
 
 {$mode objfpc}{$H+}
 
@@ -27,13 +27,13 @@ uses
   Classes,
   SysUtils,
   fpjson,
-  interfaces,
-  protocol_ping,
-  protocol_pong,
-  miscfunc,
-  connection,
-  networking,
-  internalmessage;
+  tc_interface,
+  tc_prot_ping,
+  tc_prot_pong,
+  tc_misc,
+  tc_conn,
+  tc_sock,
+  tc_msgqueue;
 
 
 type

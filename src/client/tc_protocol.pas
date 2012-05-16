@@ -46,7 +46,7 @@
   every new TCP connection and constitutes the beginning of
   the handshake.
 }
-unit protocol;
+unit tc_protocol;
 
 {$mode objfpc}{$H+}
 
@@ -55,8 +55,8 @@ interface
 uses
   Classes,
   SysUtils,
-  interfaces,
-  miscfunc;
+  tc_interface,
+  tc_misc;
 
 type
   { TMsg

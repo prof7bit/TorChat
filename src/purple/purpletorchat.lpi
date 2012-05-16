@@ -222,69 +222,69 @@
         <UnitName Value="purple"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../client/torchatclient.pas"/>
+        <Filename Value="../client/tc_client.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="torchatclient"/>
+        <UnitName Value="tc_client"/>
       </Unit2>
       <Unit3>
-        <Filename Value="../client/clientconfig.pas"/>
+        <Filename Value="../client/tc_config.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="clientconfig"/>
+        <UnitName Value="tc_config"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../client/torprocess.pas"/>
+        <Filename Value="../client/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="torprocess"/>
+        <UnitName Value="tc_tor"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../client/miscfunc.pas"/>
+        <Filename Value="../client/tc_misc.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="miscfunc"/>
+        <UnitName Value="tc_misc"/>
       </Unit5>
       <Unit6>
-        <Filename Value="../client/protocol.pas"/>
+        <Filename Value="../client/tc_protocol.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="protocol"/>
+        <UnitName Value="tc_protocol"/>
       </Unit6>
       <Unit7>
-        <Filename Value="../client/connection.pas"/>
+        <Filename Value="../client/tc_conn.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="connection"/>
+        <UnitName Value="tc_conn"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../client/networking.pas"/>
+        <Filename Value="../client/tc_sock.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="networking"/>
+        <UnitName Value="tc_sock"/>
       </Unit8>
       <Unit9>
-        <Filename Value="../client/receiver.pas"/>
+        <Filename Value="../client/tc_conn_rcv.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="receiver"/>
+        <UnitName Value="tc_conn_rcv"/>
       </Unit9>
       <Unit10>
-        <Filename Value="../client/interfaces.pas"/>
+        <Filename Value="../client/tc_interface.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="interfaces"/>
+        <UnitName Value="tc_interface"/>
       </Unit10>
       <Unit11>
-        <Filename Value="../client/buddy.pas"/>
+        <Filename Value="../client/tc_buddy.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="buddy"/>
+        <UnitName Value="tc_buddy"/>
       </Unit11>
       <Unit12>
-        <Filename Value="../client/protocol_ping.pas"/>
+        <Filename Value="../client/tc_prot_ping.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="protocol_ping"/>
+        <UnitName Value="tc_prot_ping"/>
       </Unit12>
       <Unit13>
-        <Filename Value="../client/protocol_pong.pas"/>
+        <Filename Value="../client/tc_prot_pong.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="protocol_pong"/>
+        <UnitName Value="tc_prot_pong"/>
       </Unit13>
       <Unit14>
-        <Filename Value="../client/internalmessage.pas"/>
+        <Filename Value="../client/tc_msgqueue.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="internalmessage"/>
+        <UnitName Value="tc_msgqueue"/>
       </Unit14>
       <Unit15>
         <Filename Value="purplehelper.pas"/>
@@ -292,14 +292,14 @@
         <UnitName Value="purplehelper"/>
       </Unit15>
       <Unit16>
-        <Filename Value="../client/buddylist.pas"/>
+        <Filename Value="../client/tc_roster.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="buddylist"/>
+        <UnitName Value="tc_roster"/>
       </Unit16>
       <Unit17>
-        <Filename Value="../client/buddylisttemp.pas"/>
+        <Filename Value="../client/tc_templist.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="buddylisttemp"/>
+        <UnitName Value="tc_templist"/>
       </Unit17>
     </Units>
   </ProjectOptions>

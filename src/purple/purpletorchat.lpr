@@ -74,10 +74,10 @@ uses
   glib2,
   purple,
   purplehelper,
-  interfaces,
-  torchatclient,
-  clientconfig,
-  miscfunc;
+  tc_interface,
+  tc_client,
+  tc_config,
+  tc_misc;
 
 const
   PRPL_ID_OFFLINE = 'offline';

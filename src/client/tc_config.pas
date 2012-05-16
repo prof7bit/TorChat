@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit clientconfig;
+unit tc_config;
 
 {$mode objfpc}{$H+}
 
@@ -27,7 +27,7 @@ uses
   {$ifdef windows}shlobj,{$endif} // for finding %APPDATA% etc.
   Classes,
   SysUtils,
-  interfaces;
+  tc_interface;
 
 const
   SECONDS_WAIT_FOR_HOSTNAME_FILE = 20;

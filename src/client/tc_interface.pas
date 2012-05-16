@@ -21,7 +21,7 @@
 { This unit defines the interfaces between the various classes
   of the TorChat client.
 }
-unit interfaces;
+unit tc_interface;
 
 {$mode objfpc}{$H+}
 
@@ -30,7 +30,7 @@ interface
 uses
   Classes,
   fpjson,
-  networking;
+  tc_sock;
 
 type
   TTorchatStatus = (

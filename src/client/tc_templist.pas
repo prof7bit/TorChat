@@ -1,4 +1,4 @@
-unit buddylisttemp;
+unit tc_templist;
 
 {$mode objfpc}{$H+}
 
@@ -6,7 +6,7 @@ interface
 
 uses
   Classes,
-  interfaces;
+  tc_interface;
 
 type
 
@@ -29,7 +29,7 @@ type
 
 implementation
 uses
-  miscfunc;
+  tc_misc;
 
 type
   { TBuddyEnumerator }
