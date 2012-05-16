@@ -46,10 +46,10 @@ type
   IBuddy = interface;
   IRoster = interface;
   IHiddenConnection = interface;
-  TAReceiver = class;
   IMessage = interface;
   IProtocolMessage = interface;
   IMsgQueue = interface;
+  TAReceiver = class;
 
   TABuddyEnumerator = class
     function GetCurrent: IBuddy; virtual; abstract;
@@ -130,7 +130,7 @@ type
     procedure SetBuddy(ABuddy: IBuddy);
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
-    procedure OnTCPFail;// called by the receiver
+    procedure OnTCPFail; // called by the receiver
     procedure DoClose;
     function IsOutgoing: Boolean;
     function DebugInfo: String;
