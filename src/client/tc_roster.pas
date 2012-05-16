@@ -28,9 +28,10 @@ type
 implementation
 uses
   sysutils,
-  tc_buddy,
   fpjson,
-  jsonparser;
+  jsonparser,
+  tc_buddy,
+  tc_misc;
 
 { TRoster }
 
@@ -98,12 +99,18 @@ end;
 
 procedure TRoster.Save;
 var
+  Path, FileName, TempName: String;
   tc_buddy: IBuddy;
   JArr : TJSONArray;
   JData: String;
   FS: TFileStream = nil;
+  Success: Boolean;
 begin
   writeln('TBuddyList.Save()');
+  Success := False;
+  Path := FClient.Config.DataDir;
+  TempName := ConcatPaths([Path,'_buddylist.json']);
+  FileName := ConcatPaths([Path,'buddylist.json']);
   JArr := TJSONArray.Create;
 
   for tc_buddy in self do
@@ -112,14 +119,22 @@ begin
   JData := JArr.FormatJSON([foSingleLineObject]);
   JArr.Free;
   try
-    FS := TFileStream.Create(ConcatPaths([FClient.Config.DataDir, 'buddylist.json']), fmCreate + fmOpenWrite);
+    FS := TFileStream.Create(TempName, fmCreate + fmOpenWrite);
     FS.Write(JData[1], Length(JData));
+    Success := True;
   except
     on E: Exception do begin
       writeln('E TBuddyList.Save() could not save: ' + E.Message);
     end;
   end;
   if assigned(FS) then FreeAndNil(FS);
+
+  if Success then begin
+    SafeDelete(FileName);
+    RenameFile(TempName, FileName);
+  end
+  else
+    SafeDelete(TempName);
 end;
 
 end.

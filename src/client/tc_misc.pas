@@ -48,6 +48,9 @@ function Ignore(P: Pointer): Pointer; Inline;
 { works like Format() but will catch exceptions at runtime }
 function _F(S: String; Args: array of const): String;
 
+{ Delete a file by overwriting it }
+procedure SafeDelete(AFileName: String);
+
 function MilliTime: QWord;
 
 implementation
@@ -82,6 +85,12 @@ begin
   except
     Result := 'E Eror while formatting: "' + S + '"';
   end;
+end;
+
+procedure SafeDelete(AFileName: String);
+begin
+  if not FileExists(AFileName) then exit;
+  DeleteFile(AFileName); {$warning implement safe delete!}
 end;
 
 function MilliTime: QWord;
