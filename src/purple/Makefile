@@ -1,3 +1,7 @@
+PREFIX=/usr
+PLUGINDIR=$(PREFIX)/lib/purple-2
+COMPILEDIR=../../bin
+
 FPCOPT = \
 	-Fu../client \
 	-FU./lib \
@@ -18,6 +22,8 @@ foo:
 	fpc $(FPCOPT) -dNoOutputRedirect -dUseHeapTrc purpletorchat.lpr
 
 install:
+	mkdir -p $(PLUGINDIR)
+	install --mode=0644 $(COMPILEDIR)/libpurpletorchat.so $(PLUGINDIR)
 
 clean:
 	$(MAKE) -C ../client clean
