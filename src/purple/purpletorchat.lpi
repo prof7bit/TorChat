@@ -55,14 +55,13 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-d_DebugToConsole 
--dUseHeapTrc
--dNoOutputRedirect"/>
+            <CustomOptions Value="-dDebugToConsole 
+-dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
       </Item2>
-      <Item3 Name="(cross) Release/i386-win32">
+      <Item3 Name="Windows-32 Release">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -110,7 +109,7 @@
           </Other>
         </CompilerOptions>
       </Item3>
-      <Item4 Name="(cross) Debug/i386_win32">
+      <Item4 Name="Windows-32 Debug">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -146,15 +145,14 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-d_DebugToConsole 
+            <CustomOptions Value="-dDebugToConsole 
 -dUseHeapTrc
--dNoOutputRedirect
 -Xm"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
       </Item4>
-      <Item5 Name="(cross) Debug/x64-linux">
+      <Item5 Name="Linux-64 Debug">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>

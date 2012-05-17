@@ -126,7 +126,7 @@ destructor TTorChatClient.Destroy;
 var
   Conn: IHiddenConnection;
 begin
-  WriteLn(MilliTime, ' start destroying TorChatClient');
+  WriteLn('start destroying TorChatClient');
   FIsDestroying := True;
 
   // disconnect all buddies
@@ -142,11 +142,11 @@ begin
   FTempList.Clear;
   FQueue.Clear;
 
-  WriteLn(MilliTime, ' start destroying child components');
+  WriteLn('start destroying child components');
   //FTor.Free;
   //FNetwork.Free;
   inherited Destroy;
-  WriteLn(MilliTime, ' done destroying child components');
+  WriteLn('done destroying child components');
 end;
 
 function TTorChatClient.MainThread: TThreadID;

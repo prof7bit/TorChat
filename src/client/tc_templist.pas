@@ -29,8 +29,6 @@ type
   end;
 
 implementation
-uses
-  tc_misc;
 
 type
   { TBuddyEnumerator }
@@ -75,7 +73,7 @@ end;
 destructor TTempList.Destroy;
 begin
   inherited Destroy;
-  WriteLn(MilliTime, ' TBuddyListTemp.Destroy() finished');
+  WriteLn('TBuddyListTemp.Destroy() finished');
 end;
 
 procedure TTempList.CheckState;

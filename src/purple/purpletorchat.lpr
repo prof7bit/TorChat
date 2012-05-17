@@ -92,6 +92,8 @@ type
   public
     purple_account: PPurpleAccount;
     purple_timer: Integer;
+    constructor Create(AOwner: TComponent; AProfileName: String;
+      account: PPurpleAccount); reintroduce;
     procedure OnNotifyGui; override;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
     procedure OnBuddyAdded(ABuddy: IBuddy); override;
@@ -214,8 +216,7 @@ var
   purple_list: PGSList;
 
 begin
-  TorChat := TTorChatPurpleClient.Create(nil, acc^.username);
-  TorChat.purple_account := acc;
+  TorChat := TTorChatPurpleClient.Create(nil, acc^.username, acc);
   TorChat.purple_timer := purple_timeout_add(1000, @cb_purple_timer, TorChat);
   TorChatClients.Add(acc^.username, TorChat);
   purple_connection_set_state(acc^.gc, PURPLE_CONNECTED);
@@ -275,6 +276,13 @@ end;
 
 
 { TTorchatPurpleClient }
+
+constructor TTorChatPurpleClient.Create(AOwner: TComponent; AProfileName: String;
+  account: PPurpleAccount);
+begin
+  purple_account := account;
+  inherited Create(AOwner, AProfileName);
+end;
 
 procedure TTorChatPurpleClient.OnNotifyGui;
 begin
@@ -369,14 +377,6 @@ begin
 
   {$ifdef UseHeapTrc}
     WriteLn('W plugin has been compiled with -dUseHeapTrc. Not recommended.');
-    {$ifdef windows}
-      // we have no stdout when running on windows
-      heaptrc.SetHeapTraceOutput(ConcatPaths([ConfGetDataDir, 'heaptrc.log']));
-    {$endif}
-  {$endif}
-
-  {$ifdef NoOutputRedirect}
-    WriteLn('W plugin has been compiled with -dNoOutputRedirect. This will crash on windows.');
   {$endif}
 end;
 

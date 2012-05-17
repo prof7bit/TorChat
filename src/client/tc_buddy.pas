@@ -95,7 +95,7 @@ end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
 begin
-  WriteLn(MilliTime, ' TBuddy.CbNetOut() ' + ID);
+  WriteLn('TBuddy.CbNetOut() ' + ID);
   FConnectThread := nil;
   if assigned(ATCPStream) then begin
     SetOutgoing(THiddenConnection.Create(FClient, ATCPStream, Self));
@@ -125,7 +125,7 @@ end;
 
 destructor TBuddy.Destroy;
 begin
-  writeln(MilliTime, ' TBuddy.Destroy() ' + ID);
+  writeln('TBuddy.Destroy() ' + ID);
   if Assigned(FConnectThread) then begin
     //WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' there is an ongoing connection attempt, terminating it.');
     FConnectThread.Terminate;

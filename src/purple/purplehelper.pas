@@ -36,6 +36,9 @@ uses
   sysutils,
   StreamIO;
 
+const
+  WINDOWS_DEBUG_FILE = 'c:\purpleplugin.log';
+
 { This will allocate memory from the FPC heap,
   copy the sring and return the pointer. The memory
   must be freed with FreeMem(), leaks can be traced
@@ -73,6 +76,11 @@ type
     redirects it to the libpurple debug logger. We will create an instance
     of this and replace it with the standard output stream }
   TWritelnRedirect = class(TStream)
+  strict protected
+    CS: TRTLCriticalSection;
+  public
+    constructor Create;
+    destructor Destroy; override;
     function Write(const Buffer; Count : Longint) : Longint; override;
   end;
 
@@ -128,15 +136,6 @@ begin
     DEBUG_WARNING: purple_debug_warning(plugin_info.id, PChar(Msg + LineEnding), []);
     DEBUG_ERROR: purple_debug_error(plugin_info.id, PChar(Msg + LineEnding), []);
   end;
-  {$ifdef DebugToConsole}
-  try
-    WriteLn(OldStdOut, '[', Level, '] ', Msg);
-  except
-    { There is no stdout on windows if pidgin is not run with --debug
-      and if you run it with --debug then there is not much need for
-      DebugToConsole anymore, it would be even more confusing instead. }
-  end;
-  {$endif}
 end;
 
 function CBDebugToPurple(Data: Pointer): gboolean; cdecl;
@@ -151,6 +150,7 @@ begin
     'E ': _purple_debug(DEBUG_ERROR, Txt);
     'W ': _purple_debug(DEBUG_WARNING, Txt);
     'I ': _purple_debug(DEBUG_INFO, Txt);
+    'M ': _purple_debug(DEBUG_MISC, Txt);
   else
     _purple_debug(DEBUG_MISC, Msg);
   end;
@@ -158,7 +158,35 @@ begin
   Result := False
 end;
 
+procedure DebugToConsole(Msg: String);
+var
+  Lvl, Txt, M: String;
+begin
+  Lvl := UpperCase(LeftStr(Msg, 2));
+  Txt := RightStr(Msg, Length(Msg) - 2);
+  case Lvl of
+    'E ': M := '[E] ' + Txt;
+    'W ': M := '[W] ' + Txt;
+    'I ': M := '[I] ' + Txt;
+    'M ': M := '[M] ' + Txt;
+  else
+    M := '[M] ' + Msg;
+  end;
+  WriteLn(OldStdOut, FormatDateTime('hh:nn:ss.zzz ', Now) + M);
+end;
+
 { TWritelnRedirect }
+
+constructor TWritelnRedirect.Create;
+begin
+  InitCriticalSection(CS);
+end;
+
+destructor TWritelnRedirect.Destroy;
+begin
+  DoneCriticalsection(CS);
+  inherited Destroy;
+end;
 
 function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
 var
@@ -175,6 +203,11 @@ begin
   else begin
     CBDebugToPurple(PurpleGetMemAndCopy(Msg));
   end;
+  {$ifdef DebugToConsole}
+    EnterCriticalsection(CS);
+    DebugToConsole(Msg);
+    LeaveCriticalsection(CS);
+  {$endif}
 end;
 
 
@@ -188,8 +221,15 @@ begin
   WritelnRedirect := TWritelnRedirect.Create();
   AssignStream(Output, WritelnRedirect);
   Rewrite(Output);
+  {$ifdef windows}
+    Assign(OldStdOut, WINDOWS_DEBUG_FILE);
+    Rewrite(OldStdOut);
+  {$endif}
   {$ifdef DebugToConsole}
-  writeln('W plugin has been compiled with -dDebugToConsole. Not recommended.');
+    WriteLn('W plugin has been compiled with -dDebugToConsole. Not recommended.');
+    {$ifdef windows}
+      WriteLn('W debug output will go to ' + WINDOWS_DEBUG_FILE);
+    {$endif}
   {$endif}
 end;
 
@@ -200,12 +240,8 @@ begin
 end;
 
 initialization
-  {$ifndef NoOutputRedirect}
-    InstallWritelnRedirect;
-  {$endif}
+  InstallWritelnRedirect;
 finalization
-  {$ifndef NoOutputRedirect}
-    UninstallWritelnRedirect;
-  {$endif}
+  UninstallWritelnRedirect;
 end.
 

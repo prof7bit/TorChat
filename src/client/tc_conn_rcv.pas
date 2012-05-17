@@ -115,7 +115,7 @@ end;
 destructor TReceiver.Destroy;
 begin
   inherited Destroy;
-  WriteLn(MilliTime, ' TReceiver.Destroy() finished');
+  WriteLn('TReceiver.Destroy() finished');
 end;
 
 procedure TReceiver.Execute;
@@ -146,7 +146,7 @@ begin
       end;
     end;
   until (N <= 0) or Terminated;
-  WriteLn(MilliTime, ' TReceiver.Execute()' + FConnection.DebugInfo + ' detected end of life, beginning termination');
+  WriteLn('TReceiver.Execute()' + FConnection.DebugInfo + ' detected end of life, beginning termination');
   FConnection.Stream.DoClose; // might have happened already but does not hurt
   FConnection.OnTCPFail;      // this will free the stream and the connection
   // the TReceiver will free itself now (FreeOnTerminate)

@@ -51,8 +51,6 @@ function _F(S: String; Args: array of const): String;
 { Delete a file by overwriting it }
 procedure SafeDelete(AFileName: String);
 
-function MilliTime: QWord;
-
 implementation
 
 function SecondsSince(Start: TDateTime): QWord;
@@ -91,11 +89,6 @@ procedure SafeDelete(AFileName: String);
 begin
   if not FileExists(AFileName) then exit;
   DeleteFile(AFileName); {$warning implement safe delete!}
-end;
-
-function MilliTime: QWord;
-begin
-  Result := round(Now * 24 * 60 * 60 * 1000);
 end;
 
 end.

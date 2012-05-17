@@ -57,8 +57,6 @@ type
   end;
 
 implementation
-uses
-  tc_misc;
 
 { THiddenConnection }
 
@@ -92,7 +90,7 @@ end;
 destructor THiddenConnection.Destroy;
 begin
   inherited Destroy;
-  WriteLn(MilliTime, ' THiddenConnection.Destroy() finished');
+  WriteLn('THiddenConnection.Destroy() finished');
 end;
 
 procedure THiddenConnection.Send(AData: String);
@@ -114,7 +112,7 @@ end;
 
 procedure THiddenConnection.DoClose;
 begin
-  WriteLn(MilliTime, ' THiddenConnection.DoClose()' + DebugInfo);
+  WriteLn('THiddenConnection.DoClose()' + DebugInfo);
   FDebugInfoDefault := DebugInfo;
 
   // we are here because the main thread wants to
