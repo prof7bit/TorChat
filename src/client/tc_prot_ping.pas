@@ -121,7 +121,7 @@ var
 begin
   {$warning must check ID for wellformedness}
   WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
-  ABuddy := FClient.Roster.FindBuddy(FID);
+  ABuddy := FClient.Roster.ByID(FID);
   if Assigned(ABuddy) then
     ABuddy.MustSendPong(FCookie)
   else begin

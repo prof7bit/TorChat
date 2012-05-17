@@ -90,13 +90,14 @@ end;
 
 procedure TMsgPong.Execute;
 var
-  ABuddy: IBuddy;
+  Buddy: IBuddy;
 begin
   WriteLn('TMsgPong.Execute() received pong: cookie=' + FCookie);
-  ABuddy := FClient.Roster.FindBuddyByCookie(FCookie);
-  if Assigned(ABuddy) then begin
-    ABuddy.SetIncoming(FConnection);
-  end;
+  Buddy := FClient.Roster.ByCookie(FCookie);
+  if not Assigned(Buddy) then
+    Buddy := FClient.TempList.ByCookie(FCookie);
+  if Assigned(Buddy) then
+    Buddy.SetIncoming(FConnection)
 end;
 
 begin

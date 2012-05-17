@@ -82,7 +82,7 @@ begin
     LogWarningAndClose
   else begin
     WriteLn('TMsgAddMe.Execute() add_me from ' + Buddy.ID);
-    if not FClient.Roster.HasBuddy(Buddy) then begin
+    if Buddy in FClient.TempList then begin
       FClient.TempList.RemoveBuddy(Buddy);
       FClient.Roster.AddBuddy(Buddy);
     end;

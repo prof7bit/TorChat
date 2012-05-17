@@ -24,6 +24,11 @@ unit tc_misc;
 interface
 
 uses
+  {$ifdef windows}
+  windows,
+  {$else}
+  unix,
+  {$endif}
   Classes,
   SysUtils;
 
@@ -52,6 +57,17 @@ function _F(S: String; Args: array of const): String;
 procedure SafeDelete(AFileName: String);
 
 implementation
+
+type
+
+  { TSafeDeleteThread }
+
+  TSafeDeleteThread = class(TThread)
+    FFileName: String;
+    constructor Create(AFileName: String);
+    procedure Execute; override;
+  end;
+
 
 function SecondsSince(Start: TDateTime): QWord;
 begin
@@ -86,9 +102,49 @@ begin
 end;
 
 procedure SafeDelete(AFileName: String);
+var
+  Path, TempName: String;
 begin
-  if not FileExists(AFileName) then exit;
-  DeleteFile(AFileName); {$warning implement safe delete!}
+  if FileExists(AFileName) then begin
+    Path := ExtractFileDir(AFileName);
+    TempName := GetTempFileName(Path, 'delete_');
+    RenameFile(AFileName, TempName);
+    TSafeDeleteThread.Create(TempName);
+  end;
+end;
+
+{ TSafeDeleteThread }
+
+constructor TSafeDeleteThread.Create(AFileName: String);
+begin
+  FFileName := AFileName;
+  FreeOnTerminate := True;
+  Inherited Create(False);
+end;
+
+procedure TSafeDeleteThread.Execute;
+const
+  BLOCK = 100000;
+var
+  FS: TFileStream;
+  I,S : Integer;
+  B : PByte;
+begin
+  B := GetMem(BLOCK);
+  FillByte(B[0], BLOCK, 0);
+  FS := TFileStream.Create(FFileName, fmOpenReadWrite);
+  S := FS.Seek(0, soEnd) div BLOCK;
+  FS.Seek(0, soBeginning);
+  for I := 0 to S do
+    FS.WriteBuffer(B[0], BLOCK);
+  {$ifdef windows}
+  FlushFileBuffers(FS.Handle);
+  {$else}
+  fpfsync(FS.Handle);
+  {$endif}
+  FS.Free;
+  DeleteFile(FFileName);
+  FreeMem(B);
 end;
 
 end.

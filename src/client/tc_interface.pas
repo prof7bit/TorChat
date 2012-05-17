@@ -1,4 +1,4 @@
-{ TorChat - interfaces for TorChat classes
+{ TorChat - interfaces and other common definitions for TorChat classes
 
   Copyright (C) 2012 Bernd Kreuss <prof7bit@gmail.com>
 
@@ -90,9 +90,8 @@ type
     procedure CheckState;
     procedure AddBuddy(ABuddy: IBuddy);
     procedure RemoveBuddy(ABuddy: IBuddy);
-    function FindBuddy(AName: String): IBuddy;
-    function FindBuddyByCookie(ACookie: String): IBuddy;
-    function HasBuddy(ABuddy: IBuddy): Boolean;
+    function ByID(ABuddyID: String): IBuddy;
+    function ByCookie(ACookie: String): IBuddy;
     procedure DoDisconnectAll;
     function GetEnumerator: TABuddyEnumerator;
   end;
@@ -165,9 +164,14 @@ type
     property Client: IClient read FClient;
   end;
 
+  operator in(ABuddy: IBuddy; AList: ITempList): Boolean;
+
 implementation
 
-
+operator in(ABuddy: IBuddy; AList: ITempList): Boolean;
+begin
+  Result := (AList.IndexOf(ABuddy) > -1);
+end;
 
 end.
 

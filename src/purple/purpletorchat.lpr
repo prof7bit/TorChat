@@ -182,7 +182,7 @@ var
 begin
   TorChat := Client(gc^.account);
   if Assigned(TorChat) then begin
-    Buddy := TorChat.Roster.FindBuddy(who);
+    Buddy := TorChat.Roster.ByID(who);
     Buddy.SetFriendlyName(aalias);
     serv_got_alias(gc, who, aalias);
   end;
@@ -225,7 +225,7 @@ begin
   purple_list := purple_find_buddies(acc, nil);
   while Assigned(purple_list) do begin
     purple_id := purple_buddy_get_name(purple_list^.data);
-    if not Assigned(TorChat.Roster.FindBuddy(purple_id)) then begin
+    if not Assigned(TorChat.Roster.ByID(purple_id)) then begin
       purple_blist_remove_buddy(purple_list^.data);
     end;
     purple_list := g_slist_delete_link(purple_list, purple_list);

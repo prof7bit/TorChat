@@ -46,7 +46,7 @@ var
   tc_buddy : IBuddy;
 begin
   FOwnID := AID;
-  if FindBuddy(AID) = nil then begin
+  if ByID(AID) = nil then begin
     writeln('TBuddyList.SetOwnID() adding "myself"-buddy ' + AID);
     tc_buddy := TBuddy.Create(FClient);
     tc_buddy.InitID(AID);
