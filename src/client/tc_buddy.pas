@@ -322,7 +322,8 @@ procedure TBuddy.SetStatus(AStatus: TTorchatStatus);
 begin
   if AStatus <> FStatus then begin
     FStatus := AStatus;
-    Client.OnBuddyStatusChange(self);
+    if Self in Client.Roster then
+      Client.OnBuddyStatusChange(self);
   end;
 end;
 
