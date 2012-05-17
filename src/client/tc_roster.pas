@@ -100,7 +100,7 @@ end;
 procedure TRoster.Save;
 var
   Path, FileName, TempName: String;
-  tc_buddy: IBuddy;
+  Buddy: IBuddy;
   JArr : TJSONArray;
   JData: String;
   FS: TFileStream = nil;
@@ -113,8 +113,8 @@ begin
   FileName := ConcatPaths([Path,'buddylist.json']);
   JArr := TJSONArray.Create;
 
-  for tc_buddy in self do
-    JArr.Add(tc_buddy.AsJsonObject);
+  for Buddy in Self do
+    JArr.Add(Buddy.AsJsonObject);
 
   JData := JArr.FormatJSON([foSingleLineObject]);
   JArr.Free;
@@ -127,7 +127,7 @@ begin
       writeln('E TBuddyList.Save() could not save: ' + E.Message);
     end;
   end;
-  if assigned(FS) then FreeAndNil(FS);
+  if Assigned(FS) then FreeAndNil(FS);
 
   if Success then begin
     SafeDelete(FileName);

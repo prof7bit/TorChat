@@ -90,7 +90,7 @@ implementation
 procedure TBuddy.InitiateConnect;
 begin
   WriteLn('TBuddy.InitiateConnect() ' + ID);
-  FConnectThread := FClient.Network.ConnectAsync(self.ID + '.onion', 11009, @self.CbNetOut);
+  FConnectThread := FClient.Network.ConnectAsync(Self.ID + '.onion', 11009, @Self.CbNetOut);
 end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
@@ -205,7 +205,7 @@ var
   Msg: IProtocolMessage;
 begin
   WriteLn('TBuddy.OnOutgoingConnection() ' + ID);
-  Msg := TMsgPing.Create(self, FOwnCookie);
+  Msg := TMsgPing.Create(Self, FOwnCookie);
   Msg.Send;
 
   // the other end has connected aleady and already
@@ -297,7 +297,7 @@ begin
   if AConn <> FConnIncoming then begin
     FConnIncoming := AConn;
     if Assigned(AConn) then begin
-      AConn.SetBuddy(self);
+      AConn.SetBuddy(Self);
       CallFromMainThread(@OnIncomingConnection);
     end
     else
@@ -310,7 +310,7 @@ begin
   if AConn <> FConnOutgoing then begin
     FConnOutgoing := AConn;
     if Assigned(AConn) then begin
-      AConn.SetBuddy(self);
+      AConn.SetBuddy(Self);
       CallFromMainThread(@OnOutgoingConnection);
     end
     else
@@ -323,7 +323,7 @@ begin
   if AStatus <> FStatus then begin
     FStatus := AStatus;
     if Self in Client.Roster then
-      Client.OnBuddyStatusChange(self);
+      Client.OnBuddyStatusChange(Self);
   end;
 end;
 

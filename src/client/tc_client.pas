@@ -109,11 +109,11 @@ begin
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first Pump() call
   FConnInList := TInterfaceList.Create;
-  FQueue := TMsgQueue.Create(self);
+  FQueue := TMsgQueue.Create(Self);
   FTor := TTor.Create(Self, Self);
-  FNetwork := TSocketWrapper.Create(self);
-  FRoster := TRoster.Create(self);
-  FTempList := TTempList.Create(self);
+  FNetwork := TSocketWrapper.Create(Self);
+  FRoster := TRoster.Create(Self);
+  FTempList := TTempList.Create(Self);
   with FNetwork do begin
     SocksProxyAddress := Config.TorHostName;
     SocksProxyPort := Config.TorPort;
@@ -226,7 +226,7 @@ begin
   if FIsDestroying then
     AStream.Free
   else begin
-    C := THiddenConnection.Create(self, AStream, nil);
+    C := THiddenConnection.Create(Self, AStream, nil);
     RegisterConnection(C);
   end;
 end;

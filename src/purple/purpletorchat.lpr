@@ -286,7 +286,7 @@ end;
 
 procedure TTorChatPurpleClient.OnNotifyGui;
 begin
-  purple_timeout_add(0, @cb_purple_timer_oneshot, self);
+  purple_timeout_add(0, @cb_purple_timer_oneshot, Self);
 end;
 
 procedure TTorChatPurpleClient.OnBuddyStatusChange(ABuddy: IBuddy);

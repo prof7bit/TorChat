@@ -125,7 +125,7 @@ end;
 
 function TTempList.GetEnumerator: TABuddyEnumerator;
 begin
-  Result := TBuddyEnumerator.Create(self);
+  Result := TBuddyEnumerator.Create(Self);
 end;
 
 

@@ -62,7 +62,7 @@ implementation
 
 procedure THiddenConnection.NotifyOthersAboutDeath;
 begin
-  Client.UnregisterConnection(self);
+  Client.UnregisterConnection(Self);
   if Assigned(FBuddy) then begin
     if IsOutgoing then
       FBuddy.SetOutgoing(nil)
@@ -143,7 +143,7 @@ function THiddenConnection.IsOutgoing: Boolean;
 begin
   if not Assigned(FBuddy) then
     Exit(False);
-  if FBuddy.ConnOutgoing = IHiddenConnection(self) then
+  if FBuddy.ConnOutgoing = IHiddenConnection(Self) then
     Exit(True);
   if (FBuddy.ConnIncoming = nil) and (FBuddy.ConnOutgoing = nil) then
     Exit(True);
