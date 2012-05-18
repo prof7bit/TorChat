@@ -153,7 +153,7 @@ begin
   FSocksPort := FClient.Config.TorPort;
   while not IsPortAvailable(FSocksPort) do
     Dec(FSocksPort);
-  WriteLn(_F('I profile "%s" tor will open port %d for socks server',
+  WriteLn(_F('I profile "%s": Tor will open port %d for socks proxy',
     [FClient.ProfileName, FSocksPort]));
   Options := [poStderrToOutPut];
   // it will automatically cd before starting the process if we set

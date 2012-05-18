@@ -122,7 +122,7 @@ begin
   FListenPort := Config.ListenPort;
   while not IsPortAvailable(FListenPort) do
     Dec(FListenPort);
-  WriteLn(_F('I profile "%s" will open port %d for incoming connections',
+  WriteLn(_F('I profile "%s": TorChat will open port %d for incoming connections',
     [AProfileName, FListenPort]));
   FTor := TTor.Create(Self, Self, FListenPort);
   FTorHost := FTor.TorHost;
@@ -265,7 +265,8 @@ begin
     if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
       HSName := FTor.HiddenServiceName;
       if HSName <> '' then begin
-        writeln('TTorChatClient.CheckHiddenServiceName() found: ' + HSName);
+        writeln(_F('I profile "%s": HiddenService name is %s',
+          [ProfileName, HSName]));
         Roster.SetOwnID(HSName);
         FHSNameOK := True;
       end
