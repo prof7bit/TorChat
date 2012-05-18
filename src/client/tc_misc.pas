@@ -29,6 +29,7 @@ uses
   {$else}
   unix,
   {$endif}
+  Sockets,
   Classes,
   SysUtils;
 
@@ -55,6 +56,9 @@ function _F(S: String; Args: array of const): String;
 
 { Delete a file by overwriting it }
 procedure SafeDelete(AFileName: String);
+
+{ Test if we can open this port for listening }
+function IsPortAvailable(APort: DWord): Boolean;
 
 implementation
 
@@ -111,6 +115,30 @@ begin
     RenameFile(AFileName, TempName);
     TSafeDeleteThread.Create(TempName);
   end;
+end;
+
+function IsPortAvailable(APort: DWord): Boolean;
+var
+  HSocket: Integer;
+  SockAddr  : TInetSockAddr;
+  TrueValue: Integer;
+begin
+  TrueValue := 1;
+  Result := False;
+  HSocket := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
+  if HSocket >= 0 then begin
+    fpSetSockOpt(HSocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
+    SockAddr.sin_family := AF_INET;
+    SockAddr.sin_port := ShortHostToNet(APort);
+    SockAddr.sin_addr.s_addr := 0;
+    if fpbind(HSocket, @SockAddr, SizeOf(SockAddr)) = 0 then begin
+      WriteLn(_F('Port %d is available', [APort]));
+      Result := True;
+    end;
+    Sockets.CloseSocket(HSocket);
+  end;
+  if Result = False then
+    WriteLn(_F('I Port %d is not available', [APort]));
 end;
 
 { TSafeDeleteThread }

@@ -172,7 +172,7 @@ begin
   else
     M := '[M] ' + Msg;
   end;
-  WriteLn(OldStdOut, FormatDateTime('hh:nn:ss.zzz ', Now) + M);
+  WriteLn(OldStdOut, FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M);
 end;
 
 { TWritelnRedirect }

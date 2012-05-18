@@ -48,7 +48,6 @@ type
     function ListenPort: DWord;
     function TorHostName: String;
     function TorPort: DWord;
-    function HiddenServiceName: String;
   end;
 
 function DefaultPathTorExe: String;
@@ -103,25 +102,6 @@ end;
 function TClientConfig.TorPort: DWord;
 begin
   Result := 11109;
-end;
-
-function TClientConfig.HiddenServiceName: String;
-var
-  FileName: String;
-  HostnameFile: TFileStream = nil;
-const
-  OnionLength = 16;
-begin
-  FileName := ConcatPaths([DataDir, 'tor/hidden_service/hostname']);
-  SetLength(Result, OnionLength);
-  try
-    HostnameFile := TFileStream.Create(FileName, fmOpenRead);
-    if HostnameFile.Read(Result[1], OnionLength) < OnionLength then
-      Result := '';
-  except
-    Result := '';
-  end;
-  if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
 end;
 
 function DefaultPathTorExe: String;

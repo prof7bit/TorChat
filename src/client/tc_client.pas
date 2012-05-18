@@ -60,6 +60,9 @@ type
     FTempList: ITempList;
     FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
+    FListenPort: DWord;
+    FTorHost: String;
+    FTorPort: DWord;
     FTor: TTor;
     FQueue: IMsgQueue;
     FTimeStarted: TDateTime;
@@ -74,17 +77,19 @@ type
     procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
-    function MainThread: TThreadID; virtual;
-    function Roster: IRoster; virtual;
+    function MainThread: TThreadID;
+    function Roster: IRoster;
     function TempList: ITempList;
-    function Network: TSocketWrapper; virtual;
+    function Network: TSocketWrapper;
     function Queue: IMsgQueue;
-    function Config: IClientConfig; virtual;
+    function Config: IClientConfig;
     function IsDestroying: Boolean;
-    procedure Pump; virtual;
-    procedure SetStatus(AStatus: TTorchatStatus); virtual;
-    procedure RegisterConnection(AConn: IHiddenConnection); virtual;
-    procedure UnregisterConnection(AConn: IHiddenConnection); virtual;
+    function TorHost: String;
+    function TorPort: DWord;
+    procedure Pump;
+    procedure SetStatus(AStatus: TTorchatStatus);
+    procedure RegisterConnection(AConn: IHiddenConnection);
+    procedure UnregisterConnection(AConn: IHiddenConnection);
   end;
 
 
@@ -110,15 +115,22 @@ begin
   FTimeStarted := 0; // we will initialize it on first Pump() call
   FConnInList := TInterfaceList.Create;
   FQueue := TMsgQueue.Create(Self);
-  FTor := TTor.Create(Self, Self);
   FNetwork := TSocketWrapper.Create(Self);
   FRoster := TRoster.Create(Self);
   FTempList := TTempList.Create(Self);
+  FListenPort := Config.ListenPort;
+  while not IsPortAvailable(FListenPort) do
+    Dec(FListenPort);
+  WriteLn(_F('I profile "%s" will open port %d for incoming connections',
+    [AProfileName, FListenPort]));
+  FTor := TTor.Create(Self, Self, FListenPort);
+  FTorHost := FTor.TorHost;
+  FTorPort := FTor.TorPort;
   with FNetwork do begin
-    SocksProxyAddress := Config.TorHostName;
-    SocksProxyPort := Config.TorPort;
+    SocksProxyAddress := FTorHost;
+    SocksProxyPort := FTorPort;
     IncomingCallback := @CbNetIn;
-    Bind(Config.ListenPort);
+    Bind(FListenPort);
   end;
 end;
 
@@ -184,6 +196,16 @@ begin
   Result := FIsDestroying;
 end;
 
+function TTorChatClient.TorHost: String;
+begin
+  Result := FTorHost;
+end;
+
+function TTorChatClient.TorPort: DWord;
+begin
+  Result := FTorPort;
+end;
+
 procedure TTorChatClient.Pump;
 begin
   if FIsDestroying then exit;
@@ -237,7 +259,7 @@ var
 begin
   if not FHSNameOK then begin;
     if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
-      HSName := Config.HiddenServiceName;
+      HSName := FTor.HiddenServiceName;
       if HSName <> '' then begin
         writeln('TTorChatClient.CheckHiddenServiceName() found: ' + HSName);
         Roster.SetOwnID(HSName);

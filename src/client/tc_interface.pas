@@ -64,7 +64,6 @@ type
     function ListenPort: DWord;
     function TorHostName: String;
     function TorPort: DWord;
-    function HiddenServiceName: String;
   end;
 
   IClient = interface
@@ -83,6 +82,8 @@ type
     function Network: TSocketWrapper;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
+    function TorHost: String;
+    function TorPort: DWord;
   end;
 
   { a temporary list of buddies}
