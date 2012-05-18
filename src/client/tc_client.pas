@@ -141,7 +141,6 @@ var
 begin
   WriteLn('start destroying TorChatClient');
   FIsDestroying := True;
-  FTor.Free;
 
   // disconnect all buddies
   Roster.DoDisconnectAll;
@@ -158,7 +157,7 @@ begin
 
   WriteLn('start destroying child components');
   inherited Destroy;
-  WriteLn('done destroying child components');
+  WriteLn('start destroying unreferenced interfaces');
 end;
 
 function TTorChatClient.MainThread: TThreadID;

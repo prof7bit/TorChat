@@ -74,6 +74,7 @@ end;
 
 destructor TTor.Destroy;
 begin
+  WriteLn('TTor.Destroy()');
   Terminate(0);
   inherited Destroy;
 end;

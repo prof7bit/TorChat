@@ -43,6 +43,7 @@ type
     FPathTorExe: String;
   public
     constructor Create(AProfileName: String);
+    destructor Destroy; override;
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
@@ -60,6 +61,12 @@ constructor TClientConfig.Create(AProfileName: String);
 begin
   FProfileName := AProfileName;
   FPathTorExe := DefaultPathTorExe;
+end;
+
+destructor TClientConfig.Destroy;
+begin
+  WriteLn('TClientConfig.Destroy() ' + FProfileName);
+  inherited Destroy;
 end;
 
 function TClientConfig.DataDir: String;

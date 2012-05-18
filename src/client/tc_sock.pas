@@ -104,6 +104,7 @@ type
     { terminate the connect attempt }
     procedure Terminate;
   strict protected
+    FTerminationForced: Boolean;
     FStdOut: Text;
     FSocket: THandle;
     FSocketWrapper: TSocketWrapper;
@@ -179,6 +180,7 @@ end;
 constructor TAsyncConnectThread.Create(ASocketWrapper: TSocketWrapper; AServer: String;
   APort: DWord; ACallback: PConnectionCallback);
 begin
+  FTerminationForced := False;
   FStdOut := Output;
   FSocketWrapper := ASocketWrapper;
   FCallback := ACallback;
@@ -203,13 +205,15 @@ begin
     FCallback(C, nil);
   except
     on E: Exception do begin
-      FCallback(nil, E);
+      if not FTerminationForced then
+        FCallback(nil, E);
     end;
   end;
 end;
 
 procedure TAsyncConnectThread.Terminate;
 begin
+  FTerminationForced := True;
   CloseHandle(FSocket);
   inherited Terminate;
 end;
@@ -231,6 +235,7 @@ destructor TSocketWrapper.Destroy;
 var
   Listener: TListenerThread;
 begin
+  WriteLn('TSocketWrapper.Destroy()');
   for Listener in FListeners do begin
     Listener.Terminate;
     Listener.Free;
