@@ -84,6 +84,7 @@ type
     function Queue: IMsgQueue;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
+    function ProfileName: String;
     function TorHost: String;
     function TorPort: DWord;
     procedure Pump;
@@ -140,6 +141,7 @@ var
 begin
   WriteLn('start destroying TorChatClient');
   FIsDestroying := True;
+  FTor.Free;
 
   // disconnect all buddies
   Roster.DoDisconnectAll;
@@ -155,8 +157,6 @@ begin
   FQueue.Clear;
 
   WriteLn('start destroying child components');
-  //FTor.Free;
-  //FNetwork.Free;
   inherited Destroy;
   WriteLn('done destroying child components');
 end;
@@ -194,6 +194,11 @@ end;
 function TTorChatClient.IsDestroying: Boolean;
 begin
   Result := FIsDestroying;
+end;
+
+function TTorChatClient.ProfileName: String;
+begin
+  Result := FProfileName;
 end;
 
 function TTorChatClient.TorHost: String;

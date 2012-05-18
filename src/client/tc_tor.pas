@@ -139,9 +139,9 @@ begin
   end;
 
   if Assigned(FOut) then
-    FreeAndNil(FIn);
-  if Assigned(FIn) then
     FreeAndNil(FOut);
+  if Assigned(FIn) then
+    FreeAndNil(FIn);
   if Assigned(Buffer) then
     FreeMem(Buffer);
 end;
@@ -153,7 +153,7 @@ begin
   while not IsPortAvailable(FSocksPort) do
     Dec(FSocksPort);
   WriteLn(_F('I profile "%s" tor will open port %d for socks server',
-    ['FIXME!!', FSocksPort]));
+    [FClient.ProfileName, FSocksPort]));
   Options := [poStderrToOutPut];
   // it will automatically cd before starting the process if we set
   // the property 'CurrentDirectory' to a path:

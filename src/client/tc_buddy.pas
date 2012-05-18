@@ -127,9 +127,8 @@ destructor TBuddy.Destroy;
 begin
   writeln('TBuddy.Destroy() ' + ID);
   if Assigned(FConnectThread) then begin
-    //WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' there is an ongoing connection attempt, terminating it.');
     FConnectThread.Terminate;
-    //WriteLn(MilliTime, ' TBuddy.Destroy() ' + ID + ' connection attempt terminated.');
+    Sleep(30); // the above will call TBuddy.CbNetOut(), so wait a moment
   end;
   inherited Destroy;
 end;

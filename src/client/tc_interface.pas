@@ -82,6 +82,7 @@ type
     function Network: TSocketWrapper;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
+    function ProfileName: String;
     function TorHost: String;
     function TorPort: DWord;
   end;

@@ -76,17 +76,13 @@ type
     redirects it to the libpurple debug logger. We will create an instance
     of this and replace it with the standard output stream }
   TWritelnRedirect = class(TStream)
-  strict protected
-    CS: TRTLCriticalSection;
-  public
-    constructor Create;
-    destructor Destroy; override;
     function Write(const Buffer; Count : Longint) : Longint; override;
   end;
 
 var
   OldStdOut: Text;
   WritelnRedirect: TWritelnRedirect;
+  WritelnRedirectCritical: TRTLCriticalSection;
   PurpleThread: TThreadID;
 
 function GetMemAndCopy(Str: String): PChar;
@@ -177,21 +173,11 @@ end;
 
 { TWritelnRedirect }
 
-constructor TWritelnRedirect.Create;
-begin
-  InitCriticalSection(CS);
-end;
-
-destructor TWritelnRedirect.Destroy;
-begin
-  DoneCriticalsection(CS);
-  inherited Destroy;
-end;
-
 function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
 var
   Msg : String;
 begin
+  EnterCriticalsection(WritelnRedirectCritical);
   Result := Count;
   SetLength(Msg, Count);
   Move(Buffer, Msg[1], Count);
@@ -204,10 +190,9 @@ begin
     CBDebugToPurple(PurpleGetMemAndCopy(Msg));
   end;
   {$ifdef DebugToConsole}
-    EnterCriticalsection(CS);
     DebugToConsole(Msg);
-    LeaveCriticalsection(CS);
   {$endif}
+  LeaveCriticalsection(WritelnRedirectCritical);
 end;
 
 
@@ -217,6 +202,7 @@ end;
 procedure InstallWritelnRedirect;
 begin
   PurpleThread := ThreadID;
+  InitCriticalSection(WritelnRedirectCritical);
   OldStdOut := Output;
   WritelnRedirect := TWritelnRedirect.Create();
   AssignStream(Output, WritelnRedirect);
@@ -235,8 +221,11 @@ end;
 
 procedure UninstallWritelnRedirect;
 begin
+  EnterCriticalsection(WritelnRedirectCritical);
   Output := OldStdOut;
   WritelnRedirect.Free;
+  LeaveCriticalsection(WritelnRedirectCritical);
+  DoneCriticalsection(WritelnRedirectCritical);
 end;
 
 initialization
