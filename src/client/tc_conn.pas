@@ -35,6 +35,7 @@ type
   { THiddenConnection }
   THiddenConnection = class(TInterfacedObject, IHiddenConnection)
   strict protected
+    FOnTCPFailHasFinishedEvent: PRTLEvent;
     FTCPStream: TTCPStream;
     FClient: IClient;
     FBuddy: IBuddy;
@@ -73,6 +74,7 @@ end;
 
 constructor THiddenConnection.Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
 begin
+  FOnTCPFailHasFinishedEvent := RTLEventCreate;
   FTCPStream := AStream;
   FClient := AClient;
   FBuddy := ABuddy;
@@ -89,6 +91,7 @@ end;
 
 destructor THiddenConnection.Destroy;
 begin
+  RTLeventdestroy(FOnTCPFailHasFinishedEvent);
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished');
 end;
@@ -108,30 +111,17 @@ begin
   WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo);
   NotifyOthersAboutDeath;
   FTCPStream.Free;
+  WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' setting event');
+  RTLeventSetEvent(FOnTCPFailHasFinishedEvent);
 end;
 
 procedure THiddenConnection.DoClose;
 begin
-  WriteLn('THiddenConnection.DoClose()' + DebugInfo);
-  FDebugInfoDefault := DebugInfo;
-
-  // we are here because the main thread wants to
-  // forcefully close and destroy this connection.
-  // To avoid any race conditions we will not rely
-  // on the receiver thread do the notifications
-  // eventually once it detects the TCP connection
-  // end while the buddy itself might be gone already,
-  // instead we are doing this here ourselves
-  // immediately and *before* we actually disconnect.
-  NotifyOthersAboutDeath;
-  FBuddy := nil;
-
-  // Now since there are no references between buddy
-  // and connection anymore we can now safely trigger
-  // the shutdown and the receiver thread may then do
-  // what it wants because it can not call any TBuddy
-  // methods anymore.
+  WriteLn('THiddenConnection.DoClose()' + DebugInfo + ' closing socket');
   Stream.DoClose;
+  WriteLn('THiddenConnection.DoClose()' + DebugInfo + ' waiting event');
+  RTLeventWaitFor(FOnTCPFailHasFinishedEvent);
+  WriteLn('THiddenConnection.DoClose()' + DebugInfo + ' got event');
 end;
 
 procedure THiddenConnection.SetBuddy(ABuddy: IBuddy);

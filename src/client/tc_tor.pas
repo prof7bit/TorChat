@@ -46,6 +46,7 @@ type
     function TorHost: String;
     function TorPort: DWord;
     function HiddenServiceName: String;
+    procedure SendSIGTERM;
   strict protected
     FClient: IClient;
     FClientListenPort: DWord;
@@ -57,6 +58,9 @@ type
 
 implementation
 uses
+  {$ifdef unix}
+  baseunix,
+  {$endif}
   sysutils,
   tc_misc;
 
@@ -75,7 +79,7 @@ end;
 destructor TTor.Destroy;
 begin
   WriteLn('TTor.Destroy()');
-  Terminate(0);
+  SendSIGTERM;
   inherited Destroy;
 end;
 
@@ -108,6 +112,7 @@ begin
     Line('#   of this file.                                    #');
     Line('#                                                    #');
     Line('######################################################');
+    Line('PidFile tor.pid');
     Line('HiddenServiceDir hidden_service');
     Line(Format('SocksPort %d', [FSocksPort]));
     Line(Format('HiddenServicePort 11009 127.0.0.1:%d', [FClientListenPort]));
@@ -205,6 +210,15 @@ begin
     Result := '';
   end;
   if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
+end;
+
+procedure TTor.SendSIGTERM;
+begin
+  {$ifdef unix}
+  FpKill(Handle, SIGTERM);
+  {$else}
+  Terminate(0);
+  {$endif}
 end;
 
 end.

@@ -41,6 +41,7 @@ type
   { TBuddy }
   TBuddy = class(TInterfacedObject, IBuddy)
   strict protected
+    FOnCbNetOutFinishedEvent: PRTLEvent;
     FID: String;
     FClient: IClient;
     FOwnCookie: String;
@@ -90,7 +91,8 @@ implementation
 procedure TBuddy.InitiateConnect;
 begin
   WriteLn('TBuddy.InitiateConnect() ' + ID);
-  FConnectThread := FClient.Network.ConnectAsync(Self.ID + '.onion', 11009, @Self.CbNetOut);
+  RTLeventResetEvent(FOnCbNetOutFinishedEvent);
+  FConnectThread := FClient.Network.ConnectAsync(ID + '.onion', 11009, @CbNetOut);
 end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
@@ -105,6 +107,8 @@ begin
     FLastDisconnect := Now;
     SetOutgoing(nil);
   end;
+  WriteLn('TBuddy.CbNetOut() ' + ID + ' setting event');
+  RTLeventSetEvent(FOnCbNetOutFinishedEvent);
 end;
 
 constructor TBuddy.Create(AClient: IClient);
@@ -112,6 +116,7 @@ var
   GUID: TGuid;
 begin
   inherited Create;
+  FOnCbNetOutFinishedEvent := RTLEventCreate;
   FConnectThread := nil;
   FClient := AClient;
   FLastDisconnect := 0;
@@ -129,7 +134,11 @@ begin
   if Assigned(FConnectThread) then begin
     writeln('TBuddy.Destroy() ' + ID + ' must terminate ongoing connection attempt');
     FConnectThread.Terminate;
+    writeln('TBuddy.Destroy() ' + ID + ' waiting event');
+    RTLeventWaitFor(FOnCbNetOutFinishedEvent);
+    writeln('TBuddy.Destroy() ' + ID + ' got event');
   end;
+  RTLeventdestroy(FOnCbNetOutFinishedEvent);
   inherited Destroy;
 end;
 

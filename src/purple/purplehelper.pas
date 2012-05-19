@@ -81,6 +81,7 @@ type
 
 var
   OldStdOut: Text;
+  AlwaysWorksOutput: Text;
   WritelnRedirect: TWritelnRedirect;
   WritelnRedirectCritical: TRTLCriticalSection;
   PurpleThread: TThreadID;
@@ -168,7 +169,7 @@ begin
   else
     M := '[M] ' + Msg;
   end;
-  WriteLn(OldStdOut, FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M);
+  WriteLn(AlwaysWorksOutput, FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M);
 end;
 
 { TWritelnRedirect }
@@ -208,9 +209,12 @@ begin
   AssignStream(Output, WritelnRedirect);
   Rewrite(Output);
   {$ifdef windows}
-    Assign(OldStdOut, WINDOWS_DEBUG_FILE);
-    Rewrite(OldStdOut);
+    Assign(AlwaysWorksOutput, WINDOWS_DEBUG_FILE);
+    Rewrite(AlwaysWorksOutput);
+  {$else}
+    AlwaysWorksOutput := OldStdOut;
   {$endif}
+  StdErr := AlwaysWorksOutput; // for heaptrc output
   {$ifdef DebugToConsole}
     WriteLn('W plugin has been compiled with -dDebugToConsole. Not recommended.');
     {$ifdef windows}
@@ -221,6 +225,8 @@ end;
 
 procedure UninstallWritelnRedirect;
 begin
+  Flush(Output);
+  Flush(AlwaysWorksOutput);
   EnterCriticalsection(WritelnRedirectCritical);
   Output := OldStdOut;
   WritelnRedirect.Free;
