@@ -206,7 +206,7 @@ begin
   else
     WriteLn(_F('W received %s %s on unknown connection, closing.',
       [FCommand, AInfo]));
-  FConnection.DoClose;
+  FConnection.Disconnect;
 end;
 
 { this is the virtual constructor for incoming messages }

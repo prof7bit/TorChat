@@ -227,7 +227,7 @@ begin
   WriteLn('TBuddy.OnOutgoingConnectionFail() ' + ID);
   FLastDisconnect := Now;
   if Assigned(ConnIncoming) then
-    ConnIncoming.DoClose;
+    ConnIncoming.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
 end;
 
@@ -242,7 +242,7 @@ begin
   Writeln('TBuddy.OnIncomingConnectionFail() ' + ID);
   FLastDisconnect := Now;
   if Assigned(ConnOutgoing) then
-    ConnOutgoing.DoClose;
+    ConnOutgoing.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
 end;
 
@@ -260,8 +260,8 @@ end;
 procedure TBuddy.DoDisconnect;
 begin
   if Assigned(ConnIncoming) or Assigned(ConnOutgoing) then begin
-    if Assigned(ConnIncoming) then ConnIncoming.DoClose;
-    if Assigned(ConnOutgoing) then ConnOutgoing.DoClose;
+    if Assigned(ConnIncoming) then ConnIncoming.Disconnect;
+    if Assigned(ConnOutgoing) then ConnOutgoing.Disconnect;
   end;
 end;
 

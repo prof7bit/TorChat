@@ -135,12 +135,12 @@ type
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
     procedure OnTCPFail; // called by the receiver
-    procedure DoClose;
     function IsOutgoing: Boolean;
     function DebugInfo: String;
     function Buddy: IBuddy;
     function Client: IClient;
     function Stream: TTCPStream;
+    procedure Disconnect;
   end;
 
   IMessage = interface

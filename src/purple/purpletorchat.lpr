@@ -140,7 +140,6 @@ function torchat_unload(var plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Ignore(@plugin);
   TorChatClients.Free;
-  Sleep(200);
   WriteLn('plugin unloaded');
   Result := True;
 end;

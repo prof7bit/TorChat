@@ -148,7 +148,7 @@ begin
   // disconnect all remaining incoming connections
   while FConnInList.Count > 0 do begin
     Conn := IHiddenConnection(FConnInList.Items[0]);
-    Conn.DoClose;
+    Conn.Disconnect;
   end;
 
   FRoster.Clear;

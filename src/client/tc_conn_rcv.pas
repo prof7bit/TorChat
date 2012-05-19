@@ -109,6 +109,7 @@ begin
   FConnection := AConn;
   FClient := AConn.Client; // the torchat client object
   FIncompleteMessage := '';
+  FreeOnTerminate := True;
   inherited Create(False);
 end;
 
@@ -125,7 +126,6 @@ var
   R : String;
   M : String;
 begin
-  FreeOnTerminate := True;
   Output := FStdOut;
   repeat
     N := FConnection.Stream.Read(B, 1024);
@@ -147,9 +147,7 @@ begin
     end;
   until (N <= 0) or Terminated;
   WriteLn('TReceiver.Execute()' + FConnection.DebugInfo + ' detected end of life, beginning termination');
-  FConnection.Stream.DoClose; // might have happened already but does not hurt
-  FConnection.OnTCPFail;      // this will free the stream and the connection
-  // the TReceiver will free itself now (FreeOnTerminate)
+  FConnection.OnTCPFail;
 end;
 
 procedure TReceiver.OnReceivedLine(EncodedLine: String);
