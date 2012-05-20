@@ -18,13 +18,13 @@ type
   public
     constructor Create(AClient: IClient);
     destructor Destroy; override;
-    procedure CheckState; virtual;
-    procedure AddBuddy(ABuddy: IBuddy); virtual;
-    procedure RemoveBuddy(ABuddy: IBuddy); virtual;
-    function ByID(ABuddyID: String): IBuddy; virtual;
-    function ByCookie(ACookie: String): IBuddy; virtual;
-    procedure DoDisconnectAll; virtual;
-    function GetEnumerator: TABuddyEnumerator; virtual;
+    procedure CheckState;
+    procedure AddBuddy(ABuddy: IBuddy);
+    procedure RemoveBuddy(ABuddy: IBuddy);
+    function ByID(ABuddyID: String): IBuddy;
+    function ByCookie(ACookie: String): IBuddy;
+    procedure DoDisconnectAll;
+    function GetEnumerator: TABuddyEnumerator;
   end;
 
 implementation

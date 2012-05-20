@@ -40,7 +40,7 @@ type
   { TClientConfig }
 
   TClientConfig = class(TInterfacedObject, IClientConfig)
-  strict protected
+  strict private
     FProfileName: String;
     FPathTorExe: String;
   public

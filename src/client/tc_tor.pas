@@ -189,10 +189,12 @@ procedure TTor.KillIfAlreadyRunning;
 var
   FileSize: UInt64;
   Pid: THandle;
-  HProc: THandle;
   PidStr: String;
   PidFile: TFileStream = nil;
   PidFileName: String;
+  {$ifdef windows}
+  HProc: THandle;
+  {$endif}
 begin
   PidFileName := ConcatPaths([CurrentDirectory, 'tor.pid']);
   if FileExists(PidFileName) then begin

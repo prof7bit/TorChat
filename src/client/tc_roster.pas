@@ -18,10 +18,10 @@ type
     FOwnID: String;
   public
     constructor Create(AClient: IClient); reintroduce;
-    procedure SetOwnID(AID: String); virtual;
-    function OwnID: String; virtual;
-    procedure Load; virtual;
-    procedure Save; virtual;
+    procedure SetOwnID(AID: String);
+    function OwnID: String;
+    procedure Load;
+    procedure Save;
   end;
 
 

@@ -11,7 +11,7 @@ uses
 type
   { TMsgQueue }
   TMsgQueue = class(TInterfaceList, IMsgQueue)
-  strict protected
+  strict private
     FClient: IClient;
   public
     constructor Create(AClient: IClient);

@@ -89,14 +89,15 @@ type
     the connection is closing/failing it will notify its containing
     connection object. See also THiddenConnection. }
   TReceiver = class(TAReceiver)
-    constructor Create(AConn: IHiddenConnection; ADestroyEvent: PRTLEvent);
-    destructor Destroy; override;
-    procedure Execute; override;
   strict private
     FDestroyEvent: PRTLEvent;
     FStdOut: Text;
     FIncompleteMessage: String;
+  public
     procedure OnReceivedLine(EncodedLine: String);
+    constructor Create(AConn: IHiddenConnection; ADestroyEvent: PRTLEvent);
+    destructor Destroy; override;
+    procedure Execute; override;
   end;
 
 implementation

@@ -24,7 +24,9 @@ unit tc_sock;
 interface
 
 uses
-  {$ifdef unix}errors,{$endif}
+{$ifdef unix}
+  errors,
+{$endif}
   Classes,
   SysUtils,
   Sockets,
@@ -61,20 +63,21 @@ type
 
   { TListenerThread }
   TListenerThread = class(TThread)
-    constructor Create(APort: DWord; ACallback: PConnectionCallback); reintroduce;
-    destructor Destroy; override;
-    procedure Execute; override;
-    procedure Terminate;
-  strict protected
+  strict private
     FStdOut           : Text;
     FPort             : DWord;
     FSocket           : THandle;
     FCallback         : PConnectionCallback;
+  public
+    constructor Create(APort: DWord; ACallback: PConnectionCallback); reintroduce;
+    destructor Destroy; override;
+    procedure Execute; override;
+    procedure Terminate;
   end;
 
   { TSocketWrapper }
   TSocketWrapper = Class(TComponent)
-  strict protected
+  strict private
     FSocksProxyAddress  : String;
     FSocksProxyPort     : DWord;
     FSocksUser          : String;
@@ -97,19 +100,20 @@ type
   { TAsyncConnectThread }
 
   TAsyncConnectThread = class(TThread)
-    constructor Create(ASocketWrapper: TSocketWrapper; AServer: String;
-      APort: DWord; ACallback: PConnectionCallback);
-    destructor Destroy; override;
-    procedure Execute; override;
-    { terminate the connect attempt }
-    procedure Terminate;
-  strict protected
+  strict private
     FStdOut: Text;
     FSocket: THandle;
     FSocketWrapper: TSocketWrapper;
     FCallback: PConnectionCallback;
     FServer: String;
     FPort: DWord;
+  public
+    constructor Create(ASocketWrapper: TSocketWrapper; AServer: String;
+      APort: DWord; ACallback: PConnectionCallback);
+    destructor Destroy; override;
+    procedure Execute; override;
+    { terminate the connect attempt }
+    procedure Terminate;
   end;
 
 implementation

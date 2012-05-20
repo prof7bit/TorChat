@@ -34,7 +34,7 @@ type
 
   { THiddenConnection }
   THiddenConnection = class(TInterfacedObject, IHiddenConnection)
-  strict protected
+  strict private
     FTCPStream: TTCPStream;
     FClient: IClient;
     FBuddy: IBuddy;
@@ -45,12 +45,12 @@ type
     constructor Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
     destructor Destroy; override;
     procedure Disconnect;
-    procedure Send(AData: String); virtual;
-    procedure SendLine(AEncodedLine: String); virtual;
-    procedure OnTCPFail; virtual;
-    procedure SetBuddy(ABuddy: IBuddy); virtual;
-    function IsOutgoing: Boolean; virtual;
-    function DebugInfo: String; virtual;
+    procedure Send(AData: String);
+    procedure SendLine(AEncodedLine: String);
+    procedure OnTCPFail;
+    procedure SetBuddy(ABuddy: IBuddy);
+    function IsOutgoing: Boolean;
+    function DebugInfo: String;
     function Buddy: IBuddy;
     function Client: IClient;
     function Stream: TTCPStream;

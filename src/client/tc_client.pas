@@ -52,7 +52,7 @@ type
     event per call, it will never block and if there are
     no events and nothing else to do it will just return.}
   TTorChatClient = class(TComponent, IClient)
-  strict protected
+  strict private
     FMainThread: TThreadID;
     FProfileName: String;
     FClientConfig: IClientConfig;
