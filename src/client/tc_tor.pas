@@ -223,7 +223,7 @@ end;
 
 function TTor.TorHost: String;
 begin
-  Result := FClient.Config.TorHostName; {$warning can we ever return somethig else here?}
+  Result := FClient.Config.TorHostName;
 end;
 
 function TTor.TorPort: DWord;

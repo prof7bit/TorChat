@@ -122,8 +122,10 @@ begin
   {$warning must check ID for wellformedness}
   WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
   ABuddy := FClient.Roster.ByID(FID);
-  if Assigned(ABuddy) then
+  if Assigned(ABuddy) then begin
+    ABuddy.ResetConnectInterval;
     ABuddy.MustSendPong(FCookie)
+  end
   else begin
     Writeln('I got Ping from unknown Buddy, creating temporary buddy: ' + FID);
     ABuddy := TBuddy.Create(FClient);

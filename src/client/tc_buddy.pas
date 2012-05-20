@@ -40,7 +40,7 @@ uses
 type
   { TBuddy }
   TBuddy = class(TInterfacedObject, IBuddy)
-  strict protected
+  strict private
     FOnCbNetOutFinishedEvent: PRTLEvent;
     FID: String;
     FClient: IClient;
@@ -48,29 +48,31 @@ type
     FFriendlyName: String;
     FStatus: TTorchatStatus;
     FLastDisconnect: TDateTime;
+    FReconnectInterval: Integer;
     FConnIncoming: IHiddenConnection;
     FConnOutgoing: IHiddenConnection;
     FMustSendPong: Boolean;
     FReceivedCookie: String;
     FConnectThread: TAsyncConnectThread;
-    procedure InitiateConnect; virtual;
-    procedure CbNetOut(ATCPStream: TTCPStream; E: Exception); virtual;
-    procedure SendPong; virtual;
+    procedure InitiateConnect;
+    procedure CbNetOut(ATCPStream: TTCPStream; E: Exception);
+    procedure SendPong;
     function IsFullyConnected: Boolean;
-    procedure CallFromMainThread(AMethod: TMethodOfObject); virtual;
+    procedure CallFromMainThread(AMethod: TMethodOfObject);
   public
     constructor Create(AClient: IClient); reintroduce;
     destructor Destroy; override;
-    procedure CheckState; virtual;
-    function AsJsonObject: TJSONObject; virtual;
-    procedure InitFromJsonObect(AObject: TJSONObject); virtual;
-    procedure InitID(AID: String); virtual;
-    procedure OnOutgoingConnection; virtual;
-    procedure OnOutgoingConnectionFail; virtual;
-    procedure OnIncomingConnection; virtual;
-    procedure OnIncomingConnectionFail; virtual;
-    procedure MustSendPong(ACookie: String); virtual;
-    procedure DoDisconnect; virtual;
+    procedure CheckState;
+    function AsJsonObject: TJSONObject;
+    procedure InitFromJsonObect(AObject: TJSONObject);
+    procedure InitID(AID: String);
+    procedure OnOutgoingConnection;
+    procedure OnOutgoingConnectionFail;
+    procedure OnIncomingConnection;
+    procedure OnIncomingConnectionFail;
+    procedure MustSendPong(ACookie: String);
+    procedure ResetConnectInterval;
+    procedure DoDisconnect;
     function Client: IClient;
     function ID: String;
     function Cookie: String;
@@ -78,13 +80,15 @@ type
     function ConnIncoming: IHiddenConnection;
     function ConnOutgoing: IHiddenConnection;
     function Status: TTorchatStatus;
-    procedure SetIncoming(AConn: IHiddenConnection); virtual;
-    procedure SetOutgoing(AConn: IHiddenConnection); virtual;
-    procedure SetStatus(AStatus: TTorchatStatus); virtual;
+    procedure SetIncoming(AConn: IHiddenConnection);
+    procedure SetOutgoing(AConn: IHiddenConnection);
+    procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetFriendlyName(AName: String);
   end;
 
 implementation
+uses
+  tc_config;
 
 { TBuddy }
 
@@ -104,7 +108,9 @@ begin
   else begin
     WriteLn(E.Message);
     FLastDisconnect := Now;
-    SetOutgoing(nil);
+    FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
+    WriteLn(_F('%s next connection attempt in %d seconds',
+      [ID, FReconnectInterval]));
   end;
   RTLeventSetEvent(FOnCbNetOutFinishedEvent);
 end;
@@ -123,6 +129,7 @@ begin
   FStatus := TORCHAT_OFFLINE;
   CreateGUID(GUID);
   FOwnCookie := GUIDToString(GUID);
+  ResetConnectInterval;
   WriteLn('TBuddy.Create() created random cookie: ' + FOwnCookie);
 end;
 
@@ -141,7 +148,7 @@ end;
 procedure TBuddy.CheckState;
 begin
   if not (Assigned(ConnOutgoing) or Assigned(FConnectThread)) then begin
-    if SecondsSince(FLastDisconnect) > 10 then begin
+    if SecondsSince(FLastDisconnect) > FReconnectInterval then begin
       InitiateConnect;
     end;
   end;
@@ -222,6 +229,7 @@ procedure TBuddy.OnOutgoingConnectionFail;
 begin
   WriteLn('TBuddy.OnOutgoingConnectionFail() ' + ID);
   FLastDisconnect := Now;
+  ResetConnectInterval;
   if Assigned(ConnIncoming) then
     ConnIncoming.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
@@ -237,6 +245,7 @@ procedure TBuddy.OnIncomingConnectionFail;
 begin
   Writeln('TBuddy.OnIncomingConnectionFail() ' + ID);
   FLastDisconnect := Now;
+  ResetConnectInterval;
   if Assigned(ConnOutgoing) then
     ConnOutgoing.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
@@ -251,6 +260,11 @@ begin
   // immediately, otherwise it will happen on connect
   if Assigned(ConnOutgoing) then
     SendPong;
+end;
+
+procedure TBuddy.ResetConnectInterval;
+begin
+  FReconnectInterval := SECONDS_INITIAL_RECONNECT;
 end;
 
 procedure TBuddy.DoDisconnect;

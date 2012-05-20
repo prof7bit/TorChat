@@ -116,6 +116,7 @@ type
     procedure OnIncomingConnection;
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
+    procedure ResetConnectInterval;
     procedure DoDisconnect;
     function Client: IClient;
     function ID: String;
