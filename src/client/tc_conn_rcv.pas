@@ -89,10 +89,11 @@ type
     the connection is closing/failing it will notify its containing
     connection object. See also THiddenConnection. }
   TReceiver = class(TAReceiver)
-    constructor Create(AConn: IHiddenConnection);
+    constructor Create(AConn: IHiddenConnection; ADestroyEvent: PRTLEvent);
     destructor Destroy; override;
     procedure Execute; override;
   strict private
+    FDestroyEvent: PRTLEvent;
     FStdOut: Text;
     FIncompleteMessage: String;
     procedure OnReceivedLine(EncodedLine: String);
@@ -103,20 +104,25 @@ implementation
 
 { TReceiver }
 
-constructor TReceiver.Create(AConn: IHiddenConnection);
+constructor TReceiver.Create(AConn: IHiddenConnection; ADestroyEvent: PRTLEvent);
 begin
   FStdOut := Output;
+  FDestroyEvent := ADestroyEvent; // will fire this in the destructor
   FConnection := AConn;
-  FClient := AConn.Client; // the torchat client object
+  FClient := AConn.Client;
   FIncompleteMessage := '';
   FreeOnTerminate := True;
   inherited Create(False);
 end;
 
 destructor TReceiver.Destroy;
+var
+  DestroyEvent : PRTLEvent;
 begin
+  DestroyEvent := FDestroyEvent;
   inherited Destroy;
   WriteLn('TReceiver.Destroy() finished');
+  RTLeventSetEvent(DestroyEvent);
 end;
 
 procedure TReceiver.Execute;

@@ -40,7 +40,7 @@ type
     FBuddy: IBuddy;
     FReceiver: TAReceiver;
     FDebugInfoDefault: String;
-    FCallbackEvent: PRTLEvent;
+    FReceiverDestroyEvent: PRTLEvent;
   public
     constructor Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
     destructor Destroy; override;
@@ -62,11 +62,11 @@ implementation
 
 constructor THiddenConnection.Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
 begin
-  FCallbackEvent := RTLEventCreate;
   FTCPStream := AStream;
   FClient := AClient;
   FBuddy := ABuddy;
-  FReceiver := TReceiver.Create(Self);
+  FReceiverDestroyEvent := RTLEventCreate;
+  FReceiver := TReceiver.Create(Self, FReceiverDestroyEvent);
   FDebugInfoDefault := '(unknown incoming)';
   WriteLn('THiddenConnection.Create() ' + DebugInfo);
   // This object will free all its stuff in OnTCPFail().
@@ -81,7 +81,7 @@ end;
 destructor THiddenConnection.Destroy;
 begin
   FTCPStream.Free;
-  RTLeventdestroy(FCallbackEvent);
+  RTLeventdestroy(FReceiverDestroyEvent);
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished');
 end;
@@ -90,9 +90,9 @@ procedure THiddenConnection.Disconnect;
 begin
   // this will trigger the OnTCPFail callback which will
   // remove all references between connection and buddy,
-  // reference counting will free the object.
+  // the reference counting will then free the object.
   FTCPStream.DoClose;
-  RTLeventWaitFor(FCallbackEvent);
+  RTLeventWaitFor(FReceiverDestroyEvent);
 end;
 
 procedure THiddenConnection.Send(AData: String);
@@ -116,7 +116,6 @@ begin
       FBuddy.SetIncoming(nil);
     FBuddy := nil;
   end;
-  RTLeventSetEvent(FCallbackEvent); // Disconnect() will wait for this
   // it will free itself when the reference counter is zero.
 end;
 

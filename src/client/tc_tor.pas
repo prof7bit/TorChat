@@ -61,6 +61,9 @@ uses
   {$ifdef unix}
   baseunix,
   {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
   sysutils,
   tc_misc;
 
@@ -154,16 +157,18 @@ end;
 
 procedure TTor.StartTorProcess;
 begin
+  // it will automatically cd before starting the process if we set
+  // the property 'CurrentDirectory' to a path:
+  CurrentDirectory := ConcatPaths([FClient.Config.DataDir, 'tor']);
   KillIfAlreadyRunning;
+
   FSocksPort := FClient.Config.TorPort;
   while not IsPortAvailable(FSocksPort) do
     Dec(FSocksPort);
   WriteLn(_F('I profile "%s": Tor will open port %d for socks proxy',
     [FClient.ProfileName, FSocksPort]));
-  Options := [poStderrToOutPut];
-  // it will automatically cd before starting the process if we set
-  // the property 'CurrentDirectory' to a path:
-  CurrentDirectory := ConcatPaths([FClient.Config.DataDir, 'tor']);
+
+  Options := [poNoConsole, poNewProcessGroup];
   Executable := FClient.Config.PathTorExe;
   GenerateTorrc;
   Parameters.Add('-f');
@@ -179,8 +184,36 @@ begin
 end;
 
 procedure TTor.KillIfAlreadyRunning;
+var
+  FileSize: UInt64;
+  Pid: Integer;
+  PidStr: String;
+  PidFile: TFileStream = nil;
+  PidFileName: String;
 begin
-  {$warning Implement this!}
+  PidFileName := ConcatPaths([CurrentDirectory, 'tor.pid']);
+  if FileExists(PidFileName) then begin
+    WriteLn('W old Tor process might still be running (tor.pid detected), trying to kill it');
+    try
+      PidFile := TFileStream.Create(PidFileName, fmOpenRead);
+      FileSize := PidFile.Size;
+      SetLength(PidStr, FileSize);
+      PidFile.Read(PidStr[1], FileSize);
+      FreeAndNil(PidFile);
+      Pid := StrToInt(Trim(PidStr));
+      {$ifdef windows}
+        TerminateProcess(Pid, 0);
+      {$else}
+        FpKill(Pid, SIGKILL);
+      {$endif}
+      DeleteFile(PidFileName);
+      WriteLn('I killed old Tor process');
+    except
+      WriteLn('E existing pid file could not be read');
+    end;
+    if Assigned(PidFile) then
+      PidFile.Free;
+  end;
 end;
 
 function TTor.TorHost: String;
