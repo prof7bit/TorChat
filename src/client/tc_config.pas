@@ -70,12 +70,12 @@ begin
 end;
 
 function TClientConfig.DataDir: String;
-{$ifdef windows}
 var
+  Success: Boolean;
+  {$ifdef windows}
   AppDataPath: Array[0..MaxPathLen] of Char;
-{$endif}
+  {$endif}
 begin
-  {$note need different home directories for different "accounts"}
   {$ifdef windows}
     SHGetSpecialFolderPath(0, AppDataPath, CSIDL_APPDATA, false);
     Result := ConcatPaths([AppDataPath, 'torchat2']);
@@ -83,11 +83,20 @@ begin
   {$else}
     Result := ExpandFileName('~/.torchat2');
   {$endif}
+
+  if FProfileName <> '' then
+    Result := Result + '_' + FProfileName;
+
   if not DirectoryExists(Result) then begin
-    writeln('creating config dir ' + Result);
-    if not CreateDir(Result) then begin
-      writeln('(0) could not create config dir ' + Result);
+    Success := False;
+    if CreateDir(Result) then begin
+      if CreateDir(ConcatPaths([Result, 'tor'])) then begin
+        writeln('I created empty config directory ' + Result);
+        Success := True;
+      end;
     end;
+    if not Success then
+      writeln('E could not create config directory ' + Result);
   end;
 end;
 

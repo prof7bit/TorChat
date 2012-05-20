@@ -116,12 +116,12 @@ begin
     Line('#                                                    #');
     Line('######################################################');
     Line('PidFile tor.pid');
+    Line('DataDirectory tor_data');
     Line('HiddenServiceDir hidden_service');
     Line(Format('SocksPort %d', [FSocksPort]));
     Line(Format('HiddenServicePort 11009 127.0.0.1:%d', [FClientListenPort]));
     Line('LongLivedPorts 11009');
     Line('AvoidDiskWrites 1');
-    Line('FetchDirInfoEarly 1');
 
     FileName := ConcatPaths([CurrentDirectory, 'torrc.in.txt']);
     try
@@ -160,6 +160,8 @@ begin
   // it will automatically cd before starting the process if we set
   // the property 'CurrentDirectory' to a path:
   CurrentDirectory := ConcatPaths([FClient.Config.DataDir, 'tor']);
+  WriteLn(_F('I profile "%s": Tor will be started in folder: %s',
+    [FClient.ProfileName, CurrentDirectory]));
   KillIfAlreadyRunning;
 
   FSocksPort := FClient.Config.TorPort;

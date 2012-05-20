@@ -97,7 +97,6 @@ end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
 begin
-  WriteLn('TBuddy.CbNetOut() ' + ID);
   FConnectThread := nil;
   if assigned(ATCPStream) then begin
     SetOutgoing(THiddenConnection.Create(FClient, ATCPStream, Self));
@@ -107,7 +106,6 @@ begin
     FLastDisconnect := Now;
     SetOutgoing(nil);
   end;
-  WriteLn('TBuddy.CbNetOut() ' + ID + ' setting event');
   RTLeventSetEvent(FOnCbNetOutFinishedEvent);
 end;
 
@@ -134,9 +132,7 @@ begin
   if Assigned(FConnectThread) then begin
     writeln('TBuddy.Destroy() ' + ID + ' must terminate ongoing connection attempt');
     FConnectThread.Terminate;
-    writeln('TBuddy.Destroy() ' + ID + ' waiting event');
     RTLeventWaitFor(FOnCbNetOutFinishedEvent);
-    writeln('TBuddy.Destroy() ' + ID + ' got event');
   end;
   RTLeventdestroy(FOnCbNetOutFinishedEvent);
   inherited Destroy;
