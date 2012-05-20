@@ -46,7 +46,7 @@ type
     function TorHost: String;
     function TorPort: DWord;
     function HiddenServiceName: String;
-    procedure SendSIGTERM;
+    procedure CleanShutdown;
   strict protected
     FClient: IClient;
     FClientListenPort: DWord;
@@ -82,7 +82,7 @@ end;
 destructor TTor.Destroy;
 begin
   WriteLn('TTor.Destroy()');
-  SendSIGTERM;
+  CleanShutdown;
   inherited Destroy;
 end;
 
@@ -204,7 +204,7 @@ begin
       Pid := StrToInt64(Trim(PidStr));
       WriteLn('I sending kill signlal to PID ', Pid);
       {$ifdef windows}
-        HProc := OpenProcess(PROCESS_ALL_ACCESS, True, Pid);
+        HProc := OpenProcess(PROCESS_TERMINATE, False, Pid);
         TerminateProcess(HProc, 0);
       {$else}
         FpKill(Pid, SIGKILL);
@@ -248,12 +248,16 @@ begin
   if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
 end;
 
-procedure TTor.SendSIGTERM;
+procedure TTor.CleanShutdown;
 begin
   {$ifdef unix}
-  FpKill(Handle, SIGTERM);
+    FpKill(Handle, SIGINT); // Tor will exit cleanly on SIGINT
   {$else}
-  Terminate(0);
+    // there are no signals in windows, they also forgot to
+    // implement any other mechanism for sending Ctrl-C to
+    // another process. We have to kill it.
+    Terminate(0);
+    DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
   {$endif}
 end;
 
