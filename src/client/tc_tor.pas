@@ -170,7 +170,11 @@ begin
   WriteLn(_F('I profile "%s": Tor will open port %d for socks proxy',
     [FClient.ProfileName, FSocksPort]));
 
-  Options := [poNewProcessGroup];
+  {$ifdef DebugToConsole}
+    Options := [poNewProcessGroup];
+  {$else}
+    Options := [poNoConsole, poNewProcessGroup];
+  {$endif}
   Executable := FClient.Config.PathTorExe;
   GenerateTorrc;
   Parameters.Add('-f');

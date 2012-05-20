@@ -19,7 +19,7 @@ all:
 	
 foo:
 	mkdir -p lib
-	fpc $(FPCOPT) -dNoOutputRedirect -dUseHeapTrc purpletorchat.lpr
+	fpc $(FPCOPT) -dUseHeapTrc purpletorchat.lpr
 
 install:
 	mkdir -p $(PLUGINDIR)
