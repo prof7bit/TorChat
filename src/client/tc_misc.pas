@@ -127,7 +127,7 @@ begin
   Result := False;
   HSocket := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
   if HSocket >= 0 then begin
-    fpSetSockOpt(HSocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
+    fpSetSockOpt(HSocket, SOL_SOCKET, 0, @TrueValue, SizeOf(TrueValue));
     SockAddr.sin_family := AF_INET;
     SockAddr.sin_port := ShortHostToNet(APort);
     SockAddr.sin_addr.s_addr := 0;
@@ -138,7 +138,7 @@ begin
     Sockets.CloseSocket(HSocket);
   end;
   if Result = False then
-    WriteLn(_F('I Port %d is not available', [APort]));
+    WriteLn(_F('I Port %d is NOT available', [APort]));
 end;
 
 { TSafeDeleteThread }

@@ -325,7 +325,7 @@ begin
   AddrLen := SizeOf(SockAddr);
 
   FSocket := CreateHandle;
-  fpSetSockOpt(FSocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
+  fpSetSockOpt(FSocket, SOL_SOCKET, 0, @TrueValue, SizeOf(TrueValue));
   SockAddr.sin_family := AF_INET;
   SockAddr.sin_port := ShortHostToNet(FPort);
   SockAddr.sin_addr.s_addr := 0;

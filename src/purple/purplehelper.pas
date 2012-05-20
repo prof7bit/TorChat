@@ -170,6 +170,7 @@ begin
     M := '[M] ' + Msg;
   end;
   WriteLn(AlwaysWorksOutput, FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M);
+  Flush(AlwaysWorksOutput);
 end;
 
 { TWritelnRedirect }
@@ -209,6 +210,7 @@ begin
   AssignStream(Output, WritelnRedirect);
   Rewrite(Output);
   {$ifdef windows}
+    Filemode := fmShareDenyNone;
     Assign(AlwaysWorksOutput, WINDOWS_DEBUG_FILE);
     Rewrite(AlwaysWorksOutput);
   {$else}

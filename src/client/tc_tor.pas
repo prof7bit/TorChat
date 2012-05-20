@@ -168,7 +168,7 @@ begin
   WriteLn(_F('I profile "%s": Tor will open port %d for socks proxy',
     [FClient.ProfileName, FSocksPort]));
 
-  Options := [poNoConsole, poNewProcessGroup];
+  Options := [poNewProcessGroup];
   Executable := FClient.Config.PathTorExe;
   GenerateTorrc;
   Parameters.Add('-f');
@@ -186,7 +186,8 @@ end;
 procedure TTor.KillIfAlreadyRunning;
 var
   FileSize: UInt64;
-  Pid: Integer;
+  Pid: THandle;
+  HProc: THandle;
   PidStr: String;
   PidFile: TFileStream = nil;
   PidFileName: String;
@@ -200,14 +201,16 @@ begin
       SetLength(PidStr, FileSize);
       PidFile.Read(PidStr[1], FileSize);
       FreeAndNil(PidFile);
-      Pid := StrToInt(Trim(PidStr));
+      Pid := StrToInt64(Trim(PidStr));
+      WriteLn('I sending kill signlal to PID ', Pid);
       {$ifdef windows}
-        TerminateProcess(Pid, 0);
+        HProc := OpenProcess(PROCESS_ALL_ACCESS, True, Pid);
+        TerminateProcess(HProc, 0);
       {$else}
         FpKill(Pid, SIGKILL);
       {$endif}
       DeleteFile(PidFileName);
-      WriteLn('I killed old Tor process');
+      Sleep(500);
     except
       WriteLn('E existing pid file could not be read');
     end;
