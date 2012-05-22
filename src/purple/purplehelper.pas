@@ -36,9 +36,6 @@ uses
   sysutils,
   StreamIO;
 
-const
-  WINDOWS_DEBUG_FILE = 'c:\purpleplugin.log';
-
 { This will allocate memory from the FPC heap,
   copy the sring and return the pointer. The memory
   must be freed with FreeMem(), leaks can be traced
@@ -81,10 +78,24 @@ type
 
 var
   OldStdOut: Text;
-  AlwaysWorksOutput: Text;
   WritelnRedirect: TWritelnRedirect;
   WritelnRedirectCritical: TRTLCriticalSection;
   PurpleThread: TThreadID;
+
+{$ifdef win32}
+function AttachConsole(dwProcessId: Longint): LongBool; stdcall; external 'kernel32.dll';
+
+procedure AttachWindowsConsole32;
+begin
+  AttachConsole(-1);
+  try
+    WriteLn(StdOut, '');
+    Flush(StdOut);
+  except
+  end;
+end;
+{$endif}
+
 
 function GetMemAndCopy(Str: String): PChar;
 var
@@ -169,8 +180,8 @@ begin
   else
     M := '[M] ' + Msg;
   end;
-  WriteLn(AlwaysWorksOutput, FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M);
-  Flush(AlwaysWorksOutput);
+  WriteLn(OldStdOut, FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M);
+  Flush(OldStdOut);
 end;
 
 { TWritelnRedirect }
@@ -192,7 +203,10 @@ begin
     CBDebugToPurple(PurpleGetMemAndCopy(Msg));
   end;
   {$ifdef DebugToConsole}
+  try
     DebugToConsole(Msg);
+  except
+  end;
   {$endif}
   LeaveCriticalsection(WritelnRedirectCritical);
 end;
@@ -209,26 +223,20 @@ begin
   WritelnRedirect := TWritelnRedirect.Create();
   AssignStream(Output, WritelnRedirect);
   Rewrite(Output);
-  {$ifdef windows}
-    Filemode := fmShareDenyNone;
-    Assign(AlwaysWorksOutput, WINDOWS_DEBUG_FILE);
-    Rewrite(AlwaysWorksOutput);
-  {$else}
-    AlwaysWorksOutput := OldStdOut;
-  {$endif}
-  StdErr := AlwaysWorksOutput; // for heaptrc output
+
   {$ifdef DebugToConsole}
-    WriteLn('W plugin has been compiled with -dDebugToConsole. Not recommended.');
     {$ifdef windows}
-      WriteLn('W debug output will go to ' + WINDOWS_DEBUG_FILE);
+      {$ifdef win32}
+        AttachWindowsConsole32;
+      {$endif}
     {$endif}
+    WriteLn('W plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
 end;
 
 procedure UninstallWritelnRedirect;
 begin
   Flush(Output);
-  Flush(AlwaysWorksOutput);
   EnterCriticalsection(WritelnRedirectCritical);
   Output := OldStdOut;
   WritelnRedirect.Free;
