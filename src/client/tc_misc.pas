@@ -162,17 +162,15 @@ function IsPortAvailable(APort: DWord): Boolean;
 var
   HSocket: Integer;
   SockAddr  : TInetSockAddr;
-  TrueValue: Integer;
 begin
   if IsPortInList(APort) then begin
     WriteLn(_F('I Port %d is already used by TorChat', [APort]));
     exit(False);
   end;
-  TrueValue := 1;
+
   Result := False;
   HSocket := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
   if HSocket >= 0 then begin
-    fpSetSockOpt(HSocket, SOL_SOCKET, 0, @TrueValue, SizeOf(TrueValue));
     SockAddr.sin_family := AF_INET;
     SockAddr.sin_port := ShortHostToNet(APort);
     SockAddr.sin_addr.s_addr := 0;

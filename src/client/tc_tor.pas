@@ -173,9 +173,9 @@ begin
   AddPortToList(FSocksPort);
 
   {$ifdef DebugToConsole}
-    Options := [poNewProcessGroup];
+    Options := [];
   {$else}
-    Options := [poNoConsole, poNewProcessGroup];
+    Options := [poNoConsole];
   {$endif}
   Executable := FClient.Config.PathTorExe;
   GenerateTorrc;

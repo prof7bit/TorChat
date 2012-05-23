@@ -27,6 +27,9 @@ uses
 {$ifdef unix}
   errors,
 {$endif}
+{$ifdef windows}
+  windows,
+{$endif}
   Classes,
   SysUtils,
   Sockets,
@@ -117,11 +120,6 @@ type
 
 implementation
 
-type
-  TTimeVal = record
-    sec:  Integer;
-    usec: Integer;
-  end;
 
 function LastErrorString: String;
 begin
@@ -135,10 +133,15 @@ end;
 
 function SWCreate: THandle;
 begin
-  Result := FPSocket(AF_INET, SOCK_STREAM, 0);
+  Result := FPSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if Result <= 0 then
     raise ENetworkError.CreateFmt('could not create socket (%s)',
       [LastErrorString]);
+  {$ifdef windows}
+  // don't allow inheriting to child processes, otherwise we could not
+  // close the listening sockets anymore once a child process is running
+  SetHandleInformation(Result, 	HANDLE_FLAG_INHERIT, 0);
+  {$endif}
 end;
 
 procedure SWClose(ASocket: THandle);
@@ -149,11 +152,8 @@ end;
 
 procedure SWBind(ASocket: THandle; APort: DWord);
 var
-  TrueValue : Integer;
   SockAddr  : TInetSockAddr;
 begin
-  TrueValue := 1;
-  fpSetSockOpt(ASocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
   SockAddr.sin_family := AF_INET;
   SockAddr.sin_port := ShortHostToNet(APort);
   SockAddr.sin_addr.s_addr := 0;
@@ -199,14 +199,6 @@ begin
     end;
 end;
 
-procedure SWSetTimeout(ASocket: THandle; Sec, uSec: Integer);
-var
-  TimeVal: TTimeVal;
-begin
-  TimeVal.usec := uSec;
-  TimeVal.sec := Sec;
-  fpsetsockopt(ASocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
-end;
 
 { TAsyncConnectThread }
 
@@ -244,8 +236,8 @@ end;
 
 procedure TAsyncConnectThread.Terminate;
 begin
-  SWClose(FSocket);
   inherited Terminate;
+  SWClose(FSocket);
 end;
 
 
@@ -339,6 +331,9 @@ begin
   FPort := APort;
   FCallback := ACallback;
   FStdOut := Output;
+  FSocket := SWCreate;
+  SWBind(FSocket, FPort);
+  fplisten(FSocket, 1);
   Inherited Create(false);
 end;
 
@@ -358,27 +353,20 @@ begin
   Output := FStdOut;
   AddrLen := SizeOf(SockAddr);
 
-  FSocket := SWCreate;
-  SWBind(FSocket, FPort);
-  SWSetTimeout(FSocket, 1, 0);
-  fplisten(FSocket, 1);
-  repeat
+  while not Terminated do begin;
     Incoming := fpaccept(FSocket, @SockAddr, @AddrLen);
-    if Incoming > 0 then begin
-      SWSetTimeout(Incoming, 0, 0);
-      FCallback(TTCPStream.Create(Incoming), nil);
-    end
-    else begin
-      if socketerror <> Sys_EAGAIN then
-        break;
-    end;
-  until Terminated;
+    if socketerror = 0 then
+      FCallback(TTCPStream.Create(Incoming), nil)
+    else
+      break;
+  end;
 end;
 
 procedure TListenerThread.Terminate;
 begin
+  WriteLn('TListenerThread.Terminate()');
   inherited Terminate;
-  SWClose(FSocket);
+  CloseSocket(FSocket);
 end;
 
 { TTCPStream }
