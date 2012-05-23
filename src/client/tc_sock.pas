@@ -134,7 +134,7 @@ begin
   {$endif}
 end;
 
-function CreateHandle: THandle;
+function SWCreate: THandle;
 begin
   Result := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
   if Result <= 0 then
@@ -142,26 +142,33 @@ begin
       [LastErrorString]);
 end;
 
-procedure CloseHandle(ASocket: THandle);
+procedure SWClose(ASocket: THandle);
 begin
   fpshutdown(ASocket, SHUT_RDWR);
   Sockets.CloseSocket(ASocket);
 end;
 
-procedure SetRcvTimeout(ASocket: THandle; Sec, uSec: Integer);
+procedure SWBind(ASocket: THandle; APort: DWord);
 var
-  TimeVal: TTimeVal;
+  TrueValue : Integer;
+  SockAddr  : TInetSockAddr;
 begin
-  TimeVal.usec := uSec;
-  TimeVal.sec := Sec;
-  fpsetsockopt(ASocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
+  TrueValue := 1;
+  fpSetSockOpt(ASocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
+  SockAddr.sin_family := AF_INET;
+  SockAddr.sin_port := ShortHostToNet(APort);
+  SockAddr.sin_addr.s_addr := 0;
+
+  if fpBind(ASocket, @SockAddr, SizeOf(SockAddr))<>0 then
+    raise ENetworkError.CreateFmt('could not bind port %d (%s)',
+      [APort, LastErrorString]);
 end;
 
-function NameResolve(AName: String): THostAddr;
+function SWResolve(AName: String): THostAddr;
 var
   Resolver: THostResolver;
 begin
-  Result := StrToHostAddr(AName);
+  Result := StrToHostAddr(AName); // the string might be an IP address
   if Result.s_addr = 0 then begin
     try
       Resolver := THostResolver.Create(nil);
@@ -174,23 +181,32 @@ begin
   end;
 end;
 
-procedure ConnectTCP(ASocket: THandle; AServer: String; APort: DWord);
+procedure SWConnect(ASocket: THandle; AServer: String; APort: DWord);
 var
   HostAddr: THostAddr;     // host byte order
   SockAddr: TInetSockAddr; // network byte order
   N: Integer;
 begin
-  HostAddr := NameResolve(AServer);
+  HostAddr := SWResolve(AServer);
   SockAddr.sin_family := AF_INET;
   SockAddr.sin_port := ShortHostToNet(APort);
   SockAddr.sin_addr := HostToNet(HostAddr);
   N := Sockets.FpConnect(ASocket, @SockAddr, SizeOf(SockAddr));
   if N <> 0 Then
     if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then begin
-      CloseHandle(ASocket);
+      SWClose(ASocket);
       raise ENetworkError.CreateFmt('connect failed: %s:%d (%s)',
         [AServer, APort, LastErrorString]);
     end;
+end;
+
+procedure SWSetTimeout(ASocket: THandle; Sec, uSec: Integer);
+var
+  TimeVal: TTimeVal;
+begin
+  TimeVal.usec := uSec;
+  TimeVal.sec := Sec;
+  fpsetsockopt(ASocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
 end;
 
 { TAsyncConnectThread }
@@ -229,7 +245,7 @@ end;
 
 procedure TAsyncConnectThread.Terminate;
 begin
-  CloseHandle(FSocket);
+  SWClose(FSocket);
   inherited Terminate;
 end;
 
@@ -277,12 +293,12 @@ var
   ANS : array[1..8] of Byte;
   N   : Integer;
 begin
-  HSocket := CreateHandle;
+  HSocket := SWCreate;
   if (FSocksProxyAddress = '') or (FSocksProxyPort = 0) then begin
-    ConnectTCP(HSocket, AServer, APort);
+    SWConnect(HSocket, AServer, APort);
   end
   else begin
-    ConnectTCP(HSocket, FSocksProxyAddress, FSocksProxyPort);
+    SWConnect(HSocket, FSocksProxyAddress, FSocksProxyPort);
     SetLength(REQ, 8);
     REQ[1] := #4; // Socks 4
     REQ[2] := #1; // CONNECT command
@@ -294,14 +310,14 @@ begin
     ANS[1] := $ff;
     N := fpRecv(HSocket, @ANS, 8, RCV_FLAGS);
     if (N <> 8) or (ANS[1] <> 0) then begin
-      CloseHandle(HSocket);
+      SWClose(HSocket);
       Raise ENetworkError.CreateFmt(
         'socks connect %s:%d via %s:%d handshake invalid response',
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort]
       );
     end;
     if ANS[2] <> 90 then begin
-      CloseHandle(HSocket);
+      SWClose(HSocket);
       Raise ENetworkError.CreateFmt(
         'socks connect %s:%d via %s:%d failed (error %d)',
         [AServer, APort, FSocksProxyAddress, FSocksProxyPort, ANS[2]]
@@ -336,32 +352,21 @@ end;
 
 procedure TListenerThread.Execute;
 var
-  TrueValue : Integer;
-  SockAddr  : TInetSockAddr;
-  SockAddrx : TInetSockAddr;
-  AddrLen   : PtrInt;
+  SockAddr : TInetSockAddr;
+  AddrLen : PtrUInt;
   Incoming  : PtrInt;
 begin
   Output := FStdOut;
-  TrueValue := 1;
   AddrLen := SizeOf(SockAddr);
 
-  FSocket := CreateHandle;
-  fpSetSockOpt(FSocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
-  SockAddr.sin_family := AF_INET;
-  SockAddr.sin_port := ShortHostToNet(FPort);
-  SockAddr.sin_addr.s_addr := 0;
-
-  if fpBind(FSocket, @SockAddr, SizeOf(SockAddr))<>0 then
-    raise ENetworkError.CreateFmt('could not bind port %d (%s)',
-      [FPort, LastErrorString]);
-
-  SetRcvTimeout(FSocket, 1, 0);
+  FSocket := SWCreate;
+  SWBind(FSocket, FPort);
+  SWSetTimeout(FSocket, 1, 0);
   fplisten(FSocket, 1);
   repeat
-    Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
+    Incoming := fpaccept(FSocket, @SockAddr, @AddrLen);
     if Incoming > 0 then begin
-      SetRcvTimeout(Incoming, 0, 0);
+      SWSetTimeout(Incoming, 0, 0);
       FCallback(TTCPStream.Create(Incoming), nil);
     end
     else begin
@@ -374,7 +379,7 @@ end;
 procedure TListenerThread.Terminate;
 begin
   inherited Terminate;
-  CloseHandle(FSocket);
+  SWClose(FSocket);
 end;
 
 { TTCPStream }
@@ -404,7 +409,7 @@ end;
 
 procedure TTCPStream.DoClose;
 begin
-  CloseHandle(Handle);
+  SWClose(Handle);
 end;
 
 end.
