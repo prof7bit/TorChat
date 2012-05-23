@@ -134,7 +134,7 @@ begin
     SocksProxyAddress := FTorHost;
     SocksProxyPort := FTorPort;
     IncomingCallback := @CbNetIn;
-    Bind(FListenPort);
+    StartListening(FListenPort);
   end;
 end;
 

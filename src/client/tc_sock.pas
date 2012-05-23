@@ -24,16 +24,18 @@ unit tc_sock;
 interface
 
 uses
+  Sockets,
+{$ifdef windows}
+  windows,
+  WinSock2,
+{$endif}
 {$ifdef unix}
   errors,
 {$endif}
-{$ifdef windows}
-  windows,
-{$endif}
   Classes,
   SysUtils,
-  Sockets,
-  resolve;
+  resolve,
+  contnrs;
 
 const
   Sys_EINPROGRESS = 115;
@@ -48,6 +50,8 @@ const
 {$endif}
 
 type
+  TSocketHandle = PtrInt;
+
   ENetworkError = class(Exception)
   end;
 
@@ -55,7 +59,7 @@ type
 
   { TTCPStream wraps a TCP connection}
   TTCPStream = class(THandleStream)
-    constructor Create(AHandle: THandle);
+    constructor Create(AHandle: TSocketHandle);
     destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
@@ -69,13 +73,14 @@ type
   strict private
     FStdOut           : Text;
     FPort             : DWord;
-    FSocket           : THandle;
+    FSocket           : TSocketHandle;
     FCallback         : PConnectionCallback;
   public
     constructor Create(APort: DWord; ACallback: PConnectionCallback); reintroduce;
     destructor Destroy; override;
     procedure Execute; override;
     procedure Terminate;
+    property Port: DWord read FPort;
   end;
 
   { TSocketWrapper }
@@ -85,14 +90,15 @@ type
     FSocksProxyPort     : DWord;
     FSocksUser          : String;
     FIncomingCallback   : PConnectionCallback;
-    FListeners          : array of TListenerThread;
+    FListeners          : TFPObjectList;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Bind(APort: DWord);
+    procedure StartListening(APort: DWord);
+    procedure StopListening(APort: DWord);
     { this method will block, close HSocket to interrupt it! }
     function Connect(AServer: String; APort: DWord;
-      out HSocket: THandle): TTCPStream;
+      out HSocket: TSocketHandle): TTCPStream;
     function ConnectAsync(AServer: String; APort: DWord;
       ACallback: PConnectionCallback): TAsyncConnectThread;
     property SocksProxyAddress: String write FSocksProxyAddress;
@@ -104,7 +110,7 @@ type
   TAsyncConnectThread = class(TThread)
   strict private
     FStdOut: Text;
-    FSocket: THandle;
+    FSocket: TSocketHandle;
     FSocketWrapper: TSocketWrapper;
     FCallback: PConnectionCallback;
     FServer: String;
@@ -120,15 +126,37 @@ type
 
 implementation
 
+function ErrorString(ACode: Integer): String;
+var
+  ErrStr: String;
+  ErrPtr: Pchar;
+begin
+  {$ifdef windows}
+  FormatMessage(
+    FORMAT_MESSAGE_FROM_SYSTEM
+    or FORMAT_MESSAGE_ALLOCATE_BUFFER
+    or FORMAT_MESSAGE_IGNORE_INSERTS,
+    nil,
+    ACode,
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    @ErrPtr,
+    0,
+    nil);
+  if Assigned(ErrPtr) then begin
+    ErrStr := Trim(ErrPtr);
+    {$hints off}
+    LocalFree(PtrInt(ErrPtr));
+    {$hints on}
+  end;
+  {$else}
+  ErrStr := StrError(ACode);
+  {$endif}
+  Result := Format('%d: %s', [ACode, ErrStr]);
+end;
 
 function LastErrorString: String;
 begin
-  {$ifdef unix}
-  Result := StrError(SocketError);
-  {$else}
-  {$note find the windows version of the above}
-  Result := IntToStr(SocketError);
-  {$endif}
+  Result := ErrorString(socketerror);
 end;
 
 function SWCreate: THandle;
@@ -250,35 +278,52 @@ begin
   FSocksUser := '';
   FSocksProxyAddress := '';
   FSocksProxyPort := 0;
-  SetLength(FListeners, 0);
+  FListeners := TFPObjectList.Create(False);
 end;
 
 destructor TSocketWrapper.Destroy;
 var
+  I: Integer;
   Listener: TListenerThread;
 begin
   WriteLn('TSocketWrapper.Destroy()');
-  for Listener in FListeners do begin
+  for I := FListeners.Count-1 downto 0 do begin
+    Listener := FListeners.Items[I] as TListenerThread;
     Listener.Terminate;
     Listener.Free;
   end;
-  SetLength(FListeners, 0);
+  FListeners.Free;
   inherited Destroy;
   WriteLn('TSocketWrapper.Destroy() finished');
 end;
 
-procedure TSocketWrapper.Bind(APort: DWord);
+procedure TSocketWrapper.StartListening(APort: DWord);
 var
   Listener: TListenerThread;
 begin
   if FIncomingCallback = nil then
     raise ENetworkError.Create('No callback for incoming connections');
   Listener := TListenerThread.Create(APort, FIncomingCallback);
-  SetLength(FListeners, Length(FListeners) + 1);
-  FListeners[Length(FListeners)-1] := Listener;
+  FListeners.Add(Listener);
 end;
 
-function TSocketWrapper.Connect(AServer: String; APort: DWord; out HSocket: THandle): TTCPStream;
+procedure TSocketWrapper.StopListening(APort: DWord);
+var
+  I: Integer;
+  L: TListenerThread;
+begin
+  for I := FListeners.Count-1 downto 0 do begin
+    L := FListeners.Items[I] as TListenerThread;
+    if L.Port = APort then begin
+      FListeners.Remove(L);
+      L.Terminate;
+      L.Free;
+      break;
+    end;
+  end;
+end;
+
+function TSocketWrapper.Connect(AServer: String; APort: DWord; out HSocket: TSocketHandle): TTCPStream;
 var
   REQ : String;
   ANS : array[1..8] of Byte;
@@ -346,19 +391,23 @@ end;
 
 procedure TListenerThread.Execute;
 var
-  SockAddr : TInetSockAddr;
-  AddrLen : PtrUInt;
+  SockAddr  : TInetSockAddr;
+  AddrLen   : PtrUInt;
   Incoming  : PtrInt;
+  Err       : Integer;
 begin
   Output := FStdOut;
   AddrLen := SizeOf(SockAddr);
 
   while not Terminated do begin;
     Incoming := fpaccept(FSocket, @SockAddr, @AddrLen);
-    if socketerror = 0 then
+    Err := socketerror;
+    if Err = 0 then
       FCallback(TTCPStream.Create(Incoming), nil)
-    else
+    else begin
+      WriteLn('I TListenerThread.Execute(): ', ErrorString(Err));
       break;
+    end;
   end;
 end;
 
@@ -366,12 +415,13 @@ procedure TListenerThread.Terminate;
 begin
   WriteLn('TListenerThread.Terminate()');
   inherited Terminate;
-  CloseSocket(FSocket);
+  SWClose(FSocket);
+  WriteLn('TListenerThread.Terminate() fiished');
 end;
 
 { TTCPStream }
 
-constructor TTCPStream.Create(AHandle: THandle);
+constructor TTCPStream.Create(AHandle: TSocketHandle);
 begin
   inherited Create(AHandle);
 end;
