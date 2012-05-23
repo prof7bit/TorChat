@@ -98,7 +98,6 @@ type
   end;
 
   { TAsyncConnectThread }
-
   TAsyncConnectThread = class(TThread)
   strict private
     FStdOut: Text;
@@ -136,7 +135,7 @@ end;
 
 function SWCreate: THandle;
 begin
-  Result := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
+  Result := FPSocket(AF_INET, SOCK_STREAM, 0);
   if Result <= 0 then
     raise ENetworkError.CreateFmt('could not create socket (%s)',
       [LastErrorString]);
@@ -145,7 +144,7 @@ end;
 procedure SWClose(ASocket: THandle);
 begin
   fpshutdown(ASocket, SHUT_RDWR);
-  Sockets.CloseSocket(ASocket);
+  CloseSocket(ASocket);
 end;
 
 procedure SWBind(ASocket: THandle; APort: DWord);
@@ -191,7 +190,7 @@ begin
   SockAddr.sin_family := AF_INET;
   SockAddr.sin_port := ShortHostToNet(APort);
   SockAddr.sin_addr := HostToNet(HostAddr);
-  N := Sockets.FpConnect(ASocket, @SockAddr, SizeOf(SockAddr));
+  N := FpConnect(ASocket, @SockAddr, SizeOf(SockAddr));
   if N <> 0 Then
     if (SocketError <> Sys_EINPROGRESS) and (SocketError <> 0) then begin
       SWClose(ASocket);
