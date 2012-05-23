@@ -118,6 +118,12 @@ type
 
 implementation
 
+type
+  TTimeVal = record
+    sec:  Integer;
+    usec: Integer;
+  end;
+
 function LastErrorString: String;
 begin
   {$ifdef unix}
@@ -140,6 +146,15 @@ procedure CloseHandle(ASocket: THandle);
 begin
   fpshutdown(ASocket, SHUT_RDWR);
   Sockets.CloseSocket(ASocket);
+end;
+
+procedure SetRcvTimeout(ASocket: THandle; Sec, uSec: Integer);
+var
+  TimeVal: TTimeVal;
+begin
+  TimeVal.usec := uSec;
+  TimeVal.sec := Sec;
+  fpsetsockopt(ASocket, SOL_SOCKET, SO_RCVTIMEO, @TimeVal, SizeOf(TimeVal));
 end;
 
 function NameResolve(AName: String): THostAddr;
@@ -242,6 +257,7 @@ begin
   end;
   SetLength(FListeners, 0);
   inherited Destroy;
+  WriteLn('TSocketWrapper.Destroy() finished');
 end;
 
 procedure TSocketWrapper.Bind(APort: DWord);
@@ -313,7 +329,9 @@ end;
 
 destructor TListenerThread.Destroy;
 begin
+  writeln('TListenerThread.Destroy begin');
   inherited Destroy;
+  writeln('TListenerThread.Destroy end');
 end;
 
 procedure TListenerThread.Execute;
@@ -329,7 +347,7 @@ begin
   AddrLen := SizeOf(SockAddr);
 
   FSocket := CreateHandle;
-  fpSetSockOpt(FSocket, SOL_SOCKET, 0, @TrueValue, SizeOf(TrueValue));
+  fpSetSockOpt(FSocket, SOL_SOCKET, SO_REUSEADDR, @TrueValue, SizeOf(TrueValue));
   SockAddr.sin_family := AF_INET;
   SockAddr.sin_port := ShortHostToNet(FPort);
   SockAddr.sin_addr.s_addr := 0;
@@ -338,20 +356,25 @@ begin
     raise ENetworkError.CreateFmt('could not bind port %d (%s)',
       [FPort, LastErrorString]);
 
-  fpListen(FSocket, 1);
+  SetRcvTimeout(FSocket, 1, 0);
+  fplisten(FSocket, 1);
   repeat
     Incoming := fpaccept(FSocket, @SockAddrx, @AddrLen);
-    if Incoming > 0 then
-      FCallback(TTCPStream.Create(Incoming), nil)
-    else
-      break;
+    if Incoming > 0 then begin
+      SetRcvTimeout(Incoming, 0, 0);
+      FCallback(TTCPStream.Create(Incoming), nil);
+    end
+    else begin
+      if socketerror <> Sys_EAGAIN then
+        break;
+    end;
   until Terminated;
 end;
 
 procedure TListenerThread.Terminate;
 begin
-  CloseHandle(FSocket);
   inherited Terminate;
+  CloseHandle(FSocket);
 end;
 
 { TTCPStream }

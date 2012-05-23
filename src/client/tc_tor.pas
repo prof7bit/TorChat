@@ -84,6 +84,7 @@ begin
   WriteLn('TTor.Destroy()');
   CleanShutdown;
   inherited Destroy;
+  WriteLn('TTor.Destroy() finished');
 end;
 
 procedure TTor.GenerateTorrc;
@@ -169,6 +170,7 @@ begin
     Dec(FSocksPort);
   WriteLn(_F('I profile "%s": Tor will open port %d for socks proxy',
     [FClient.ProfileName, FSocksPort]));
+  AddPortToList(FSocksPort);
 
   {$ifdef DebugToConsole}
     Options := [poNewProcessGroup];
@@ -261,12 +263,18 @@ begin
   {$ifdef unix}
     FpKill(Handle, SIGINT); // Tor will exit cleanly on SIGINT
   {$else}
-    // there are no signals in windows, they also forgot to
-    // implement any other mechanism for sending Ctrl-C to
-    // another process. We have to kill it.
-    Terminate(0);
-    DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
+    {$ifdef windows}
+      // there are no signals in windows, they also forgot to
+      // implement any other mechanism for sending Ctrl-C to
+      // another process. We have to kill it.
+      TerminateProcess(Handle, 0);
+      DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
+    {$else}
+      Terminate(0);
+      DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
+    {$endif}
   {$endif}
+  RemovePortFromList(FSocksPort);
 end;
 
 end.

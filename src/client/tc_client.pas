@@ -119,11 +119,14 @@ begin
   FNetwork := TSocketWrapper.Create(Self);
   FRoster := TRoster.Create(Self);
   FTempList := TTempList.Create(Self);
+
   FListenPort := Config.ListenPort;
   while not IsPortAvailable(FListenPort) do
     Dec(FListenPort);
   WriteLn(_F('I profile "%s": TorChat will open port %d for incoming connections',
     [AProfileName, FListenPort]));
+  AddPortToList(FListenPort);
+
   FTor := TTor.Create(Self, Self, FListenPort);
   FTorHost := FTor.TorHost;
   FTorPort := FTor.TorPort;
@@ -154,6 +157,8 @@ begin
   FRoster.Clear;
   FTempList.Clear;
   FQueue.Clear;
+
+  RemovePortFromList(FListenPort);
 
   WriteLn('start destroying child components');
   inherited Destroy;

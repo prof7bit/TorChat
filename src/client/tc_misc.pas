@@ -57,6 +57,10 @@ function _F(S: String; Args: array of const): String;
 { Delete a file by overwriting it }
 procedure SafeDelete(AFileName: String);
 
+
+procedure AddPortToList(APort: DWord);
+procedure RemovePortFromList(APort: DWord);
+
 { Test if we can open this port for listening }
 function IsPortAvailable(APort: DWord): Boolean;
 
@@ -72,6 +76,8 @@ type
     procedure Execute; override;
   end;
 
+var
+  PortList: array of DWord;
 
 function SecondsSince(Start: TDateTime): QWord;
 begin
@@ -117,12 +123,51 @@ begin
   end;
 end;
 
+
+
+function IsPortInList(APort: DWord): Boolean;
+var
+  Port: DWord;
+begin
+  Result := False;
+  for Port in PortList do
+    if Port = APort then
+      exit(True);
+end;
+
+procedure AddPortToList(APort: DWord);
+var
+  L : Integer;
+begin
+  L := Length(PortList);
+  SetLength(PortList, L+1);
+  PortList[L] := APort;
+end;
+
+procedure RemovePortFromList(APort: DWord);
+var
+  P,L : Integer;
+begin
+  L := Length(PortList) - 1;
+  for P := 0 to L do begin
+    if PortList[P] = APort then begin
+      PortList[P] := PortList[L];
+      SetLength(PortList, L);
+      break;
+    end;
+  end;
+end;
+
 function IsPortAvailable(APort: DWord): Boolean;
 var
   HSocket: Integer;
   SockAddr  : TInetSockAddr;
   TrueValue: Integer;
 begin
+  if IsPortInList(APort) then begin
+    WriteLn(_F('I Port %d is already used by TorChat', [APort]));
+    exit(False);
+  end;
   TrueValue := 1;
   Result := False;
   HSocket := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);

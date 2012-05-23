@@ -142,6 +142,7 @@ begin
     RTLeventWaitFor(FOnCbNetOutFinishedEvent);
   end;
   RTLeventdestroy(FOnCbNetOutFinishedEvent);
+  writeln('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
 end;
 

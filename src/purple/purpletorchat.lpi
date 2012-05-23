@@ -121,7 +121,6 @@
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
-            <SmartLinkUnit Value="True"/>
             <TargetCPU Value="i386"/>
             <TargetOS Value="win32"/>
             <Optimizations>
@@ -146,8 +145,7 @@
               <UseMsgFile Value="True"/>
             </CompilerMessages>
             <CustomOptions Value="-dDebugToConsole 
--dUseHeapTrc
--Xm"/>
+-dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
