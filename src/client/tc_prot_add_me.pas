@@ -85,7 +85,9 @@ begin
     if Buddy in FClient.TempList then begin
       FClient.TempList.RemoveBuddy(Buddy);
       FClient.Roster.AddBuddy(Buddy);
-    end;
+    end
+    else
+      FClient.OnBuddyStatusChange(Buddy); // updating status won't hurt
   end;
 end;
 

@@ -56,8 +56,8 @@ type
     FConnectThread: TAsyncConnectThread;
     procedure InitiateConnect;
     procedure CbNetOut(ATCPStream: TTCPStream; E: Exception);
-    procedure SendPong;
     function IsFullyConnected: Boolean;
+    function CanUseThisName(AName: String): Boolean;
     procedure CallFromMainThread(AMethod: TMethodOfObject);
   public
     constructor Create(AClient: IClient); reintroduce;
@@ -65,7 +65,7 @@ type
     procedure CheckState;
     function AsJsonObject: TJSONObject;
     procedure InitFromJsonObect(AObject: TJSONObject);
-    procedure InitID(AID: String);
+    function InitID(AID: String): Boolean;
     procedure OnOutgoingConnection;
     procedure OnOutgoingConnectionFail;
     procedure OnIncomingConnection;
@@ -84,6 +84,8 @@ type
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetFriendlyName(AName: String);
+    procedure SendPong;
+    procedure SendAddMe;
   end;
 
 implementation
@@ -166,6 +168,10 @@ procedure TBuddy.InitFromJsonObect(AObject: TJSONObject);
 begin
   // these fields are mandatory, failing will raise exception
   FID := AObject.Strings['id'];
+  if not CanUseThisName(FID) then begin
+    writeln('E cannot use this ID: ' + FID);
+    raise Exception.Create('cannot use this id');
+  end;
   FFriendlyName := AObject.Strings['friendlyname'];
 
   // the following fields are optional (backwards compatibility)
@@ -178,26 +184,27 @@ begin
   end;
 end;
 
-procedure TBuddy.InitID(AID: String);
+function TBuddy.InitID(AID: String): Boolean;
 begin
-  FID := AID;
-end;
-
-procedure TBuddy.SendPong;
-var
-  Message: IProtocolMessage;
-begin
-  Message := TMsgPong.Create(Self, FReceivedCookie);
-  Message.Send;
-  Message := TMsgAddMe.Create(Self);
-  Message.Send;
-  FMustSendPong := False;
-  FReceivedCookie := '';
+  if CanUseThisName(AID) then begin
+    FID := AID;
+    Result := True;
+  end
+  else
+    Result := False;
 end;
 
 function TBuddy.IsFullyConnected: Boolean;
 begin
   Result := Assigned(ConnOutgoing) and Assigned(ConnIncoming);
+end;
+
+function TBuddy.CanUseThisName(AName: String): Boolean;
+begin
+  Result := True;
+  if not IsValidOnionName(AName) then exit(False);
+  if Assigned(Client.TempList.ByID(AName)) then exit(False);
+  if Assigned(Client.Roster.ByID(AName)) then exit(False);
 end;
 
 procedure TBuddy.CallFromMainThread(AMethod: TMethodOfObject);
@@ -352,6 +359,26 @@ begin
     FFriendlyName := AName;
     Client.Roster.Save;
   end;
+end;
+
+procedure TBuddy.SendPong;
+var
+  Pong: IProtocolMessage;
+begin
+  Pong := TMsgPong.Create(Self, FReceivedCookie);
+  Pong.Send;
+  if Self in Client.Roster then
+    SendAddMe;
+  FMustSendPong := False;
+  FReceivedCookie := '';
+end;
+
+procedure TBuddy.SendAddMe;
+var
+  AddMe: IProtocolMessage;
+begin
+  AddMe := TMsgAddMe.Create(Self);
+  AddMe.Send;
 end;
 
 end.

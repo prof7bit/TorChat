@@ -102,6 +102,7 @@ constructor TMsgPing.Create(ABuddy: IBuddy; ACookie: String);
 begin
   inherited Create(ABuddy);
   FCookie := ACookie;
+  FID := FClient.Roster.OwnID;  // the own ID, not the one of the buddy
 end;
 
 procedure TMsgPing.Parse;
@@ -112,14 +113,13 @@ end;
 
 procedure TMsgPing.Serialize;
 begin
-  FBinaryContent := FBuddy.ID + ' ' + FCookie;
+  FBinaryContent := FID + ' ' + FCookie;
 end;
 
 procedure TMsgPing.Execute;
 var
   ABuddy: IBuddy;
 begin
-  {$warning must check ID for wellformedness}
   WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
   ABuddy := FClient.Roster.ByID(FID);
   if Assigned(ABuddy) then begin
@@ -129,8 +129,13 @@ begin
   else begin
     Writeln('I got Ping from unknown Buddy, creating temporary buddy: ' + FID);
     ABuddy := TBuddy.Create(FClient);
-    ABuddy.InitID(FID);
-    FClient.TempList.AddBuddy(ABuddy);
+    if ABuddy.InitID(FID) then begin // this will check if ID is valid and allowed
+      FClient.TempList.AddBuddy(ABuddy);
+    end
+    else begin
+      writeln('W cannot create a buddy with this id: ' + FID);
+      // ref counting will free it again
+    end;
   end;
 end;
 

@@ -73,6 +73,7 @@ type
   public
     constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
     destructor Destroy; override;
+    procedure OnGotOwnID; virtual; abstract;
     procedure OnNotifyGui; virtual; abstract;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
@@ -87,6 +88,7 @@ type
     function ProfileName: String;
     function TorHost: String;
     function TorPort: DWord;
+    function HSNameOK: Boolean;
     procedure Pump;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure RegisterConnection(AConn: IHiddenConnection);
@@ -117,8 +119,9 @@ begin
   FConnInList := TInterfaceList.Create;
   FQueue := TMsgQueue.Create(Self);
   FNetwork := TSocketWrapper.Create(Self);
-  FRoster := TRoster.Create(Self);
   FTempList := TTempList.Create(Self);
+  FRoster := TRoster.Create(Self);
+  FRoster.Load;
 
   FListenPort := Config.ListenPort;
   while not IsPortAvailable(FListenPort) do
@@ -215,6 +218,11 @@ begin
   Result := FTorPort;
 end;
 
+function TTorChatClient.HSNameOK: Boolean;
+begin
+  Result := FHSNameOK;
+end;
+
 procedure TTorChatClient.Pump;
 begin
   if FIsDestroying then exit;
@@ -222,6 +230,7 @@ begin
   CheckHiddenServiceName;
   Queue.PumpNext;
   Roster.CheckState;
+  TempList.CheckState;
 end;
 
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
@@ -274,6 +283,7 @@ begin
           [ProfileName, HSName]));
         Roster.SetOwnID(HSName);
         FHSNameOK := True;
+        OnGotOwnID;
       end
       else
         writeln('TTorChatClient.CheckHiddenServiceName() not found');

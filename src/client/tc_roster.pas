@@ -16,10 +16,14 @@ type
   TRoster = class(TTempList, IRoster)
   strict protected
     FOwnID: String;
+    FShowMyself: Boolean;
   public
     constructor Create(AClient: IClient); reintroduce;
     procedure SetOwnID(AID: String);
     function OwnID: String;
+    function GroupName: String;
+    procedure AddBuddy(ABuddy: IBuddy); override;
+    procedure RemoveBuddy(ABuddy: IBuddy); override;
     procedure Load;
     procedure Save;
   end;
@@ -38,27 +42,51 @@ uses
 constructor TRoster.Create(AClient: IClient);
 begin
   Inherited Create(AClient);
-  Load;
+  FShowMyself := False;
 end;
 
 procedure TRoster.SetOwnID(AID: String);
 var
-  tc_buddy : IBuddy;
+  Buddy : IBuddy;
 begin
   FOwnID := AID;
-  if ByID(AID) = nil then begin
+  if FShowMyself and (ByID(AID) = nil) then begin
     writeln('TBuddyList.SetOwnID() adding "myself"-buddy ' + AID);
-    tc_buddy := TBuddy.Create(FClient);
-    tc_buddy.InitID(AID);
-    tc_buddy.SetFriendlyName('myself');
-    AddBuddy(tc_buddy);
+    Buddy := TBuddy.Create(FClient);
+    Buddy.InitID(AID);
+    Buddy.SetFriendlyName('myself');
+    AddBuddy(Buddy);
     Save;
+  end
+  else begin
+    Buddy := ByID(AID);
+    if Assigned(Buddy) then
+      RemoveBuddy(Buddy);
   end;
 end;
 
 function TRoster.OwnID: String;
 begin
   Result := FOwnID;
+end;
+
+function TRoster.GroupName: String;
+begin
+  Result := Format('%s (%s)', [FClient.ProfileName, FOwnID]);
+end;
+
+procedure TRoster.AddBuddy(ABuddy: IBuddy);
+begin
+  inherited AddBuddy(ABuddy);
+  Save;
+  FClient.OnBuddyAdded(ABuddy);
+  FClient.OnBuddyStatusChange(ABuddy);
+end;
+
+procedure TRoster.RemoveBuddy(ABuddy: IBuddy);
+begin
+  inherited RemoveBuddy(ABuddy);
+  FClient.OnBuddyRemoved(ABuddy);
 end;
 
 procedure TRoster.Load;

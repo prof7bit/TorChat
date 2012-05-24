@@ -120,13 +120,13 @@ type
     description: PChar;
     author: PChar;
     homepage: PChar;
-    load: function(var Plugin: TPurplePlugin): GBoolean;
-    unload: function(var Plugin: TPurplePlugin): GBoolean;
-    destroy: procedure(var Plugin: TPurplePlugin);
+    load: function(plugin: PPurplePlugin): GBoolean;
+    unload: function(plugin: PPurplePlugin): GBoolean;
+    destroy: procedure(plugin: PPurplePlugin);
     ui_info: Pointer;
     extra_info: Pointer;
     prefs_info: PPurplePluginUiInfo;
-    actions: function(var Plugin: TPurplePlugin; Context: Pointer): PGList;
+    actions: function(plugin: PPurplePlugin; Context: Pointer): PGList;
 
     _purple_reserved1: Pointer;
     _purple_reserved2: Pointer;
@@ -369,6 +369,7 @@ procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; e
 function  purple_find_group(name_: PChar): PPurpleGroup; external LIBPURPLE;
 function  purple_group_new(name_: PChar): PPurpleGroup; external LIBPURPLE;
 procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
+function  purple_buddy_get_alias_only(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; external LIBPURPLE;
 function  purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
@@ -379,7 +380,7 @@ procedure purple_debug_warning(category: PChar; format: PChar; args: array of co
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
 function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
-function  purple_notify_message(var Plugin: TPurplePlugin;
+function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
 function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;

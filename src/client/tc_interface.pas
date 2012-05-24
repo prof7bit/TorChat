@@ -69,6 +69,7 @@ type
   IClient = interface
     procedure Pump;
     procedure OnNotifyGui;
+    procedure OnGotOwnID;
     procedure OnBuddyStatusChange(ABuddy: IBuddy);
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
@@ -85,6 +86,7 @@ type
     function ProfileName: String;
     function TorHost: String;
     function TorPort: DWord;
+    function HSNameOK: Boolean;
   end;
 
   { a temporary list of buddies}
@@ -103,6 +105,7 @@ type
     procedure Load;
     procedure Save;
     function OwnID: String;
+    function GroupName: String;
     procedure SetOwnID(AID: String);
   end;
 
@@ -110,7 +113,7 @@ type
     procedure CheckState;
     function AsJsonObject: TJSONObject;
     procedure InitFromJsonObect(AObject: TJSONObject);
-    procedure InitID(AID: String);
+    function  InitID(AID: String): Boolean;
     procedure OnOutgoingConnection;
     procedure OnOutgoingConnectionFail;
     procedure OnIncomingConnection;
@@ -129,6 +132,8 @@ type
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
+    procedure SendPong;
+    procedure SendAddMe;
   end;
 
   IHiddenConnection = interface

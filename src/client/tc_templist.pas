@@ -19,8 +19,8 @@ type
     constructor Create(AClient: IClient);
     destructor Destroy; override;
     procedure CheckState;
-    procedure AddBuddy(ABuddy: IBuddy);
-    procedure RemoveBuddy(ABuddy: IBuddy);
+    procedure AddBuddy(ABuddy: IBuddy); virtual;
+    procedure RemoveBuddy(ABuddy: IBuddy); virtual;
     function ByID(ABuddyID: String): IBuddy;
     function ByCookie(ACookie: String): IBuddy;
     procedure DoDisconnectAll;
@@ -87,7 +87,6 @@ end;
 procedure TTempList.AddBuddy(ABuddy: IBuddy);
 begin
   Self.Add(ABuddy);
-  FClient.OnBuddyAdded(ABuddy);
 end;
 
 procedure TTempList.RemoveBuddy(ABuddy: IBuddy);

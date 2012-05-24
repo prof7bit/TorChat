@@ -64,6 +64,8 @@ procedure RemovePortFromList(APort: DWord);
 { Test if we can open this port for listening }
 function IsPortAvailable(APort: DWord): Boolean;
 
+function IsValidOnionName(AName: String): Boolean;
+
 implementation
 
 type
@@ -184,6 +186,19 @@ begin
     WriteLn(_F('I Port %d is NOT available', [APort]));
 end;
 
+function IsValidOnionName(AName: String): Boolean;
+var
+  C: Char;
+begin
+  Result := False;
+  if Length(AName) <> 16 then
+    exit;
+  for C in AName do
+    if Pos(C, 'abcdefghijklmnopqrstuvwxyz234567') = 0 then
+      exit;
+  Result := True;
+end;
+
 { TSafeDeleteThread }
 
 constructor TSafeDeleteThread.Create(AFileName: String);
@@ -195,7 +210,7 @@ end;
 
 procedure TSafeDeleteThread.Execute;
 const
-  BLOCK = 100000;
+  BLOCK = 1024;
 var
   FS: TFileStream;
   I,S : Integer;
