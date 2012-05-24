@@ -209,17 +209,22 @@ procedure torchat_login(acc: PPurpleAccount); cdecl;
 var
   TorChat: TTorChatPurpleClient;
   Buddy: IBuddy;
+  group_name: PChar;
   purple_id: PChar;
   purple_alias: PChar;
   purple_status: PPurpleStatus;
   purple_buddy: PPurpleBuddy;
   purple_list: PGSList;
+  purple_group: PPurpleGroup;
 
 begin
   TorChat := TTorChatPurpleClient.Create(nil, acc^.username, acc);
   TorChat.purple_timer := purple_timeout_add(1000, @cb_purple_timer, TorChat);
   TorChatClients.Add(acc^.username, TorChat);
   purple_connection_set_state(acc^.gc, PURPLE_CONNECTED);
+
+  group_name := GetMemAndCopy('TorChat ' + TorChat.ProfileName);
+  purple_group := purple_find_group(group_name);
 
   // remove buddies from purple's list that not in TorChat's list
   purple_list := purple_find_buddies(acc, nil);
@@ -238,8 +243,12 @@ begin
     purple_alias := GetMemAndCopy(Buddy.FriendlyName);
     purple_buddy := purple_find_buddy(acc, purple_id);
     if not Assigned(purple_buddy) then begin
+      if not Assigned(purple_group) then begin
+        purple_group := purple_group_new(group_name);
+        purple_blist_add_group(purple_group, nil);
+      end;
       purple_buddy := purple_buddy_new(acc, purple_id, purple_alias);
-      purple_blist_add_buddy(purple_buddy, nil, nil, nil);
+      purple_blist_add_buddy(purple_buddy, nil, purple_group, nil);
     end
     else begin
       serv_got_alias(acc^.gc, purple_id, purple_alias);
@@ -253,6 +262,8 @@ begin
   // it won't call set_status after login, so we have to do it ourselves
   purple_status := purple_presence_get_active_status(acc^.presence);
   torchat_set_status(acc, purple_status);
+
+  FreeMem(group_name);
 end;
 
 procedure torchat_close(gc: PPurpleConnection); cdecl;
@@ -308,18 +319,27 @@ end;
 
 procedure TTorChatPurpleClient.OnBuddyAdded(ABuddy: IBuddy);
 var
+  group_name: PChar;
   buddy_name: PChar;
   buddy_alias: PChar;
+  purple_group: PPurpleGroup;
   purple_buddy: PPurpleBuddy;
 begin
   buddy_name := GetMemAndCopy(ABuddy.ID);
   buddy_alias := GetMemAndCopy(ABuddy.FriendlyName);
+  group_name := GetMemAndCopy('TorChat ' + ABuddy.Client.ProfileName);
   if not assigned(purple_find_buddy(purple_account, buddy_name)) then begin
+    purple_group := purple_find_group(group_name);
+    if not Assigned(purple_group) then begin
+      purple_group := purple_group_new(group_name);
+      purple_blist_add_group(purple_group, nil);
+    end;
     purple_buddy := purple_buddy_new(purple_account, buddy_name, buddy_alias);
-    purple_blist_add_buddy(purple_buddy, nil, nil, nil);
+    purple_blist_add_buddy(purple_buddy, nil, purple_group, nil);
   end;
   FreeMem(buddy_alias);
   FreeMem(buddy_name);
+  FreeMem(group_name);
 end;
 
 procedure TTorChatPurpleClient.OnBuddyRemoved(ABuddy: IBuddy);

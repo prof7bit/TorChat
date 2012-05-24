@@ -129,7 +129,9 @@ implementation
 function ErrorString(ACode: Integer): String;
 var
   ErrStr: String;
+  {$ifdef windows}
   ErrPtr: Pchar;
+  {$endif}
 begin
   {$ifdef windows}
   FormatMessage(

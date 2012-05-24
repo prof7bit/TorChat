@@ -361,13 +361,16 @@ type
 {$calling cdecl}
 
 function  purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
-function  purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; cdecl; external;
+function  purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; external LIBPURPLE;
 procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
   group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
+procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
 procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; external LIBPURPLE;
+function  purple_find_group(name_: PChar): PPurpleGroup; external LIBPURPLE;
+function  purple_group_new(name_: PChar): PPurpleGroup; external LIBPURPLE;
 procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
 function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
-function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; cdecl; external LIBPURPLE;
+function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; external LIBPURPLE;
 function  purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
 procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
 procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
