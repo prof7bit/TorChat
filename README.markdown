@@ -1,6 +1,6 @@
 TorChat2
 ========
-If you are looking for TorChat 0.9.9.xxx (the origial python
+If you are looking for **TorChat 0.9.9.xxx** (the origial Python
 implementation) then please switch to the **torchat_py** branch.
 for Downloads of the latest versions please see the downloads
 section: https://github.com/prof7bit/TorChat/downloads
@@ -9,7 +9,7 @@ Please don't use the master branch at all, it still points to
 torchat_py but will soon be moved, if you have own work based on 
 master then please rebase it to torchat_py.
 
-This branch (torchat2) is a rewrite from scratch, using Lazarus +
+This branch **torchat2** is a rewrite from scratch, using Lazarus +
 Free Pascal. This will make it easier to create plugins for 
 existing IM applications and also allows to easily generate code 
 for a wider range of platforms, especially mobile devices 
