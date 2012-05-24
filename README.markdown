@@ -19,6 +19,16 @@ Change log: https://raw.github.com/prof7bit/TorChat/master/torchat/src/changelog
 the top of the download page, these are only source code snapshots for developers 
 and as an end user you most likely simply want to download one of the packages.)
 
+Branches: master and torchat_py and torchat2
+--------------------------------------------
+if you want to fork torchat (the python version), then please base your work 
+on the torchat_py branch because the master branch will be used for something 
+else in a few weeks. If you already forked or cloned the old master then please 
+check out the torchat_py branch and rebase your work on this branch. Currently
+master and torchat_py are still identical but master will soon be pointed to 
+torchat2 which is a totally unrelated code base and this might cause you some 
+confusion.
+
 Pidgin Plugin
 -------------
 As some of you might have noticed already there is another branch silently growing 
