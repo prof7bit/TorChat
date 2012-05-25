@@ -167,6 +167,12 @@ begin
     if SecondsSince(FLastStatusSent) > 120 then begin
       SendStatus;
     end;
+
+    if SecondsSince(FLastActivity) > 240 then begin
+      WriteLn(_F('I TBuddy.CheckState() %s timeout, disconnecting',
+        [FID]));
+      DoDisconnect;
+    end;
   end;
 end;
 

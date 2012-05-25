@@ -59,11 +59,15 @@ type
 
   { TTCPStream wraps a TCP connection}
   TTCPStream = class(THandleStream)
+  strict private
+    FClosed: Boolean;
+  public
     constructor Create(AHandle: TSocketHandle);
     destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     procedure DoClose; virtual;
+    property Closed: Boolean read FClosed;
   end;
 
   PConnectionCallback = procedure(AStream: TTCPStream; E: Exception) of object;
@@ -426,6 +430,7 @@ end;
 constructor TTCPStream.Create(AHandle: TSocketHandle);
 begin
   inherited Create(AHandle);
+  FClosed := False;
 end;
 
 destructor TTCPStream.Destroy;
@@ -448,7 +453,10 @@ end;
 
 procedure TTCPStream.DoClose;
 begin
-  SWClose(Handle);
+  if not FClosed then begin
+    SWClose(Handle);
+    FClosed := True;
+  end;
 end;
 
 end.

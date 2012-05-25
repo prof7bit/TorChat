@@ -91,8 +91,10 @@ begin
   // this will trigger the OnTCPFail callback which will
   // remove all references between connection and buddy,
   // the reference counting will then free the object.
-  FTCPStream.DoClose;
-  RTLeventWaitFor(FReceiverDestroyEvent);
+  if not FTCPStream.Closed then begin
+    FTCPStream.DoClose;
+    RTLeventWaitFor(FReceiverDestroyEvent);
+  end;
 end;
 
 procedure THiddenConnection.Send(AData: String);
