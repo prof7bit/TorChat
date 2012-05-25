@@ -90,12 +90,11 @@ type
     connection object. See also THiddenConnection. }
   TReceiver = class(TAReceiver)
   strict private
-    FDestroyEvent: PRTLEvent;
     FStdOut: Text;
     FIncompleteMessage: String;
   public
     procedure OnReceivedLine(EncodedLine: String);
-    constructor Create(AConn: IHiddenConnection; ADestroyEvent: PRTLEvent);
+    constructor Create(AConn: IHiddenConnection);
     destructor Destroy; override;
     procedure Execute; override;
   end;
@@ -105,10 +104,9 @@ implementation
 
 { TReceiver }
 
-constructor TReceiver.Create(AConn: IHiddenConnection; ADestroyEvent: PRTLEvent);
+constructor TReceiver.Create(AConn: IHiddenConnection);
 begin
   FStdOut := Output;
-  FDestroyEvent := ADestroyEvent; // will fire this in the destructor
   FConnection := AConn;
   FClient := AConn.Client;
   FIncompleteMessage := '';
@@ -117,13 +115,9 @@ begin
 end;
 
 destructor TReceiver.Destroy;
-var
-  DestroyEvent : PRTLEvent;
 begin
-  DestroyEvent := FDestroyEvent;
   inherited Destroy;
   WriteLn('TReceiver.Destroy() finished');
-  RTLeventSetEvent(DestroyEvent);
 end;
 
 procedure TReceiver.Execute;
