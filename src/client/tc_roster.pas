@@ -12,11 +12,12 @@ uses
 type
   { TRoster contains all the buddy objects and implements all the boring
   CRUD mechanisms, persisting on disk, etc. Its essentialy an array of
-  IBuddy with a few helper methods to manage it. TBuddyList is thread safe.}
+  IBuddy with a few helper methods to manage it. TRoster is thread safe.}
   TRoster = class(TTempList, IRoster)
   strict protected
     FOwnID: String;
     FShowMyself: Boolean;
+    FIsLoading: Boolean;
   public
     constructor Create(AClient: IClient); reintroduce;
     procedure SetOwnID(AID: String);
@@ -43,6 +44,7 @@ constructor TRoster.Create(AClient: IClient);
 begin
   Inherited Create(AClient);
   FShowMyself := False;
+  FIsLoading := False;
 end;
 
 procedure TRoster.SetOwnID(AID: String);
@@ -51,7 +53,7 @@ var
 begin
   FOwnID := AID;
   if FShowMyself and (ByID(AID) = nil) then begin
-    writeln('TBuddyList.SetOwnID() adding "myself"-buddy ' + AID);
+    writeln('TRoster.SetOwnID() adding "myself"-buddy ' + AID);
     Buddy := TBuddy.Create(FClient);
     Buddy.InitID(AID);
     Buddy.SetFriendlyName('myself');
@@ -78,9 +80,10 @@ end;
 procedure TRoster.AddBuddy(ABuddy: IBuddy);
 begin
   inherited AddBuddy(ABuddy);
-  Save;
   FClient.OnBuddyAdded(ABuddy);
   FClient.OnBuddyStatusChange(ABuddy);
+  if not FIsLoading then
+    Save;
 end;
 
 procedure TRoster.RemoveBuddy(ABuddy: IBuddy);
@@ -97,8 +100,9 @@ var
   LastI, I: Integer;
   tc_buddy: IBuddy;
 begin
+  FIsLoading := True; // prevent autosave while adding buddies
   try
-    writeln('TBuddyList.Load()');
+    writeln('TRoster.Load()');
     FS := TFileStream.Create(ConcatPaths([FClient.Config.DataDir, 'buddylist.json']), fmOpenRead);
     JParser :=TJSONParser.Create(FS);
     JList := JParser.Parse as TJSONArray;
@@ -108,20 +112,21 @@ begin
         tc_buddy := TBuddy.Create(FClient);
         tc_buddy.InitFromJsonObect(JList.Objects[I]); // this may raise exception
         AddBuddy(tc_buddy);
-        writeln('TBuddyList.Load() ' + tc_buddy.ID + ' loaded');
+        writeln('TRoster.Load() ' + tc_buddy.ID + ' loaded');
       except
         FreeAndNil(tc_buddy);
-        writeln('E TBuddyList.Load() error while parsing buddy');
+        writeln('E TRoster.Load() error while parsing buddy');
       end;
     end;
   except
     on E: Exception do begin
-      WriteLn('W TBuddyList.Load() could not load: ' + E.Message);
+      WriteLn('W TRoster.Load() could not load: ' + E.Message);
     end;
   end;
+  if assigned(FS) then FreeAndNil(FS);
   if assigned(JList) then FreeAndNil(JList);
   if assigned(JParser) then FreeAndNil(JParser);
-  if assigned(FS) then FreeAndNil(FS);
+  FIsLoading := False;
   Save;
 end;
 
@@ -134,7 +139,7 @@ var
   FS: TFileStream = nil;
   Success: Boolean;
 begin
-  writeln('TBuddyList.Save()');
+  writeln('TRoster.Save()');
   Success := False;
   Path := FClient.Config.DataDir;
   TempName := ConcatPaths([Path,'_buddylist.json']);
@@ -152,7 +157,7 @@ begin
     Success := True;
   except
     on E: Exception do begin
-      writeln('E TBuddyList.Save() could not save: ' + E.Message);
+      writeln('E TRoster.Save() could not save: ' + E.Message);
     end;
   end;
   if Assigned(FS) then FreeAndNil(FS);

@@ -67,6 +67,7 @@ type
     FQueue: IMsgQueue;
     FTimeStarted: TDateTime;
     FHSNameOK: Boolean;
+    FStatus: TTorchatStatus;
     FConnInList: IInterfaceList;
     procedure CbNetIn(AStream: TTCPStream; E: Exception);
     procedure CheckHiddenServiceName;
@@ -89,6 +90,7 @@ type
     function TorHost: String;
     function TorPort: DWord;
     function HSNameOK: Boolean;
+    function Status: TTorchatStatus;
     procedure Pump;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure RegisterConnection(AConn: IHiddenConnection);
@@ -110,6 +112,7 @@ constructor TTorChatClient.Create(AOwner: TComponent; AProfileName: String);
 begin
   FIsDestroying := False;
   Inherited Create(AOwner);
+  FStatus := TORCHAT_OFFLINE;
   FMainThread := ThreadID;
   FProfileName := AProfileName;
   FClientConfig := TClientConfig.Create(AProfileName);
@@ -223,6 +226,11 @@ begin
   Result := FHSNameOK;
 end;
 
+function TTorChatClient.Status: TTorchatStatus;
+begin
+  Result := FStatus;
+end;
+
 procedure TTorChatClient.Pump;
 begin
   if FIsDestroying then exit;
@@ -234,8 +242,14 @@ begin
 end;
 
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
+var
+  Buddy: IBuddy;
 begin
   writeln('TTorChatClient.SetStatus(', AStatus, ')');
+  FStatus := AStatus;
+  for Buddy in Roster do
+    if Buddy.IsFullyConnected then
+      Buddy.SendStatus;
 end;
 
 procedure TTorChatClient.RegisterConnection(AConn: IHiddenConnection);

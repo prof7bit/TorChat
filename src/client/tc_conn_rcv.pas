@@ -175,14 +175,12 @@ begin
     Self.FConnection, Command, EncodedLine);
   try
     Msg.Parse;
+    Client.Queue.Put(Msg);
   except
     on Ex: Exception do begin
-      WriteLn(Ex.Message);
+      WriteLn(_F('E error while parsing protocol command ''%s'': %s %s',
+        [Command, Ex.ToString, Ex.Message]));
     end;
-  end;
-
-  if Assigned(Msg) then begin
-    Client.Queue.Put(Msg);
   end;
 end;
 

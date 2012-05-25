@@ -73,8 +73,8 @@ type
   { TSafeDeleteThread }
 
   TSafeDeleteThread = class(TThread)
-    FFileName: String;
-    constructor Create(AFileName: String);
+    FFileStream: TFileStream;
+    constructor Create(AFileStream: TFileStream);
     procedure Execute; override;
   end;
 
@@ -96,7 +96,7 @@ begin
     Line := RightStr(Line, Length(Line) - P);
   end
   else
-    raise EEndOfString.Create('');
+    raise EEndOfString.Create('no more separator found');
 end;
 
 function Ignore(P: Pointer): Pointer; inline;
@@ -116,16 +116,22 @@ end;
 procedure SafeDelete(AFileName: String);
 var
   Path, TempName: String;
+  FS: TFileStream;
 begin
   if FileExists(AFileName) then begin
     Path := ExtractFileDir(AFileName);
     TempName := GetTempFileName(Path, 'delete_');
-    RenameFile(AFileName, TempName);
-    TSafeDeleteThread.Create(TempName);
+    try
+      RenameFile(AFileName, TempName);
+      FS := TFileStream.Create(TempName, fmOpenReadWrite);
+      TSafeDeleteThread.Create(FS);
+    except
+      on E: Exception do begin
+        WriteLn('E ', E.ToString, ': ', E.Message);
+      end;
+    end;
   end;
 end;
-
-
 
 function IsPortInList(APort: DWord): Boolean;
 var
@@ -201,9 +207,9 @@ end;
 
 { TSafeDeleteThread }
 
-constructor TSafeDeleteThread.Create(AFileName: String);
+constructor TSafeDeleteThread.Create(AFileStream: TFileStream);
 begin
-  FFileName := AFileName;
+  FFileStream := AFileStream;
   FreeOnTerminate := True;
   Inherited Create(False);
 end;
@@ -212,24 +218,21 @@ procedure TSafeDeleteThread.Execute;
 const
   BLOCK = 1024;
 var
-  FS: TFileStream;
   I,S : Integer;
   B : PByte;
 begin
   B := GetMem(BLOCK);
   FillByte(B[0], BLOCK, 0);
-  FS := TFileStream.Create(FFileName, fmOpenReadWrite);
-  S := FS.Seek(0, soEnd) div BLOCK;
-  FS.Seek(0, soBeginning);
+  S := FFileStream.Size div BLOCK;
   for I := 0 to S do
-    FS.WriteBuffer(B[0], BLOCK);
+    FFileStream.WriteBuffer(B[0], BLOCK);
   {$ifdef windows}
-  FlushFileBuffers(FS.Handle);
+  FlushFileBuffers(FFileStream.Handle);
   {$else}
-  fpfsync(FS.Handle);
+  fpfsync(FFileStream.Handle);
   {$endif}
-  FS.Free;
-  DeleteFile(FFileName);
+  DeleteFile(FFileStream.FileName);
+  FFileStream.Free;
   FreeMem(B);
 end;
 

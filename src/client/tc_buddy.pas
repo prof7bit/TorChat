@@ -28,9 +28,6 @@ uses
   SysUtils,
   fpjson,
   tc_interface,
-  tc_prot_ping,
-  tc_prot_pong,
-  tc_prot_add_me,
   tc_misc,
   tc_conn,
   tc_sock,
@@ -54,15 +51,17 @@ type
     FMustSendPong: Boolean;
     FReceivedCookie: String;
     FConnectThread: TAsyncConnectThread;
+    FLastActivity: TDateTime;
+    FLastStatusSent: TDateTime;
     procedure InitiateConnect;
     procedure CbNetOut(ATCPStream: TTCPStream; E: Exception);
-    function IsFullyConnected: Boolean;
     function CanUseThisName(AName: String): Boolean;
     procedure CallFromMainThread(AMethod: TMethodOfObject);
   public
     constructor Create(AClient: IClient); reintroduce;
     destructor Destroy; override;
     procedure CheckState;
+    function IsFullyConnected: Boolean;
     function AsJsonObject: TJSONObject;
     procedure InitFromJsonObect(AObject: TJSONObject);
     function InitID(AID: String): Boolean;
@@ -72,6 +71,7 @@ type
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
     procedure ResetConnectInterval;
+    procedure ResetTimeout;
     procedure DoDisconnect;
     function Client: IClient;
     function ID: String;
@@ -86,10 +86,15 @@ type
     procedure SetFriendlyName(AName: String);
     procedure SendPong;
     procedure SendAddMe;
+    procedure SendStatus;
   end;
 
 implementation
 uses
+  tc_prot_ping,
+  tc_prot_pong,
+  tc_prot_add_me,
+  tc_prot_status,
   tc_config;
 
 { TBuddy }
@@ -126,6 +131,8 @@ begin
   FConnectThread := nil;
   FClient := AClient;
   FLastDisconnect := 0;
+  FLastActivity := Now;
+  FLastStatusSent := Now;
   FMustSendPong := False;
   FReceivedCookie := '';
   FStatus := TORCHAT_OFFLINE;
@@ -153,6 +160,12 @@ begin
   if not (Assigned(ConnOutgoing) or Assigned(FConnectThread)) then begin
     if SecondsSince(FLastDisconnect) > FReconnectInterval then begin
       InitiateConnect;
+    end;
+  end;
+
+  if Assigned(ConnIncoming) and Assigned(ConnOutgoing) then begin
+    if SecondsSince(FLastStatusSent) > 120 then begin
+      SendStatus;
     end;
   end;
 end;
@@ -192,11 +205,6 @@ begin
   end
   else
     Result := False;
-end;
-
-function TBuddy.IsFullyConnected: Boolean;
-begin
-  Result := Assigned(ConnOutgoing) and Assigned(ConnIncoming);
 end;
 
 function TBuddy.CanUseThisName(AName: String): Boolean;
@@ -275,6 +283,11 @@ begin
   FReconnectInterval := SECONDS_INITIAL_RECONNECT;
 end;
 
+procedure TBuddy.ResetTimeout;
+begin
+  FLastActivity := Now;
+end;
+
 procedure TBuddy.DoDisconnect;
 begin
   if Assigned(ConnIncoming) or Assigned(ConnOutgoing) then begin
@@ -311,6 +324,11 @@ end;
 function TBuddy.ConnOutgoing: IHiddenConnection;
 begin
   Result := FConnOutgoing;
+end;
+
+function TBuddy.IsFullyConnected: Boolean;
+begin
+  Result := Assigned(ConnIncoming) and Assigned(ConnOutgoing);
 end;
 
 function TBuddy.Status: TTorchatStatus;
@@ -369,6 +387,7 @@ begin
   Pong.Send;
   if Self in Client.Roster then
     SendAddMe;
+  SendStatus;
   FMustSendPong := False;
   FReceivedCookie := '';
 end;
@@ -379,6 +398,15 @@ var
 begin
   AddMe := TMsgAddMe.Create(Self);
   AddMe.Send;
+end;
+
+procedure TBuddy.SendStatus;
+var
+  Stat : IProtocolMessage;
+begin
+  Stat := TMsgStatus.Create(Self);
+  Stat.Send;
+  FLastStatusSent := Now;
 end;
 
 end.

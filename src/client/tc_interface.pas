@@ -87,6 +87,7 @@ type
     function TorHost: String;
     function TorPort: DWord;
     function HSNameOK: Boolean;
+    function Status: TTorchatStatus;
   end;
 
   { a temporary list of buddies}
@@ -120,6 +121,7 @@ type
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
     procedure ResetConnectInterval;
+    procedure ResetTimeout;
     procedure DoDisconnect;
     function Client: IClient;
     function ID: String;
@@ -127,6 +129,7 @@ type
     function FriendlyName: String;
     function ConnIncoming: IHiddenConnection;
     function ConnOutgoing: IHiddenConnection;
+    function IsFullyConnected: Boolean;
     function Status: TTorchatStatus;
     procedure SetFriendlyName(AName: String);
     procedure SetIncoming(AConn: IHiddenConnection);
@@ -134,6 +137,7 @@ type
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SendPong;
     procedure SendAddMe;
+    procedure SendStatus;
   end;
 
   IHiddenConnection = interface
