@@ -256,7 +256,7 @@ procedure TTorChatClient.RegisterConnection(AConn: IHiddenConnection);
 begin
   FConnInList.Add(AConn);
   WriteLn(_F(
-    'TTorChatClient.RegisterConnection() have now %d incoming connections',
+    'TTorChatClient.RegisterConnection() have now %d anonymous connections',
     [FConnInList.Count]));
 end;
 
@@ -266,7 +266,7 @@ begin
   if FConnInList.IndexOf(AConn) <> -1 then begin
     FConnInList.Remove(AConn);
     WriteLn(_F(
-      'TTorChatClient.UnregisterConnection() removed %s, %d incoming connections left',
+      'TTorChatClient.UnregisterConnection() removed %s, %d anonymous connections left',
       [AConn.DebugInfo, FConnInList.Count]));
   end;
 end;

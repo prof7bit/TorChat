@@ -348,6 +348,7 @@ begin
     FConnIncoming := AConn;
     if Assigned(AConn) then begin
       AConn.SetBuddy(Self);
+      Client.UnregisterConnection(AConn);
       CallFromMainThread(@OnIncomingConnection);
     end
     else
