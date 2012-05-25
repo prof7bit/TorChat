@@ -1,6 +1,6 @@
 TorChat2
 ========
-If you are looking for **TorChat 0.9.9.xxx** (the origial Python
+If you are looking for **TorChat 0.9.9.xxx** (the original Python
 implementation) then please switch to the **torchat_py** branch.
 For downloads of the latest versions please see the downloads
 section: https://github.com/prof7bit/TorChat/downloads
