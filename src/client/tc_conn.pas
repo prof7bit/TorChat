@@ -26,7 +26,6 @@ interface
 uses
   Classes,
   SysUtils,
-  syncobjs,
   tc_interface,
   tc_conn_rcv,
   tc_sock;
@@ -41,7 +40,6 @@ type
     FBuddy: IBuddy;
     FReceiver: TAReceiver;
     FDebugInfoDefault: String;
-    FCallbackEvent: TEventObject;
   public
     constructor Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
     destructor Destroy; override;
@@ -66,7 +64,6 @@ begin
   FTCPStream := AStream;
   FClient := AClient;
   FBuddy := ABuddy;
-  FCallbackEvent := TEventObject.Create(nil, True, False, '');
   FReceiver := TReceiver.Create(Self);
   FDebugInfoDefault := '(unknown incoming)';
   WriteLn('THiddenConnection.Create() ' + DebugInfo);
@@ -82,7 +79,7 @@ end;
 destructor THiddenConnection.Destroy;
 begin
   FTCPStream.Free;
-  FCallbackEvent.Free;
+  FReceiver.Free;
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished');
 end;
@@ -92,10 +89,8 @@ begin
   // this will trigger the OnTCPFail callback which will
   // remove all references between connection and buddy,
   // the reference counting will then free the object.
-  if not FTCPStream.Closed then begin
-    FTCPStream.DoClose;
-    FCallbackEvent.WaitFor(0);
-  end;
+  FTCPStream.DoClose;
+  FReceiver.WaitFor;
 end;
 
 procedure THiddenConnection.Send(AData: String);
@@ -119,7 +114,6 @@ begin
       FBuddy.SetIncoming(nil);
     FBuddy := nil;
   end;
-  FCallbackEvent.SetEvent;
   // it will free itself when the reference counter is zero.
 end;
 

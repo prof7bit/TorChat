@@ -110,7 +110,6 @@ begin
   FConnection := AConn;
   FClient := AConn.Client;
   FIncompleteMessage := '';
-  FreeOnTerminate := True;
   inherited Create(False);
 end;
 
@@ -149,6 +148,7 @@ begin
   until (N <= 0) or Terminated;
   WriteLn('TReceiver.Execute()' + FConnection.DebugInfo + ' detected end of life, beginning termination');
   FConnection.OnTCPFail;
+  FConnection := nil;
 end;
 
 procedure TReceiver.OnReceivedLine(EncodedLine: String);
