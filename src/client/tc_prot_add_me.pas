@@ -79,7 +79,7 @@ var
 begin
   Buddy := FConnection.Buddy;
   if not Assigned(Buddy) then
-    LogWarningAndClose
+    LogWarningAndIgnore
   else begin
     WriteLn('TMsgAddMe.Execute() add_me from ' + Buddy.ID);
     if Buddy in FClient.TempList then begin

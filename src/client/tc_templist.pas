@@ -72,7 +72,7 @@ end;
 destructor TTempList.Destroy;
 begin
   inherited Destroy;
-  WriteLn('TBuddyListTemp.Destroy() finished');
+  WriteLn('TTempList.Destroy() finished');
 end;
 
 procedure TTempList.CheckState;

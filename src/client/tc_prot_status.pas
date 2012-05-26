@@ -112,7 +112,7 @@ begin
     Buddy.ResetTimeout;
   end
   else
-    LogWarningAndClose();
+    LogWarningAndIgnore();
 end;
 
 begin

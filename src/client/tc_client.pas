@@ -71,6 +71,7 @@ type
     FConnInList: IInterfaceList;
     procedure CbNetIn(AStream: TTCPStream; E: Exception);
     procedure CheckHiddenServiceName;
+    procedure CheckAnonConnTimeouts;
   public
     constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
     destructor Destroy; override;
@@ -93,8 +94,8 @@ type
     function Status: TTorchatStatus;
     procedure Pump;
     procedure SetStatus(AStatus: TTorchatStatus);
-    procedure RegisterConnection(AConn: IHiddenConnection);
-    procedure UnregisterConnection(AConn: IHiddenConnection);
+    procedure RegisterAnonConnection(AConn: IHiddenConnection);
+    procedure UnregisterAnonConnection(AConn: IHiddenConnection);
   end;
 
 
@@ -239,6 +240,7 @@ begin
   Queue.PumpNext;
   Roster.CheckState;
   TempList.CheckState;
+  CheckAnonConnTimeouts;
 end;
 
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
@@ -252,7 +254,7 @@ begin
       Buddy.SendStatus;
 end;
 
-procedure TTorChatClient.RegisterConnection(AConn: IHiddenConnection);
+procedure TTorChatClient.RegisterAnonConnection(AConn: IHiddenConnection);
 begin
   FConnInList.Add(AConn);
   WriteLn(_F(
@@ -260,7 +262,7 @@ begin
     [FConnInList.Count]));
 end;
 
-procedure TTorChatClient.UnregisterConnection(AConn: IHiddenConnection);
+procedure TTorChatClient.UnregisterAnonConnection(AConn: IHiddenConnection);
 begin
   // only incoming connections are in this list
   if FConnInList.IndexOf(AConn) <> -1 then begin
@@ -281,7 +283,7 @@ begin
     AStream.Free
   else begin
     C := THiddenConnection.Create(Self, AStream, nil);
-    RegisterConnection(C);
+    RegisterAnonConnection(C);
   end;
 end;
 
@@ -301,6 +303,31 @@ begin
       end
       else
         writeln('TTorChatClient.CheckHiddenServiceName() not found');
+    end;
+  end;
+end;
+
+procedure TTorChatClient.CheckAnonConnTimeouts;
+var
+  Buddy: IBuddy;
+  Conn: IHiddenConnection;
+  I: Integer;
+begin
+  for I := FConnInList.Count - 1 downto 0 do begin
+    Conn := IHiddenConnection(FConnInList.Items[I]);
+    if SecondsSince(Conn.TimeCreated) > SECONDS_WAIT_FOR_PONG then begin
+      if Conn.PingBuddyID <> '' then begin
+        Buddy := Roster.ByID(Conn.PingBuddyID);
+        if not Assigned(Buddy) then
+          Buddy := TempList.ByID(Conn.PingBuddyID);
+        if Assigned(Buddy) then
+          Buddy.ForgetLastPing;
+        WriteLn(_F('I anonymous connection (allegedly %s) timed out, closing',
+          [Conn.PingBuddyID]));
+      end
+      else
+        WriteLn('I anonymous connection timed out, closing');
+      Conn.Disconnect;
     end;
   end;
 end;

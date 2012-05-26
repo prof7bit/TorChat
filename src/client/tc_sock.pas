@@ -390,9 +390,7 @@ end;
 
 destructor TListenerThread.Destroy;
 begin
-  writeln('TListenerThread.Destroy begin');
   inherited Destroy;
-  writeln('TListenerThread.Destroy end');
 end;
 
 procedure TListenerThread.Execute;
@@ -419,10 +417,8 @@ end;
 
 procedure TListenerThread.Terminate;
 begin
-  WriteLn('TListenerThread.Terminate()');
   inherited Terminate;
   SWClose(FSocket);
-  WriteLn('TListenerThread.Terminate() fiished');
 end;
 
 { TTCPStream }

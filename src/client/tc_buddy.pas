@@ -71,6 +71,7 @@ type
     procedure OnIncomingConnection;
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
+    procedure ForgetLastPing;
     procedure ResetConnectInterval;
     procedure ResetTimeout;
     procedure DoDisconnect;
@@ -168,12 +169,12 @@ begin
     if SecondsSince(FLastStatusSent) > 120 then begin
       SendStatus;
     end;
+  end;
 
-    if SecondsSince(FLastActivity) > 240 then begin
-      WriteLn(_F('I TBuddy.CheckState() %s timeout, disconnecting',
-        [FID]));
-      DoDisconnect;
-    end;
+  if Assigned(ConnOutgoing) and (SecondsSince(FLastActivity) > 240) then begin
+    WriteLn(_F('I TBuddy.CheckState() %s timeout, disconnecting',
+      [FID]));
+    DoDisconnect;
   end;
 end;
 
@@ -285,6 +286,12 @@ begin
     SendPong;
 end;
 
+procedure TBuddy.ForgetLastPing;
+begin
+  FReceivedCookie := '';
+  FMustSendPong := False;
+end;
+
 procedure TBuddy.ResetConnectInterval;
 begin
   FReconnectInterval := SECONDS_INITIAL_RECONNECT;
@@ -346,27 +353,31 @@ end;
 procedure TBuddy.SetIncoming(AConn: IHiddenConnection);
 begin
   if AConn <> FConnIncoming then begin
-    FConnIncoming := AConn;
     if Assigned(AConn) then begin
+      FConnIncoming := AConn;
       AConn.SetBuddy(Self);
-      Client.UnregisterConnection(AConn);
+      Client.UnregisterAnonConnection(AConn);
       CallFromMainThread(@OnIncomingConnection);
     end
-    else
+    else begin
+      FConnIncoming := nil;
       CallFromMainThread(@OnIncomingConnectionFail);
+    end;
   end;
 end;
 
 procedure TBuddy.SetOutgoing(AConn: IHiddenConnection);
 begin
   if AConn <> FConnOutgoing then begin
-    FConnOutgoing := AConn;
     if Assigned(AConn) then begin
+      FConnOutgoing := AConn;
       AConn.SetBuddy(Self);
       CallFromMainThread(@OnOutgoingConnection);
     end
-    else
+    else begin
+      FConnOutgoing := nil;
       CallFromMainThread(@OnOutgoingConnectionFail);
+    end;
   end;
 end;
 

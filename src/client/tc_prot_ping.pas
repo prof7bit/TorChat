@@ -121,7 +121,12 @@ var
   ABuddy: IBuddy;
 begin
   WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
+  FConnection.SetPingBuddyID(FID);
+
   ABuddy := FClient.Roster.ByID(FID);
+  if not Assigned(ABuddy) then
+    ABuddy := FClient.TempList.ByID(FID);
+
   if Assigned(ABuddy) then begin
     ABuddy.ResetConnectInterval;
     ABuddy.MustSendPong(FCookie)

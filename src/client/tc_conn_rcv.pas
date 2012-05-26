@@ -110,6 +110,7 @@ begin
   FConnection := AConn;
   FClient := AConn.Client;
   FIncompleteMessage := '';
+  FreeOnTerminate := True;
   inherited Create(False);
 end;
 

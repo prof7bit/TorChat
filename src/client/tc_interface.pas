@@ -74,8 +74,8 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
     procedure SetStatus(AStatus: TTorchatStatus);
-    procedure RegisterConnection(AConn: IHiddenConnection);
-    procedure UnregisterConnection(AConn: IHiddenConnection);
+    procedure RegisterAnonConnection(AConn: IHiddenConnection);
+    procedure UnregisterAnonConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
     function Roster: IRoster;
     function TempList: ITempList;
@@ -120,6 +120,7 @@ type
     procedure OnIncomingConnection;
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
+    procedure ForgetLastPing;
     procedure ResetConnectInterval;
     procedure ResetTimeout;
     procedure DoDisconnect;
@@ -142,6 +143,7 @@ type
 
   IHiddenConnection = interface
     procedure SetBuddy(ABuddy: IBuddy);
+    procedure SetPingBuddyID(AID: String);
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
     procedure OnTCPFail; // called by the receiver
@@ -150,6 +152,8 @@ type
     function Buddy: IBuddy;
     function Client: IClient;
     function Stream: TTCPStream;
+    function TimeCreated: TDateTime;
+    function PingBuddyID: String;
     procedure Disconnect;
   end;
 

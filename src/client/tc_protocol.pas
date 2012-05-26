@@ -76,7 +76,7 @@ type
     FCommand: String;
     FBinaryContent : String;
     function GetSendConnection: IHiddenConnection; virtual;
-    procedure LogWarningAndClose(AInfo: String='');
+    procedure LogWarningAndIgnore(AInfo: String='');
     procedure Serialize; virtual; abstract;
   public
     class function GetCommand: String; virtual; abstract;
@@ -174,7 +174,7 @@ var
 begin
   Buddy := FConnection.Buddy;
   if not Assigned(Buddy) then
-    LogWarningAndClose
+    LogWarningAndIgnore
   else begin
     Msg := TMsgNotImplemented.Create(Buddy, FCommand);
     Msg.Send;
@@ -194,19 +194,18 @@ begin
     Result := nil;
 end;
 
-procedure TMsg.LogWarningAndClose(AInfo: String);
+procedure TMsg.LogWarningAndIgnore(AInfo: String);
 begin
   if (FCommand = '') and (AInfo = '') then
     AInfo := '(empty line)';
   if AInfo = '' then
     AInfo := '(data: ' + IntToStr(Length(FBinaryContent)) + ' bytes)';
   if Assigned(FConnection.Buddy) then
-    WriteLn(_F('W received %s %s from %s, closing connection.',
+    WriteLn(_F('W received %s %s from %s, ignorig.',
       [FCommand, AInfo, FConnection.Buddy.ID]))
   else
-    WriteLn(_F('W received %s %s on unknown connection, closing.',
+    WriteLn(_F('W received %s %s on unknown connection, ignoring.',
       [FCommand, AInfo]));
-  FConnection.Disconnect;
 end;
 
 { this is the virtual constructor for incoming messages }
