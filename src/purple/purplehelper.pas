@@ -60,6 +60,8 @@ procedure PurpleFreeMem(P: Pointer);
 
 
 implementation
+uses
+  syncobjs;
 
 type
   TDebugLevel = (
@@ -69,17 +71,17 @@ type
     DEBUG_ERROR
   );
 
-  { TWritelnRedirect will catch everything that is WriteLn() to stdout and
+  { TOutputRedirect will catch everything that is WriteLn() to stdout and
     redirects it to the libpurple debug logger. We will create an instance
     of this and replace it with the standard output stream }
-  TWritelnRedirect = class(TStream)
+  TOutputRedirect = class(TStream)
     function Write(const Buffer; Count : Longint) : Longint; override;
   end;
 
 var
   OldStdOut: Text;
-  WritelnRedirect: TWritelnRedirect;
-  WritelnRedirectCritical: TRTLCriticalSection;
+  OutputRedirect: TOutputRedirect;
+  OutputLock: TCriticalSection;
   PurpleThread: TThreadID;
 
 {$ifdef win32}
@@ -186,11 +188,11 @@ end;
 
 { TWritelnRedirect }
 
-function TWritelnRedirect.Write(const Buffer; Count: Longint): Longint;
+function TOutputRedirect.Write(const Buffer; Count: Longint): Longint;
 var
   Msg : String;
 begin
-  EnterCriticalsection(WritelnRedirectCritical);
+  OutputLock.Acquire;
   Result := Count;
   SetLength(Msg, Count);
   Move(Buffer, Msg[1], Count);
@@ -208,45 +210,43 @@ begin
   except
   end;
   {$endif}
-  LeaveCriticalsection(WritelnRedirectCritical);
+  OutputLock.Release;
 end;
 
 
 { The TorChat units are logging their debug info with WriteLn(). It is
   the responsibility of the frontend to catch them and log them or display
   them appropriately. Here we install the redirection that will do this. }
-procedure InstallWritelnRedirect;
+procedure InstallOutputRedirect;
 begin
   PurpleThread := ThreadID;
-  InitCriticalSection(WritelnRedirectCritical);
+  OutputLock := TCriticalSection.Create;
   OldStdOut := Output;
-  WritelnRedirect := TWritelnRedirect.Create();
-  AssignStream(Output, WritelnRedirect);
+  OutputRedirect := TOutputRedirect.Create();
+  AssignStream(Output, OutputRedirect);
   Rewrite(Output);
 
   {$ifdef DebugToConsole}
-    {$ifdef windows}
-      {$ifdef win32}
-        AttachWindowsConsole32;
-      {$endif}
+    {$ifdef win32}
+      AttachWindowsConsole32;
     {$endif}
     WriteLn('W plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
 end;
 
-procedure UninstallWritelnRedirect;
+procedure UninstallOutputRedirect;
 begin
   Flush(Output);
-  EnterCriticalsection(WritelnRedirectCritical);
+  OutputLock.Acquire;
   Output := OldStdOut;
-  WritelnRedirect.Free;
-  LeaveCriticalsection(WritelnRedirectCritical);
-  DoneCriticalsection(WritelnRedirectCritical);
+  OutputRedirect.Free;
+  OutputLock.Release;
+  OutputLock.Free;
 end;
 
 initialization
-  InstallWritelnRedirect;
+  InstallOutputRedirect;
 finalization
-  UninstallWritelnRedirect;
+  UninstallOutputRedirect;
 end.
 
