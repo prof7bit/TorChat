@@ -39,7 +39,7 @@ type
   { TBuddy }
   TBuddy = class(TInterfacedObject, IBuddy)
   strict private
-    FOnCbNetOutFinishedEvent: TEventObject;
+    FOnCbNetOutFinishedEvent: TSimpleEvent;
     FID: String;
     FClient: IClient;
     FOwnCookie: String;
@@ -128,7 +128,7 @@ var
   GUID: TGuid;
 begin
   inherited Create;
-  FOnCbNetOutFinishedEvent := TEventObject.Create(nil, True, False, '');
+  FOnCbNetOutFinishedEvent := TSimpleEvent.Create;
   FConnectThread := nil;
   FClient := AClient;
   FLastDisconnect := 0;
