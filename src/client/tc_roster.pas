@@ -90,6 +90,7 @@ procedure TRoster.RemoveBuddy(ABuddy: IBuddy);
 begin
   inherited RemoveBuddy(ABuddy);
   FClient.OnBuddyRemoved(ABuddy);
+  Save;
 end;
 
 procedure TRoster.Load;

@@ -26,6 +26,7 @@ interface
 uses
   Classes,
   SysUtils,
+  syncobjs,
   fpjson,
   tc_interface,
   tc_misc,
@@ -38,7 +39,7 @@ type
   { TBuddy }
   TBuddy = class(TInterfacedObject, IBuddy)
   strict private
-    FOnCbNetOutFinishedEvent: PRTLEvent;
+    FOnCbNetOutFinishedEvent: TEventObject;
     FID: String;
     FClient: IClient;
     FOwnCookie: String;
@@ -102,7 +103,7 @@ uses
 procedure TBuddy.InitiateConnect;
 begin
   WriteLn('TBuddy.InitiateConnect() ' + ID);
-  RTLeventResetEvent(FOnCbNetOutFinishedEvent);
+  FOnCbNetOutFinishedEvent.ResetEvent;
   FConnectThread := FClient.Network.ConnectAsync(ID + '.onion', 11009, @CbNetOut);
 end;
 
@@ -119,7 +120,7 @@ begin
     WriteLn(_F('%s next connection attempt in %d seconds',
       [ID, FReconnectInterval]));
   end;
-  RTLeventSetEvent(FOnCbNetOutFinishedEvent);
+  FOnCbNetOutFinishedEvent.SetEvent;
 end;
 
 constructor TBuddy.Create(AClient: IClient);
@@ -127,7 +128,7 @@ var
   GUID: TGuid;
 begin
   inherited Create;
-  FOnCbNetOutFinishedEvent := RTLEventCreate;
+  FOnCbNetOutFinishedEvent := TEventObject.Create(nil, True, False, '');
   FConnectThread := nil;
   FClient := AClient;
   FLastDisconnect := 0;
@@ -148,9 +149,9 @@ begin
   if Assigned(FConnectThread) then begin
     writeln('TBuddy.Destroy() ' + ID + ' must terminate ongoing connection attempt');
     FConnectThread.Terminate;
-    RTLeventWaitFor(FOnCbNetOutFinishedEvent);
+    FOnCbNetOutFinishedEvent.WaitFor(INFINITE);
   end;
-  RTLeventdestroy(FOnCbNetOutFinishedEvent);
+  FOnCbNetOutFinishedEvent.Free;
   writeln('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
 end;
