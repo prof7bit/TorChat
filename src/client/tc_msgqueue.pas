@@ -41,8 +41,10 @@ end;
 
 procedure TMsgQueue.Put(Msg: IMessage);
 begin
-  if not FClient.IsDestroying then
+  if not FClient.IsDestroying then begin
     Insert(0, Msg);
+    FClient.OnNeedPump;
+  end;
 end;
 
 procedure TMsgQueue.PumpNext;

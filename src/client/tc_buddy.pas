@@ -75,6 +75,7 @@ type
     procedure ResetConnectInterval;
     procedure ResetTimeout;
     procedure DoDisconnect;
+    procedure RemoveYourself;
     function Client: IClient;
     function ID: String;
     function Cookie: String;
@@ -97,6 +98,7 @@ uses
   tc_prot_pong,
   tc_prot_add_me,
   tc_prot_status,
+  tc_prot_remove_me,
   tc_config;
 
 { TBuddy }
@@ -310,6 +312,18 @@ begin
   end;
 end;
 
+procedure TBuddy.RemoveYourself; // called by the GUI
+var
+  RemoveMe: IProtocolMessage;
+begin
+  Client.TempList.AddBuddy(Self);
+  Client.Roster.RemoveBuddyNoCallback(Self);
+  if IsFullyConnected then begin
+    RemoveMe := TMsgRemoveMe.Create(Self);
+    RemoveMe.Send;
+  end;
+end;
+
 function TBuddy.Client: IClient;
 begin
   Result := FClient;
@@ -357,6 +371,7 @@ begin
       FConnIncoming := AConn;
       AConn.SetBuddy(Self);
       Client.UnregisterAnonConnection(AConn);
+      ResetTimeout;
       CallFromMainThread(@OnIncomingConnection);
     end
     else begin
@@ -372,6 +387,7 @@ begin
     if Assigned(AConn) then begin
       FConnOutgoing := AConn;
       AConn.SetBuddy(Self);
+      ResetTimeout;
       CallFromMainThread(@OnOutgoingConnection);
     end
     else begin
@@ -383,19 +399,15 @@ end;
 
 procedure TBuddy.SetStatus(AStatus: TTorchatStatus);
 begin
-  if AStatus <> FStatus then begin
-    FStatus := AStatus;
-    if Self in Client.Roster then
-      Client.OnBuddyStatusChange(Self);
-  end;
+  FStatus := AStatus;
+  if Self in Client.Roster then
+    Client.OnBuddyStatusChange(Self);
 end;
 
 procedure TBuddy.SetFriendlyName(AName: String);
 begin
-  if AName <> FFriendlyName then begin
-    FFriendlyName := AName;
-    Client.Roster.Save;
-  end;
+  FFriendlyName := AName;
+  Client.Roster.Save;
 end;
 
 procedure TBuddy.SendPong;

@@ -23,7 +23,7 @@ library purpletorchat;
 
   Type names:
   -----------
-  Normally in Pascal we have Uppercase/CamelCase identifiers and
+  Normally in Pascal we use Uppercase/CamelCase identifiers and
   type names start with 'T', pointer types with 'P', interfaces
   with 'I', which will then look like TSomeThing or PSomeThing.
 
@@ -47,16 +47,23 @@ library purpletorchat;
 
   Variable names and function names
   ---------------------------------
-  Since this is a wrapper and an interface between a Pascal'ish
-  API and a C'ish API and contains callbacks from both sides and
-  has many variables that hold libpurple types and their
-  equivalents from the Pascal units with similar names appearing
-  side by side in the same functions it can become very confusing.
-  I am trying to name the libpurple callback functions and
-  variables that hold libpurple or glib types with lowercase and
-  under_score and all other variables are using the normal Pascal
-  naming conventions. I know this is ugly but it will help the
-  people who are familiar with libpurple avoid some confusion.
+  libpurple callback functions and variables that hold libpurple
+  or glib types are named with lowercase and under_score and all
+  other variables are using the normal Pascal naming conventions.
+
+  The TorChat engine will call overridden virtual methods when
+  TorChat events happen, these are the methods that start with
+
+    TTorChatPurpleClient.OnXxxx()
+
+  and the callback fuctions that are called by libpurple when
+  Pidgin/libpurple wants something to happen are the procedures
+  and functions that start with
+
+    torchat_xxx()
+
+  and the xxx corresponds to the field names in the info records
+  where these callbacks have been registered.
 }
 
 {$mode objfpc}{$H+}
@@ -78,7 +85,7 @@ uses
   tc_client,
   tc_buddy,
   tc_config,
-  tc_misc;
+  tc_misc, tc_prot_remove_me;
 
 const
   PRPL_ID_OFFLINE = 'offline';
@@ -95,7 +102,7 @@ type
     purple_timer: Integer;
     constructor Create(AOwner: TComponent; AProfileName: String;
       account: PPurpleAccount); reintroduce;
-    procedure OnNotifyGui; override;
+    procedure OnNeedPump; override;
     procedure OnGotOwnID; override;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
     procedure OnBuddyAdded(ABuddy: IBuddy); override;
@@ -112,19 +119,39 @@ var
   PurplePlugin: PPurplePlugin;
   TorChatClients: TTorChatClients;
 
+
+(********************************************************************
+ *                                                                  *
+ *  The timer functions are called  by libpurple timers, they are   *
+ *  fired in regular intervals and all OnXxxx method calls from     *
+ *  TorChat into libpurple will ultimately originate from one of    *
+ *  these calls to Pump(). This is needed because we may not just   *
+ *  call purple_xxx functions from our own threads, everything      *
+ *  needs to happen on the main thread.                             *
+ *                                                                  *
+ ********************************************************************)
+
 function cb_purple_timer(data: Pointer): GBoolean; cdecl;
 begin
-  Ignore(data);
   TTorChatPurpleClient(data).Pump;
   Result := True;
 end;
 
 function cb_purple_timer_oneshot(data: Pointer): GBoolean; cdecl;
 begin
-  Ignore(data);
   TTorChatPurpleClient(data).Pump;
   Result := False; // purple timer will not fire again
 end;
+
+
+(******************************************************************
+ *                                                                *
+ *  All the following functions are callbacks that are called by  *
+ *  libpurple when the user interacts with the application.       *
+ *  They have been registered in the two info records during      *
+ *  initialization (see the notes at the end of this file).       *
+ *                                                                *
+ ******************************************************************)
 
 function torchat_load(plugin: PPurplePlugin): GBoolean; cdecl;
 begin
@@ -145,10 +172,12 @@ end;
 function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
 begin
   Ignore(acc);
-  // pidgin (or libpurple or both) has a bug, it will offer "invisible" even
-  // if we don't register it (and it will not offer "extended away" even if
-  // we register it), so we are registerig all of them and will deal with them
-  // in the set_status callback.
+  // pidgin has some strange policy regardig usable status types:
+  // as soon as there are more than one protocols active it will
+  // fall back to a standard list of status types, no matter whether
+  // all the protocols support them or any of them requested them,
+  // so we are forced to register them all and then map them to
+  // TorChat statuses in our torchat_set_status() callback.
   Result := nil;
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, nil, True, True, False));
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, nil, True, True, False));
@@ -185,23 +214,52 @@ begin
   if Assigned(TorChat) then begin
     purple_id := purple_buddy_get_name(purple_buddy);
     purple_alias := purple_buddy_get_alias_only(purple_buddy);
-    Buddy := TBuddy.Create(TorChat);
-    if Buddy.InitID(purple_id) then begin
+
+    {$note move all the following into a TTorChatClient method, there is way too much knowledge about implementation details here}
+
+    // first try the templist
+    Buddy := TorChat.TempList.ByID(purple_id);
+    if Assigned(Buddy) then begin
       Buddy.SetFriendlyName(purple_alias);
-      TorChat.Roster.AddBuddy(Buddy);
+      TorChat.Roster.AddBuddyNoCallback(Buddy);
+      TorChat.TempList.RemoveBuddy(Buddy);
+      Buddy.ResetConnectInterval;
+      Buddy.ResetTimeout;
+      Buddy.SendAddMe;
     end
+
+    // otherwise try to create a new one
     else begin
-      purple_notify_message(PurplePlugin, PURPLE_NOTIFY_MSG_ERROR,
-        'Cannot add buddy',
-        'A buddy with this ID cannot be added',
-        'Either this ID contains invalid characters or it is incomplete or the ID is already on the list.',
-        nil,
-        nil);
-      purple_blist_remove_buddy(purple_buddy);
+      Buddy := TBuddy.Create(TorChat);
+      if Buddy.InitID(purple_id) then begin
+        Buddy.SetFriendlyName(purple_alias);
+        TorChat.Roster.AddBuddyNoCallback(Buddy);
+      end
+      else begin
+        purple_notify_message(PurplePlugin, PURPLE_NOTIFY_MSG_ERROR,
+          'Cannot add buddy',
+          'A buddy with this ID cannot be added',
+          'Either this ID contains invalid characters or it is incomplete or the ID is already on the list.',
+          nil,
+          nil);
+        purple_blist_remove_buddy(purple_buddy);
+      end;
     end;
   end;
-  if Assigned(purple_id) then PurpleFreeMem(purple_id);
-  if Assigned(purple_alias) then PurpleFreeMem(purple_alias);
+end;
+
+procedure torchat_remove_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
+var
+  TorChat: IClient;
+  Buddy: IBuddy;
+  purple_id: PChar;
+begin
+  Ignore(group);
+  purple_id := purple_buddy_get_name(purple_buddy);
+  TorChat := TorChatClients.Find(gc^.account);
+  Buddy := TorChat.Roster.ByID(purple_id);
+  if Assigned(Buddy) then
+    Buddy.RemoveYourself;
 end;
 
 procedure torchat_alias_buddy(gc: PPurpleConnection; who, aalias: PChar); cdecl;
@@ -260,13 +318,16 @@ begin
   end;
 end;
 
+(********************************************************************
+ *                 end of libpurple callbacks                       *
+ ********************************************************************)
+
 { TClients }
 
 function TTorChatClients.Find(Account: PPurpleAccount): TTorChatPurpleClient;
 begin
   Result := inherited Find(Account^.username) as TTorChatPurpleClient;
 end;
-
 
 { TTorchatPurpleClient }
 
@@ -277,7 +338,21 @@ begin
   inherited Create(AOwner, AProfileName);
 end;
 
-procedure TTorChatPurpleClient.OnNotifyGui;
+
+(********************************************************************
+ *                                                                  *
+ *  All the following methods are called when TorChat feels the     *
+ *  need to notify libpurple/Pidgin about events that happened.     *
+ *                                                                  *
+ *  They all ultimately originate from one of the calls to Pump()   *
+ *  in the timer functions because everything has to happen on      *
+ *  libpurple's main thread. The only exception is OnNeedPump()     *
+ *  which can come from any thread and is only used to request      *
+ *  another Pump() to be scheduled as soon as posible.              *
+ *                                                                  *
+ ********************************************************************)
+
+procedure TTorChatPurpleClient.OnNeedPump;
 begin
   purple_timeout_add(0, @cb_purple_timer_oneshot, Self);
 end;
@@ -314,9 +389,7 @@ begin
     purple_alias := GetMemAndCopy(Buddy.FriendlyName);
     purple_buddy := purple_find_buddy(purple_account, purple_id);
     if not Assigned(purple_buddy) then begin
-      writeln('** adding buddy ' + Buddy.ID);
       if not Assigned(purple_group) then begin
-        writeln('** creating goup ' + group_name);
         purple_group := purple_group_new(group_name);
         purple_blist_add_group(purple_group, nil);
       end;
@@ -422,6 +495,7 @@ begin
     close := @torchat_close;
     set_status := @torchat_set_status;
     add_buddy := @torchat_add_buddy;
+    remove_buddy := @torchat_remove_buddy;
     alias_buddy := @torchat_alias_buddy;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;

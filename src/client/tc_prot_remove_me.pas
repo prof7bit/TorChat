@@ -1,4 +1,4 @@
-{ TorChat - Protocol message 'add_me' (request being added to the list)
+{ TorChat - Protocol message 'remove_me' (request being removed from the list)
 
   Copyright (C) 2012 Bernd Kreuss <prof7bit@gmail.com>
 
@@ -17,7 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
-unit tc_prot_add_me;
+unit tc_prot_remove_me;
 
 {$mode objfpc}{$H+}
 
@@ -28,23 +28,23 @@ uses
   tc_protocol;
 
 type
-  { TMsgAddMe
+  { TMsgRemoveMe
 
-    This message is sent after the ping/pong handshake to request
-    being added to the other client's buddy list. It has the
-    following structure:
+    This message is sent when the user has removed a buddy from
+    the list, it signals the other side to also remove ourselves
+    from his list. It has the following structure:
 
-      add_me
+      remove_me
 
     This message does not transport any additional data.
 
-    When receiving this message we add the buddy to our
-    buddy list (We do not automatically add all connecting buddies
-    to our list, it will also be possible to connect for the
-    purpose of group chat or other services, so we need a separate
-    step between connecting and adding to the list)
+    When receiving this message we immediately remove the buddy
+    from our buddy list. Older versions of TorChat have also
+    disconnected the buddy immediately but we don't do this
+    anymore because now there exist other services (for example
+    group chat) that are independent from the buddy list.
   }
-  TMsgAddMe = class(TMsg)
+  TMsgRemoveMe = class(TMsg)
   strict protected
     procedure Serialize; override;
   public
@@ -56,24 +56,24 @@ type
 
 implementation
 
-{ TMsgAddMe }
+{ TMsgRemoveMe }
 
-class function TMsgAddMe.GetCommand: String;
+class function TMsgRemoveMe.GetCommand: String;
 begin
-  Result := 'add_me';
+  Result := 'remove_me';
 end;
 
-procedure TMsgAddMe.Serialize;
-begin
-  //
-end;
-
-procedure TMsgAddMe.Parse;
+procedure TMsgRemoveMe.Serialize;
 begin
   //
 end;
 
-procedure TMsgAddMe.Execute;
+procedure TMsgRemoveMe.Parse;
+begin
+  //
+end;
+
+procedure TMsgRemoveMe.Execute;
 var
   Buddy: IBuddy;
 begin
@@ -81,16 +81,20 @@ begin
   if not Assigned(Buddy) then
     LogWarningAndIgnore
   else begin
-    WriteLn('TMsgAddMe.Execute() add_me from ' + Buddy.ID);
-    if Buddy in FClient.TempList then begin
-      FClient.TempList.RemoveBuddy(Buddy);
-      FClient.Roster.AddBuddy(Buddy);
-      Buddy.SendStatus; // one cannot send too many status messages
+    WriteLn('TMsgRemoveMe.Execute() remove_me from ' + Buddy.ID);
+    if Buddy in FClient.Roster then begin
+      FClient.Roster.RemoveBuddy(Buddy);
+
+      // we put it into the templist and we don't disconnect
+      // because it might still be using other services that
+      // don't require it being in the list (group chat for
+      // example).
+      FClient.TempList.AddBuddy(Buddy);
     end;
   end;
 end;
 
 begin
-  RegisterMessageClass(TMsgAddMe);
+  RegisterMessageClass(TMsgRemoveMe);
 end.
 

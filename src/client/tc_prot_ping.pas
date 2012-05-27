@@ -135,6 +135,7 @@ begin
     Writeln('I got Ping from unknown Buddy, creating temporary buddy: ' + FID);
     ABuddy := TBuddy.Create(FClient);
     if ABuddy.InitID(FID) then begin // this will check if ID is valid and allowed
+      ABuddy.MustSendPong(FCookie);
       FClient.TempList.AddBuddy(ABuddy);
     end
     else begin

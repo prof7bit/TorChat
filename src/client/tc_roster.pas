@@ -24,7 +24,9 @@ type
     function OwnID: String;
     function GroupName: String;
     procedure AddBuddy(ABuddy: IBuddy); override;
+    procedure AddBuddyNoCallback(ABuddy: IBuddy);
     procedure RemoveBuddy(ABuddy: IBuddy); override;
+    procedure RemoveBuddyNoCallback(ABuddy: IBuddy);
     procedure Load;
     procedure Save;
   end;
@@ -79,17 +81,27 @@ end;
 
 procedure TRoster.AddBuddy(ABuddy: IBuddy);
 begin
-  inherited AddBuddy(ABuddy);
+  AddBuddyNoCallback(ABuddy);
   FClient.OnBuddyAdded(ABuddy);
   FClient.OnBuddyStatusChange(ABuddy);
+end;
+
+procedure TRoster.AddBuddyNoCallback(ABuddy: IBuddy);
+begin
+  inherited AddBuddy(ABuddy);
   if not FIsLoading then
     Save;
 end;
 
 procedure TRoster.RemoveBuddy(ABuddy: IBuddy);
 begin
-  inherited RemoveBuddy(ABuddy);
+  RemoveBuddyNoCallback(ABuddy);
   FClient.OnBuddyRemoved(ABuddy);
+end;
+
+procedure TRoster.RemoveBuddyNoCallback(ABuddy: IBuddy);
+begin
+  inherited RemoveBuddy(ABuddy);
   Save;
 end;
 

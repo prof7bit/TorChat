@@ -75,8 +75,9 @@ type
   public
     constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
     destructor Destroy; override;
+    procedure Pump;
+    procedure OnNeedPump; virtual; abstract;
     procedure OnGotOwnID; virtual; abstract;
-    procedure OnNotifyGui; virtual; abstract;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
@@ -92,7 +93,6 @@ type
     function TorPort: DWord;
     function HSNameOK: Boolean;
     function Status: TTorchatStatus;
-    procedure Pump;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
@@ -154,6 +154,7 @@ begin
 
   // disconnect all buddies
   Roster.DoDisconnectAll;
+  TempList.DoDisconnectAll;
 
   // disconnect all remaining incoming connections
   while FConnInList.Count > 0 do begin
@@ -170,6 +171,17 @@ begin
   WriteLn('start destroying child components');
   inherited Destroy;
   WriteLn('start destroying unreferenced interfaces');
+end;
+
+procedure TTorChatClient.Pump;
+begin
+  if FIsDestroying then exit;
+  if FTimeStarted = 0 then FTimeStarted := Now;
+  CheckHiddenServiceName;
+  Queue.PumpNext;
+  Roster.CheckState;
+  TempList.CheckState;
+  CheckAnonConnTimeouts;
 end;
 
 function TTorChatClient.MainThread: TThreadID;
@@ -230,17 +242,6 @@ end;
 function TTorChatClient.Status: TTorchatStatus;
 begin
   Result := FStatus;
-end;
-
-procedure TTorChatClient.Pump;
-begin
-  if FIsDestroying then exit;
-  if FTimeStarted = 0 then FTimeStarted := Now;
-  CheckHiddenServiceName;
-  Queue.PumpNext;
-  Roster.CheckState;
-  TempList.CheckState;
-  CheckAnonConnTimeouts;
 end;
 
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);

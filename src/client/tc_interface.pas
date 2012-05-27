@@ -67,8 +67,8 @@ type
   end;
 
   IClient = interface
-    procedure Pump;
-    procedure OnNotifyGui;
+    procedure Pump;       // must be called from the GUI thread.
+    procedure OnNeedPump; // ask the GUI to schedule a Pump() asap.
     procedure OnGotOwnID;
     procedure OnBuddyStatusChange(ABuddy: IBuddy);
     procedure OnBuddyAdded(ABuddy: IBuddy);
@@ -105,6 +105,8 @@ type
   IRoster = interface(ITempList)
     procedure Load;
     procedure Save;
+    procedure AddBuddyNoCallback(ABuddy: IBuddy);
+    procedure RemoveBuddyNoCallback(ABuddy: IBuddy);
     function OwnID: String;
     function GroupName: String;
     procedure SetOwnID(AID: String);
@@ -124,6 +126,7 @@ type
     procedure ResetConnectInterval;
     procedure ResetTimeout;
     procedure DoDisconnect;
+    procedure RemoveYourself;
     function Client: IClient;
     function ID: String;
     function Cookie: String;
