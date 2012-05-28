@@ -106,7 +106,6 @@ type
 
 implementation
 uses
-  lCommon,
   tc_templist,
   tc_roster,
   tc_config,

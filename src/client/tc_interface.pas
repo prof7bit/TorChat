@@ -154,7 +154,6 @@ type
     function DebugInfo: String;
     function Buddy: IBuddy;
     function Client: IClient;
-    function Socket: TLSocket;
     function TimeCreated: TDateTime;
     function PingBuddyID: String;
     procedure Disconnect;

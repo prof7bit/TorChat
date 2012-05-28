@@ -212,7 +212,7 @@ begin
       PidFile.Read(PidStr[1], FileSize);
       FreeAndNil(PidFile);
       Pid := StrToInt64(Trim(PidStr));
-      WriteLn('I sending kill signlal to PID ', Pid);
+      WriteLn('I sending kill signal to PID ', Pid);
       {$ifdef windows}
         HProc := OpenProcess(PROCESS_TERMINATE, False, Pid);
         TerminateProcess(HProc, 0);

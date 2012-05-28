@@ -26,7 +26,6 @@ interface
 uses
   Classes,
   SysUtils,
-  syncobjs,
   Sockets,
   lNet,
   lEvents,
@@ -41,7 +40,6 @@ type
   { TBuddy }
   TBuddy = class(TInterfacedObject, IBuddy)
   strict private
-    FOnCbNetOutFinishedEvent: TSimpleEvent;
     FID: String;
     FClient: IClient;
     FOwnCookie: String;
@@ -60,8 +58,8 @@ type
     procedure OnConnect(ASocket: TLSocket);
     procedure OnReceive(ASocket: TLSocket);
     procedure OnDisconect(ASocket: TLSocket);
+    procedure OnError(const Error: String; ASocket: TLSocket);
     procedure InitiateConnect;
-    procedure CbNetOut(ATCPStream: TStream; E: Exception);
     function CanUseThisName(AName: String): Boolean;
     procedure CallFromMainThread(AMethod: TMethodOfObject);
   public
@@ -142,42 +140,33 @@ begin
     ASocket.Disconnect();
     FLastDisconnect := Now;
     FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
+    WriteLn(_F('%s next connection attempt in %d seconds',
+      [ID, FReconnectInterval]));
   end;
   FConnecting := False;
 end;
 
 procedure TBuddy.OnDisconect(ASocket: TLSocket);
 begin
+  writeln('TBuddy.OnDisconect() ', ID);
+end;
 
+procedure TBuddy.OnError(const Error: String; ASocket: TLSocket);
+begin
+  writeln('TBuddy.OnError() ', ID, ' ', Error);
 end;
 
 procedure TBuddy.InitiateConnect;
 begin
   WriteLn('TBuddy.InitiateConnect() ' + ID);
-  FOnCbNetOutFinishedEvent.ResetEvent;
   with FLnetClient do begin
     OnConnect := @Self.OnConnect;
     OnReceive := @Self.OnReceive;
     OnDisconnect := @Self.OnDisconect;
+    OnError := @Self.OnError;
   end;
   FLnetClient.Connect(Client.TorHost, Client.TorPort);
   FConnecting := True;
-end;
-
-procedure TBuddy.CbNetOut(ATCPStream: TStream; E: Exception);
-begin
-  ////FConnectThread := nil;
-  //if assigned(ATCPStream) then begin
-  //  SetOutgoing(THiddenConnection.Create(FClient, ATCPStream, Self));
-  //end
-  //else begin
-  //  WriteLn(E.Message);
-  //  FLastDisconnect := Now;
-  //  FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
-  //  WriteLn(_F('%s next connection attempt in %d seconds',
-  //    [ID, FReconnectInterval]));
-  //end;
-  //FOnCbNetOutFinishedEvent.SetEvent;
 end;
 
 constructor TBuddy.Create(AClient: IClient);
@@ -185,7 +174,6 @@ var
   GUID: TGuid;
 begin
   inherited Create;
-  FOnCbNetOutFinishedEvent := TSimpleEvent.Create;
   FConnecting := False;
   FClient := AClient;
   FLastDisconnect := 0;
@@ -205,12 +193,6 @@ end;
 destructor TBuddy.Destroy;
 begin
   writeln('TBuddy.Destroy() ' + ID);
-  //if Assigned(FConnectThread) then begin
-  //  writeln('TBuddy.Destroy() ' + ID + ' must terminate ongoing connection attempt');
-  //  FConnectThread.Terminate;
-  //  FOnCbNetOutFinishedEvent.WaitFor(INFINITE);
-  //end;
-  FOnCbNetOutFinishedEvent.Free;
   FLnetClient.Free;
   writeln('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
