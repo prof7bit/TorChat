@@ -27,8 +27,11 @@ uses
   Classes,
   SysUtils,
   syncobjs,
+  Sockets,
+  lNet,
+  lEvents,
   tc_interface,
-  tc_conn_rcv;
+  tc_protocol;
 
 type
 
@@ -38,44 +41,49 @@ type
     FPingBuddyID: String;
     FKnownBuddyID: String; // used for debug output
     FTimeCreated: TDateTime;
-    FTCPStream: TStream;
+    FSocket: TLSocket;
     FClient: IClient;
     FBuddy: IBuddy;
     FIsOutgoing: Boolean;
-    FReceiver: TAReceiver;
     FCallbackDone: TSimpleEvent;
+    FReceiveBuffer: String;
   public
-    constructor Create(AClient: IClient; AStream: TStream; ABuddy: IBuddy);
+    constructor Create(AClient: IClient; ASocket: TLSocket; ABuddy: IBuddy);
     destructor Destroy; override;
     procedure Disconnect;
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
-    procedure OnTCPFail;
+    procedure OnTCPFail(ASocket: TLHandle; const Error: String);
+    procedure OnReceive(ASocket: TLHandle);
+    procedure OnReceivedLine(EncodedLine: String);
     procedure SetPingBuddyID(AID: String);
     procedure SetBuddy(ABuddy: IBuddy);
     function IsOutgoing: Boolean;
     function DebugInfo: String;
     function Buddy: IBuddy;
     function Client: IClient;
-    function Stream: TStream;
+    function Socket: TLSocket;
     function TimeCreated: TDateTime;
     function PingBuddyID: String;
   end;
 
 implementation
+uses
+  tc_misc;
 
 { THiddenConnection }
 
-constructor THiddenConnection.Create(AClient: IClient; AStream: TStream; ABuddy: IBuddy);
+constructor THiddenConnection.Create(AClient: IClient; ASocket: TLSocket; ABuddy: IBuddy);
 begin
   FCallbackDone := TSimpleEvent.Create();
   FPingBuddyID := '';
   FTimeCreated := Now;
-  FTCPStream := AStream;
+  FSocket := ASocket;
+  FSocket.OnRead := @Self.OnReceive;
+  FSocket.OnError := @Self.OnTCPFail;
   FClient := AClient;
   FBuddy := ABuddy;
   FIsOutgoing := Assigned(ABuddy);
-  FReceiver := TReceiver.Create(Self);
   WriteLn('THiddenConnection.Create() ' + DebugInfo);
   // This object will free all its stuff in OnTCPFail().
   // Never call Connection.Free() directly. There is only one way
@@ -93,7 +101,7 @@ begin
   // FReceiver has FreeOnTerminate
   // so we don't need to free it manually.
   Info := DebugInfo;
-  FTCPStream.Free;
+  FSocket.Free;
   FCallbackDone.Free;
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished ' + Info);
@@ -105,12 +113,11 @@ begin
   // remove all references between connection and buddy,
   // the reference counting will then free the object.
   //FTCPStream.DoClose;
-  FCallbackDone.WaitFor(INFINITE);
 end;
 
 procedure THiddenConnection.Send(AData: String);
 begin
-  FTCPStream.Write(AData[1], Length(AData));
+  FSocket.Send(AData[1], Length(AData));
 end;
 
 procedure THiddenConnection.SendLine(AEncodedLine: String);
@@ -118,9 +125,9 @@ begin
   Send(AEncodedLine + #10);
 end;
 
-procedure THiddenConnection.OnTCPFail;
+procedure THiddenConnection.OnTCPFail(ASocket: TLHandle; const Error: String);
 begin
-  WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo);
+  WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
   Client.UnregisterAnonConnection(Self);
   if Assigned(FBuddy) then begin
     if IsOutgoing then
@@ -131,6 +138,54 @@ begin
   end;
   FCallbackDone.SetEvent;
   // it will free itself when the reference counter is zero.
+end;
+
+procedure THiddenConnection.OnReceive(ASocket: TLHandle);
+var
+  B: array[0..1023] of Byte;
+  N: Integer;
+  P: Integer;
+  L: String;
+begin
+  writeln('THiddenConnection.OnReceive() ' + DebugInfo);
+  N := fprecv(ASocket.Handle, @B, SizeOf(B)-1, 0);
+  B[N] := 0;
+  FReceiveBuffer := FReceiveBuffer + String(PChar(@B));
+  P := Pos(#10, FReceiveBuffer);
+  repeat
+    L := LeftStr(FReceiveBuffer, P - 1);
+    FReceiveBuffer := RightStr(FReceiveBuffer, Length(FReceiveBuffer) - P);
+    if L <> '' then
+      OnReceivedLine(L);
+    P := Pos(#10, FReceiveBuffer);
+  until P = 0;
+end;
+
+procedure THiddenConnection.OnReceivedLine(EncodedLine: String);
+var
+  Command: String;
+  Msg: IProtocolMessage;
+begin
+  try
+    Command := PopFirstWord(EncodedLine);
+  except
+    // reached the end of the line without finding a
+    // space, so this is a command without arguments.
+    Command := Trim(EncodedLine);
+    EncodedLine := '';
+  end;
+
+  Msg := GetMsgClassFromCommand(Command).Create(
+    Self, Command, EncodedLine);
+  try
+    Msg.Parse;
+    Client.Queue.Put(Msg);
+  except
+    on Ex: Exception do begin
+      WriteLn(_F('E error while parsing protocol command ''%s'': %s %s',
+        [Command, Ex.ToString, Ex.Message]));
+    end;
+  end;
 end;
 
 procedure THiddenConnection.SetPingBuddyID(AID: String);
@@ -182,9 +237,9 @@ begin
   Result := FClient;
 end;
 
-function THiddenConnection.Stream: TStream;
+function THiddenConnection.Socket: TLSocket;
 begin
-  Result := FTCPStream;
+  Result := FSocket;
 end;
 
 function THiddenConnection.TimeCreated: TDateTime;

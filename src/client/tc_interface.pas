@@ -30,7 +30,8 @@ interface
 uses
   Classes,
   fpjson,
-  lnet;
+  lNet,
+  lEvents;
 
 type
   TTorchatStatus = (
@@ -87,7 +88,7 @@ type
     function TorPort: DWord;
     function HSNameOK: Boolean;
     function Status: TTorchatStatus;
-    function LNetClient: TLTcp;
+    function LNetEventer: TLEventer;
   end;
 
   { a temporary list of buddies}
@@ -149,12 +150,11 @@ type
     procedure SetPingBuddyID(AID: String);
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
-    procedure OnTCPFail; // called by the receiver
     function IsOutgoing: Boolean;
     function DebugInfo: String;
     function Buddy: IBuddy;
     function Client: IClient;
-    function Stream: TStream;
+    function Socket: TLSocket;
     function TimeCreated: TDateTime;
     function PingBuddyID: String;
     procedure Disconnect;

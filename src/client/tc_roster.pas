@@ -54,13 +54,14 @@ var
   Buddy : IBuddy;
 begin
   FOwnID := AID;
-  if FShowMyself and (ByID(AID) = nil) then begin
-    writeln('TRoster.SetOwnID() adding "myself"-buddy ' + AID);
-    Buddy := TBuddy.Create(FClient);
-    Buddy.InitID(AID);
-    Buddy.SetFriendlyName('myself');
-    AddBuddy(Buddy);
-    Save;
+  if FShowMyself then begin
+    if (ByID(AID) = nil) then begin
+      writeln('TRoster.SetOwnID() adding "myself"-buddy ' + AID);
+      Buddy := TBuddy.Create(FClient);
+      Buddy.InitID(AID);
+      Buddy.SetFriendlyName('myself');
+      AddBuddy(Buddy);
+    end;
   end
   else begin
     Buddy := ByID(AID);

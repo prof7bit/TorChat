@@ -127,29 +127,29 @@ var
   R : String;
   M : String;
 begin
-  Output := FStdOut;
-  repeat
-    N := FConnection.Stream.Read(B, 1024);
-    if N > 0 then begin
-      SetLength(R, N);
-      Move(B, R[1], N);
-      While R <> '' do begin
-        try
-          M := Split(R, #10);
-          OnReceivedLine(FIncompleteMessage + M);
-          FIncompleteMessage := '';
-        except
-          on E:EEndOfString do begin
-            FIncompleteMessage := R;
-            R := '';
-          end;
-        end;
-      end;
-    end;
-  until (N <= 0) or Terminated;
-  WriteLn('TReceiver.Execute()' + FConnection.DebugInfo + ' detected end of life, beginning termination');
-  FConnection.OnTCPFail;
-  FConnection := nil;
+  //Output := FStdOut;
+  //repeat
+  //  N := FConnection.Stream.Read(B, 1024);
+  //  if N > 0 then begin
+  //    SetLength(R, N);
+  //    Move(B, R[1], N);
+  //    While R <> '' do begin
+  //      try
+  //        M := Split(R, #10);
+  //        OnReceivedLine(FIncompleteMessage + M);
+  //        FIncompleteMessage := '';
+  //      except
+  //        on E:EEndOfString do begin
+  //          FIncompleteMessage := R;
+  //          R := '';
+  //        end;
+  //      end;
+  //    end;
+  //  end;
+  //until (N <= 0) or Terminated;
+  //WriteLn('TReceiver.Execute()' + FConnection.DebugInfo + ' detected end of life, beginning termination');
+  //FConnection.OnTCPFail;
+  //FConnection := nil;
 end;
 
 procedure TReceiver.OnReceivedLine(EncodedLine: String);

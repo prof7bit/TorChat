@@ -27,7 +27,9 @@ uses
   Classes,
   SysUtils,
   syncobjs,
+  Sockets,
   lNet,
+  lEvents,
   fpjson,
   tc_interface,
   tc_misc,
@@ -54,6 +56,10 @@ type
     FConnecting: Boolean;
     FLastActivity: TDateTime;
     FLastStatusSent: TDateTime;
+    FLnetClient: TLTcp;
+    procedure OnConnect(ASocket: TLSocket);
+    procedure OnReceive(ASocket: TLSocket);
+    procedure OnDisconect(ASocket: TLSocket);
     procedure InitiateConnect;
     procedure CbNetOut(ATCPStream: TStream; E: Exception);
     function CanUseThisName(AName: String): Boolean;
@@ -103,28 +109,75 @@ uses
 
 { TBuddy }
 
+procedure TBuddy.OnConnect(ASocket: TLSocket);
+var
+  REQ: String;
+begin
+  writeln('TBuddy.OnConnect() ', ID, ' connected to Tor, sending SOCKS4 request');
+  SetLength(REQ, 8);
+  REQ[1] := #4; // Socks 4
+  REQ[2] := #1; // CONNECT command
+  PWord(@REQ[3])^ := ShortHostToNet(11009); // TorChat port
+  PDWord(@REQ[5])^ := HostToNet(1); // address '0.0.0.1' means: Socks 4a
+  REQ := REQ + 'TorChat' + #0;
+  REQ := REQ + ID + '.onion' + #0;
+  ASocket.Send(REQ[1], Length(REQ));
+end;
+
+procedure TBuddy.OnReceive(ASocket: TLSocket);
+var
+  ANS: array[1..8] of byte;
+  Num: Integer;
+  C  : IHiddenConnection;
+begin
+  writeln('TBuddy.OnReceive() ',ID);
+  Num := ASocket.Get(ANS, 8);
+  if (Num = 8) and (ANS[2] = 90) then begin
+    writeln('TBuddy.OnReceive() ', ID, ' socks4a connection established');
+    C := THiddenConnection.Create(Client, ASocket, Self);
+    SetOutgoing(C);
+  end
+  else begin
+    writeln('TBuddy.OnReceive() ', ID, ' socks4a connection failed');
+    ASocket.Disconnect();
+    FLastDisconnect := Now;
+    FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
+  end;
+  FConnecting := False;
+end;
+
+procedure TBuddy.OnDisconect(ASocket: TLSocket);
+begin
+
+end;
+
 procedure TBuddy.InitiateConnect;
 begin
   WriteLn('TBuddy.InitiateConnect() ' + ID);
   FOnCbNetOutFinishedEvent.ResetEvent;
-  FClient.LNetClient.Connect(FClient.TorHost, FClient.TorPort);
-  //FConnectThread := FClient.Network.ConnectAsync(ID + '.onion', 11009, @CbNetOut);
+  with FLnetClient do begin
+    OnConnect := @Self.OnConnect;
+    OnReceive := @Self.OnReceive;
+    OnDisconnect := @Self.OnDisconect;
+  end;
+  FLnetClient.Connect(Client.TorHost, Client.TorPort);
+  FConnecting := True;
 end;
 
 procedure TBuddy.CbNetOut(ATCPStream: TStream; E: Exception);
 begin
-  //FConnectThread := nil;
-  if assigned(ATCPStream) then begin
-    SetOutgoing(THiddenConnection.Create(FClient, ATCPStream, Self));
-  end
-  else begin
-    WriteLn(E.Message);
-    FLastDisconnect := Now;
-    FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
-    WriteLn(_F('%s next connection attempt in %d seconds',
-      [ID, FReconnectInterval]));
-  end;
-  FOnCbNetOutFinishedEvent.SetEvent;
+  ////FConnectThread := nil;
+  //if assigned(ATCPStream) then begin
+  //  SetOutgoing(THiddenConnection.Create(FClient, ATCPStream, Self));
+  //end
+  //else begin
+  //  WriteLn(E.Message);
+  //  FLastDisconnect := Now;
+  //  FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
+  //  WriteLn(_F('%s next connection attempt in %d seconds',
+  //    [ID, FReconnectInterval]));
+  //end;
+  //FOnCbNetOutFinishedEvent.SetEvent;
 end;
 
 constructor TBuddy.Create(AClient: IClient);
@@ -144,6 +197,8 @@ begin
   CreateGUID(GUID);
   FOwnCookie := GUIDToString(GUID);
   ResetConnectInterval;
+  FLnetClient := TLTcp.Create(nil);
+  FLnetClient.Eventer := Client.LNetEventer;
   WriteLn('TBuddy.Create() created random cookie: ' + FOwnCookie);
 end;
 
@@ -156,6 +211,7 @@ begin
   //  FOnCbNetOutFinishedEvent.WaitFor(INFINITE);
   //end;
   FOnCbNetOutFinishedEvent.Free;
+  FLnetClient.Free;
   writeln('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
 end;

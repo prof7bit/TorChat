@@ -69,8 +69,9 @@ type
     FHSNameOK: Boolean;
     FStatus: TTorchatStatus;
     FConnInList: IInterfaceList;
-    FLnetClient: TLTcp;
-    procedure CbNetIn(AStream: TStream; E: Exception);
+    FLnetEventer: TLEventer;
+    FLnetListener: TLTcp;
+    procedure OnListenerAccept(ASocket: TLSocket);
     procedure CheckHiddenServiceName;
     procedure CheckAnonConnTimeouts;
     procedure OnConnect(Socket: TLSocket);
@@ -96,7 +97,7 @@ type
     function TorPort: DWord;
     function HSNameOK: Boolean;
     function Status: TTorchatStatus;
-    function LNetClient: TLTcp;
+    function LNetEventer: TLEventer;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
@@ -118,9 +119,8 @@ constructor TTorChatClient.Create(AOwner: TComponent; AProfileName: String);
 begin
   FIsDestroying := False;
   Inherited Create(AOwner);
-  FLnetClient := TLTcp.Create(self);
-  FLnetClient.OnConnect := @OnConnect;
-  FLnetClient.OnDisconnect := @OnDisconnect;
+  FLnetEventer := BestEventerClass.Create;
+  writeln('lNet using ', FLnetEventer.ToString);
 
   FStatus := TORCHAT_OFFLINE;
   FMainThread := ThreadID;
@@ -142,6 +142,13 @@ begin
     [AProfileName, FListenPort]));
   AddPortToList(FListenPort);
 
+  FLnetListener := TLTcp.Create(self);
+  with FLnetListener do begin
+    Eventer := FLnetEventer;
+    OnAccept := @OnListenerAccept;
+    FLnetListener.Listen(FListenPort);
+  end;
+
   FTor := TTor.Create(Self, Self, FListenPort);
   FTorHost := FTor.TorHost;
   FTorPort := FTor.TorPort;
@@ -153,10 +160,6 @@ var
 begin
   WriteLn('start destroying TorChatClient');
   FIsDestroying := True;
-
-  FLnetClient.IterReset;
-  while FLnetClient.IterNext do
-    FLnetClient.Disconnect();
 
   // disconnect all buddies
   Roster.DoDisconnectAll;
@@ -174,6 +177,8 @@ begin
 
   RemovePortFromList(FListenPort);
 
+  FLnetEventer.Free;
+
   WriteLn('start destroying child components');
   inherited Destroy;
   WriteLn('start destroying unreferenced interfaces');
@@ -183,7 +188,7 @@ procedure TTorChatClient.Pump;
 begin
   if FIsDestroying then exit;
   if FTimeStarted = 0 then FTimeStarted := Now;
-  FLnetClient.CallAction;
+  FLnetEventer.CallAction;
   CheckHiddenServiceName;
   Queue.PumpNext;
   Roster.CheckState;
@@ -246,9 +251,9 @@ begin
   Result := FStatus;
 end;
 
-function TTorChatClient.LNetClient: TLTcp;
+function TTorChatClient.LNetEventer: TLEventer;
 begin
-  Result := FLnetClient;
+  Result := FLnetEventer;
 end;
 
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
@@ -281,16 +286,15 @@ begin
   end;
 end;
 
-procedure TTorChatClient.CbNetIn(AStream: TStream; E: Exception);
+procedure TTorChatClient.OnListenerAccept(ASocket: TLSocket);
 var
   C : THiddenConnection;
 begin
-  writeln('TTorChatClient.CbNetIn()');
-  Ignore(E);
+  writeln('TTorChatClient.OnListenerAccept()');
   if FIsDestroying then
-    AStream.Free
+    ASocket.Disconnect()
   else begin
-    C := THiddenConnection.Create(Self, AStream, nil);
+    C := THiddenConnection.Create(Self, ASocket, nil);
     RegisterAnonConnection(C);
   end;
 end;
