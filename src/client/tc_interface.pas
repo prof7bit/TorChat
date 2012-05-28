@@ -30,7 +30,6 @@ interface
 uses
   Classes,
   fpjson,
-  lNet,
   lEvents;
 
 type

@@ -33,6 +33,15 @@ uses
   tc_tor;
 
 type
+  { TEventThread is the thread that is polling the sockets
+    and firing all the lNet callback methods }
+  TEventThread = class(TThread)
+    FEventer: TLEventer;
+    FOutput: Text;
+    constructor Create(AEventer: TLEventer);
+    procedure Execute; override;
+  end;
+
   { TTorChatClient implements the abstract IClient.
     Together with all its contained objects this represents
     a fully functional TorChat client. The GUI (or
@@ -55,6 +64,7 @@ type
   TTorChatClient = class(TComponent, IClient)
   strict private
     FMainThread: TThreadID;
+    FEventThread: TEventThread;
     FProfileName: String;
     FClientConfig: IClientConfig;
     FRoster: IRoster;
@@ -74,9 +84,6 @@ type
     procedure OnListenerAccept(ASocket: TLSocket);
     procedure CheckHiddenServiceName;
     procedure CheckAnonConnTimeouts;
-    procedure OnConnect(Socket: TLSocket);
-    procedure OnDisconnect(Socket: TLSocket);
-    procedure OnError(Socket: TLHandle; const Error: String);
   public
     constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
     destructor Destroy; override;
@@ -112,6 +119,24 @@ uses
   tc_misc,
   tc_conn;
 
+{ TEventThread }
+
+constructor TEventThread.Create(AEventer: TLEventer);
+begin
+  FOutput := Output;
+  FEventer := AEventer;
+  FEventer.Timeout := 500;
+  inherited Create(False);
+end;
+
+procedure TEventThread.Execute;
+begin
+  Output := FOutput;
+  repeat
+    FEventer.CallAction;
+  until Terminated;
+end;
+
 { TTorChatClient }
 
 constructor TTorChatClient.Create(AOwner: TComponent; AProfileName: String);
@@ -120,7 +145,7 @@ begin
   Inherited Create(AOwner);
   FLnetEventer := BestEventerClass.Create;
   writeln('lNet using ', FLnetEventer.ToString);
-
+  FEventThread := TEventThread.Create(FLnetEventer);
   FStatus := TORCHAT_OFFLINE;
   FMainThread := ThreadID;
   FProfileName := AProfileName;
@@ -176,6 +201,7 @@ begin
 
   RemovePortFromList(FListenPort);
 
+  FEventThread.Free;
   FLnetEventer.Free;
 
   WriteLn('start destroying child components');
@@ -187,7 +213,6 @@ procedure TTorChatClient.Pump;
 begin
   if FIsDestroying then exit;
   if FTimeStarted = 0 then FTimeStarted := Now;
-  FLnetEventer.CallAction;
   CheckHiddenServiceName;
   Queue.PumpNext;
   Roster.CheckState;
@@ -341,22 +366,6 @@ begin
       Conn.Disconnect;
     end;
   end;
-end;
-
-procedure TTorChatClient.OnConnect(Socket: TLSocket);
-begin
-  writeln(Socket.PeerAddress);
-  socket.OnError := @OnError;
-end;
-
-procedure TTorChatClient.OnDisconnect(Socket: TLSocket);
-begin
-  writeln('disconnected ', Socket.Handle);
-end;
-
-procedure TTorChatClient.OnError(Socket: TLHandle; const Error: String);
-begin
-  writeln('error ', Socket.Handle, ' ', Error);
 end;
 
 end.

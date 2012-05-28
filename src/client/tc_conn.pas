@@ -95,7 +95,6 @@ var
   Info: String;
 begin
   Info := DebugInfo;
-  FSocket.Free;
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished ' + Info);
 end;
@@ -108,17 +107,21 @@ begin
   ASocket.OnRead := nil;
   ASocket.OnError := nil;
 
-  // remove all references
+  // remove references to this object
+  // in all the other objects.
+  Self._AddRef;
   if Assigned(FBuddy) then begin
     if IsOutgoing then
       FBuddy.SetOutgoing(nil)
-    else
+    else begin
       FBuddy.SetIncoming(nil);
-    FBuddy := nil;
-  end;
-  Client.UnregisterAnonConnection(Self);
+    end;
+  end
+  else
+    FClient.UnregisterAnonConnection(Self);
 
   // it will free itself when the reference counter is zero.
+  Self._Release;
 end;
 
 procedure THiddenConnection.OnReceive(ASocket: TLHandle);
@@ -151,8 +154,11 @@ end;
 
 procedure THiddenConnection.Disconnect;
 begin
-  //FSocket.Disconnect();
+  WriteLn('THiddenConnection.Disconnect() ', DebugInfo);
   OnTCPFail(FSocket, 'forced');
+  FSocket.Disconnect();
+  Sleep(100);
+  WriteLn('THiddenConnection.Disconnect() done');
 end;
 
 procedure THiddenConnection.OnReceivedLine(EncodedLine: String);

@@ -55,10 +55,11 @@ type
     FLastActivity: TDateTime;
     FLastStatusSent: TDateTime;
     FLnetClient: TLTcp;
-    procedure OnConnect(ASocket: TLSocket);
-    procedure OnReceive(ASocket: TLSocket);
-    procedure OnDisconect(ASocket: TLSocket);
-    procedure OnError(const Error: String; ASocket: TLSocket);
+    procedure OnProxyConnect(ASocket: TLSocket);
+    procedure OnProxyConnectFailed;
+    procedure OnProxyReceive(ASocket: TLSocket);
+    procedure OnProxyDisconect(ASocket: TLSocket);
+    procedure OnProxyError(const Error: String; ASocket: TLSocket);
     procedure InitiateConnect;
     function CanUseThisName(AName: String): Boolean;
     procedure CallFromMainThread(AMethod: TMethodOfObject);
@@ -107,11 +108,11 @@ uses
 
 { TBuddy }
 
-procedure TBuddy.OnConnect(ASocket: TLSocket);
+procedure TBuddy.OnProxyConnect(ASocket: TLSocket);
 var
   REQ: String;
 begin
-  writeln('TBuddy.OnConnect() ', ID, ' connected to Tor, sending SOCKS4 request');
+  writeln('TBuddy.OnProxyConnect() ', ID, ' connected to Tor, sending SOCKS4 request');
   SetLength(REQ, 8);
   REQ[1] := #4; // Socks 4
   REQ[2] := #1; // CONNECT command
@@ -122,48 +123,59 @@ begin
   ASocket.Send(REQ[1], Length(REQ));
 end;
 
-procedure TBuddy.OnReceive(ASocket: TLSocket);
+procedure TBuddy.OnProxyConnectFailed;
+begin
+  FConnecting := False;
+  FLastDisconnect := Now;
+  FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
+  WriteLn(_F('%s next connection attempt in %d seconds',
+    [ID, FReconnectInterval]));
+end;
+
+procedure TBuddy.OnProxyReceive(ASocket: TLSocket);
 var
   ANS: array[1..8] of byte;
   Num: Integer;
   C  : IHiddenConnection;
 begin
-  writeln('TBuddy.OnReceive() ',ID);
   Num := ASocket.Get(ANS, 8);
   if (Num = 8) and (ANS[2] = 90) then begin
-    writeln('TBuddy.OnReceive() ', ID, ' socks4a connection established');
+    writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
+
+    // now we remove the event methods, THiddenConnection has its own
+    FLnetClient.OnReceive := nil;
+    FLnetClient.OnDisconnect := nil;
+    FLnetClient.OnError := nil;
     C := THiddenConnection.Create(Client, ASocket, Self);
     SetOutgoing(C);
   end
   else begin
-    writeln('TBuddy.OnReceive() ', ID, ' socks4a connection failed');
+    writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection failed');
     ASocket.Disconnect();
-    FLastDisconnect := Now;
-    FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
-    WriteLn(_F('%s next connection attempt in %d seconds',
-      [ID, FReconnectInterval]));
   end;
   FConnecting := False;
 end;
 
-procedure TBuddy.OnDisconect(ASocket: TLSocket);
+procedure TBuddy.OnProxyDisconect(ASocket: TLSocket);
 begin
-  writeln('TBuddy.OnDisconect() ', ID);
+  writeln('TBuddy.OnProxyDisconect() ', ID);
+  OnProxyConnectFailed;
 end;
 
-procedure TBuddy.OnError(const Error: String; ASocket: TLSocket);
+procedure TBuddy.OnProxyError(const Error: String; ASocket: TLSocket);
 begin
-  writeln('TBuddy.OnError() ', ID, ' ', Error);
+  writeln('TBuddy.OnProxyError() ', ID, ' ', Error);
+  OnProxyConnectFailed;
 end;
 
 procedure TBuddy.InitiateConnect;
 begin
   WriteLn('TBuddy.InitiateConnect() ' + ID);
   with FLnetClient do begin
-    OnConnect := @Self.OnConnect;
-    OnReceive := @Self.OnReceive;
-    OnDisconnect := @Self.OnDisconect;
-    OnError := @Self.OnError;
+    OnConnect := @Self.OnProxyConnect;
+    OnReceive := @Self.OnProxyReceive;
+    OnDisconnect := @Self.OnProxyDisconect;
+    OnError := @Self.OnProxyError;
   end;
   FLnetClient.Connect(Client.TorHost, Client.TorPort);
   FConnecting := True;
@@ -193,6 +205,7 @@ end;
 destructor TBuddy.Destroy;
 begin
   writeln('TBuddy.Destroy() ' + ID);
+  FLnetClient.Disconnect();
   FLnetClient.Free;
   writeln('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
@@ -344,11 +357,15 @@ begin
 end;
 
 procedure TBuddy.DoDisconnect;
+var
+  C1, C2: IHiddenConnection;
 begin
-  if Assigned(ConnIncoming) or Assigned(ConnOutgoing) then begin
-    if Assigned(ConnIncoming) then ConnIncoming.Disconnect;
-    if Assigned(ConnOutgoing) then ConnOutgoing.Disconnect;
-  end;
+  C1 := ConnIncoming;
+  C2 := ConnOutgoing;
+  if Assigned(C1) then C1.Disconnect;
+  if Assigned(C2) then C2.Disconnect;
+  // they should free now when C1 and C2 go out of scope
+  writeln('TBuddy.DoDisconnect() leaving');
 end;
 
 procedure TBuddy.RemoveYourself; // called by the GUI
