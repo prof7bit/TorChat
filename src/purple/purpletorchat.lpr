@@ -85,7 +85,7 @@ uses
   tc_client,
   tc_buddy,
   tc_config,
-  tc_misc, tc_prot_remove_me;
+  tc_misc;
 
 const
   PRPL_ID_OFFLINE = 'offline';

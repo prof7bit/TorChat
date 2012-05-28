@@ -29,7 +29,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../client"/>
+            <OtherUnitFiles Value="../client;../client/lnet-0.6.5"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -206,7 +206,7 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="22">
+    <Units Count="21">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -248,75 +248,70 @@
         <UnitName Value="tc_conn"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../client/tc_sock.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_sock"/>
-      </Unit8>
-      <Unit9>
         <Filename Value="../client/tc_conn_rcv.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_conn_rcv"/>
-      </Unit9>
-      <Unit10>
+      </Unit8>
+      <Unit9>
         <Filename Value="../client/tc_interface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_interface"/>
-      </Unit10>
-      <Unit11>
+      </Unit9>
+      <Unit10>
         <Filename Value="../client/tc_buddy.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_buddy"/>
-      </Unit11>
-      <Unit12>
+      </Unit10>
+      <Unit11>
         <Filename Value="../client/tc_prot_ping.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_ping"/>
-      </Unit12>
-      <Unit13>
+      </Unit11>
+      <Unit12>
         <Filename Value="../client/tc_prot_add_me.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_add_me"/>
-      </Unit13>
-      <Unit14>
+      </Unit12>
+      <Unit13>
         <Filename Value="../client/tc_msgqueue.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_msgqueue"/>
-      </Unit14>
-      <Unit15>
+      </Unit13>
+      <Unit14>
         <Filename Value="purplehelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="purplehelper"/>
-      </Unit15>
-      <Unit16>
+      </Unit14>
+      <Unit15>
         <Filename Value="../client/tc_roster.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_roster"/>
-      </Unit16>
-      <Unit17>
+      </Unit15>
+      <Unit16>
         <Filename Value="../client/tc_templist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_templist"/>
-      </Unit17>
-      <Unit18>
+      </Unit16>
+      <Unit17>
         <Filename Value="../client/tc_prot_not_implemented.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_not_implemented"/>
-      </Unit18>
-      <Unit19>
+      </Unit17>
+      <Unit18>
         <Filename Value="../client/tc_prot_pong.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_pong"/>
-      </Unit19>
-      <Unit20>
+      </Unit18>
+      <Unit19>
         <Filename Value="../client/tc_prot_status.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_status"/>
-      </Unit20>
-      <Unit21>
+      </Unit19>
+      <Unit20>
         <Filename Value="../client/tc_prot_remove_me.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_remove_me"/>
-      </Unit21>
+      </Unit20>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

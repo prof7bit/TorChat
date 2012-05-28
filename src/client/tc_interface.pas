@@ -30,7 +30,7 @@ interface
 uses
   Classes,
   fpjson,
-  tc_sock;
+  lnet;
 
 type
   TTorchatStatus = (
@@ -80,7 +80,6 @@ type
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
-    function Network: TSocketWrapper;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
     function ProfileName: String;
@@ -88,6 +87,7 @@ type
     function TorPort: DWord;
     function HSNameOK: Boolean;
     function Status: TTorchatStatus;
+    function LNetClient: TLTcp;
   end;
 
   { a temporary list of buddies}
@@ -154,7 +154,7 @@ type
     function DebugInfo: String;
     function Buddy: IBuddy;
     function Client: IClient;
-    function Stream: TTCPStream;
+    function Stream: TStream;
     function TimeCreated: TDateTime;
     function PingBuddyID: String;
     procedure Disconnect;

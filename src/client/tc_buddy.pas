@@ -27,11 +27,11 @@ uses
   Classes,
   SysUtils,
   syncobjs,
+  lNet,
   fpjson,
   tc_interface,
   tc_misc,
   tc_conn,
-  tc_sock,
   tc_msgqueue;
 
 
@@ -51,11 +51,11 @@ type
     FConnOutgoing: IHiddenConnection;
     FMustSendPong: Boolean;
     FReceivedCookie: String;
-    FConnectThread: TAsyncConnectThread;
+    FConnecting: Boolean;
     FLastActivity: TDateTime;
     FLastStatusSent: TDateTime;
     procedure InitiateConnect;
-    procedure CbNetOut(ATCPStream: TTCPStream; E: Exception);
+    procedure CbNetOut(ATCPStream: TStream; E: Exception);
     function CanUseThisName(AName: String): Boolean;
     procedure CallFromMainThread(AMethod: TMethodOfObject);
   public
@@ -107,12 +107,13 @@ procedure TBuddy.InitiateConnect;
 begin
   WriteLn('TBuddy.InitiateConnect() ' + ID);
   FOnCbNetOutFinishedEvent.ResetEvent;
-  FConnectThread := FClient.Network.ConnectAsync(ID + '.onion', 11009, @CbNetOut);
+  FClient.LNetClient.Connect(FClient.TorHost, FClient.TorPort);
+  //FConnectThread := FClient.Network.ConnectAsync(ID + '.onion', 11009, @CbNetOut);
 end;
 
-procedure TBuddy.CbNetOut(ATCPStream: TTCPStream; E: Exception);
+procedure TBuddy.CbNetOut(ATCPStream: TStream; E: Exception);
 begin
-  FConnectThread := nil;
+  //FConnectThread := nil;
   if assigned(ATCPStream) then begin
     SetOutgoing(THiddenConnection.Create(FClient, ATCPStream, Self));
   end
@@ -132,7 +133,7 @@ var
 begin
   inherited Create;
   FOnCbNetOutFinishedEvent := TSimpleEvent.Create;
-  FConnectThread := nil;
+  FConnecting := False;
   FClient := AClient;
   FLastDisconnect := 0;
   FLastActivity := Now;
@@ -149,11 +150,11 @@ end;
 destructor TBuddy.Destroy;
 begin
   writeln('TBuddy.Destroy() ' + ID);
-  if Assigned(FConnectThread) then begin
-    writeln('TBuddy.Destroy() ' + ID + ' must terminate ongoing connection attempt');
-    FConnectThread.Terminate;
-    FOnCbNetOutFinishedEvent.WaitFor(INFINITE);
-  end;
+  //if Assigned(FConnectThread) then begin
+  //  writeln('TBuddy.Destroy() ' + ID + ' must terminate ongoing connection attempt');
+  //  FConnectThread.Terminate;
+  //  FOnCbNetOutFinishedEvent.WaitFor(INFINITE);
+  //end;
   FOnCbNetOutFinishedEvent.Free;
   writeln('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
@@ -161,7 +162,7 @@ end;
 
 procedure TBuddy.CheckState;
 begin
-  if not (Assigned(ConnOutgoing) or Assigned(FConnectThread)) then begin
+  if not (Assigned(ConnOutgoing) or FConnecting) then begin
     if SecondsSince(FLastDisconnect) > FReconnectInterval then begin
       InitiateConnect;
     end;

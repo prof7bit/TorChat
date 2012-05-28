@@ -28,8 +28,9 @@ uses
   SysUtils,
   tc_interface,
   tc_msgqueue,
-  tc_tor,
-  tc_sock;
+  lnet,
+  lEvents,
+  tc_tor;
 
 type
   { TTorChatClient implements the abstract IClient.
@@ -58,7 +59,6 @@ type
     FClientConfig: IClientConfig;
     FRoster: IRoster;
     FTempList: ITempList;
-    FNetwork: TSocketWrapper;
     FIsDestroying: Boolean;
     FListenPort: DWord;
     FTorHost: String;
@@ -69,9 +69,13 @@ type
     FHSNameOK: Boolean;
     FStatus: TTorchatStatus;
     FConnInList: IInterfaceList;
-    procedure CbNetIn(AStream: TTCPStream; E: Exception);
+    FLnetClient: TLTcp;
+    procedure CbNetIn(AStream: TStream; E: Exception);
     procedure CheckHiddenServiceName;
     procedure CheckAnonConnTimeouts;
+    procedure OnConnect(Socket: TLSocket);
+    procedure OnDisconnect(Socket: TLSocket);
+    procedure OnError(Socket: TLHandle; const Error: String);
   public
     constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
     destructor Destroy; override;
@@ -84,7 +88,6 @@ type
     function MainThread: TThreadID;
     function Roster: IRoster;
     function TempList: ITempList;
-    function Network: TSocketWrapper;
     function Queue: IMsgQueue;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
@@ -93,6 +96,7 @@ type
     function TorPort: DWord;
     function HSNameOK: Boolean;
     function Status: TTorchatStatus;
+    function LNetClient: TLTcp;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
@@ -101,6 +105,7 @@ type
 
 implementation
 uses
+  lCommon,
   tc_templist,
   tc_roster,
   tc_config,
@@ -113,6 +118,10 @@ constructor TTorChatClient.Create(AOwner: TComponent; AProfileName: String);
 begin
   FIsDestroying := False;
   Inherited Create(AOwner);
+  FLnetClient := TLTcp.Create(self);
+  FLnetClient.OnConnect := @OnConnect;
+  FLnetClient.OnDisconnect := @OnDisconnect;
+
   FStatus := TORCHAT_OFFLINE;
   FMainThread := ThreadID;
   FProfileName := AProfileName;
@@ -122,7 +131,6 @@ begin
   FTimeStarted := 0; // we will initialize it on first Pump() call
   FConnInList := TInterfaceList.Create;
   FQueue := TMsgQueue.Create(Self);
-  FNetwork := TSocketWrapper.Create(Self);
   FTempList := TTempList.Create(Self);
   FRoster := TRoster.Create(Self);
   FRoster.Load;
@@ -137,12 +145,6 @@ begin
   FTor := TTor.Create(Self, Self, FListenPort);
   FTorHost := FTor.TorHost;
   FTorPort := FTor.TorPort;
-  with FNetwork do begin
-    SocksProxyAddress := FTorHost;
-    SocksProxyPort := FTorPort;
-    IncomingCallback := @CbNetIn;
-    StartListening(FListenPort);
-  end;
 end;
 
 destructor TTorChatClient.Destroy;
@@ -151,6 +153,10 @@ var
 begin
   WriteLn('start destroying TorChatClient');
   FIsDestroying := True;
+
+  FLnetClient.IterReset;
+  while FLnetClient.IterNext do
+    FLnetClient.Disconnect();
 
   // disconnect all buddies
   Roster.DoDisconnectAll;
@@ -177,6 +183,7 @@ procedure TTorChatClient.Pump;
 begin
   if FIsDestroying then exit;
   if FTimeStarted = 0 then FTimeStarted := Now;
+  FLnetClient.CallAction;
   CheckHiddenServiceName;
   Queue.PumpNext;
   Roster.CheckState;
@@ -197,11 +204,6 @@ end;
 function TTorChatClient.TempList: ITempList;
 begin
   Result := FTempList;
-end;
-
-function TTorChatClient.Network: TSocketWrapper;
-begin
-  Result := FNetwork;
 end;
 
 function TTorChatClient.Queue: IMsgQueue;
@@ -244,6 +246,11 @@ begin
   Result := FStatus;
 end;
 
+function TTorChatClient.LNetClient: TLTcp;
+begin
+  Result := FLnetClient;
+end;
+
 procedure TTorChatClient.SetStatus(AStatus: TTorchatStatus);
 var
   Buddy: IBuddy;
@@ -274,7 +281,7 @@ begin
   end;
 end;
 
-procedure TTorChatClient.CbNetIn(AStream: TTCPStream; E: Exception);
+procedure TTorChatClient.CbNetIn(AStream: TStream; E: Exception);
 var
   C : THiddenConnection;
 begin
@@ -331,6 +338,22 @@ begin
       Conn.Disconnect;
     end;
   end;
+end;
+
+procedure TTorChatClient.OnConnect(Socket: TLSocket);
+begin
+  writeln(Socket.PeerAddress);
+  socket.OnError := @OnError;
+end;
+
+procedure TTorChatClient.OnDisconnect(Socket: TLSocket);
+begin
+  writeln('disconnected ', Socket.Handle);
+end;
+
+procedure TTorChatClient.OnError(Socket: TLHandle; const Error: String);
+begin
+  writeln('error ', Socket.Handle, ' ', Error);
 end;
 
 end.

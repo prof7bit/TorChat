@@ -28,8 +28,7 @@ uses
   SysUtils,
   syncobjs,
   tc_interface,
-  tc_conn_rcv,
-  tc_sock;
+  tc_conn_rcv;
 
 type
 
@@ -39,14 +38,14 @@ type
     FPingBuddyID: String;
     FKnownBuddyID: String; // used for debug output
     FTimeCreated: TDateTime;
-    FTCPStream: TTCPStream;
+    FTCPStream: TStream;
     FClient: IClient;
     FBuddy: IBuddy;
     FIsOutgoing: Boolean;
     FReceiver: TAReceiver;
     FCallbackDone: TSimpleEvent;
   public
-    constructor Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
+    constructor Create(AClient: IClient; AStream: TStream; ABuddy: IBuddy);
     destructor Destroy; override;
     procedure Disconnect;
     procedure Send(AData: String);
@@ -58,7 +57,7 @@ type
     function DebugInfo: String;
     function Buddy: IBuddy;
     function Client: IClient;
-    function Stream: TTCPStream;
+    function Stream: TStream;
     function TimeCreated: TDateTime;
     function PingBuddyID: String;
   end;
@@ -67,7 +66,7 @@ implementation
 
 { THiddenConnection }
 
-constructor THiddenConnection.Create(AClient: IClient; AStream: TTCPStream; ABuddy: IBuddy);
+constructor THiddenConnection.Create(AClient: IClient; AStream: TStream; ABuddy: IBuddy);
 begin
   FCallbackDone := TSimpleEvent.Create();
   FPingBuddyID := '';
@@ -105,7 +104,7 @@ begin
   // this will trigger the OnTCPFail callback which will
   // remove all references between connection and buddy,
   // the reference counting will then free the object.
-  FTCPStream.DoClose;
+  //FTCPStream.DoClose;
   FCallbackDone.WaitFor(INFINITE);
 end;
 
@@ -183,7 +182,7 @@ begin
   Result := FClient;
 end;
 
-function THiddenConnection.Stream: TTCPStream;
+function THiddenConnection.Stream: TStream;
 begin
   Result := FTCPStream;
 end;

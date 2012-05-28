@@ -1,0 +1,19 @@
+This is the file LICENSE.Addon, it applies to the Lighweight Network Library (lnet).
+
+The source code of the Lightweight Network library are
+distributed under the Library GNU General Public License 
+(see the file LICENSE) with the following modification:
+
+- object files and libraries linked into an application may be
+  distributed without source code.
+  
+The unit tomwinsock.pas is EXLUDED from both the GPL and this addon license.
+It is distributed under the terms of BSD license as mentioned in the file.
+I am NOT the author of tomwinsock.pas
+
+If you didn't receive a copy of the file LICENSE, contact:
+      Free Software Foundation, Inc.,
+      59 Temple Place - Suite 330
+      Boston, MA 02111
+      USA
+
