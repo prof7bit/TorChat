@@ -38,7 +38,7 @@
   the Execute() method will show you how the client is
   supposed to react to an incoming message of this type.
 
-  * See also TReceiver (tc_conn_rcv.pas) for the handling
+  * See also THiddenConnection (tc_conn.pas) for the handling
   of the incoming bytes from the TCP socket.
 
   * See also TMsgPing (torchatprotocol_ping.pas) which is the

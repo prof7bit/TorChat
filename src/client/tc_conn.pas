@@ -17,6 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
+
 unit tc_conn;
 
 {$mode objfpc}{$H+}
@@ -81,13 +82,16 @@ begin
   FBuddy := ABuddy;
   FIsOutgoing := Assigned(ABuddy);
   WriteLn('THiddenConnection.Create() ', DebugInfo , ' ', ASocket.Handle);
-  // This object will free all its stuff in OnTCPFail().
-  // Never call Connection.Free() directly. There is only one way
-  // to get rid of a THiddenConnection object: call the method
-  // Connection.Disconnect(); This will trigger the same events
-  // that also happen when the TCP connection fails: It will call the
-  // buddie's OnXxxxFail method and *wait* until the callbacks are
-  // all done and then let it free automatically.
+
+  // THiddenConnection is reference counted (use it only with
+  // variables of type IHiddenConnection and never call
+  // Free() directly. There is only one way to get rid of a
+  // THiddenConnection object: call the method Disconnect();
+  // This will trigger the same events that also happen when
+  // the TCP connection fails: It will call the buddie's
+  // OnXxxxFail method and not return before the callbacks are
+  // all done and then let it free automatically when refcount
+  // reaches zero.
 end;
 
 destructor THiddenConnection.Destroy;
@@ -101,14 +105,17 @@ end;
 
 procedure THiddenConnection.OnTCPFail(ASocket: TLHandle; const Error: String);
 begin
+  // I'm wrapping this method into _AddRef/_Release so that the
+  // destruction due to refcount=0 won't catch us somewhere in
+  // the middle of the following code, I am delaying this until
+  // the very end of this method.
+  Self._AddRef;
   WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
 
   //no more callbacks
   ASocket.Dispose := True;
 
-  // remove references to this object
-  // in all the other objects.
-  Self._AddRef;
+  // remove references to the connection in all other objects.
   if Assigned(FBuddy) then begin
     if IsOutgoing then
       FBuddy.SetOutgoing(nil)
@@ -120,6 +127,10 @@ begin
     FClient.UnregisterAnonConnection(Self);
 
   // it will free itself when the reference counter is zero.
+  // This is the case when the conection closes itself because
+  // the other side hung up. If we are doing the disconnect
+  // ourselves then it will happen a little later when the
+  // local variables in TBuddy.DoDisconect go out of scope.
   Self._Release;
 end;
 
