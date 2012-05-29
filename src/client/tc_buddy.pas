@@ -159,12 +159,14 @@ end;
 procedure TBuddy.OnProxyDisconect(ASocket: TLSocket);
 begin
   writeln('TBuddy.OnProxyDisconect() ', ID);
+  Ignore(ASocket);
   OnProxyConnectFailed;
 end;
 
 procedure TBuddy.OnProxyError(const Error: String; ASocket: TLSocket);
 begin
   writeln('TBuddy.OnProxyError() ', ID, ' ', Error);
+  Ignore(ASocket);
   OnProxyConnectFailed;
 end;
 
@@ -361,8 +363,8 @@ var
   C1, C2: IHiddenConnection;
 begin
   C1 := ConnIncoming;
-  C2 := ConnOutgoing;
   if Assigned(C1) then C1.Disconnect;
+  C2 := ConnOutgoing;
   if Assigned(C2) then C2.Disconnect;
   // they should free now when C1 and C2 go out of scope
   writeln('TBuddy.DoDisconnect() leaving');

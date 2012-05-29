@@ -4,6 +4,7 @@ COMPILEDIR=../../bin
 
 FPCOPT = \
 	-Fu../client \
+	-Fu../client/lnet-0.6.5 \
 	-FU./lib \
 	-FE../../bin \
 	-g- \

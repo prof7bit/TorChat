@@ -133,6 +133,7 @@ procedure TEventThread.Execute;
 begin
   Output := FOutput;
   repeat
+    Sleep(50); // do we need this?
     FEventer.CallAction;
   until Terminated;
 end;
@@ -145,7 +146,6 @@ begin
   Inherited Create(AOwner);
   FLnetEventer := BestEventerClass.Create;
   writeln('lNet using ', FLnetEventer.ToString);
-  FEventThread := TEventThread.Create(FLnetEventer);
   FStatus := TORCHAT_OFFLINE;
   FMainThread := ThreadID;
   FProfileName := AProfileName;
@@ -176,6 +176,8 @@ begin
   FTor := TTor.Create(Self, Self, FListenPort);
   FTorHost := FTor.TorHost;
   FTorPort := FTor.TorPort;
+
+  FEventThread := TEventThread.Create(FLnetEventer);
 end;
 
 destructor TTorChatClient.Destroy;

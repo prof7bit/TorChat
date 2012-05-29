@@ -80,7 +80,7 @@ begin
   FClient := AClient;
   FBuddy := ABuddy;
   FIsOutgoing := Assigned(ABuddy);
-  WriteLn('THiddenConnection.Create() ' + DebugInfo);
+  WriteLn('THiddenConnection.Create() ', DebugInfo , ' ', ASocket.Handle);
   // This object will free all its stuff in OnTCPFail().
   // Never call Connection.Free() directly. There is only one way
   // to get rid of a THiddenConnection object: call the method
@@ -104,8 +104,7 @@ begin
   WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
 
   //no more callbacks
-  ASocket.OnRead := nil;
-  ASocket.OnError := nil;
+  ASocket.Dispose := True;
 
   // remove references to this object
   // in all the other objects.
@@ -122,6 +121,16 @@ begin
 
   // it will free itself when the reference counter is zero.
   Self._Release;
+end;
+
+procedure THiddenConnection.Disconnect;
+begin
+  WriteLn('THiddenConnection.Disconnect() ', DebugInfo);
+  if FSocket.ConnectionStatus = scConnected then begin
+    OnTCPFail(FSocket, 'forced');
+    FSocket.Disconnect();
+  end;
+  WriteLn('THiddenConnection.Disconnect() done');
 end;
 
 procedure THiddenConnection.OnReceive(ASocket: TLHandle);
@@ -150,15 +159,6 @@ begin
     // connection closed on the other side
     OnTCPFail(ASocket, 'recv() returned no data');
   end;
-end;
-
-procedure THiddenConnection.Disconnect;
-begin
-  WriteLn('THiddenConnection.Disconnect() ', DebugInfo);
-  OnTCPFail(FSocket, 'forced');
-  FSocket.Disconnect();
-  Sleep(100);
-  WriteLn('THiddenConnection.Disconnect() done');
 end;
 
 procedure THiddenConnection.OnReceivedLine(EncodedLine: String);
