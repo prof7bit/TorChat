@@ -121,8 +121,9 @@ begin
     WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
 
     //no more callbacks
-    fpshutdown(ASocket.Handle, SHUT_RDWR);
-    ASocket.Dispose := True;
+    FSocket.Disconnect();
+    //fpshutdown(ASocket.Handle, SHUT_RDWR);
+    //ASocket.Dispose := True;
 
     // remove references to the connection in all other objects.
     if Assigned(FBuddy) then begin
