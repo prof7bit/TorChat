@@ -37,7 +37,7 @@ type
   EEndOfString = class(Exception)
   end;
 
-function SecondsSince(Start: TDateTime): QWord;
+function SecondsSince(Start: TDateTime): Int64;
 
 { split the string Line at the first occurrence of Sep, return the left part
   in the function result and the right part in var Line. If no separator is
@@ -81,7 +81,7 @@ type
 var
   PortList: array of DWord;
 
-function SecondsSince(Start: TDateTime): QWord;
+function SecondsSince(Start: TDateTime): Int64;
 begin
   Result := Round((Now - Start) * 24 * 60 * 60);
 end;

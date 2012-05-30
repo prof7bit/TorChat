@@ -27,6 +27,7 @@ interface
 uses
   Classes,
   SysUtils,
+  syncobjs,
   Sockets,
   lNet,
   lEvents,
@@ -46,6 +47,8 @@ type
     FBuddy: IBuddy;
     FIsOutgoing: Boolean;
     FReceiveBuffer: String;
+    FShuttingDown: Boolean;
+    FDisconnectLock: TCriticalSection;
     procedure OnTCPFail(ASocket: TLHandle; const Error: String);
     procedure OnReceive(ASocket: TLHandle);
     procedure OnReceivedLine(EncodedLine: String);
@@ -73,14 +76,15 @@ uses
 
 constructor THiddenConnection.Create(AClient: IClient; ASocket: TLSocket; ABuddy: IBuddy);
 begin
+  FDisconnectLock := TCriticalSection.Create;
   FPingBuddyID := '';
   FTimeCreated := Now;
   FSocket := ASocket;
   FSocket.OnRead := @Self.OnReceive;
-  FSocket.OnError := @Self.OnTCPFail;
   FClient := AClient;
   FBuddy := ABuddy;
   FIsOutgoing := Assigned(ABuddy);
+  FShuttingDown := False;
   WriteLn('THiddenConnection.Create() ', DebugInfo , ' ', ASocket.Handle);
 
   // THiddenConnection is reference counted (use it only with
@@ -99,6 +103,7 @@ var
   Info: String;
 begin
   Info := DebugInfo;
+  FDisconnectLock.Free;
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished ' + Info);
 end;
@@ -110,53 +115,61 @@ begin
   // the middle of the following code, I am delaying this until
   // the very end of this method.
   Self._AddRef;
-  WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
+  FDisconnectLock.Acquire;
+  if not FShuttingDown then begin
+    FShuttingDown := True;
+    WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
 
-  //no more callbacks
-  ASocket.Dispose := True;
+    //no more callbacks
+    fpshutdown(ASocket.Handle, SHUT_RDWR);
+    ASocket.Dispose := True;
 
-  // remove references to the connection in all other objects.
-  if Assigned(FBuddy) then begin
-    if IsOutgoing then
-      FBuddy.SetOutgoing(nil)
-    else begin
-      FBuddy.SetIncoming(nil);
-    end;
-  end
-  else
-    FClient.UnregisterAnonConnection(Self);
+    // remove references to the connection in all other objects.
+    if Assigned(FBuddy) then begin
+      if IsOutgoing then
+        FBuddy.SetOutgoing(nil)
+      else begin
+        FBuddy.SetIncoming(nil);
+      end;
+    end
+    else
+      FClient.UnregisterAnonConnection(Self);
+  end;
 
   // it will free itself when the reference counter is zero.
   // This is the case when the conection closes itself because
   // the other side hung up. If we are doing the disconnect
   // ourselves then it will happen a little later when the
   // local variables in TBuddy.DoDisconect go out of scope.
+  FDisconnectLock.Release;
   Self._Release;
 end;
 
 procedure THiddenConnection.Disconnect;
 begin
   WriteLn('THiddenConnection.Disconnect() ', DebugInfo);
-  if FSocket.ConnectionStatus = scConnected then begin
+  FDisconnectLock.Acquire;
+  if not FShuttingDown then begin
     OnTCPFail(FSocket, 'forced');
-    FSocket.Disconnect();
   end;
+  FDisconnectLock.Release;
   WriteLn('THiddenConnection.Disconnect() done');
 end;
 
 procedure THiddenConnection.OnReceive(ASocket: TLHandle);
 var
-  B: array[0..1023] of Byte;
+  B: String;
+  X: array[0..20000] of byte;
   N: Integer;
   P: Integer;
   L: String;
 begin
-  writeln('THiddenConnection.OnReceive() ');
-  //writeln('THiddenConnection.OnReceive() ' + DebugInfo);
-  N := fprecv(ASocket.Handle, @B, SizeOf(B)-1, 0);
+  FSocket.SetState(ssCanReceive); // hack-around! Why is this necessary?
+  N := FSocket.GetMessage(B);
+  writeln(_F('THiddenConnection.OnReceive() %s %d Bytes',
+    [DebugInfo, N]));
   if N > 0 then begin
-    B[N] := 0;
-    FReceiveBuffer := FReceiveBuffer + String(PChar(@B));
+    FReceiveBuffer := FReceiveBuffer + B;
     P := Pos(#10, FReceiveBuffer);
     repeat
       L := LeftStr(FReceiveBuffer, P - 1);

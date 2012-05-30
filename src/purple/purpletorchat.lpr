@@ -143,6 +143,32 @@ begin
   Result := False; // purple timer will not fire again
 end;
 
+//{$define DebugTimer}
+{$ifdef DebugTimer}
+const
+  DEBUG_TIMER_DELAY = 120;
+  DEBUG_TIMER_INTERVAL = 30;
+  DEBUG_FUNC_ADDR: TGSourceFunc = nil;
+{ this timer function is only used for debugging, it
+  can be used to automatically trigger certain events
+  at runtime more easily than doing it manually. }
+function __debug(Data: Pointer): gboolean; cdecl;
+var
+  I: Integer;
+  TorChat: TTorChatClient;
+begin
+  WriteLn('W *** debug timer triggered, unexpected events begin...');
+  for I := 0 to TorChatClients.Count-1 do begin
+    TorChat := TTorChatClient(TorChatClients.Items[I]);
+    TorChat.Roster.DoDisconnectAll;
+    Sleep(400);
+  end;
+  WriteLn('W *** debug timer end');
+  if DEBUG_TIMER_INTERVAL > 0 then
+    purple_timeout_add(DEBUG_TIMER_INTERVAL*1000, DEBUG_FUNC_ADDR, nil);
+  Result := False;
+end;
+{$endif DebugTimer}
 
 (******************************************************************
  *                                                                *
@@ -157,6 +183,11 @@ function torchat_load(plugin: PPurplePlugin): GBoolean; cdecl;
 begin
   PurplePlugin := plugin;
   TorChatClients := TTorChatClients.Create(False);
+  {$ifdef DebugTimer}
+  DEBUG_FUNC_ADDR := @__debug;
+  purple_timeout_add(DEBUG_TIMER_DELAY*1000, DEBUG_FUNC_ADDR, nil);
+  WriteLn('E Debug timer installed, crazy things will happen unexpectedly...');
+  {$endif DebugTimer}
   WriteLn('plugin loaded');
   Result := True;
 end;

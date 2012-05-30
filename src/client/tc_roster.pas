@@ -45,7 +45,7 @@ uses
 constructor TRoster.Create(AClient: IClient);
 begin
   Inherited Create(AClient);
-  FShowMyself := False;
+  FShowMyself := True;//False;
   FIsLoading := False;
 end;
 

@@ -133,7 +133,7 @@ procedure TEventThread.Execute;
 begin
   Output := FOutput;
   repeat
-    Sleep(50); // do we need this?
+    //Sleep(100); // do we need this?
     FEventer.CallAction;
   until Terminated;
 end;
@@ -144,8 +144,7 @@ constructor TTorChatClient.Create(AOwner: TComponent; AProfileName: String);
 begin
   FIsDestroying := False;
   Inherited Create(AOwner);
-  FLnetEventer := BestEventerClass.Create;
-  writeln('lNet using ', FLnetEventer.ToString);
+  FLnetEventer := TLSelectEventer.Create; // deliberately avoid BestEventer until I have found the bug.
   FStatus := TORCHAT_OFFLINE;
   FMainThread := ThreadID;
   FProfileName := AProfileName;
@@ -186,6 +185,8 @@ var
 begin
   WriteLn('start destroying TorChatClient');
   FIsDestroying := True;
+  FEventThread.Free;
+  WriteLn('network thread stopped');
 
   // disconnect all buddies
   Roster.DoDisconnectAll;
@@ -201,10 +202,9 @@ begin
   FTempList.Clear;
   FQueue.Clear;
 
-  RemovePortFromList(FListenPort);
-
-  FEventThread.Free;
+  FLnetListener.Free;
   FLnetEventer.Free;
+  RemovePortFromList(FListenPort);
 
   WriteLn('start destroying child components');
   inherited Destroy;

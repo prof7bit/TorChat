@@ -50,8 +50,8 @@ type
     FReconnectInterval: Integer;
     FConnIncoming: IHiddenConnection;
     FConnOutgoing: IHiddenConnection;
-    FIncomingLock: TCriticalSection;
-    FOutgoingLock: TCriticalSection;
+    //FIncomingLock: TCriticalSection;
+    //FOutgoingLock: TCriticalSection;
     FMustSendPong: Boolean;
     FReceivedCookie: String;
     FConnecting: Boolean;
@@ -111,6 +111,55 @@ uses
 
 { TBuddy }
 
+constructor TBuddy.Create(AClient: IClient);
+var
+  GUID: TGuid;
+begin
+  inherited Create;
+  FConnecting := False;
+  FClient := AClient;
+  FLastDisconnect := 0;
+  FLastActivity := Now;
+  FLastStatusSent := Now;
+  FMustSendPong := False;
+  FReceivedCookie := '';
+  FStatus := TORCHAT_OFFLINE;
+  CreateGUID(GUID);
+  FOwnCookie := GUIDToString(GUID);
+  ResetConnectInterval;
+  //FIncomingLock := TCriticalSection.Create;
+  //FOutgoingLock := TCriticalSection.Create;
+  FLnetClient := TLTcp.Create(nil);
+  FLnetClient.Eventer := Client.LNetEventer;
+  WriteLn('TBuddy.Create() created random cookie: ' + FOwnCookie);
+end;
+
+destructor TBuddy.Destroy;
+begin
+  writeln('TBuddy.Destroy() ' + ID);
+  FLnetClient.Disconnect();
+  FLnetClient.Free;
+
+  //FIncomingLock.Free;
+  //FOutgoingLock.Free;
+
+  writeln('TBuddy.Destroy() ' + ID + ' finished');
+  inherited Destroy;
+end;
+
+procedure TBuddy.InitiateConnect;
+begin
+  WriteLn('TBuddy.InitiateConnect() ' + ID);
+  with FLnetClient do begin
+    OnConnect := @Self.OnProxyConnect;
+    OnReceive := @Self.OnProxyReceive;
+    OnDisconnect := @Self.OnProxyDisconect;
+    OnError := @Self.OnProxyError;
+  end;
+  FLnetClient.Connect(Client.TorHost, Client.TorPort);
+  FConnecting := True;
+end;
+
 procedure TBuddy.OnProxyConnect(ASocket: TLSocket);
 var
   REQ: String;
@@ -137,26 +186,31 @@ end;
 
 procedure TBuddy.OnProxyReceive(ASocket: TLSocket);
 var
-  ANS: array[1..8] of byte;
+  ANS: String;
   Num: Integer;
+  Err: String;
   C  : IHiddenConnection;
 begin
-  Num := ASocket.Get(ANS, 8);
-  if (Num = 8) and (ANS[2] = 90) then begin
+  NUM := ASocket.GetMessage(ANS);
+  if (Num = 8) and (ANS[2] = #90) then begin
     writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
 
-    // now we remove the event methods, THiddenConnection has its own
+    // remove the event methods, THiddenConnection will install its own
     FLnetClient.OnReceive := nil;
     FLnetClient.OnDisconnect := nil;
     FLnetClient.OnError := nil;
     C := THiddenConnection.Create(Client, ASocket, Self);
     SetOutgoing(C);
+    FConnecting := False;
   end
   else begin
-    writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection failed');
+    if Num = 8 then
+      Err := IntToStr(Ord((ANS[2])))
+    else
+      Err := 'wrong answer from proxy (' + IntToStr(Num) + ' bytes)';
+    writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection failed: ', Err);
     ASocket.Disconnect();
   end;
-  FConnecting := False;
 end;
 
 procedure TBuddy.OnProxyDisconect(ASocket: TLSocket);
@@ -173,55 +227,6 @@ begin
   OnProxyConnectFailed;
 end;
 
-procedure TBuddy.InitiateConnect;
-begin
-  WriteLn('TBuddy.InitiateConnect() ' + ID);
-  with FLnetClient do begin
-    OnConnect := @Self.OnProxyConnect;
-    OnReceive := @Self.OnProxyReceive;
-    OnDisconnect := @Self.OnProxyDisconect;
-    OnError := @Self.OnProxyError;
-  end;
-  FLnetClient.Connect(Client.TorHost, Client.TorPort);
-  FConnecting := True;
-end;
-
-constructor TBuddy.Create(AClient: IClient);
-var
-  GUID: TGuid;
-begin
-  inherited Create;
-  FConnecting := False;
-  FClient := AClient;
-  FLastDisconnect := 0;
-  FLastActivity := Now;
-  FLastStatusSent := Now;
-  FMustSendPong := False;
-  FReceivedCookie := '';
-  FStatus := TORCHAT_OFFLINE;
-  CreateGUID(GUID);
-  FOwnCookie := GUIDToString(GUID);
-  ResetConnectInterval;
-  FIncomingLock := TCriticalSection.Create;
-  FOutgoingLock := TCriticalSection.Create;
-  FLnetClient := TLTcp.Create(nil);
-  FLnetClient.Eventer := Client.LNetEventer;
-  WriteLn('TBuddy.Create() created random cookie: ' + FOwnCookie);
-end;
-
-destructor TBuddy.Destroy;
-begin
-  writeln('TBuddy.Destroy() ' + ID);
-  FLnetClient.Disconnect();
-  FLnetClient.Free;
-
-  FIncomingLock.Free;
-  FOutgoingLock.Free;
-
-  writeln('TBuddy.Destroy() ' + ID + ' finished');
-  inherited Destroy;
-end;
-
 procedure TBuddy.CheckState;
 begin
   if not (Assigned(ConnOutgoing) or FConnecting) then begin
@@ -231,12 +236,13 @@ begin
   end;
 
   if Assigned(ConnIncoming) and Assigned(ConnOutgoing) then begin
-    if SecondsSince(FLastStatusSent) > 120 then begin
+    if SecondsSince(FLastStatusSent) > SECONDS_SEND_KEEPLIVE then begin
       SendStatus;
     end;
   end;
 
-  if Assigned(ConnOutgoing) and (SecondsSince(FLastActivity) > 240) then begin
+  if Assigned(ConnOutgoing)
+  and (SecondsSince(FLastActivity) > SECONDS_WAIT_KEEPALIVE) then begin
     WriteLn(_F('I TBuddy.CheckState() %s timeout, disconnecting',
       [FID]));
     DoDisconnect;
@@ -319,10 +325,10 @@ begin
   WriteLn('TBuddy.OnOutgoingConnectionFail() ' + ID);
   FLastDisconnect := Now;
   ResetConnectInterval;
-  FOutgoingLock.Acquire;
+  //FOutgoingLock.Acquire;
   if Assigned(ConnIncoming) then
     ConnIncoming.Disconnect;
-  FOutgoingLock.Release;
+  //FOutgoingLock.Release;
   SetStatus(TORCHAT_OFFLINE);
 end;
 
@@ -337,10 +343,10 @@ begin
   Writeln('TBuddy.OnIncomingConnectionFail() ' + ID);
   FLastDisconnect := Now;
   ResetConnectInterval;
-  FIncomingLock.Acquire;
+  //FIncomingLock.Acquire;
   if Assigned(ConnOutgoing) then
     ConnOutgoing.Disconnect;
-  FIncomingLock.Release;
+  //FIncomingLock.Release;
   SetStatus(TORCHAT_OFFLINE);
 end;
 
@@ -375,15 +381,17 @@ procedure TBuddy.DoDisconnect;
 var
   C1, C2: IHiddenConnection;
 begin
-  FIncomingLock.Acquire;
+  FLnetClient.Disconnect();
+
+  //FIncomingLock.Acquire;
   C1 := ConnIncoming;
   if Assigned(C1) then C1.Disconnect;
-  FIncomingLock.Release;
+  //FIncomingLock.Release;
 
-  FOutgoingLock.Acquire;
+  //FOutgoingLock.Acquire;
   C2 := ConnOutgoing;
   if Assigned(C2) then C2.Disconnect;
-  FOutgoingLock.Release;
+  //FOutgoingLock.Release;
 
   // they should free now when C1 and C2 go out of scope
   writeln('TBuddy.DoDisconnect() leaving');
@@ -443,7 +451,7 @@ end;
 
 procedure TBuddy.SetIncoming(AConn: IHiddenConnection);
 begin
-  FIncomingLock.Acquire;
+  //FIncomingLock.Acquire;
   if AConn <> FConnIncoming then begin
     if Assigned(AConn) then begin
       FConnIncoming := AConn;
@@ -457,12 +465,12 @@ begin
       CallFromMainThread(@OnIncomingConnectionFail);
     end;
   end;
-  FIncomingLock.Release;
+  //FIncomingLock.Release;
 end;
 
 procedure TBuddy.SetOutgoing(AConn: IHiddenConnection);
 begin
-  FOutgoingLock.Acquire;
+  //FOutgoingLock.Acquire;
   if AConn <> FConnOutgoing then begin
     if Assigned(AConn) then begin
       FConnOutgoing := AConn;
@@ -475,7 +483,7 @@ begin
       CallFromMainThread(@OnOutgoingConnectionFail);
     end;
   end;
-  FOutgoingLock.Release;
+  //FOutgoingLock.Release;
 end;
 
 procedure TBuddy.SetStatus(AStatus: TTorchatStatus);
