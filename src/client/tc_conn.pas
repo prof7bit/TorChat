@@ -110,6 +110,7 @@ end;
 
 procedure THiddenConnection.OnTCPFail(ASocket: TLHandle; const Error: String);
 begin
+  Ignore(ASocket);
   // I'm wrapping this method into _AddRef/_Release so that the
   // destruction due to refcount=0 won't catch us somewhere in
   // the middle of the following code, I am delaying this until
@@ -122,8 +123,6 @@ begin
 
     //no more callbacks
     FSocket.Disconnect();
-    //fpshutdown(ASocket.Handle, SHUT_RDWR);
-    //ASocket.Dispose := True;
 
     // remove references to the connection in all other objects.
     if Assigned(FBuddy) then begin
@@ -160,7 +159,6 @@ end;
 procedure THiddenConnection.OnReceive(ASocket: TLHandle);
 var
   B: String;
-  X: array[0..20000] of byte;
   N: Integer;
   P: Integer;
   L: String;
