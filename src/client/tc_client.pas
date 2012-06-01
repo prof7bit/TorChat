@@ -133,9 +133,9 @@ procedure TEventThread.Execute;
 begin
   Output := FOutput;
   repeat
-    //Sleep(100); // do we need this?
     FEventer.CallAction;
   until Terminated;
+  WriteLn('Network thread terminated');
 end;
 
 { TTorChatClient }
@@ -185,8 +185,7 @@ var
 begin
   WriteLn('start destroying TorChatClient');
   FIsDestroying := True;
-  FEventThread.Free;
-  WriteLn('network thread stopped');
+  FEventThread.Terminate;
 
   // disconnect all buddies
   Roster.DoDisconnectAll;
@@ -203,8 +202,10 @@ begin
   FQueue.Clear;
 
   FLnetListener.Free;
-  FLnetEventer.Free;
   RemovePortFromList(FListenPort);
+
+  FEventThread.Free;
+  FLnetEventer.Free;
 
   WriteLn('start destroying child components');
   inherited Destroy;

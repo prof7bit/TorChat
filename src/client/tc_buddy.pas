@@ -368,7 +368,9 @@ procedure TBuddy.DoDisconnect;
 var
   C1, C2: IHiddenConnection;
 begin
-  FLnetClient.Disconnect();
+  // we assign them to local variables first to make
+  // sure the ref count is incremented and it can not
+  // pull away the objects from under our feet.
 
   C1 := ConnIncoming;
   if Assigned(C1) then C1.Disconnect;
@@ -376,8 +378,11 @@ begin
   C2 := ConnOutgoing;
   if Assigned(C2) then C2.Disconnect;
 
-  // they should free now when C1 and C2 go out of scope
-  writeln('TBuddy.DoDisconnect() leaving');
+  // there also might just be an ongoing connection attempt
+  FLnetClient.Disconnect();
+
+  // C1 and C2 will free now when going out of scope
+  writeln('TBuddy.DoDisconnect() leaving, connections will free now');
 end;
 
 procedure TBuddy.RemoveYourself; // called by the GUI

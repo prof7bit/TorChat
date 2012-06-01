@@ -122,6 +122,7 @@ begin
     WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
 
     //no more callbacks
+    FSocket.IgnoreRead := True;
     FSocket.Disconnect();
 
     // remove references to the connection in all other objects.
@@ -163,6 +164,7 @@ var
   P: Integer;
   L: String;
 begin
+  _AddRef;
   FSocket.SetState(ssCanReceive); // hack-around! Why is this necessary?
   N := FSocket.GetMessage(B);
   writeln(_F('THiddenConnection.OnReceive() %s %d Bytes',
@@ -182,6 +184,7 @@ begin
     // connection closed on the other side
     OnTCPFail(ASocket, 'recv() returned no data');
   end;
+  _Release;
 end;
 
 procedure THiddenConnection.OnReceivedLine(EncodedLine: String);
