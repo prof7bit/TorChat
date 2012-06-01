@@ -125,7 +125,7 @@ constructor TEventThread.Create(AEventer: TLEventer);
 begin
   FOutput := Output;
   FEventer := AEventer;
-  FEventer.Timeout := 500;
+  FEventer.Timeout := 1000;
   inherited Create(False);
 end;
 
