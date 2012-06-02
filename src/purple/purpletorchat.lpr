@@ -535,34 +535,14 @@ begin
 end;
 
 procedure TTorChatPurpleClient.OnInstantMessage(ABuddy: IBuddy; AText: String);
-var
-  conv: PPurpleConversation;
-  im: PPurpleConvIm;
-  time: time_t;
 begin
-  conv :=purple_find_conversation_with_account(
-    PURPLE_CONV_TYPE_IM,
+  serv_got_im(
+    purple_account^.gc,
     PChar(ABuddy.ID),
-    purple_account
+    Pchar(AText),
+    PURPLE_MESSAGE_RECV,
+    NowUTCUnix
   );
-  if not Assigned(conv) then begin
-    conv := purple_conversation_new(
-      PURPLE_CONV_TYPE_IM,
-      purple_account,
-      PChar(ABuddy.ID)
-    );
-  end;
-  if Assigned(conv) then begin
-    time := Trunc((Now - EncodeDate(1970, 1 ,1)) * 24 * 60 * 60);
-    im := purple_conversation_get_im_data(conv);
-    purple_conv_im_write(
-      im,
-      PChar(ABuddy.ID),
-      PChar(AText),
-      PURPLE_MESSAGE_RECV,
-      time
-    );
-  end;
 end;
 
 procedure Init;

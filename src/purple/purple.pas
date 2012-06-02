@@ -402,19 +402,12 @@ function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; external LIBPURPLE;
 function  purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
 procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
-function  purple_conversation_get_im_data(conv: PPurpleConversation): PPurpleConvIm; external LIBPURPLE;
-function  purple_conversation_new(type_: TPurpleConversationType;
-  account: PPurpleAccount; name_: PChar): PPurpleConversation; external LIBPURPLE;
-procedure purple_conv_im_write(im: PPurpleConvIm; who, message: PChar;
-  flags: TPurpleMessageFlags; mtime: time_t); external LIBPURPLE;
 procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_info(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
 function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
-function  purple_find_conversation_with_account(type_: TPurpleConversationType;
-  name_: PChar; account: PPurpleAccount): PPurpleConversation; external LIBPURPLE;
 function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
@@ -433,7 +426,8 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
 function  purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
 function  purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
 procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); external LIBPURPLE;
-
+procedure serv_got_im(gc: PPurpleConnection; who, msg: PChar;
+  flags: TPurpleMessageFlags; mtime: time_t); external LIBPURPLE;
 
 
 { purple_init_plugin is the only exported symbol.

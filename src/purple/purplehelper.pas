@@ -32,9 +32,7 @@ interface
 uses
   purple,
   glib2,
-  Classes,
-  sysutils,
-  StreamIO;
+  Classes;
 
 { This will allocate memory from the FPC heap,
   copy the sring and return the pointer. The memory
@@ -58,9 +56,22 @@ function PurpleGetMem(Size: PtrUInt): PChar; overload;
   or by any other purple function and must be freed. }
 procedure PurpleFreeMem(P: Pointer);
 
+{ Current UTC as unix time stamp }
+function NowUTCUnix: UInt64;
+
+{ Current UTC as TDateTime }
+function NowUTC: TDateTime;
 
 implementation
 uses
+  {$ifdef windows}
+  windows,
+  {$else}
+  Unix,
+  BaseUnix,
+  {$endif}
+  StreamIO,
+  sysutils,
   syncobjs;
 
 type
@@ -137,6 +148,34 @@ procedure PurpleFreeMem(P: Pointer);
 begin
   g_free(P);
 end;
+
+function NowUTCUnix: UInt64;
+begin
+  Result := Trunc((NowUTC - UnixEpoch) * SecsPerDay);
+end;
+
+function NowUTC: TDateTime;
+{$ifdef windows}
+var
+  st: TSystemTime;
+begin
+  GetSystemTime (st);
+  Result := SystemTimeToDateTime (st);
+end;
+{$else}
+var
+  timeval: TTimeVal;
+  timezone: PTimeZone;
+  a: Double;
+begin
+  TimeZone := nil;
+  fpGetTimeOfDay (@TimeVal, TimeZone);
+  // Convert to milliseconds
+  a := (TimeVal.tv_sec * 1000.0) + (TimeVal.tv_usec / 1000.0);
+  Result := (a / MSecsPerDay) + UnixDateDelta;
+end;
+{$endif}
+
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin

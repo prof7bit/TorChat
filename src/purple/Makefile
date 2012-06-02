@@ -18,9 +18,9 @@ all:
 	mkdir -p lib
 	fpc $(FPCOPT) purpletorchat.lpr
 	
-foo:
+debug:
 	mkdir -p lib
-	fpc $(FPCOPT) -dUseHeapTrc purpletorchat.lpr
+	fpc $(FPCOPT) -dUseHeapTrc -dDebugToConsole purpletorchat.lpr
 
 install:
 	mkdir -p $(PLUGINDIR)

@@ -83,7 +83,7 @@ var
 
 function SecondsSince(Start: TDateTime): Int64;
 begin
-  Result := Round((Now - Start) * 24 * 60 * 60);
+  Result := Round((Now - Start) * SecsPerDay);
 end;
 
 function Split(var Line: String; Sep: Char): String;

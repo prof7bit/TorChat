@@ -198,6 +198,8 @@ begin
     Conn.Disconnect;
   end;
 
+  FEventThread.Free;
+
   FRoster.Clear;
   FTempList.Clear;
   FQueue.Clear;
@@ -205,7 +207,6 @@ begin
   FLnetListener.Free;
   RemovePortFromList(FListenPort);
 
-  FEventThread.Free;
   FLnetEventer.Free;
 
   WriteLn('start destroying child components');
