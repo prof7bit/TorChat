@@ -360,15 +360,16 @@ type
  ********************************************)
 {$calling cdecl}
 
-function  purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
+function  purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; external LIBPURPLE;
 function  purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; external LIBPURPLE;
 procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
   group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
 procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
-procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; external LIBPURPLE;
+procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); external LIBPURPLE;
 function  purple_find_group(name_: PChar): PPurpleGroup; external LIBPURPLE;
 function  purple_group_new(name_: PChar): PPurpleGroup; external LIBPURPLE;
 procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
+function  purple_buddy_get_account(buddy: PPurpleBuddy): PPurpleAccount; external LIBPURPLE;
 function  purple_buddy_get_alias_only(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; external LIBPURPLE;
@@ -383,11 +384,13 @@ function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy
 function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
+procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
+  alabel, avalue: PChar); external LIBPURPLE;
 function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
 function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;
-procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); cdecl; external LIBPURPLE;
+procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); external LIBPURPLE;
 procedure purple_prpl_got_user_status(account: PPurpleAccount;
-  aname, status_id: PChar); cdecl; external LIBPURPLE;
+  aname, status_id: PChar); external LIBPURPLE;
 function  purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
 function  purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; external LIBPURPLE;
 function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
@@ -395,7 +398,7 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
   independent: GBoolean): PPurpleStatusType; external LIBPURPLE;
 function  purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
 function  purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
-procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); cdecl; external LIBPURPLE;
+procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); external LIBPURPLE;
 
 
 { purple_init_plugin is the only exported symbol.

@@ -306,6 +306,29 @@ begin
   end;
 end;
 
+procedure torchat_tooltip_text(purple_buddy: PPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean); cdecl;
+var
+  buddy_id : PChar;
+  TorChat: TTorChatPurpleClient;
+  Buddy: IBuddy;
+begin
+  if not full then exit;
+  TorChat := TorChatClients.Find(purple_buddy_get_account(purple_buddy));
+  if Assigned(TorChat) then begin
+    buddy_id := purple_buddy_get_name(purple_buddy);
+    Buddy := TorChat.Roster.ByID(buddy_id);
+    if Assigned(Buddy) then begin
+      if Buddy.Software <> '' then begin
+        purple_notify_user_info_add_pair(
+          user_info,
+          'Client',
+          PChar(Buddy.Software + '-' + Buddy.SoftwareVersion)
+        );
+      end;;
+    end;
+  end;
+end;
+
 function torchat_get_text_table(acc: PPurpleAccount): PGHashTable; cdecl;
 begin
   Ignore(acc);
@@ -499,6 +522,8 @@ var
   acc_opt: PPurpleAccountOption;
   TorPath: PChar;
 begin
+  SOFTWARE_NAME := 'libpurple/TorChat'; // for the 'client' message
+
   with plugin_info do begin
     magic := PURPLE_PLUGIN_MAGIC;
     major_version := PURPLE_MAJOR_VERSION;
@@ -507,7 +532,7 @@ begin
     priority := PURPLE_PRIORITY_DEFAULT;
     id := 'prpl-prof7bit-torchat';
     name := 'TorChat';
-    version := '2.0';
+    version := PChar(SOFTWARE_VERSION);
     summary := 'TorChat Protocol';
     description := 'TorChat protocol plugin for libpurple / Pidgin';
     author := 'Bernd Kreuss <prof7bit@gmail.com>';
@@ -528,6 +553,7 @@ begin
     add_buddy := @torchat_add_buddy;
     remove_buddy := @torchat_remove_buddy;
     alias_buddy := @torchat_alias_buddy;
+    tooltip_text := @torchat_tooltip_text;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 

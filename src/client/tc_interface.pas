@@ -128,6 +128,8 @@ type
     procedure DoDisconnect;
     procedure RemoveYourself;
     function Client: IClient;
+    function Software: String;
+    function SoftwareVersion: String;
     function ID: String;
     function Cookie: String;
     function FriendlyName: String;
@@ -139,6 +141,8 @@ type
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
+    procedure SetSoftware(ASoftware: String);
+    procedure SetSoftwareVersion(AVersion: String);
     procedure SendPong;
     procedure SendAddMe;
     procedure SendStatus;

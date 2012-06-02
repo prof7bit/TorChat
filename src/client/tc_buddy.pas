@@ -44,6 +44,8 @@ type
     FClient: IClient;
     FOwnCookie: String;
     FFriendlyName: String;
+    FSoftware: String;
+    FSoftwareVersion: String;
     FStatus: TTorchatStatus;
     FLastDisconnect: TDateTime;
     FReconnectInterval: Integer;
@@ -88,10 +90,14 @@ type
     function ConnIncoming: IHiddenConnection;
     function ConnOutgoing: IHiddenConnection;
     function Status: TTorchatStatus;
+    function Software: String;
+    function SoftwareVersion: String;
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetFriendlyName(AName: String);
+    procedure SetSoftware(ASoftware: String);
+    procedure SetSoftwareVersion(AVersion: String);
     procedure SendPong;
     procedure SendAddMe;
     procedure SendStatus;
@@ -101,6 +107,8 @@ implementation
 uses
   tc_prot_ping,
   tc_prot_pong,
+  tc_prot_client,
+  tc_prot_version,
   tc_prot_add_me,
   tc_prot_status,
   tc_prot_remove_me,
@@ -437,6 +445,16 @@ begin
   Result := FStatus;
 end;
 
+function TBuddy.Software: String;
+begin
+  Result := FSoftware;
+end;
+
+function TBuddy.SoftwareVersion: String;
+begin
+  Result := FSoftwareVersion;
+end;
+
 procedure TBuddy.SetIncoming(AConn: IHiddenConnection);
 begin
   if AConn <> FConnIncoming then begin
@@ -483,12 +501,26 @@ begin
   Client.Roster.Save;
 end;
 
+procedure TBuddy.SetSoftware(ASoftware: String);
+begin
+  FSoftware := ASoftware;
+end;
+
+procedure TBuddy.SetSoftwareVersion(AVersion: String);
+begin
+  FSoftwareVersion := AVersion;
+end;
+
 procedure TBuddy.SendPong;
 var
-  Pong: IProtocolMessage;
+  Msg: IProtocolMessage;
 begin
-  Pong := TMsgPong.Create(Self, FReceivedCookie);
-  Pong.Send;
+  Msg := TMsgPong.Create(Self, FReceivedCookie);
+  Msg.Send;
+  Msg := TMsgClient.Create(Self, SOFTWARE_NAME);
+  Msg.Send;
+  Msg := TMsgVersion.Create(Self, SOFTWARE_VERSION);
+  Msg.Send;
   if Self in Client.Roster then
     SendAddMe;
   SendStatus;

@@ -39,6 +39,8 @@ const
   SECONDS_INITIAL_RECONNECT = 10;
   RECONNECT_SLOWDOWN = 1.2;
 
+  SOFTWARE_NAME : String = 'TorChat';
+  SOFTWARE_VERSION : String = '2.0-alpha';
 
 type
   { TClientConfig }

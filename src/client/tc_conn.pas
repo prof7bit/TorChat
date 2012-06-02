@@ -28,7 +28,6 @@ uses
   Classes,
   SysUtils,
   syncobjs,
-  Sockets,
   lNet,
   lEvents,
   tc_interface,
