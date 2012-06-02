@@ -107,6 +107,7 @@ type
     procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
     procedure OnBuddyAdded(ABuddy: IBuddy); override;
     procedure OnBuddyRemoved(ABuddy: IBuddy); override;
+    procedure OnInstantMessage(ABuddy: IBuddy; AText: String); override;
   end;
 
   { TTorChatClients holds a list of clients since we can have
@@ -275,6 +276,22 @@ begin
           nil);
         purple_blist_remove_buddy(purple_buddy);
       end;
+    end;
+  end;
+end;
+
+function torchat_send_im(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): Integer; cdecl;
+var
+  TorChat: TTorChatPurpleClient;
+  Buddy: IBuddy;
+  Msg: String;
+begin
+  Msg := StringReplace(message, '<br>', LineEnding, [rfReplaceAll]);
+  TorChat := TorChatClients.Find(gc^.account);
+  if Assigned(TorChat) then begin
+    Buddy := TorChat.Roster.ByID(who);
+    if Assigned(Buddy) then begin
+      Result := Integer(Buddy.SendIM(Msg));
     end;
   end;
 end;
@@ -517,6 +534,37 @@ begin
   FreeMem(buddy_name);
 end;
 
+procedure TTorChatPurpleClient.OnInstantMessage(ABuddy: IBuddy; AText: String);
+var
+  conv: PPurpleConversation;
+  im: PPurpleConvIm;
+  time: time_t;
+begin
+  conv :=purple_find_conversation_with_account(
+    PURPLE_CONV_TYPE_IM,
+    PChar(ABuddy.ID),
+    purple_account
+  );
+  if not Assigned(conv) then begin
+    conv := purple_conversation_new(
+      PURPLE_CONV_TYPE_IM,
+      purple_account,
+      PChar(ABuddy.ID)
+    );
+  end;
+  if Assigned(conv) then begin
+    time := Trunc((Now - EncodeDate(1970, 1 ,1)) * 24 * 60 * 60);
+    im := purple_conversation_get_im_data(conv);
+    purple_conv_im_write(
+      im,
+      PChar(ABuddy.ID),
+      PChar(AText),
+      PURPLE_MESSAGE_RECV,
+      time
+    );
+  end;
+end;
+
 procedure Init;
 var
   acc_opt: PPurpleAccountOption;
@@ -554,6 +602,7 @@ begin
     remove_buddy := @torchat_remove_buddy;
     alias_buddy := @torchat_alias_buddy;
     tooltip_text := @torchat_tooltip_text;
+    send_im := @torchat_send_im;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 

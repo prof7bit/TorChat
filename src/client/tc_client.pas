@@ -93,6 +93,7 @@ type
     procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
+    procedure OnInstantMessage(ABuddy: IBuddy; AText: String); virtual abstract;
     function MainThread: TThreadID;
     function Roster: IRoster;
     function TempList: ITempList;

@@ -73,6 +73,7 @@ type
     procedure OnBuddyStatusChange(ABuddy: IBuddy);
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
+    procedure OnInstantMessage(ABuddy: IBuddy; AText: String);
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
@@ -143,6 +144,7 @@ type
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetSoftware(ASoftware: String);
     procedure SetSoftwareVersion(AVersion: String);
+    function SendIM(AText: String): Boolean;
     procedure SendPong;
     procedure SendAddMe;
     procedure SendStatus;

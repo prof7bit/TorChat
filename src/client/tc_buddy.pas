@@ -98,6 +98,7 @@ type
     procedure SetFriendlyName(AName: String);
     procedure SetSoftware(ASoftware: String);
     procedure SetSoftwareVersion(AVersion: String);
+    function SendIM(AText: String): Boolean;
     procedure SendPong;
     procedure SendAddMe;
     procedure SendStatus;
@@ -112,6 +113,7 @@ uses
   tc_prot_add_me,
   tc_prot_status,
   tc_prot_remove_me,
+  tc_prot_message,
   tc_config;
 
 { TBuddy }
@@ -509,6 +511,19 @@ end;
 procedure TBuddy.SetSoftwareVersion(AVersion: String);
 begin
   FSoftwareVersion := AVersion;
+end;
+
+function TBuddy.SendIM(AText: String): Boolean;
+var
+  Msg: IProtocolMessage;
+begin
+  if IsFullyConnected then begin
+    Msg := TMsgMessage.Create(Self, AText);
+    Msg.Send;
+    Result := True;
+  end
+  else
+    Result := False;
 end;
 
 procedure TBuddy.SendPong;

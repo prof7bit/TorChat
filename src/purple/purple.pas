@@ -241,7 +241,6 @@ type
   PPurpleRoomlistRoom = Pointer;
   PPurpleXfer = Pointer;
   PPurpleWhiteboardPrplOps = Pointer;
-  TPurpleMessageFlags = Integer;
   TPurpleTypingState = Integer;
   TPurpleMediaSessionType = Integer;
   TPurpleMediaCaps = Integer;
@@ -251,7 +250,36 @@ type
   PPurpleSetPublicAliasFailureCallback = procedure();
   PPurpleGetPublicAliasSuccessCallback = procedure();
   PPurpleGetPublicAliasFailureCallback = procedure();
+  PPurpleConversation = Pointer;
+  PPurpleConvIm = Pointer;
 
+  TPurpleConversationType = (
+    PURPLE_CONV_TYPE_UNKNOWN = 0,
+    PURPLE_CONV_TYPE_IM,
+    PURPLE_CONV_TYPE_CHAT,
+    PURPLE_CONV_TYPE_MISC,
+    PURPLE_CONV_TYPE_ANY
+  );
+
+  TPurpleMessageFlags = Integer; // PURPLE_MESSAGE_XXX flags
+const
+  PURPLE_MESSAGE_SEND = $0001;
+  PURPLE_MESSAGE_RECV = $0002;
+  PURPLE_MESSAGE_SYSTEM = $0004;
+  PURPLE_MESSAGE_AUTO_RESP = $0008;
+  PURPLE_MESSAGE_ACTIVE_ONLY = $0010;
+  PURPLE_MESSAGE_NICK = $0020;
+  PURPLE_MESSAGE_NO_LOG = $0040;
+  PURPLE_MESSAGE_WHISPER = $0080;
+  PURPLE_MESSAGE_ERROR = $0200;
+  PURPLE_MESSAGE_DELAYED = $0400;
+  PURPLE_MESSAGE_RAW = $0800;
+  PURPLE_MESSAGE_IMAGES = $1000;
+  PURPLE_MESSAGE_NOTIFY = $2000;
+  PURPLE_MESSAGE_NO_LINKIFY = $4000;
+  PURPLE_MESSAGE_INVISIBLE = $8000;
+
+type
   TPurpleStatusPrimitive = (
     PURPLE_STATUS_UNSET = 0,
     PURPLE_STATUS_OFFLINE,
@@ -352,7 +380,6 @@ type
   PPurpleNotifyCloseCallback = procedure(UserData: Pointer);
 
 
-
 (********************************************
  *                                          *
  *   function imports from libpurple        *
@@ -375,12 +402,19 @@ function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; external LIBPURPLE;
 function  purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
 procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
+function  purple_conversation_get_im_data(conv: PPurpleConversation): PPurpleConvIm; external LIBPURPLE;
+function  purple_conversation_new(type_: TPurpleConversationType;
+  account: PPurpleAccount; name_: PChar): PPurpleConversation; external LIBPURPLE;
+procedure purple_conv_im_write(im: PPurpleConvIm; who, message: PChar;
+  flags: TPurpleMessageFlags; mtime: time_t); external LIBPURPLE;
 procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_info(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
 function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
+function  purple_find_conversation_with_account(type_: TPurpleConversationType;
+  name_: PChar; account: PPurpleAccount): PPurpleConversation; external LIBPURPLE;
 function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
@@ -399,6 +433,7 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
 function  purple_timeout_add(Interval: Integer; cb: TGSourceFunc; UserData: Pointer): Integer; external LIBPURPLE;
 function  purple_timeout_remove(handle: Integer): GBoolean; external LIBPURPLE;
 procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); external LIBPURPLE;
+
 
 
 { purple_init_plugin is the only exported symbol.
