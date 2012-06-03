@@ -92,14 +92,17 @@ procedure TMsgPong.Execute;
 var
   Buddy: IBuddy;
 begin
-  WriteLn('TMsgPong.Execute() received pong: cookie=' + FCookie);
   Buddy := FClient.Roster.ByCookie(FCookie);
   if not Assigned(Buddy) then
     Buddy := FClient.TempList.ByCookie(FCookie);
   if Assigned(Buddy) then begin
+    WriteLn('TMsgPong.Execute() received pong: cookie=' + FCookie
+      + ' found buddie: ' + Buddy.ID);
     Buddy.SetIncoming(FConnection);
     Buddy.ResetTimeout;
-  end;
+  end
+  else
+    LogWarningAndIgnore('unknown cookie');
 end;
 
 begin

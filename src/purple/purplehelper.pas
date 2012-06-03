@@ -91,6 +91,7 @@ type
 
 var
   OldStdOut: Text;
+  DebugFile: Text;
   OutputRedirect: TOutputRedirect;
   OutputLock: TCriticalSection;
   PurpleThread: TThreadID;
@@ -207,7 +208,7 @@ begin
   Result := False
 end;
 
-procedure DebugToConsole(Msg: String);
+function FormatDebugForConsole(Msg: String): String;
 var
   Lvl, Txt, M: String;
 begin
@@ -221,8 +222,19 @@ begin
   else
     M := '[M] ' + Msg;
   end;
-  WriteLn(OldStdOut, FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M);
+  Result := FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M;
+end;
+
+procedure DebugToConsole(Msg: String);
+begin
+  WriteLn(OldStdOut, FormatDebugForConsole(Msg));
   Flush(OldStdOut);
+end;
+
+procedure DebugToFile(Msg: String);
+begin
+  WriteLn(DebugFile, FormatDebugForConsole(Msg));
+  Flush(DebugFile);
 end;
 
 { TWritelnRedirect }
@@ -249,6 +261,12 @@ begin
   except
   end;
   {$endif}
+  {$ifdef DebugToFile}
+  try
+    DebugToFile(Msg);
+  except
+  end;
+  {$endif}
   OutputLock.Release;
 end;
 
@@ -271,6 +289,11 @@ begin
     {$endif}
     WriteLn('W plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
+  {$ifdef DebugToFile}
+    Filemode := fmShareDenyNone;
+    Assign(DebugFile, ExpandFileName('~/purpletorchat.log'));
+    Rewrite(DebugFile);
+  {$endif}
 end;
 
 procedure UninstallOutputRedirect;
@@ -281,6 +304,9 @@ begin
   OutputRedirect.Free;
   OutputLock.Release;
   OutputLock.Free;
+  {$ifdef DebugToFile}
+    CloseFile(DebugFile);
+  {$endif}
 end;
 
 initialization

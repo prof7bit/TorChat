@@ -176,6 +176,8 @@ begin
   if not Assigned(Buddy) then
     LogWarningAndIgnore
   else begin
+    WriteLn(_F('TMsgDefault.Execute() received unknown %s (%d bytes) from %s',
+      [FCommand, Length(FBinaryContent), Buddy.ID]));
     Msg := TMsgNotImplemented.Create(Buddy, FCommand);
     Msg.Send;
   end;

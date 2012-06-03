@@ -166,8 +166,7 @@ begin
   _AddRef;
   FSocket.SetState(ssCanReceive); // hack-around! Why is this necessary?
   N := FSocket.GetMessage(B);
-  writeln(_F('THiddenConnection.OnReceive() %s %d Bytes',
-    [DebugInfo, N]));
+  //writeln(_F('THiddenConnection.OnReceive() %s %d Bytes', [DebugInfo, N]));
   if N > 0 then begin
     FReceiveBuffer := FReceiveBuffer + B;
     P := Pos(#10, FReceiveBuffer);

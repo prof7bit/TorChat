@@ -530,6 +530,7 @@ procedure TBuddy.SendPong;
 var
   Msg: IProtocolMessage;
 begin
+  WriteLn('TBuddy.SendPong() ', ID, ' sending pong and status');
   Msg := TMsgPong.Create(Self, FReceivedCookie);
   Msg.Send;
   Msg := TMsgClient.Create(Self, SOFTWARE_NAME);
@@ -547,6 +548,7 @@ procedure TBuddy.SendAddMe;
 var
   AddMe: IProtocolMessage;
 begin
+  WriteLn('TBuddy.SendAddMe() ', ID, ' sending add_me');
   AddMe := TMsgAddMe.Create(Self);
   AddMe.Send;
 end;
