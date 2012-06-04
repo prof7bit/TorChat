@@ -7,8 +7,11 @@
 *.dll
 *.exe
 *.map
+*.tar.bz2
 src/gui/lib
 src/purple/lib
+src/tools/lib
+src/tools/makezip
 bin/torchat
 bin/torchat.exe
 bin/tor/tor_data

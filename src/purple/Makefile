@@ -18,10 +18,6 @@ all:
 	mkdir -p lib
 	fpc $(FPCOPT) purpletorchat.lpr
 	
-debug:
-	mkdir -p lib
-	fpc $(FPCOPT) -dUseHeapTrc -dDebugToConsole purpletorchat.lpr
-
 install:
 	mkdir -p $(PLUGINDIR)
 	install --mode=0644 $(COMPILEDIR)/libpurpletorchat.so $(PLUGINDIR)
@@ -29,4 +25,11 @@ install:
 clean:
 	$(MAKE) -C ../client clean
 	$(RM) -r lib
-			
+
+
+## this is only for making the preview
+## binary that I upload to github
+demo:
+	mkdir -p lib
+	fpc $(FPCOPT) -dUseHeapTrc -dDebugToConsole -dDebugToFile purpletorchat.lpr
+
