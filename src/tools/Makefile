@@ -21,7 +21,5 @@ run:
 clean:
 	$(MAKE) -C ../client clean
 	$(RM) -r lib
+	$(RM) -r libpurpletorchat
 	$(RM) makezip
-	$(RM) README.txt
-	$(RM) *.so
-	$(RM) *.tar.bz2
