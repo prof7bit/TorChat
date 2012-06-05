@@ -1,12 +1,12 @@
 Don't use the Debian/Ubuntu/Mint Repositories
 =============================================
 ...until further notice. They have again messed it up, in best debian 
-manner they did it again (remember the opensssl debacle?) they patched 
-code they did not understand (and not even for any particular reason,
-they just patched it for the sake of patching something because they
-can not accept that something is already working perfectly even without 
-their interference) and now it contains a major hole. Please use only 
-the original .deb from github.
+manner they did it again (remember the openssl debacle?) they patched 
+code they did not understand and now it contains a major hole. Please 
+use only the original .deb from github.
+
+The debian maintainer is notified and working on a solution. I will
+post updates here.
 
 
 TorChat2
