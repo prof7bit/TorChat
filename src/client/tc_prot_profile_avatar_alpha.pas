@@ -107,7 +107,7 @@ begin
   if not Assigned(Buddy) then
     LogWarningAndIgnore
   else begin
-    WriteLn('TMsgAvatar.Execute() profile_avatar_alpha from ' + Buddy.ID);
+    WriteLn('TMsgProfileAvatarAlpha.Execute() profile_avatar_alpha from ' + Buddy.ID);
     if FParseError <> '' then
       WriteLn('W ', FParseError, ' from ', Buddy.ID);
     Buddy.SetAvatarAlphaData(FBitmap);
