@@ -53,6 +53,7 @@
               <ShowHintsForUnusedUnitsInMainSrc Value="True"/>
             </Verbosity>
             <CompilerMessages>
+              <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
             <CustomOptions Value="-dDebugToConsole 
@@ -207,7 +208,7 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="23">
+    <Units Count="25">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -323,6 +324,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_message"/>
       </Unit22>
+      <Unit23>
+        <Filename Value="../client/tc_prot_profile_avatar_alpha.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_profile_avatar_alpha"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="../client/tc_prot_profile_avatar.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_profile_avatar"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

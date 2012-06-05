@@ -75,6 +75,7 @@ type
     FBuddy: IBuddy;
     FCommand: String;
     FBinaryContent : String;
+    FParseError: String;
     function GetSendConnection: IHiddenConnection; virtual;
     procedure LogWarningAndIgnore(AInfo: String='');
     procedure Serialize; virtual; abstract;

@@ -46,6 +46,8 @@ type
     FFriendlyName: String;
     FSoftware: String;
     FSoftwareVersion: String;
+    FAvatarData: String;
+    FAvatarAlphaData: String;
     FStatus: TTorchatStatus;
     FLastDisconnect: TDateTime;
     FReconnectInterval: Integer;
@@ -98,6 +100,8 @@ type
     procedure SetFriendlyName(AName: String);
     procedure SetSoftware(ASoftware: String);
     procedure SetSoftwareVersion(AVersion: String);
+    procedure SetAvatarData(ABitmap: String);
+    procedure SetAvatarAlphaData(ABitmap: String);
     function SendIM(AText: String): Boolean;
     procedure SendPong;
     procedure SendAddMe;
@@ -114,6 +118,8 @@ uses
   tc_prot_status,
   tc_prot_remove_me,
   tc_prot_message,
+  tc_prot_profile_avatar_alpha,
+  tc_prot_profile_avatar,
   tc_config;
 
 { TBuddy }
@@ -163,17 +169,17 @@ end;
 
 procedure TBuddy.OnProxyConnect(ASocket: TLSocket);
 var
-  REQ: String;
+  Req: String;
 begin
   writeln('TBuddy.OnProxyConnect() ', ID, ' connected to Tor, sending SOCKS4 request');
-  SetLength(REQ, 8);
-  REQ[1] := #4; // Socks 4
-  REQ[2] := #1; // CONNECT command
-  PWord(@REQ[3])^ := ShortHostToNet(11009); // TorChat port
-  PDWord(@REQ[5])^ := HostToNet(1); // address '0.0.0.1' means: Socks 4a
-  REQ := REQ + 'TorChat' + #0;
-  REQ := REQ + ID + '.onion' + #0;
-  ASocket.Send(REQ[1], Length(REQ));
+  SetLength(Req, 8);
+  Req[1] := #4; // Socks 4
+  Req[2] := #1; // CONNECT command
+  PWord(@Req[3])^ := ShortHostToNet(11009); // TorChat port
+  PDWord(@Req[5])^ := HostToNet(1); // address '0.0.0.1' means: Socks 4a
+  Req := Req + 'TorChat' + #0;
+  Req := Req + ID + '.onion' + #0;
+  ASocket.Send(Req[1], Length(Req));
 end;
 
 procedure TBuddy.OnProxyConnectFailed;
@@ -187,13 +193,13 @@ end;
 
 procedure TBuddy.OnProxyReceive(ASocket: TLSocket);
 var
-  ANS: String;
+  Ans: String;
   Num: Integer;
   Err: String;
   C  : IHiddenConnection;
 begin
-  NUM := ASocket.GetMessage(ANS);
-  if (Num = 8) and (ANS[2] = #90) then begin
+  Num := ASocket.GetMessage(Ans);
+  if (Num = 8) and (Ans[2] = #90) then begin
     writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
 
     // remove the event methods, THiddenConnection will install its own
@@ -206,7 +212,7 @@ begin
   end
   else begin
     if Num = 8 then
-      Err := IntToStr(Ord((ANS[2])))
+      Err := IntToStr(Ord((Ans[2])))
     else
       Err := 'wrong answer from proxy (' + IntToStr(Num) + ' bytes)';
     writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection failed: ', Err);
@@ -511,6 +517,16 @@ end;
 procedure TBuddy.SetSoftwareVersion(AVersion: String);
 begin
   FSoftwareVersion := AVersion;
+end;
+
+procedure TBuddy.SetAvatarData(ABitmap: String);
+begin
+  FAvatarData := ABitmap;
+end;
+
+procedure TBuddy.SetAvatarAlphaData(ABitmap: String);
+begin
+  FAvatarAlphaData := ABitmap;
 end;
 
 function TBuddy.SendIM(AText: String): Boolean;

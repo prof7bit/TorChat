@@ -144,6 +144,8 @@ type
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetSoftware(ASoftware: String);
     procedure SetSoftwareVersion(AVersion: String);
+    procedure SetAvatarData(ABitmap: String);
+    procedure SetAvatarAlphaData(ABitmap: String);
     function SendIM(AText: String): Boolean;
     procedure SendPong;
     procedure SendAddMe;
