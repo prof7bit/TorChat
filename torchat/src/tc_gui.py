@@ -1406,7 +1406,7 @@ class ChatWindow(wx.Frame):
 				self.buddy.sendChatMessage("/ping " + str(onetimepid))
 				self.pings[onetimepid] = [time.time()]
 				self.writeColored(config.get("gui", "color_actions"),
-                              "",
+                              ",
                               "[PING]")
 			else:
 				self.buddy.sendChatMessage(text)
