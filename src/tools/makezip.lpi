@@ -33,12 +33,17 @@
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="makezip.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="makezip"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="filetools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="filetools"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
