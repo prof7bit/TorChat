@@ -120,7 +120,7 @@ uses
   tc_prot_message,
   tc_prot_profile_avatar_alpha,
   tc_prot_profile_avatar,
-  tc_config;
+  tc_const;
 
 { TBuddy }
 

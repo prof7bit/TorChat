@@ -5,7 +5,7 @@ program makezip;
 uses
   Classes,
   sysutils,
-  tc_config;
+  tc_const;
 
 const
   BINDIR = '../../bin/';

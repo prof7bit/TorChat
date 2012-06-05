@@ -118,7 +118,8 @@ uses
   tc_roster,
   tc_config,
   tc_misc,
-  tc_conn;
+  tc_conn,
+  tc_const;
 
 { TEventThread }
 

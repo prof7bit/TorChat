@@ -85,6 +85,7 @@ uses
   tc_client,
   tc_buddy,
   tc_config,
+  tc_const,
   tc_misc;
 
 const
