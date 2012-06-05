@@ -223,14 +223,12 @@ end;
 procedure TBuddy.OnProxyDisconect(ASocket: TLSocket);
 begin
   writeln('TBuddy.OnProxyDisconect() ', ID);
-  Ignore(ASocket);
   OnProxyConnectFailed;
 end;
 
 procedure TBuddy.OnProxyError(const Error: String; ASocket: TLSocket);
 begin
   writeln('TBuddy.OnProxyError() ', ID, ' ', Error);
-  Ignore(ASocket);
   OnProxyConnectFailed;
 end;
 

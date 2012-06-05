@@ -109,7 +109,6 @@ end;
 
 procedure THiddenConnection.OnTCPFail(ASocket: TLHandle; const Error: String);
 begin
-  Ignore(ASocket);
   // I'm wrapping this method into _AddRef/_Release so that the
   // destruction due to refcount=0 won't catch us somewhere in
   // the middle of the following code, I am delaying this until

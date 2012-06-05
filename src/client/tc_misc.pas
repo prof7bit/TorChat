@@ -44,13 +44,6 @@ function SecondsSince(Start: TDateTime): Int64;
   found then an EEndOfString exception is generated }
 function Split(var Line: String; Sep: Char): String;
 
-{ This function exists only to make the compiler happy when we have unused
-  function arguments, we can then just Ignore() them and the compiler will not
-  emit a warning anymore. Unneccessary warnings only spam the console when
-  compiling and bury legitimate problems. This function is declared inline,
-  it does absolutely nothing and will therefore be optimized away completely. }
-function Ignore(P: Pointer): Pointer; Inline;
-
 { works like Format() but will catch exceptions at runtime }
 function _F(S: String; Args: array of const): String;
 
@@ -97,11 +90,6 @@ begin
   end
   else
     raise EEndOfString.Create('no more separator found');
-end;
-
-function Ignore(P: Pointer): Pointer; inline;
-begin
-  Result := P;
 end;
 
 function _F(S: String; Args: array of const): String;

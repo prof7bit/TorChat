@@ -195,7 +195,6 @@ end;
 
 function torchat_unload(plugin: PPurplePlugin): GBoolean; cdecl;
 begin
-  Ignore(@plugin);
   TorChatClients.Free;
   WriteLn('plugin unloaded');
   Result := True;
@@ -203,7 +202,6 @@ end;
 
 function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
 begin
-  Ignore(acc);
   // pidgin has some strange policy regardig usable status types:
   // as soon as there are more than one protocols active it will
   // fall back to a standard list of status types, no matter whether
@@ -241,7 +239,6 @@ var
   purple_id: PChar;
   purple_alias: PChar;
 begin
-  Ignore(group);
   TorChat := TorChatClients.Find(gc^.account);
   if Assigned(TorChat) then begin
     purple_id := purple_buddy_get_name(purple_buddy);
@@ -302,7 +299,6 @@ var
   Buddy: IBuddy;
   purple_id: PChar;
 begin
-  Ignore(group);
   purple_id := purple_buddy_get_name(purple_buddy);
   TorChat := TorChatClients.Find(gc^.account);
   Buddy := TorChat.Roster.ByID(purple_id);
@@ -348,15 +344,12 @@ end;
 
 function torchat_get_text_table(acc: PPurpleAccount): PGHashTable; cdecl;
 begin
-  Ignore(acc);
   Result := g_hash_table_new(@g_str_hash, @g_str_equal);
   g_hash_table_insert(Result, PChar('login_label'), PChar('profile name'));
 end;
 
 function torchat_list_icon(acc: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
-  Ignore(acc);
-  Ignore(buddy);
   Result := 'torchat';
   // now it will look for torchat.png in several resolutions
   // in the folders /usr/share/pixmaps/pidgin/protocols/*/
