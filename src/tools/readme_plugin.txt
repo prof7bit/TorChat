@@ -10,8 +10,8 @@ libpurpletorchat.so
 
       /usr/lib/purple-2/
 
-  You also must have tor installed in /sbin/tor which should normally be
-the default location of tor if are on a debian based system.
+  You also must have tor installed in /usr/sbin/tor which should 
+normally be the default location of tor if are on a debian based system.
 
   Now start pidgin from within a console window. You should see a lot of
 debugging output. Additionally there will be a file ~/purpletorchat.log
