@@ -49,13 +49,14 @@ type
     FAvatarData: String;
     FAvatarAlphaData: String;
     FStatus: TTorchatStatus;
-    FLastDisconnect: TDateTime;
-    FReconnectInterval: Integer;
+    FReconnectInterval: Double;
     FConnIncoming: IHiddenConnection;
     FConnOutgoing: IHiddenConnection;
     FMustSendPong: Boolean;
     FReceivedCookie: String;
     FConnecting: Boolean;
+    FTimeCreated: TDateTime;
+    FLastDisconnect: TDateTime;
     FLastActivity: TDateTime;
     FLastStatusSent: TDateTime;
     FLnetClient: TLTcp;
@@ -133,6 +134,7 @@ begin
   FClient := AClient;
   FLastDisconnect := 0;
   FLastActivity := Now;
+  FTimeCreated := Now;
   FLastStatusSent := Now;
   FMustSendPong := False;
   FReceivedCookie := '';
@@ -148,6 +150,17 @@ end;
 destructor TBuddy.Destroy;
 begin
   writeln('TBuddy.Destroy() ' + ID);
+
+  // make sure the handle that might still be stuck in select() will
+  // not try to fire any late Events after the buddy is freed
+  FLnetClient.IterReset;
+  if Assigned(FLnetClient.Iterator) then begin
+    with FLnetClient.Iterator do begin // the root handle of the TLTcp
+      IgnoreRead := True;
+      IgnoreWrite := True;
+      IgnoreError := True;
+    end;
+  end;
   FLnetClient.Disconnect();
   FLnetClient.Free;
   writeln('TBuddy.Destroy() ' + ID + ' finished');
@@ -183,11 +196,14 @@ begin
 end;
 
 procedure TBuddy.OnProxyConnectFailed;
+var
+  Slowdown: Double;
 begin
   FConnecting := False;
   FLastDisconnect := Now;
-  FReconnectInterval := Round(FReconnectInterval * RECONNECT_SLOWDOWN);
-  WriteLn(_F('%s next connection attempt in %d seconds',
+  Slowdown := 1 + Random(100)/200; // [1 .. 1.5]
+  FReconnectInterval := FReconnectInterval * Slowdown;
+  WriteLn(_F('%s next connection attempt in %g seconds',
     [ID, FReconnectInterval]));
 end;
 
@@ -234,24 +250,40 @@ end;
 
 procedure TBuddy.CheckState;
 begin
+  _AddRef;
+
+  // Connect
   if not (Assigned(ConnOutgoing) or FConnecting) then begin
-    if SecondsSince(FLastDisconnect) > FReconnectInterval then begin
+    if TimeSince(FLastDisconnect) > FReconnectInterval then begin
       InitiateConnect;
     end;
   end;
 
+  // send keep-alive
   if Assigned(ConnIncoming) and Assigned(ConnOutgoing) then begin
-    if SecondsSince(FLastStatusSent) > SECONDS_SEND_KEEPLIVE then begin
+    if TimeSince(FLastStatusSent) > SECONDS_SEND_KEEPLIVE then begin
       SendStatus;
     end;
   end;
 
+  // check keep-alive timeout and disconect
   if Assigned(ConnOutgoing)
-  and (SecondsSince(FLastActivity) > SECONDS_WAIT_KEEPALIVE) then begin
+  and (TimeSince(FLastActivity) > SECONDS_WAIT_KEEPALIVE) then begin
     WriteLn(_F('I TBuddy.CheckState() %s timeout, disconnecting',
       [FID]));
     DoDisconnect;
   end;
+
+  // check max time on templist and remove from there
+  if TimeSince(FTimeCreated) > SECONDS_KEEP_ON_TEMPLIST then begin
+    if Self in Client.TempList then begin
+      WriteLn(_F('I TBuddy.CheckState() %s timeout, removing temporary buddy',
+        [FID]));
+      DoDisconnect;
+      Client.TempList.RemoveBuddy(Self); // should now free on _Release;
+    end;
+  end;
+  _Release;
 end;
 
 function TBuddy.AsJsonObject: TJSONObject;

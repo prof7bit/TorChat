@@ -121,6 +121,8 @@ begin
 
     //no more callbacks
     FSocket.IgnoreRead := True;
+    FSocket.IgnoreWrite := True;
+    FSocket.IgnoreError := True;
     FSocket.Disconnect();
 
     // remove references to the connection in all other objects.

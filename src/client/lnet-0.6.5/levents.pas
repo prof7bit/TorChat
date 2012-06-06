@@ -584,14 +584,20 @@ begin
     Temp := FRoot;
     while Assigned(Temp) do begin
       if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FWriteFDSet) <> 0) then
-        if Assigned(Temp.FOnWrite) and not Temp.IgnoreWrite then
+        if Assigned(Temp.FOnWrite) and not Temp.IgnoreWrite then begin
+          WriteLn('Going to call FOnWrite() on ', Temp.Handle);
           Temp.FOnWrite(Temp);
+        end;
       if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FReadFDSet) <> 0) then
-        if Assigned(Temp.FOnRead) and not Temp.IgnoreRead then
+        if Assigned(Temp.FOnRead) and not Temp.IgnoreRead then begin
+          WriteLn('Going to call FOnRead() on ', Temp.Handle);
           Temp.FOnRead(Temp);
+        end;
       if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FErrorFDSet) <> 0) then
-        if Assigned(Temp.FOnError) and not Temp.IgnoreError then
+        if Assigned(Temp.FOnError) and not Temp.IgnoreError then begin
+          WriteLn('Going to call FOnError() on ', Temp.Handle);
           Temp.FOnError(Temp, 'Handle error' + LStrError(LSocketError));
+        end;
       Temp2 := Temp;
       Temp := Temp.FNext;
       if Temp2.FDispose then

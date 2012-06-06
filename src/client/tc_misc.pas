@@ -37,7 +37,7 @@ type
   EEndOfString = class(Exception)
   end;
 
-function SecondsSince(Start: TDateTime): Int64;
+function TimeSince(Start: TDateTime): Double;
 
 { split the string Line at the first occurrence of Sep, return the left part
   in the function result and the right part in var Line. If no separator is
@@ -74,9 +74,9 @@ type
 var
   PortList: array of DWord;
 
-function SecondsSince(Start: TDateTime): Int64;
+function TimeSince(Start: TDateTime): Double;
 begin
-  Result := Round((Now - Start) * SecsPerDay);
+  Result := (Now - Start) * SecsPerDay;
 end;
 
 function Split(var Line: String; Sep: Char): String;

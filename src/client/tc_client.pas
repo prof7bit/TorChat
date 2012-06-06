@@ -334,7 +334,7 @@ var
   HSName: String;
 begin
   if not FHSNameOK then begin;
-    if SecondsSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
+    if TimeSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
       HSName := FTor.HiddenServiceName;
       if HSName <> '' then begin
         writeln(_F('I profile "%s": HiddenService name is %s',
@@ -357,7 +357,7 @@ var
 begin
   for I := FConnInList.Count - 1 downto 0 do begin
     Conn := IHiddenConnection(FConnInList.Items[I]);
-    if SecondsSince(Conn.TimeCreated) > SECONDS_WAIT_FOR_PONG then begin
+    if TimeSince(Conn.TimeCreated) > SECONDS_WAIT_FOR_PONG then begin
       if Conn.PingBuddyID <> '' then begin
         Buddy := Roster.ByID(Conn.PingBuddyID);
         if not Assigned(Buddy) then
