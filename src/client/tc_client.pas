@@ -94,6 +94,7 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String); virtual abstract;
+    function UserAddBuddy(AID, AAlias: String): Boolean;
     function MainThread: TThreadID;
     function Roster: IRoster;
     function TempList: ITempList;
@@ -116,6 +117,7 @@ implementation
 uses
   tc_templist,
   tc_roster,
+  tc_buddy,
   tc_config,
   tc_misc,
   tc_conn,
@@ -224,6 +226,36 @@ begin
   Roster.CheckState;
   TempList.CheckState;
   CheckAnonConnTimeouts;
+end;
+
+function TTorChatClient.UserAddBuddy(AID, AAlias: String): Boolean;
+var
+  Buddy: IBuddy;
+begin
+  // first try the templist
+  Buddy := TempList.ByID(AID);
+  if Assigned(Buddy) then begin
+    Buddy.SetFriendlyName(AAlias);
+    Roster.AddBuddyNoCallback(Buddy);
+    TempList.RemoveBuddy(Buddy);
+    Buddy.ResetConnectInterval;
+    Buddy.ResetTimeout;
+    Buddy.SendAddMe;
+    Result := True;
+  end
+
+  // otherwise try to create a new one
+  else begin
+    Buddy := TBuddy.Create(Self);
+    if Buddy.InitID(AID) then begin
+      Buddy.SetFriendlyName(AAlias);
+      Roster.AddBuddyNoCallback(Buddy);
+      Result := True;
+    end
+    else begin
+      Result := False;
+    end;
+  end;
 end;
 
 function TTorChatClient.MainThread: TThreadID;

@@ -74,6 +74,7 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String);
+    function UserAddBuddy(AID, AAlias: String): Boolean;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);

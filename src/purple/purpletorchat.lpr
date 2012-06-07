@@ -83,7 +83,6 @@ uses
   purplehelper,
   tc_interface,
   tc_client,
-  tc_buddy,
   tc_config,
   tc_const,
   tc_misc;
@@ -236,7 +235,6 @@ end;
 procedure torchat_add_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
 var
   TorChat : TTorChatPurpleClient;
-  Buddy: IBuddy;
   purple_id: PChar;
   purple_alias: PChar;
 begin
@@ -244,36 +242,14 @@ begin
   if Assigned(TorChat) then begin
     purple_id := purple_buddy_get_name(purple_buddy);
     purple_alias := purple_buddy_get_alias_only(purple_buddy);
-
-    {$note move all the following into a TTorChatClient method, there is way too much knowledge about implementation details here}
-
-    // first try the templist
-    Buddy := TorChat.TempList.ByID(purple_id);
-    if Assigned(Buddy) then begin
-      Buddy.SetFriendlyName(purple_alias);
-      TorChat.Roster.AddBuddyNoCallback(Buddy);
-      TorChat.TempList.RemoveBuddy(Buddy);
-      Buddy.ResetConnectInterval;
-      Buddy.ResetTimeout;
-      Buddy.SendAddMe;
-    end
-
-    // otherwise try to create a new one
-    else begin
-      Buddy := TBuddy.Create(TorChat);
-      if Buddy.InitID(purple_id) then begin
-        Buddy.SetFriendlyName(purple_alias);
-        TorChat.Roster.AddBuddyNoCallback(Buddy);
-      end
-      else begin
-        purple_notify_message(PurplePlugin, PURPLE_NOTIFY_MSG_ERROR,
-          'Cannot add buddy',
-          'A buddy with this ID cannot be added',
-          'Either this ID contains invalid characters or it is incomplete or the ID is already on the list.',
-          nil,
-          nil);
-        purple_blist_remove_buddy(purple_buddy);
-      end;
+    if not TorChat.UserAddBuddy(purple_id, purple_alias) then begin
+      purple_notify_message(PurplePlugin, PURPLE_NOTIFY_MSG_ERROR,
+        'Cannot add buddy',
+        'A buddy with this ID cannot be added',
+        'Either this ID contains invalid characters or it is incomplete or the ID is already on the list.',
+        nil,
+        nil);
+      purple_blist_remove_buddy(purple_buddy);
     end;
   end;
 end;
