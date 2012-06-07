@@ -502,6 +502,7 @@ begin
     purple_blist_remove_buddy(purple_buddy);
   end;
   FreeMem(buddy_name);
+  {$note must do something when an IM window is currently open}
 end;
 
 procedure TTorChatPurpleClient.OnInstantMessage(ABuddy: IBuddy; AText: String);
