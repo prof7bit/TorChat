@@ -198,7 +198,8 @@ begin
   // disconnect all remaining incoming connections
   while FConnInList.Count > 0 do begin
     Conn := IHiddenConnection(FConnInList.Items[0]);
-    Conn.Disconnect;
+    Conn.Disconnect; // this will remove it from FConnInList
+    Conn := nil;     // remove last reference, free it now.
   end;
 
   FEventThread.Free;
