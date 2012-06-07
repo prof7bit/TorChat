@@ -216,7 +216,7 @@ var
 begin
   Num := ASocket.GetMessage(Ans);
   if (Num = 8) and (Ans[2] = #90) then begin
-    writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
+    //writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
 
     // remove the event methods, THiddenConnection will install its own
     FLnetClient.OnReceive := nil;
@@ -238,7 +238,7 @@ end;
 
 procedure TBuddy.OnProxyDisconect(ASocket: TLSocket);
 begin
-  writeln('TBuddy.OnProxyDisconect() ', ID);
+  //writeln('TBuddy.OnProxyDisconnect() ', ID);
   OnProxyConnectFailed;
 end;
 
