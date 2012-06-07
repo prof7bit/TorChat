@@ -327,7 +327,9 @@ end;
 
 function torchat_list_icon(acc: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
-  Result := 'torchat';
+  Result := nil; // don't use an icon, care about this once its working
+
+  //Result := 'torchat';
   // now it will look for torchat.png in several resolutions
   // in the folders /usr/share/pixmaps/pidgin/protocols/*/
   // the installer for the plugin must install these files.
