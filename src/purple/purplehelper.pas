@@ -82,9 +82,10 @@ type
     DEBUG_ERROR
   );
 
-  { TOutputRedirect will catch everything that is WriteLn() to stdout and
-    redirects it to the libpurple debug logger. We will create an instance
-    of this and replace it with the standard output stream }
+  { TOutputRedirect will catch everything that is WriteLn()
+    to stdout and redirects it to the libpurple debug logger.
+    We will create an instance of this and replace it with
+    the standard output stream }
   TOutputRedirect = class(TStream)
     function Write(const Buffer; Count : Longint) : Longint; override;
   end;
@@ -271,9 +272,10 @@ begin
 end;
 
 
-{ The TorChat units are logging their debug info with WriteLn(). It is
-  the responsibility of the frontend to catch them and log them or display
-  them appropriately. Here we install the redirection that will do this. }
+{ The TorChat units are logging their debug info with WriteLn().
+  It is the responsibility of the frontend to catch them and log
+  them or display them appropriately. Here we install the
+  redirection that will do this. }
 procedure InstallOutputRedirect;
 begin
   PurpleThread := ThreadID;
