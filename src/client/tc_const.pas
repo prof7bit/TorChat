@@ -12,6 +12,7 @@ const
   SECONDS_KEEP_ON_TEMPLIST = 240;
   SECONDS_WAIT_FOR_HOSTNAME_FILE = 20;
   SECONDS_INITIAL_RECONNECT = 10;
+  SECONDS_FIRST_CONNECT = 5;     // first connect after TBuddy.Create
 
   SOFTWARE_NAME : String = 'TorChat';
   SOFTWARE_VERSION : String = '2.0-alpha-3';

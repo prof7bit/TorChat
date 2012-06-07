@@ -132,7 +132,6 @@ begin
   inherited Create;
   FConnecting := False;
   FClient := AClient;
-  FLastDisconnect := 0;
   FLastActivity := Now;
   FTimeCreated := Now;
   FLastStatusSent := Now;
@@ -141,9 +140,11 @@ begin
   FStatus := TORCHAT_OFFLINE;
   CreateGUID(GUID);
   FOwnCookie := GUIDToString(GUID);
-  ResetConnectInterval;
   FLnetClient := TLTcp.Create(nil);
   FLnetClient.Eventer := Client.LNetEventer;
+  // move the last disconnect a few seconds into the past
+  FLastDisconnect := Now - (SECONDS_INITIAL_RECONNECT - SECONDS_FIRST_CONNECT) / SecsPerDay;
+  ResetConnectInterval;
   WriteLn('TBuddy.Create() created random cookie: ' + FOwnCookie);
 end;
 
