@@ -135,7 +135,7 @@ begin
     Result := nil
   else begin
     // bypass the FPC heap manager and malloc() directly from the system.
-    Result := g_malloc(L+1);
+    Result := PurpleGetMem(L+1);
     Move(Str[1], Result[0], L);
     Result[L] := #0;
   end;
