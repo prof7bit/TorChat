@@ -90,6 +90,7 @@ begin
       // don't require it being in the list (group chat for
       // example).
       FClient.TempList.AddBuddy(Buddy);
+      {$note must fix the SECONDS_KEEP_ON_TEMPLIST timeout algo}
     end;
   end;
 end;
