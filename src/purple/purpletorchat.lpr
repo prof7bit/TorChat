@@ -264,8 +264,11 @@ begin
   TorChat := TorChatClients.Find(gc^.account);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
-    if Assigned(Buddy) then begin
-      Result := Integer(Buddy.SendIM(Msg));
+    if Assigned(Buddy) then
+      Result := Integer(Buddy.SendIM(Msg))
+    else begin
+      {$note might have sent remove_me in the meantime, write a warning}
+      Result := 0; // is this ok? probably not.
     end;
   end;
 end;
