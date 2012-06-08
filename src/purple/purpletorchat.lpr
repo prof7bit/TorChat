@@ -500,10 +500,7 @@ begin
   Raw8Alpha := ABuddy.AvatarAlphaData;
   if Length(Raw24Bitmap) = 12288 then begin;
     HasAlpha := (Length(Raw8Alpha) = 4096);
-
-    buddy_name := GetMemAndCopy(ABuddy.ID);
     Image := TFPMemoryImage.create(64, 64);
-
     PtrPixel24 := @Raw24Bitmap[1];
     if HasAlpha then PtrAlpha8 := @Raw8Alpha[1];
     for Y := 0 to 63 do begin
@@ -526,9 +523,17 @@ begin
     ImageWriter.WordSized := False;
     ImageStream := TMemoryStream.Create;
     Image.SaveToStream(ImageStream, ImageWriter);
+
+    buddy_name := GetMemAndCopy(ABuddy.ID);
     icon_len := ImageStream.Size;
     icon_data := PurpleGetMem(icon_len);
     Move(ImageStream.Memory^, icon_data^, icon_len);
+
+    // libpurple accepts data in PNG format (and possibly many
+    // other formats too (its actually handled by the GUI and not
+    // by libpurple, libpurple only stores and manages the data
+    // without caring what it is). PNG is fine for our purposes
+    // because it is well supported and can handle transparency.
     purple_buddy_icons_set_for_user(
       purple_account,
       buddy_name,
@@ -536,6 +541,7 @@ begin
       icon_len,
       nil
     );
+
     ImageStream.Free;
     ImageWriter.Free;
     Image.Free;
