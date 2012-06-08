@@ -558,7 +558,7 @@ var
   purple_group: PPurpleGroup;
   purple_buddy: PPurpleBuddy;
 begin
-  if not HSNameOk then exit; // bcause we don't have a group name yet
+  if not HSNameOk then exit; // because we don't have a group name yet
   buddy_name := GetMemAndCopy(ABuddy.ID);
   buddy_alias := GetMemAndCopy(ABuddy.FriendlyName);
   group_name := GetMemAndCopy(Roster.GroupName);
