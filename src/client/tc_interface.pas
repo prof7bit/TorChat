@@ -71,6 +71,7 @@ type
     procedure OnNeedPump; // ask the GUI to schedule a Pump() asap.
     procedure OnGotOwnID;
     procedure OnBuddyStatusChange(ABuddy: IBuddy);
+    procedure OnBuddyAvatarChange(ABuddy: IBuddy);
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String);
@@ -139,6 +140,8 @@ type
     function ConnOutgoing: IHiddenConnection;
     function IsFullyConnected: Boolean;
     function Status: TTorchatStatus;
+    function AvatarData: String; // raw 64*64*24 bitmap (or '' if empty)
+    function AvatarAlphaData: String; // raw 64*64*8 bitmap (or '' if empty)
     procedure SetFriendlyName(AName: String);
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);

@@ -236,6 +236,7 @@ type
   PPurpleStatusType = Pointer;
   PPurpleStoredImage = Pointer;
   PPurpleBlistNode = Pointer;
+  PPurpleBuddyIcon = Pointer;
   PPurpleChat = Pointer;
   PPurpleRoomlist = Pointer;
   PPurpleRoomlistRoom = Pointer;
@@ -400,6 +401,10 @@ function  purple_buddy_get_account(buddy: PPurpleBuddy): PPurpleAccount; externa
 function  purple_buddy_get_alias_only(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
 function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; external LIBPURPLE;
+function  purple_buddy_icon_new(account: PPurpleAccount; username: PChar;
+  icon_data: Pointer; icon_len: PtrUInt; checksum: PChar): PPurpleBuddyIcon; external LIBPURPLE;
+procedure purple_buddy_icon_set_data(icon: PPurpleBuddyIcon; data: Pointer;
+  len: PtrUInt; checksum: PChar); external LIBPURPLE;
 function  purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
 procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
 procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); external LIBPURPLE;

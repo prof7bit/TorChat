@@ -95,6 +95,8 @@ type
     function Status: TTorchatStatus;
     function Software: String;
     function SoftwareVersion: String;
+    function AvatarData: String;
+    function AvatarAlphaData: String;
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
@@ -492,6 +494,16 @@ end;
 function TBuddy.SoftwareVersion: String;
 begin
   Result := FSoftwareVersion;
+end;
+
+function TBuddy.AvatarData: String;
+begin
+  Result := FAvatarData;
+end;
+
+function TBuddy.AvatarAlphaData: String;
+begin
+  Result := FAvatarAlphaData;
 end;
 
 procedure TBuddy.SetIncoming(AConn: IHiddenConnection);

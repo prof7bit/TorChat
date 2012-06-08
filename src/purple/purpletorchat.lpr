@@ -85,6 +85,8 @@ uses
   tc_client,
   tc_config,
   tc_const,
+  FPimage,
+  FPWritePNG,
   tc_misc;
 
 const
@@ -105,6 +107,7 @@ type
     procedure OnNeedPump; override;
     procedure OnGotOwnID; override;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
+    procedure OnBuddyAvatarChange(ABuddy: IBuddy); override;
     procedure OnBuddyAdded(ABuddy: IBuddy); override;
     procedure OnBuddyRemoved(ABuddy: IBuddy); override;
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String); override;
@@ -466,6 +469,87 @@ begin
   purple_prpl_got_user_status(purple_account, buddy_name, status_id);
   FreeMem(status_id);
   FreeMem(buddy_name);
+
+  OnBuddyAvatarChange(ABuddy);
+end;
+
+procedure TTorChatPurpleClient.OnBuddyAvatarChange(ABuddy: IBuddy);
+type
+  P24Pixel = ^T24Pixel;
+  T24Pixel = packed record
+    Red: Byte;
+    Green: Byte;
+    Blue: Byte;
+  end;
+var
+  buddy_name: PChar;
+  buddy_icon: PPurpleBuddyIcon;
+  buddy_icon_data: Pointer;
+  buddy_icon_size: PtrUInt;
+  Image: TFPMemoryImage;
+  Writer: TFPWriterPNG;
+  Stream: TMemoryStream;
+  MyBitmap: String;
+  MyAlpha: String;
+  HasAlpha: Boolean;
+  Pixel: TFPColor;
+  X,Y: Integer;
+  PtrPixel24: P24Pixel;
+  PtrAlpha8: PByte;
+begin
+  MyBitmap := ABuddy.AvatarData;
+  MyAlpha := ABuddy.AvatarAlphaData;
+  if Length(MyBitmap) = 12288 then begin;
+    HasAlpha := (Length(MyAlpha) = 4096);
+
+    buddy_name := GetMemAndCopy(ABuddy.ID);
+    Image := TFPMemoryImage.create(64, 64);
+
+    PtrPixel24 := @MyBitmap[1];
+    if HasAlpha then PtrAlpha8 := @MyAlpha[1];
+    for Y := 0 to 63 do begin
+      for X := 0 to 63 do begin
+        Pixel.red := PtrPixel24^.Red shl 8;
+        Pixel.green := PtrPixel24^.Green shl 8;
+        Pixel.blue := PtrPixel24^.Blue shl 8;
+        Inc(PtrPixel24);
+        if HasAlpha then begin
+          Pixel.alpha := PtrAlpha8^ shl 8;
+          Inc(PtrAlpha8);
+        end
+        else
+          Pixel.alpha := 0;
+        Image.Colors[x,y] := Pixel;
+      end;
+    end;
+
+    WriteLn('W *** buddy icon ', ABuddy.ID);
+
+    Writer := TFPWriterPNG.create;
+    Writer.UseAlpha := HasAlpha;
+    Writer.WordSized := False;
+    //Image.SaveToFile(ExpandFileName(
+    //  ConcatPaths(['~', ABuddy.ID + '.png'])), Writer);
+
+    Stream := TMemoryStream.Create;
+    Image.SaveToStream(Stream, Writer);
+    buddy_icon_size := Stream.Size;
+    buddy_icon_data := PurpleGetMem(buddy_icon_size);
+    Move(Stream.Memory^, buddy_icon_data^, buddy_icon_size);
+    buddy_icon := purple_buddy_icon_new(
+      purple_account,
+      buddy_name,
+      buddy_icon_data,
+      buddy_icon_size,
+      nil
+    );
+    writeln('W *** ', buddy_icon_size);
+
+    Stream.Free;
+    Writer.Free;
+    Image.Free;
+    FreeMem(buddy_name);
+  end;
 end;
 
 procedure TTorChatPurpleClient.OnBuddyAdded(ABuddy: IBuddy);

@@ -91,6 +91,7 @@ type
     procedure OnNeedPump; virtual; abstract;
     procedure OnGotOwnID; virtual; abstract;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); virtual; abstract;
+    procedure OnBuddyAvatarChange(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String); virtual abstract;
