@@ -484,7 +484,7 @@ type
 var
   buddy_name: PChar;
   icon_data: Pointer;
-  icon_size: PtrUInt;
+  icon_len: PtrUInt;
   Image: TFPMemoryImage;
   ImageWriter: TFPWriterPNG;
   ImageStream: TMemoryStream;
@@ -526,14 +526,14 @@ begin
     ImageWriter.WordSized := False;
     ImageStream := TMemoryStream.Create;
     Image.SaveToStream(ImageStream, ImageWriter);
-    icon_size := ImageStream.Size;
-    icon_data := PurpleGetMem(icon_size);
-    Move(ImageStream.Memory^, icon_data^, icon_size);
-    purple_buddy_icon_new(
+    icon_len := ImageStream.Size;
+    icon_data := PurpleGetMem(icon_len);
+    Move(ImageStream.Memory^, icon_data^, icon_len);
+    purple_buddy_icons_set_for_user(
       purple_account,
       buddy_name,
       icon_data,
-      icon_size,
+      icon_len,
       nil
     );
     ImageStream.Free;
