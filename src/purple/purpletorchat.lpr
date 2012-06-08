@@ -483,30 +483,29 @@ type
   end;
 var
   buddy_name: PChar;
-  buddy_icon: PPurpleBuddyIcon;
-  buddy_icon_data: Pointer;
-  buddy_icon_size: PtrUInt;
+  icon_data: Pointer;
+  icon_size: PtrUInt;
   Image: TFPMemoryImage;
-  Writer: TFPWriterPNG;
-  Stream: TMemoryStream;
-  MyBitmap: String;
-  MyAlpha: String;
+  ImageWriter: TFPWriterPNG;
+  ImageStream: TMemoryStream;
+  Raw24Bitmap: String;
+  Raw8Alpha: String;
   HasAlpha: Boolean;
   Pixel: TFPColor;
   X,Y: Integer;
   PtrPixel24: P24Pixel;
   PtrAlpha8: PByte;
 begin
-  MyBitmap := ABuddy.AvatarData;
-  MyAlpha := ABuddy.AvatarAlphaData;
-  if Length(MyBitmap) = 12288 then begin;
-    HasAlpha := (Length(MyAlpha) = 4096);
+  Raw24Bitmap := ABuddy.AvatarData;
+  Raw8Alpha := ABuddy.AvatarAlphaData;
+  if Length(Raw24Bitmap) = 12288 then begin;
+    HasAlpha := (Length(Raw8Alpha) = 4096);
 
     buddy_name := GetMemAndCopy(ABuddy.ID);
     Image := TFPMemoryImage.create(64, 64);
 
-    PtrPixel24 := @MyBitmap[1];
-    if HasAlpha then PtrAlpha8 := @MyAlpha[1];
+    PtrPixel24 := @Raw24Bitmap[1];
+    if HasAlpha then PtrAlpha8 := @Raw8Alpha[1];
     for Y := 0 to 63 do begin
       for X := 0 to 63 do begin
         Pixel.red := PtrPixel24^.Red shl 8;
@@ -522,31 +521,23 @@ begin
         Image.Colors[x,y] := Pixel;
       end;
     end;
-
-    WriteLn('W *** buddy icon ', ABuddy.ID);
-
-    Writer := TFPWriterPNG.create;
-    Writer.UseAlpha := HasAlpha;
-    Writer.WordSized := False;
-    //Image.SaveToFile(ExpandFileName(
-    //  ConcatPaths(['~', ABuddy.ID + '.png'])), Writer);
-
-    Stream := TMemoryStream.Create;
-    Image.SaveToStream(Stream, Writer);
-    buddy_icon_size := Stream.Size;
-    buddy_icon_data := PurpleGetMem(buddy_icon_size);
-    Move(Stream.Memory^, buddy_icon_data^, buddy_icon_size);
-    buddy_icon := purple_buddy_icon_new(
+    ImageWriter := TFPWriterPNG.create;
+    ImageWriter.UseAlpha := HasAlpha;
+    ImageWriter.WordSized := False;
+    ImageStream := TMemoryStream.Create;
+    Image.SaveToStream(ImageStream, ImageWriter);
+    icon_size := ImageStream.Size;
+    icon_data := PurpleGetMem(icon_size);
+    Move(ImageStream.Memory^, icon_data^, icon_size);
+    purple_buddy_icon_new(
       purple_account,
       buddy_name,
-      buddy_icon_data,
-      buddy_icon_size,
+      icon_data,
+      icon_size,
       nil
     );
-    writeln('W *** ', buddy_icon_size);
-
-    Stream.Free;
-    Writer.Free;
+    ImageStream.Free;
+    ImageWriter.Free;
     Image.Free;
     FreeMem(buddy_name);
   end;
