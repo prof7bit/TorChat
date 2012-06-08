@@ -469,8 +469,6 @@ begin
   purple_prpl_got_user_status(purple_account, buddy_name, status_id);
   FreeMem(status_id);
   FreeMem(buddy_name);
-
-  OnBuddyAvatarChange(ABuddy);
 end;
 
 procedure TTorChatPurpleClient.OnBuddyAvatarChange(ABuddy: IBuddy);
@@ -497,9 +495,12 @@ var
   PtrAlpha8: PByte;
 begin
   Raw24Bitmap := ABuddy.AvatarData;
-  Raw8Alpha := ABuddy.AvatarAlphaData;
   if Length(Raw24Bitmap) = 12288 then begin;
+    Raw8Alpha := ABuddy.AvatarAlphaData;
     HasAlpha := (Length(Raw8Alpha) = 4096);
+
+    // we will now create a TFPMemoryImage from our
+    // bitmap and use that to convert it into PNG
     Image := TFPMemoryImage.create(64, 64);
     PtrPixel24 := @Raw24Bitmap[1];
     if HasAlpha then PtrAlpha8 := @Raw8Alpha[1];
@@ -557,7 +558,7 @@ var
   purple_group: PPurpleGroup;
   purple_buddy: PPurpleBuddy;
 begin
-  if not HSNameOk then exit; // bcaue we don't have a group name yet
+  if not HSNameOk then exit; // bcause we don't have a group name yet
   buddy_name := GetMemAndCopy(ABuddy.ID);
   buddy_alias := GetMemAndCopy(ABuddy.FriendlyName);
   group_name := GetMemAndCopy(Roster.GroupName);

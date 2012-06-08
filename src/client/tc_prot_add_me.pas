@@ -85,7 +85,7 @@ begin
     if Buddy in FClient.TempList then begin
       FClient.TempList.RemoveBuddy(Buddy);
       FClient.Roster.AddBuddy(Buddy);
-      Buddy.SendStatus; // one cannot send too many status messages
+      Buddy.SendStatus; // one cannot send too many status messages ;-)
     end;
   end;
 end;

@@ -84,6 +84,7 @@ procedure TRoster.AddBuddy(ABuddy: IBuddy);
 begin
   AddBuddyNoCallback(ABuddy);
   FClient.OnBuddyAdded(ABuddy);
+  FClient.OnBuddyAvatarChange(ABuddy);
   FClient.OnBuddyStatusChange(ABuddy);
 end;
 

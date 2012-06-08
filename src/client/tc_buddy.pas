@@ -565,6 +565,8 @@ end;
 procedure TBuddy.SetAvatarData(ABitmap: String);
 begin
   FAvatarData := ABitmap;
+  if Self in Client.Roster then
+    Client.OnBuddyAvatarChange(Self);
 end;
 
 procedure TBuddy.SetAvatarAlphaData(ABitmap: String);
