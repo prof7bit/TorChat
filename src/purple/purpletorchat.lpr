@@ -235,6 +235,11 @@ begin
   TorChatClients.Find(acc).SetStatus(TorchatStatus);
 end;
 
+procedure torchat_set_buddy_icon(gc: PPurpleConnection; img: PPurpleStoredImage); cdecl;
+begin
+
+end;
+
 procedure torchat_add_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
 var
   TorChat : TTorChatPurpleClient;
@@ -634,6 +639,7 @@ begin
     login := @torchat_login;
     close := @torchat_close;
     set_status := @torchat_set_status;
+    set_buddy_icon := @torchat_set_buddy_icon;
     add_buddy := @torchat_add_buddy;
     remove_buddy := @torchat_remove_buddy;
     alias_buddy := @torchat_alias_buddy;
