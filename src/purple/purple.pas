@@ -411,6 +411,9 @@ procedure purple_debug_warning(category: PChar; format: PChar; args: array of co
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
 function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
 function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
+function  purple_imgstore_get_data(img: PPurpleStoredImage): Pointer; external LIBPURPLE;
+function  purple_imgstore_get_extension(img: PPurpleStoredImage): PChar; external LIBPURPLE;
+function  purple_imgstore_get_size(img: PPurpleStoredImage): PtrUInt; external LIBPURPLE;
 function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
  cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
