@@ -80,9 +80,9 @@ end;
 
 procedure TClientConfig.Load;
 var
-  FS: TFileStream;
-  JParser: TJSONParser;
-  JObj: TJSONObject;
+  FS: TFileStream = nil;
+  JParser: TJSONParser = nil;
+  JObj: TJSONObject = nil;
 
   function TryReadString(Name: String; Base64: Boolean=False): String;
   begin
@@ -117,7 +117,8 @@ begin
 
   except
     on E: Exception do begin
-      WriteLn('W TClientConfig.Load() could not load: ' + E.Message);
+      WriteLn('I TClientConfig.Load() could not load: ' + E.Message);
+      WriteLn('I Will use default config');
     end;
   end;
   if assigned(FS) then FreeAndNil(FS);
