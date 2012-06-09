@@ -18,10 +18,15 @@ type
     FOwnID: String;
     FShowMyself: Boolean;
     FIsLoading: Boolean;
+    FOwnAvatarData: String;
+    FOwnAvatarAlphaData: String;
   public
     constructor Create(AClient: IClient); reintroduce;
     procedure SetOwnID(AID: String);
+    procedure SetOwnAvatarData(RGB, Alpha: String);
     function OwnID: String;
+    function OwnAvatarData: String;
+    function OwnAvatarAlphaData: String;
     function GroupName: String;
     procedure AddBuddy(ABuddy: IBuddy); override;
     procedure AddBuddyNoCallback(ABuddy: IBuddy);
@@ -70,9 +75,31 @@ begin
   end;
 end;
 
+procedure TRoster.SetOwnAvatarData(RGB, Alpha: String);
+var
+  Buddy: IBuddy;
+begin
+  {$note move this (and also OwnID) into TTorChatClient}
+  WriteLn('I setting own avatar');
+  FOwnAvatarData := RGB;
+  FOwnAvatarAlphaData := Alpha;
+  for Buddy in Self do
+    Buddy.SendAvatar;
+end;
+
 function TRoster.OwnID: String;
 begin
   Result := FOwnID;
+end;
+
+function TRoster.OwnAvatarData: String;
+begin
+  Result := FOwnAvatarData;
+end;
+
+function TRoster.OwnAvatarAlphaData: String;
+begin
+  Result := FOwnAvatarAlphaData;
 end;
 
 function TRoster.GroupName: String;

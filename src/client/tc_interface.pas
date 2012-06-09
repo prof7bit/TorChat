@@ -41,6 +41,13 @@ type
     TORCHAT_XA
   );
 
+  P24Pixel = ^T24Pixel;
+  T24Pixel = packed record
+    Red: Byte;
+    Green: Byte;
+    Blue: Byte;
+  end;
+
   TMethodOfObject = procedure of object;
 
   IBuddy = interface;
@@ -111,8 +118,11 @@ type
     procedure AddBuddyNoCallback(ABuddy: IBuddy);
     procedure RemoveBuddyNoCallback(ABuddy: IBuddy);
     function OwnID: String;
+    function OwnAvatarData: String;
+    function OwnAvatarAlphaData: String;
     function GroupName: String;
     procedure SetOwnID(AID: String);
+    procedure SetOwnAvatarData(RGB, Alpha: String);
   end;
 
   IBuddy = interface
@@ -154,6 +164,7 @@ type
     procedure SendPong;
     procedure SendAddMe;
     procedure SendStatus;
+    procedure SendAvatar;
   end;
 
   IHiddenConnection = interface

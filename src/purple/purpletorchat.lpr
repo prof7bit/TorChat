@@ -87,6 +87,8 @@ uses
   tc_const,
   FPimage,
   FPWritePNG,
+  FPReadPNG,
+  FPImgCanv,
   tc_misc;
 
 const
@@ -236,8 +238,68 @@ begin
 end;
 
 procedure torchat_set_buddy_icon(gc: PPurpleConnection; img: PPurpleStoredImage); cdecl;
-begin
+var
+  len: PtrUInt;
+  data: Pointer;
+  ImageOriginal: TFPMemoryImage;
+  ImageScaled: TFPMemoryImage;
+  CanvasScaled: TFPImageCanvas;
+  ImageReader: TFPCustomImageReader;
+  ImageStream: TMemoryStream;
+  Pixel: TFPColor;
+  RGB24: String;
+  Alpha8: String;
+  PtrRGB: P24Pixel;
+  PtrAlpha: PByte;
+  X, Y: Integer;
+  TorChat: TTorChatPurpleClient;
 
+begin
+  TorChat := TorChatClients.Find(gc^.account);
+  if Assigned(TorChat) then begin
+    len := purple_imgstore_get_size(img);
+    data := purple_imgstore_get_data(img);
+
+    // read the PNG image from memory
+    ImageOriginal := TFPMemoryImage.Create(0, 0);
+    ImageStream := TMemoryStream.Create;
+    ImageStream.Write(data^, len);
+    ImageStream.Seek(0, soBeginning);
+    ImageReader := TFPReaderPNG.Create;
+    ImageOriginal.LoadFromStream(ImageStream, ImageReader);
+
+    // scale the image to 64*64
+    ImageScaled := TFPMemoryImage.Create(64, 64);
+    {$warnings off} // contains some abstract methods (must be FCL bug)
+    CanvasScaled := TFPImageCanvas.Create(ImageScaled);
+    {$warnings on}
+    CanvasScaled.StretchDraw(0, 0, 63, 63, ImageOriginal);
+
+    // convert it to TorChat format (uncompressed RGB, separate Alpha)
+    SetLength(RGB24, 12288);
+    SetLength(Alpha8, 4096);
+    PtrRGB := @RGB24[1];
+    PtrAlpha := @Alpha8[1];
+    for Y := 0 to 63 do begin
+      for X := 0 to 63 do begin
+        Pixel := ImageScaled.Colors[X, Y];
+        PtrRGB^.Red := hi(Pixel.red);
+        PtrRGB^.Green := hi(Pixel.green);
+        PtrRGB^.Blue := hi(Pixel.blue);
+        PtrAlpha^ := hi(Pixel.alpha);
+        Inc(PtrRGB);
+        Inc(PtrAlpha);
+      end;
+    end;
+
+    TorChat.Roster.SetOwnAvatarData(RGB24, Alpha8);
+
+    ImageStream.Free;
+    ImageReader.Free;
+    ImageOriginal.Free;
+    CanvasScaled.Free;
+    ImageScaled.Free;
+  end;
 end;
 
 procedure torchat_add_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
@@ -477,13 +539,6 @@ begin
 end;
 
 procedure TTorChatPurpleClient.OnBuddyAvatarChange(ABuddy: IBuddy);
-type
-  P24Pixel = ^T24Pixel;
-  T24Pixel = packed record
-    Red: Byte;
-    Green: Byte;
-    Blue: Byte;
-  end;
 var
   buddy_name: PChar;
   icon_data: Pointer;
@@ -633,6 +688,12 @@ begin
 
   with plugin_protocol_info do begin
     options := OPT_PROTO_NO_PASSWORD or OPT_PROTO_REGISTER_NOSCREENNAME;
+    with icon_spec do begin
+      format := 'png';
+      min_height := 64;
+      min_width := 64;
+      scale_rules := PURPLE_ICON_SCALE_SEND;
+    end;
     list_icon := @torchat_list_icon;
     status_types := @torchat_status_types;
     get_account_text_table := @torchat_get_text_table;

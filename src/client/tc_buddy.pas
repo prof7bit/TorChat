@@ -109,6 +109,7 @@ type
     procedure SendPong;
     procedure SendAddMe;
     procedure SendStatus;
+    procedure SendAvatar;
   end;
 
 implementation
@@ -598,6 +599,7 @@ begin
   Msg.Send;
   Msg := TMsgVersion.Create(Self, SOFTWARE_VERSION);
   Msg.Send;
+  SendAvatar;
   if Self in Client.Roster then
     SendAddMe;
   SendStatus;
@@ -621,6 +623,25 @@ begin
   Stat := TMsgStatus.Create(Self);
   Stat.Send;
   FLastStatusSent := Now;
+end;
+
+procedure TBuddy.SendAvatar;
+var
+  Msg: IProtocolMessage;
+  RGB: String;
+  Alpha: String;
+begin
+  RGB := Client.Roster.OwnAvatarData;
+  Alpha := Client.Roster.OwnAvatarAlphaData;
+  if Length(RGB) = 12288 then begin
+    if Length(Alpha) = 4096 then
+      Msg := TMsgProfileAvatarAlpha.Create(Self, Alpha)
+    else
+      Msg := TMsgProfileAvatarAlpha.Create(Self, '');
+    Msg.Send;
+    Msg := TMsgProfileAvatar.Create(Self, RGB);
+    Msg.Send;
+  end;
 end;
 
 end.
