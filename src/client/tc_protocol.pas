@@ -235,6 +235,12 @@ begin
   if Assigned(C) then begin
     Serialize;
     C.SendLine(GetCommand + ' ' + BinaryEncode(FBinaryContent));
+  end
+  else begin
+    if Assigned(FBuddy) then
+      WriteLn('W cannot send "' + GetCommand + '" to' + FBuddy.ID + ' without open connection')
+    else
+      WriteLn('E cannot send message ("' + GetCommand + '") without buddy. This must be a bug!');
   end;
 end;
 

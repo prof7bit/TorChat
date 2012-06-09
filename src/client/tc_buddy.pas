@@ -153,7 +153,7 @@ end;
 
 destructor TBuddy.Destroy;
 begin
-  writeln('TBuddy.Destroy() ' + ID);
+  WriteLn('TBuddy.Destroy() ' + ID);
 
   // make sure the handle that might still be stuck in select() will
   // not try to fire any late Events after the buddy is freed
@@ -167,7 +167,7 @@ begin
   end;
   FLnetClient.Disconnect();
   FLnetClient.Free;
-  writeln('TBuddy.Destroy() ' + ID + ' finished');
+  WriteLn('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
 end;
 
@@ -188,7 +188,7 @@ procedure TBuddy.OnProxyConnect(ASocket: TLSocket);
 var
   Req: String;
 begin
-  writeln('TBuddy.OnProxyConnect() ', ID, ' connected to Tor, sending SOCKS4 request');
+  WriteLn('TBuddy.OnProxyConnect() ', ID, ' connected to Tor, sending Socks4a request');
   SetLength(Req, 8);
   Req[1] := #4; // Socks 4
   Req[2] := #1; // CONNECT command
@@ -220,7 +220,7 @@ var
 begin
   Num := ASocket.GetMessage(Ans);
   if (Num = 8) and (Ans[2] = #90) then begin
-    //writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
+    //WriteLn('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
 
     // remove the event methods, THiddenConnection will install its own
     FLnetClient.OnReceive := nil;
@@ -235,20 +235,20 @@ begin
       Err := IntToStr(Ord((Ans[2])))
     else
       Err := 'wrong answer from proxy (' + IntToStr(Num) + ' bytes)';
-    writeln('TBuddy.OnProxyReceive() ', ID, ' socks4a connection failed: ', Err);
+    WriteLn('TBuddy.OnProxyReceive() ', ID, ' Socks4a connection failed: ', Err);
     ASocket.Disconnect();
   end;
 end;
 
 procedure TBuddy.OnProxyDisconect(ASocket: TLSocket);
 begin
-  //writeln('TBuddy.OnProxyDisconnect() ', ID);
+  //WriteLn('TBuddy.OnProxyDisconnect() ', ID);
   OnProxyConnectFailed;
 end;
 
 procedure TBuddy.OnProxyError(const Error: String; ASocket: TLSocket);
 begin
-  writeln('TBuddy.OnProxyError() ', ID, ' ', Error);
+  WriteLn('TBuddy.OnProxyError() ', ID, ' ', Error);
   OnProxyConnectFailed;
 end;
 
@@ -302,7 +302,7 @@ begin
   // these fields are mandatory, failing will raise exception
   FID := AObject.Strings['id'];
   if not CanUseThisName(FID) then begin
-    writeln('E cannot use this ID: ' + FID);
+    WriteLn('E cannot use this ID: ' + FID);
     raise Exception.Create('cannot use this id');
   end;
   FFriendlyName := AObject.Strings['friendlyname'];
@@ -373,13 +373,13 @@ end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
-  Writeln('TBuddy.OnIncomingConnection() ' + ID);
+  WriteLn('TBuddy.OnIncomingConnection() ' + ID);
   SetStatus(TORCHAT_AVAILABLE);
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
 begin
-  Writeln('TBuddy.OnIncomingConnectionFail() ' + ID);
+  WriteLn('TBuddy.OnIncomingConnectionFail() ' + ID);
   FLastDisconnect := Now;
   ResetConnectInterval;
   if Assigned(ConnOutgoing) then
@@ -432,7 +432,7 @@ begin
   FLnetClient.Disconnect();
 
   // C1 and C2 will free now when going out of scope
-  writeln('TBuddy.DoDisconnect() leaving, connections will free now');
+  WriteLn('TBuddy.DoDisconnect() leaving, connections will free now');
 end;
 
 procedure TBuddy.RemoveYourself; // called by the GUI
@@ -631,8 +631,6 @@ var
   RGB: String;
   Alpha: String;
 begin
-  if not IsFullyConnected then
-    exit;
   RGB := Client.Config.AvatarData;
   Alpha := Client.Config.AvatarAlphaData;
   if Length(RGB) = 12288 then begin

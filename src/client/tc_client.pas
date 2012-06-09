@@ -155,6 +155,7 @@ begin
   FMainThread := ThreadID;
   FProfileName := AProfileName;
   FClientConfig := TClientConfig.Create(AProfileName);
+  FClientConfig.Load;
   Randomize;
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first Pump() call

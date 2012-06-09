@@ -58,6 +58,11 @@ type
 function DefaultPathTorExe: String;
 
 implementation
+uses
+  tc_misc,
+  base64,
+  fpjson,
+  jsonparser;
 
 { TClientConfig }
 
@@ -74,13 +79,90 @@ begin
 end;
 
 procedure TClientConfig.Load;
-begin
+var
+  FS: TFileStream;
+  JParser: TJSONParser;
+  JObj: TJSONObject;
 
+  function TryReadString(Name: String; Base64: Boolean=False): String;
+  begin
+    try
+      if Base64 then
+        Result := DecodeStringBase64(JObj.Strings[Name])
+      else
+        Result := JObj.Strings[Name];
+      WriteLn('config read ' + Name);
+    except
+      Result := '';
+      WriteLn('E config read error: ' + Name);
+    end;
+  end;
+
+begin
+  try
+    FS := TFileStream.Create(ConcatPaths([DataDir, 'config.json']), fmOpenRead);
+    JParser :=TJSONParser.Create(FS);
+    JObj := JParser.Parse as TJSONObject;
+
+    FAvatarData := TryReadString('Avatar', True);
+    if (Length(FAvatarData) > 0) and (Length(FAvatarData) <> 12288) then begin
+      FAvatarData := '';
+      WriteLn('E avatar data from config has wrong size');
+    end;
+    FAvatarAlphaData := TryReadString('AvatarAlpha', True);
+    if (Length(FAvatarAlphaData) > 0) and (Length(FAvatarAlphaData) <> 4096) then begin
+      FAvatarAlphaData := '';
+      WriteLn('E avatar alpha channel data from config has wrong size');
+    end;
+
+  except
+    on E: Exception do begin
+      WriteLn('W TClientConfig.Load() could not load: ' + E.Message);
+    end;
+  end;
+  if assigned(FS) then FreeAndNil(FS);
+  if assigned(JObj) then FreeAndNil(JObj);
+  if assigned(JParser) then FreeAndNil(JParser);
 end;
 
 procedure TClientConfig.Save;
+var
+  Path: String;
+  JObj : TJSONObject;
+  JData: String;
+  FileName: String;
+  TempName: StrinG;
+  FS: TFileStream = nil;
+  Success: Boolean;
 begin
+  Success := False;
+  Path := DataDir;
+  TempName := ConcatPaths([Path,'_config.json']);
+  FileName := ConcatPaths([Path,'config.json']);
+  JObj := TJSONObject.Create;
 
+  JObj.Add('Avatar', EncodeStringBase64(FAvatarData));
+  JObj.Add('AvatarAlpha', EncodeStringBase64(FAvatarAlphaData));
+
+  JData := JObj.FormatJSON();
+  JObj.Free;
+  try
+    FS := TFileStream.Create(TempName, fmCreate + fmOpenWrite);
+    FS.Write(JData[1], Length(JData));
+    Success := True;
+  except
+    on E: Exception do begin
+      writeln('E TClientConfig.Save() could not save: ' + E.Message);
+    end;
+  end;
+  if Assigned(FS) then FreeAndNil(FS);
+
+  if Success then begin
+    SafeDelete(FileName);
+    RenameFile(TempName, FileName);
+  end
+  else
+    SafeDelete(TempName);
 end;
 
 procedure TClientConfig.SetAvatarData(RGB, Alpha: String);
