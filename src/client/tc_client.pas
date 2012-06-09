@@ -109,6 +109,7 @@ type
     function Status: TTorchatStatus;
     function LNetEventer: TLEventer;
     procedure SetStatus(AStatus: TTorchatStatus);
+    procedure SetOwnAvatarData(RGB, Alpha: String);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
   end;
@@ -329,6 +330,17 @@ begin
   for Buddy in Roster do
     if Buddy.IsFullyConnected then
       Buddy.SendStatus;
+end;
+
+procedure TTorChatClient.SetOwnAvatarData(RGB, Alpha: String);
+var
+  Buddy: IBuddy;
+begin
+  Config.SetAvatarData(RGB, Alpha);
+  for Buddy in Roster do
+    Buddy.SendAvatar;
+  for Buddy in TempList do
+    Buddy.SendAvatar;
 end;
 
 procedure TTorChatClient.RegisterAnonConnection(AConn: IHiddenConnection);

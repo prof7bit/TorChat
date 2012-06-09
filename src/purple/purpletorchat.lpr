@@ -292,7 +292,7 @@ begin
       end;
     end;
 
-    TorChat.Roster.SetOwnAvatarData(RGB24, Alpha8);
+    TorChat.SetOwnAvatarData(RGB24, Alpha8);
 
     ImageStream.Free;
     ImageReader.Free;

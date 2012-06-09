@@ -66,11 +66,16 @@ type
   end;
 
   IClientConfig = interface
+    procedure Load;
+    procedure Save;
+    procedure SetAvatarData(RGB, Alpha: String);
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
     function TorHostName: String;
     function TorPort: DWord;
+    function AvatarData: String;
+    function AvatarAlphaData: String;
   end;
 
   IClient = interface
@@ -84,6 +89,7 @@ type
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String);
     function UserAddBuddy(AID, AAlias: String): Boolean;
     procedure SetStatus(AStatus: TTorchatStatus);
+    procedure SetOwnAvatarData(RGB, Alpha: String);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
@@ -118,11 +124,8 @@ type
     procedure AddBuddyNoCallback(ABuddy: IBuddy);
     procedure RemoveBuddyNoCallback(ABuddy: IBuddy);
     function OwnID: String;
-    function OwnAvatarData: String;
-    function OwnAvatarAlphaData: String;
     function GroupName: String;
     procedure SetOwnID(AID: String);
-    procedure SetOwnAvatarData(RGB, Alpha: String);
   end;
 
   IBuddy = interface

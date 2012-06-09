@@ -38,14 +38,21 @@ type
   strict private
     FProfileName: String;
     FPathTorExe: String;
+    FAvatarData: String;
+    FAvatarAlphaData: String;
   public
     constructor Create(AProfileName: String);
     destructor Destroy; override;
+    procedure Load;
+    procedure Save;
+    procedure SetAvatarData(RGB, Alpha: String);
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
     function TorHostName: String;
     function TorPort: DWord;
+    function AvatarData: String;
+    function AvatarAlphaData: String;
   end;
 
 function DefaultPathTorExe: String;
@@ -64,6 +71,23 @@ destructor TClientConfig.Destroy;
 begin
   WriteLn('TClientConfig.Destroy() ' + FProfileName);
   inherited Destroy;
+end;
+
+procedure TClientConfig.Load;
+begin
+
+end;
+
+procedure TClientConfig.Save;
+begin
+
+end;
+
+procedure TClientConfig.SetAvatarData(RGB, Alpha: String);
+begin
+  FAvatarData := RGB;
+  FAvatarAlphaData := Alpha;
+  Save;
 end;
 
 function TClientConfig.DataDir: String;
@@ -115,6 +139,16 @@ end;
 function TClientConfig.TorPort: DWord;
 begin
   Result := 11109;
+end;
+
+function TClientConfig.AvatarData: String;
+begin
+  Result := FAvatarData;
+end;
+
+function TClientConfig.AvatarAlphaData: String;
+begin
+  Result := FAvatarAlphaData;
 end;
 
 function DefaultPathTorExe: String;

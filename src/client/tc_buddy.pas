@@ -631,8 +631,10 @@ var
   RGB: String;
   Alpha: String;
 begin
-  RGB := Client.Roster.OwnAvatarData;
-  Alpha := Client.Roster.OwnAvatarAlphaData;
+  if not IsFullyConnected then
+    exit;
+  RGB := Client.Config.AvatarData;
+  Alpha := Client.Config.AvatarAlphaData;
   if Length(RGB) = 12288 then begin
     if Length(Alpha) = 4096 then
       Msg := TMsgProfileAvatarAlpha.Create(Self, Alpha)
