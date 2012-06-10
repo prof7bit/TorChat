@@ -401,7 +401,21 @@ begin
           'Client',
           PChar(Buddy.Software + '-' + Buddy.SoftwareVersion)
         );
-      end;;
+      end;
+      if Buddy.ProfileName <> '' then begin
+        purple_notify_user_info_add_pair(
+          user_info,
+          'Name',
+          PChar(Buddy.ProfileName)
+        );
+      end;
+      if Buddy.ProfileText <> '' then begin
+        purple_notify_user_info_add_pair(
+          user_info,
+          'Profile',
+          PChar(Buddy.ProfileText)
+        );
+      end;
     end;
   end;
 end;

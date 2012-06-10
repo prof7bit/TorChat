@@ -156,6 +156,8 @@ type
     function Status: TTorchatStatus;
     function AvatarData: String; // raw 64*64*24 bitmap (or '' if empty)
     function AvatarAlphaData: String; // raw 64*64*8 bitmap (or '' if empty)
+    function ProfileName: String;
+    function ProfileText: String;
     procedure SetFriendlyName(AName: String);
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
@@ -164,6 +166,8 @@ type
     procedure SetSoftwareVersion(AVersion: String);
     procedure SetAvatarData(ABitmap: String);
     procedure SetAvatarAlphaData(ABitmap: String);
+    procedure SetProfileName(AName: String);
+    procedure SetProfileText(AText: String);
     function SendIM(AText: String): Boolean;
     procedure SendPong;
     procedure SendAddMe;

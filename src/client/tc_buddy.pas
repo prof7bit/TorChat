@@ -48,6 +48,8 @@ type
     FSoftwareVersion: String;
     FAvatarData: String;
     FAvatarAlphaData: String;
+    FProfileName: String;
+    FProfileText: String;
     FStatus: TTorchatStatus;
     FReconnectInterval: Double;
     FConnIncoming: IHiddenConnection;
@@ -98,6 +100,8 @@ type
     function SoftwareVersion: String;
     function AvatarData: String;
     function AvatarAlphaData: String;
+    function ProfileName: String;
+    function ProfileText: String;
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
@@ -106,6 +110,8 @@ type
     procedure SetSoftwareVersion(AVersion: String);
     procedure SetAvatarData(ABitmap: String);
     procedure SetAvatarAlphaData(ABitmap: String);
+    procedure SetProfileName(AName: String);
+    procedure SetProfileText(AText: String);
     function SendIM(AText: String): Boolean;
     procedure SendPong;
     procedure SendAddMe;
@@ -125,6 +131,8 @@ uses
   tc_prot_message,
   tc_prot_profile_avatar_alpha,
   tc_prot_profile_avatar,
+  tc_prot_profile_text,
+  tc_prot_profile_name,
   tc_const;
 
 { TBuddy }
@@ -509,6 +517,16 @@ begin
   Result := FAvatarAlphaData;
 end;
 
+function TBuddy.ProfileName: String;
+begin
+  Result := FProfileName;
+end;
+
+function TBuddy.ProfileText: String;
+begin
+  Result := FProfileText;
+end;
+
 procedure TBuddy.SetIncoming(AConn: IHiddenConnection);
 begin
   if AConn <> FConnIncoming then begin
@@ -575,6 +593,16 @@ end;
 procedure TBuddy.SetAvatarAlphaData(ABitmap: String);
 begin
   FAvatarAlphaData := ABitmap;
+end;
+
+procedure TBuddy.SetProfileName(AName: String);
+begin
+  FProfileName := AName;
+end;
+
+procedure TBuddy.SetProfileText(AText: String);
+begin
+  FProfileText := AText;
 end;
 
 function TBuddy.SendIM(AText: String): Boolean;
