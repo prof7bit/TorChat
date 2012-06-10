@@ -91,10 +91,8 @@ begin
   Buddy := FConnection.Buddy;
   if not Assigned(Buddy) then
     LogWarningAndIgnore
-  else begin
-    WriteLn('TMsgVersion.Execute() version ' + FSoftwareVersion + ' from ' + Buddy.ID);
+  else
     Buddy.SetSoftwareVersion(FSoftwareVersion);
-  end;
 end;
 
 begin

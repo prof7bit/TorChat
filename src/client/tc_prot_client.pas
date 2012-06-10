@@ -89,10 +89,8 @@ begin
   Buddy := FConnection.Buddy;
   if not Assigned(Buddy) then
     LogWarningAndIgnore
-  else begin
-    WriteLn('TMsgClient.Execute() client ' + FSoftwareName + ' from ' + Buddy.ID);
+  else
     Buddy.SetSoftware(FSoftwareName);
-  end;
 end;
 
 begin

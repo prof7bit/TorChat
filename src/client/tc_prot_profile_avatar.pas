@@ -88,10 +88,16 @@ begin
     FBitmap := FBinaryContent
   else begin
     FBitmap := '';
-    FParseError := _F(
-      'invalid avatar data (%d bytes)',
-      [Length(FBinaryContent)]
-    );
+    if length(FBinaryContent) = 0 then
+      WriteLn(_F(
+        'no avatar (empty) from %s',
+        [DebugInfo]
+      ))
+    else
+      WriteLn(_F(
+        'invalid avatar data (%d bytes) from %s',
+        [Length(FBinaryContent), DebugInfo]
+      ));
   end;
 end;
 
@@ -102,12 +108,8 @@ begin
   Buddy := FConnection.Buddy;
   if not Assigned(Buddy) then
     LogWarningAndIgnore
-  else begin
-    WriteLn('TMsgProfileAvatar.Execute() profile_avatar from ' + Buddy.ID);
-    if FParseError <> '' then
-      WriteLn('W ', FParseError, ' from ', Buddy.ID);
+  else
     Buddy.SetAvatarData(FBitmap);
-  end;
 end;
 
 begin

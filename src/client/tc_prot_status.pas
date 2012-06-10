@@ -107,7 +107,6 @@ var
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    WriteLn('TMsgStatus.Execute() received status: ', FStatus, ' from ', Buddy.ID);
     Buddy.SetStatus(FStatus);
     Buddy.ResetTimeout;
   end

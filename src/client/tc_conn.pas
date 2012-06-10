@@ -84,7 +84,10 @@ begin
   FBuddy := ABuddy;
   FIsOutgoing := Assigned(ABuddy);
   FShuttingDown := False;
-  WriteLn('THiddenConnection.Create() ', DebugInfo , ' ', ASocket.Handle);
+  if IsOutgoing then
+    WriteLn('====> connected to', DebugInfo , ' ', ASocket.Handle)
+  else
+    WriteLn('<==== connected from', DebugInfo , ' ', ASocket.Handle);
 
   // THiddenConnection is reference counted (use it only with
   // variables of type IHiddenConnection and never call
@@ -117,7 +120,7 @@ begin
   FDisconnectLock.Acquire;
   if not FShuttingDown then begin
     FShuttingDown := True;
-    WriteLn('THiddenConnection.OnTCPFail()' + DebugInfo + ' ' + Error);
+    WriteLn('<=/=> disconnect ' + DebugInfo + ' ' + Error);
 
     //no more callbacks
     FSocket.IgnoreRead := True;
@@ -148,13 +151,11 @@ end;
 
 procedure THiddenConnection.Disconnect;
 begin
-  WriteLn('THiddenConnection.Disconnect() ', DebugInfo);
   FDisconnectLock.Acquire;
   if not FShuttingDown then begin
     OnTCPFail(FSocket, 'forced');
   end;
   FDisconnectLock.Release;
-  WriteLn('THiddenConnection.Disconnect() done');
 end;
 
 procedure THiddenConnection.OnReceive(ASocket: TLHandle);

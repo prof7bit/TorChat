@@ -81,16 +81,9 @@ begin
   if not Assigned(Buddy) then
     LogWarningAndIgnore
   else begin
-    WriteLn('TMsgRemoveMe.Execute() remove_me from ' + Buddy.ID);
     if Buddy in FClient.Roster then begin
+      Buddy.DoDisconnect;
       FClient.Roster.RemoveBuddy(Buddy);
-
-      // we put it into the templist and we don't disconnect
-      // because it might still be using other services that
-      // don't require it being in the list (group chat for
-      // example).
-      FClient.TempList.AddBuddy(Buddy);
-      {$note must fix the SECONDS_KEEP_ON_TEMPLIST timeout algo}
     end;
   end;
 end;

@@ -141,6 +141,7 @@ type
     procedure ForgetLastPing;
     procedure ResetConnectInterval;
     procedure ResetTimeout;
+    procedure ResetTimeCreated; // make it look like new (for the templist)
     procedure DoDisconnect;
     procedure RemoveYourself;
     function Client: IClient;

@@ -81,7 +81,6 @@ begin
   if not Assigned(Buddy) then
     LogWarningAndIgnore
   else begin
-    WriteLn('TMsgAddMe.Execute() add_me from ' + Buddy.ID);
     if Buddy in FClient.TempList then begin
       FClient.TempList.RemoveBuddy(Buddy);
       FClient.Roster.AddBuddy(Buddy);

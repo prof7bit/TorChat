@@ -86,9 +86,6 @@ procedure TMsgNotImplemented.Execute;
 begin
   if not Assigned(FConnection.Buddy) then
     LogWarningAndIgnore(FUnknownCommand)
-  else
-    WriteLn(_F('TMsgNotImplemented.Execute() %s did not understand: "%s"',
-            [FConnection.Buddy.ID, FUnknownCommand]));
 end;
 
 begin

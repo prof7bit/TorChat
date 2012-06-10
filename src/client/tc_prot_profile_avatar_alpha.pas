@@ -91,10 +91,10 @@ begin
   else begin
     FBitmap := '';
     if Length(FBinaryContent) <> 0 then begin // 0 is also allowed
-      FParseError := _F(
-        'invalid avatar alpha data (%d bytes)',
-        [Length(FBinaryContent)]
-      );
+      WriteLn(_F(
+        'invalid avatar alpha data (%d bytes) from %s',
+        [Length(FBinaryContent), DebugInfo]
+      ));
     end;
   end;
 end;
@@ -106,12 +106,8 @@ begin
   Buddy := FConnection.Buddy;
   if not Assigned(Buddy) then
     LogWarningAndIgnore
-  else begin
-    WriteLn('TMsgProfileAvatarAlpha.Execute() profile_avatar_alpha from ' + Buddy.ID);
-    if FParseError <> '' then
-      WriteLn('W ', FParseError, ' from ', Buddy.ID);
+  else
     Buddy.SetAvatarAlphaData(FBitmap);
-  end;
 end;
 
 begin

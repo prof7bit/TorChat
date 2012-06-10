@@ -59,6 +59,9 @@ function IsPortAvailable(APort: DWord): Boolean;
 
 function IsValidOnionName(AName: String): Boolean;
 
+{ format someting printable for the binary string B }
+function DebugFormatBinary(B: String): String;
+
 implementation
 
 type
@@ -191,6 +194,30 @@ begin
     if Pos(C, 'abcdefghijklmnopqrstuvwxyz234567') = 0 then
       exit;
   Result := True;
+end;
+
+function DebugFormatBinary(B: String): String;
+var
+  L,I: Integer;
+  C: Char;
+begin
+  L := Length(B);
+  if L > 16 then
+    B := '"' + LeftStr(B, 32) + '..." (' + IntToStr(L) + ' bytes)'
+  else
+    B := '"' + B + '"';
+  B := StringReplace(B, #$0a, '0x0a', [rfReplaceAll]);
+  B := StringReplace(B, #$0d, '0x0d', [rfReplaceAll]);
+  B := StringReplace(B, #$00, '0x00', [rfReplaceAll]);
+  for I := 1 to Length(B) do begin
+    C := B[i];
+    if not (
+      (C in ['a'..'z','A'..'Z','0'..'9']) or
+      (Pos(C, '"´`|;:,.!? /\_-§$%&<>()[]{}~+*#=') > 0)
+    ) then
+      B[i] := '?';
+  end;
+  Result := B;
 end;
 
 { TSafeDeleteThread }

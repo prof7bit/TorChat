@@ -84,6 +84,7 @@ type
     procedure ForgetLastPing;
     procedure ResetConnectInterval;
     procedure ResetTimeout;
+    procedure ResetTimeCreated;
     procedure DoDisconnect;
     procedure RemoveYourself;
     function Client: IClient;
@@ -173,7 +174,7 @@ end;
 
 procedure TBuddy.InitiateConnect;
 begin
-  WriteLn('TBuddy.InitiateConnect() ' + ID);
+  //WriteLn('TBuddy.InitiateConnect() ' + ID);
   with FLnetClient do begin
     OnConnect := @Self.OnProxyConnect;
     OnReceive := @Self.OnProxyReceive;
@@ -188,7 +189,7 @@ procedure TBuddy.OnProxyConnect(ASocket: TLSocket);
 var
   Req: String;
 begin
-  WriteLn('TBuddy.OnProxyConnect() ', ID, ' connected to Tor, sending Socks4a request');
+  WriteLn('~~~~> ', ID, ' connected to Tor, sending Socks4a request');
   SetLength(Req, 8);
   Req[1] := #4; // Socks 4
   Req[2] := #1; // CONNECT command
@@ -235,7 +236,7 @@ begin
       Err := IntToStr(Ord((Ans[2])))
     else
       Err := 'wrong answer from proxy (' + IntToStr(Num) + ' bytes)';
-    WriteLn('TBuddy.OnProxyReceive() ', ID, ' Socks4a connection failed: ', Err);
+    WriteLn('~~/~> ', ID, ' Socks4a connection failed: ', Err);
     ASocket.Disconnect();
   end;
 end;
@@ -248,7 +249,7 @@ end;
 
 procedure TBuddy.OnProxyError(const Error: String; ASocket: TLSocket);
 begin
-  WriteLn('TBuddy.OnProxyError() ', ID, ' ', Error);
+  WriteLn('~~?~> ', ID, ' tor connection error: ', Error);
   OnProxyConnectFailed;
 end;
 
@@ -351,7 +352,6 @@ procedure TBuddy.OnOutgoingConnection;
 var
   Msg: IProtocolMessage;
 begin
-  WriteLn('TBuddy.OnOutgoingConnection() ' + ID);
   Msg := TMsgPing.Create(Self, FOwnCookie);
   Msg.Send;
 
@@ -363,7 +363,6 @@ end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
 begin
-  WriteLn('TBuddy.OnOutgoingConnectionFail() ' + ID);
   FLastDisconnect := Now;
   ResetConnectInterval;
   if Assigned(ConnIncoming) then
@@ -373,13 +372,11 @@ end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
-  WriteLn('TBuddy.OnIncomingConnection() ' + ID);
-  SetStatus(TORCHAT_AVAILABLE);
+  WriteLn('<==OK incomig connection authenticated ', ID);
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
 begin
-  WriteLn('TBuddy.OnIncomingConnectionFail() ' + ID);
   FLastDisconnect := Now;
   ResetConnectInterval;
   if Assigned(ConnOutgoing) then
@@ -414,6 +411,11 @@ begin
   FLastActivity := Now;
 end;
 
+procedure TBuddy.ResetTimeCreated;
+begin
+  FTimeCreated := Now;
+end;
+
 procedure TBuddy.DoDisconnect;
 var
   C1, C2: IHiddenConnection;
@@ -439,12 +441,12 @@ procedure TBuddy.RemoveYourself; // called by the GUI
 var
   RemoveMe: IProtocolMessage;
 begin
-  Client.TempList.AddBuddy(Self);
-  Client.Roster.RemoveBuddyNoCallback(Self);
   if IsFullyConnected then begin
     RemoveMe := TMsgRemoveMe.Create(Self);
     RemoveMe.Send;
   end;
+  DoDisconnect;
+  Client.Roster.RemoveBuddyNoCallback(Self);
 end;
 
 function TBuddy.Client: IClient;
@@ -640,6 +642,12 @@ begin
       Msg := TMsgProfileAvatarAlpha.Create(Self, '');
     Msg.Send;
     Msg := TMsgProfileAvatar.Create(Self, RGB);
+    Msg.Send;
+  end
+  else begin // send empty avatar
+    Msg := TMsgProfileAvatarAlpha.Create(Self, '');
+    Msg.Send;
+    Msg := TMsgProfileAvatar.Create(Self, '');
     Msg.Send;
   end;
 end;

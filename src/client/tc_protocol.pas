@@ -75,9 +75,11 @@ type
     FBuddy: IBuddy;
     FCommand: String;
     FBinaryContent : String;
-    FParseError: String;
     function GetSendConnection: IHiddenConnection; virtual;
+    function DebugInfo: String;
     procedure LogWarningAndIgnore(AInfo: String='');
+    procedure LogReceive;
+    procedure LogSend;
     procedure Serialize; virtual; abstract;
   public
     class function GetCommand: String; virtual; abstract;
@@ -197,18 +199,49 @@ begin
     Result := nil;
 end;
 
+function TMsg.DebugInfo: String;
+begin
+  if Assigned(FBuddy) then begin
+    Result := FBuddy.ID;
+  end
+  else begin
+    if Assigned(FConnection) then begin
+      if Assigned(FConnection.Buddy) then
+        Result := FConnection.Buddy.ID
+      else
+        Result := '(anonymous connection)';
+    end;
+  end;
+end;
+
 procedure TMsg.LogWarningAndIgnore(AInfo: String);
 begin
   if (FCommand = '') and (AInfo = '') then
     AInfo := '(empty line)';
   if AInfo = '' then
     AInfo := '(data: ' + IntToStr(Length(FBinaryContent)) + ' bytes)';
-  if Assigned(FConnection.Buddy) then
-    WriteLn(_F('W received %s %s from %s, ignorig.',
-      [FCommand, AInfo, FConnection.Buddy.ID]))
+  WriteLn(_F('W received "%s" %s from %s, ignoring.',
+    [FCommand, AInfo, DebugInfo]));
+end;
+
+procedure TMsg.LogReceive;
+begin
+  if Length(FBinaryContent) > 0 then
+    WriteLn(_F('<---- "%s" from %s data: %s',
+      [FCommand, DebugInfo, DebugFormatBinary(FBinaryContent)]))
   else
-    WriteLn(_F('W received %s %s on unknown connection, ignoring.',
-      [FCommand, AInfo]));
+    WriteLn(_F('<---- "%s" from %s',
+      [FCommand, DebugInfo]))
+end;
+
+procedure TMsg.LogSend;
+begin
+  if Length(FBinaryContent) > 0 then
+    WriteLn(_F('----> "%s" to %s data: %s',
+      [GetCommand, DebugInfo, DebugFormatBinary(FBinaryContent)]))
+  else
+    WriteLn(_F('----> "%s" to %s',
+      [GetCommand, DebugInfo]));
 end;
 
 { this is the virtual constructor for incoming messages }
@@ -218,6 +251,7 @@ begin
   FClient := FConnection.Client;
   FCommand := ACommand;
   FBinaryContent := BinaryDecode(AEncodedContent);
+  LogReceive;
 end;
 
 { this is the constructor for outgoing messages }
@@ -234,14 +268,12 @@ begin
   C := GetSendConnection;
   if Assigned(C) then begin
     Serialize;
+    LogSend;
     C.SendLine(GetCommand + ' ' + BinaryEncode(FBinaryContent));
   end
-  else begin
-    if Assigned(FBuddy) then
-      WriteLn('W cannot send "' + GetCommand + '" to' + FBuddy.ID + ' without open connection')
-    else
-      WriteLn('E cannot send message ("' + GetCommand + '") without buddy. This must be a bug!');
-  end;
+  else
+    WriteLn(_F('W cannot send "%s" to %s without open connection',
+      [GetCommand, FBuddy.ID]));
 end;
 
 

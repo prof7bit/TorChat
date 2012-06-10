@@ -239,6 +239,7 @@ end;
 
 procedure torchat_set_buddy_icon(gc: PPurpleConnection; img: PPurpleStoredImage); cdecl;
 var
+  HaveImage: Boolean;
   len: PtrUInt;
   data: Pointer;
   ImageOriginal: TFPMemoryImage;
@@ -266,30 +267,45 @@ begin
     ImageStream.Write(data^, len);
     ImageStream.Seek(0, soBeginning);
     ImageReader := TFPReaderPNG.Create;
-    ImageOriginal.LoadFromStream(ImageStream, ImageReader);
+    try
+      ImageOriginal.LoadFromStream(ImageStream, ImageReader);
+      HaveImage := True;
+    except
+      WriteLn('I received invalid or empty image from libpurple');
+      WriteLn(len);
+      HaveImage := False;
+    end;
 
-    // scale the image to 64*64
-    ImageScaled := TFPMemoryImage.Create(64, 64);
-    {$warnings off} // contains some abstract methods (must be FCL bug)
-    CanvasScaled := TFPImageCanvas.Create(ImageScaled);
-    {$warnings on}
-    CanvasScaled.StretchDraw(0, 0, 63, 63, ImageOriginal);
+    if HaveImage then begin
+      // scale the image to 64*64
+      ImageScaled := TFPMemoryImage.Create(64, 64);
+      {$warnings off} // contains some abstract methods (must be FCL bug)
+      CanvasScaled := TFPImageCanvas.Create(ImageScaled);
+      {$warnings on}
+      CanvasScaled.StretchDraw(0, 0, 63, 63, ImageOriginal);
 
-    // convert it to TorChat format (uncompressed RGB, separate Alpha)
-    SetLength(RGB24, 12288);
-    SetLength(Alpha8, 4096);
-    PtrRGB := @RGB24[1];
-    PtrAlpha := @Alpha8[1];
-    for Y := 0 to 63 do begin
-      for X := 0 to 63 do begin
-        Pixel := ImageScaled.Colors[X, Y];
-        PtrRGB^.Red := hi(Pixel.red);
-        PtrRGB^.Green := hi(Pixel.green);
-        PtrRGB^.Blue := hi(Pixel.blue);
-        PtrAlpha^ := hi(Pixel.alpha);
-        Inc(PtrRGB);
-        Inc(PtrAlpha);
+      // convert it to TorChat format (uncompressed RGB, separate Alpha)
+      SetLength(RGB24, 12288);
+      SetLength(Alpha8, 4096);
+      PtrRGB := @RGB24[1];
+      PtrAlpha := @Alpha8[1];
+      for Y := 0 to 63 do begin
+        for X := 0 to 63 do begin
+          Pixel := ImageScaled.Colors[X, Y];
+          PtrRGB^.Red := hi(Pixel.red);
+          PtrRGB^.Green := hi(Pixel.green);
+          PtrRGB^.Blue := hi(Pixel.blue);
+          PtrAlpha^ := hi(Pixel.alpha);
+          Inc(PtrRGB);
+          Inc(PtrAlpha);
+        end;
       end;
+      CanvasScaled.Free;
+      ImageScaled.Free;
+    end
+    else begin
+      RGB24 := '';
+      Alpha8 := '';
     end;
 
     TorChat.SetOwnAvatarData(RGB24, Alpha8);
@@ -297,8 +313,6 @@ begin
     ImageStream.Free;
     ImageReader.Free;
     ImageOriginal.Free;
-    CanvasScaled.Free;
-    ImageScaled.Free;
   end;
 end;
 
@@ -554,6 +568,7 @@ var
   PtrPixel24: P24Pixel;
   PtrAlpha8: PByte;
 begin
+  buddy_name := GetMemAndCopy(ABuddy.ID);
   Raw24Bitmap := ABuddy.AvatarData;
   if Length(Raw24Bitmap) = 12288 then begin;
     Raw8Alpha := ABuddy.AvatarAlphaData;
@@ -585,7 +600,6 @@ begin
     ImageStream := TMemoryStream.Create;
     Image.SaveToStream(ImageStream, ImageWriter);
 
-    buddy_name := GetMemAndCopy(ABuddy.ID);
     icon_len := ImageStream.Size;
     icon_data := PurpleGetMem(icon_len);
     Move(ImageStream.Memory^, icon_data^, icon_len);
@@ -606,8 +620,17 @@ begin
     ImageStream.Free;
     ImageWriter.Free;
     Image.Free;
-    FreeMem(buddy_name);
+  end
+  else begin // empty avatar
+    purple_buddy_icons_set_for_user(
+      purple_account,
+      buddy_name,
+      nil,
+      0,
+      nil
+    );
   end;
+  FreeMem(buddy_name);
 end;
 
 procedure TTorChatPurpleClient.OnBuddyAdded(ABuddy: IBuddy);

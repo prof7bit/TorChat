@@ -119,10 +119,8 @@ begin
   Buddy := FConnection.Buddy;
   if not Assigned(Buddy) then
     LogWarningAndIgnore
-  else begin
-    WriteLn('TMsgMessage.Execute() ', Length(FMessageText), ' bytes text from ' + Buddy.ID);
+  else
     Buddy.Client.OnInstantMessage(Buddy, FMessageText);
-  end;
 end;
 
 begin

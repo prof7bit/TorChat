@@ -120,7 +120,6 @@ procedure TMsgPing.Execute;
 var
   ABuddy: IBuddy;
 begin
-  WriteLn('TMsgPing.Execute() received ping: cookie=' + FCookie + ' ID=' + FID);
   FConnection.SetPingBuddyID(FID);
 
   ABuddy := FClient.Roster.ByID(FID);
