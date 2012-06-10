@@ -126,7 +126,7 @@ begin
       try
         tc_buddy := TBuddy.Create(FClient);
         tc_buddy.InitFromJsonObect(JList.Objects[I]); // this may raise exception
-        AddBuddy(tc_buddy);
+        AddBuddyNoCallback(tc_buddy);
         writeln('TRoster.Load() ' + tc_buddy.ID + ' loaded');
       except
         FreeAndNil(tc_buddy);

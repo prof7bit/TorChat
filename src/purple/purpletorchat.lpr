@@ -495,6 +495,7 @@ var
   purple_group: PPurpleGroup;
   purple_list: PGSList;
 begin
+  WriteLn('Switching accout to "connected", synchronizing buddy lists');
   purple_connection_set_state(purple_account^.gc, PURPLE_CONNECTED);
 
   group_name := GetMemAndCopy(Roster.GroupName);
@@ -609,6 +610,7 @@ begin
     // by libpurple, libpurple only stores and manages the data
     // without caring what it is). PNG is fine for our purposes
     // because it is well supported and can handle transparency.
+    WriteLn(_F('%s setting avatar in libpurple', [ABuddy.ID]));
     purple_buddy_icons_set_for_user(
       purple_account,
       buddy_name,
@@ -622,6 +624,7 @@ begin
     Image.Free;
   end
   else begin // empty avatar
+    WriteLn(_F('%s removing avatar in libpurple', [ABuddy.ID]));
     purple_buddy_icons_set_for_user(
       purple_account,
       buddy_name,
