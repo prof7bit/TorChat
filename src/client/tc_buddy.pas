@@ -182,7 +182,8 @@ end;
 
 procedure TBuddy.InitiateConnect;
 begin
-  //WriteLn('TBuddy.InitiateConnect() ' + ID);
+  WriteLn(_F('TBuddy.InitiateConnect() (%s) connecting to Tor: %s:%d',
+    [ID, Client.TorHost, Client.TorPort]));
   with FLnetClient do begin
     OnConnect := @Self.OnProxyConnect;
     OnReceive := @Self.OnProxyReceive;
@@ -257,7 +258,7 @@ end;
 
 procedure TBuddy.OnProxyError(const Error: String; ASocket: TLSocket);
 begin
-  WriteLn('~~?~> ', ID, ' tor connection error: ', Error);
+  WriteLn('~~?~> ', ID, ' Tor connection error: ', Error);
   OnProxyConnectFailed;
 end;
 
