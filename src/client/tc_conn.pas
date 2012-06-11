@@ -135,6 +135,7 @@ begin
       else begin
         FBuddy.SetIncoming(nil);
       end;
+      FBuddy := nil;
     end
     else
       FClient.UnregisterAnonConnection(Self);
