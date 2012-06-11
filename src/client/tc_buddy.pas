@@ -454,7 +454,8 @@ begin
     RemoveMe := TMsgRemoveMe.Create(Self);
     RemoveMe.Send;
   end;
-  DoDisconnect;
+  ResetTimeCreated;
+  Client.TempList.AddBuddy(Self);
   Client.Roster.RemoveBuddyNoCallback(Self);
 end;
 
