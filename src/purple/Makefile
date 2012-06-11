@@ -31,5 +31,5 @@ clean:
 ## binary that I upload to github
 demo:
 	mkdir -p lib
-	fpc $(FPCOPT) -dUseHeapTrc -dDebugToConsole -dDebugToFile purpletorchat.lpr
+	fpc $(FPCOPT) -dDebugToConsole -dDebugToFile purpletorchat.lpr
 
