@@ -119,7 +119,7 @@ begin
     Line('PidFile tor.pid');
     Line('DataDirectory tor_data');
     Line('HiddenServiceDir hidden_service');
-    Line(Format('SocksPort %d', [FSocksPort]));
+    Line(Format('SocksListenAddress 127.0.0.1:%d', [FSocksPort]));
     Line(Format('HiddenServicePort 11009 127.0.0.1:%d', [FClientListenPort]));
     Line('LongLivedPorts 11009');
     Line('AvoidDiskWrites 1');

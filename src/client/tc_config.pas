@@ -216,7 +216,7 @@ end;
 
 function TClientConfig.TorHostName: String;
 begin
-  Result := 'localhost'
+  Result := '127.0.0.1';
 end;
 
 function TClientConfig.TorPort: DWord;
