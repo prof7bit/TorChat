@@ -155,7 +155,6 @@ begin
   FMainThread := ThreadID;
   FProfileName := AProfileName;
   FClientConfig := TClientConfig.Create(AProfileName);
-  FClientConfig.Load;
   Randomize;
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first Pump() call
@@ -337,7 +336,9 @@ procedure TTorChatClient.SetOwnAvatarData(RGB, Alpha: String);
 var
   Buddy: IBuddy;
 begin
-  Config.SetAvatarData(RGB, Alpha);
+  Config.SetString('AvatarData', RGB, True);
+  Config.SetString('AvatarAlphaData', Alpha, True);
+  Config.Save;
   for Buddy in Roster do
     Buddy.SendAvatar;
   for Buddy in TempList do

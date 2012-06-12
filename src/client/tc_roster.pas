@@ -164,7 +164,7 @@ begin
   for Buddy in Self do
     JArr.Add(Buddy.AsJsonObject);
 
-  JData := JArr.FormatJSON([foSingleLineObject]);
+  JData := JArr.FormatJSON([foSingleLineObject, foDoNotQuoteMembers]);
   JArr.Free;
   try
     FS := TFileStream.Create(TempName, fmCreate + fmOpenWrite);

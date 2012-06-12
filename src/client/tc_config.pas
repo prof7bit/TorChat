@@ -28,6 +28,7 @@ uses
   {$ifdef windows}shlobj,{$endif} // for finding %APPDATA% etc.
   Classes,
   SysUtils,
+  fpjson,
   tc_interface,
   tc_const;
 
@@ -38,21 +39,20 @@ type
   strict private
     FProfileName: String;
     FPathTorExe: String;
-    FAvatarData: String;
-    FAvatarAlphaData: String;
+    FConfigData: TJSONObject;
+    procedure CreateDefaultConfig;
   public
     constructor Create(AProfileName: String);
     destructor Destroy; override;
     procedure Load;
     procedure Save;
-    procedure SetAvatarData(RGB, Alpha: String);
+    procedure SetString(AKey: String; AValue: String; Encoded: Boolean = False);
+    function GetString(AKey: String; Encoded: Boolean = False): String;
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
     function TorHostName: String;
     function TorPort: DWord;
-    function AvatarData: String;
-    function AvatarAlphaData: String;
   end;
 
 function DefaultPathTorExe: String;
@@ -61,7 +61,6 @@ implementation
 uses
   tc_misc,
   base64,
-  fpjson,
   jsonparser;
 
 { TClientConfig }
@@ -70,11 +69,13 @@ constructor TClientConfig.Create(AProfileName: String);
 begin
   FProfileName := AProfileName;
   FPathTorExe := DefaultPathTorExe;
+  Load;
 end;
 
 destructor TClientConfig.Destroy;
 begin
   WriteLn('TClientConfig.Destroy() ' + FProfileName);
+  FConfigData.Free;
   inherited Destroy;
 end;
 
@@ -82,71 +83,38 @@ procedure TClientConfig.Load;
 var
   FS: TFileStream = nil;
   JParser: TJSONParser = nil;
-  JObj: TJSONObject = nil;
-
-  function TryReadString(Name: String; Base64: Boolean=False): String;
-  begin
-    try
-      if Base64 then
-        Result := DecodeStringBase64(JObj.Strings[Name])
-      else
-        Result := JObj.Strings[Name];
-      WriteLn('config read ' + Name);
-    except
-      Result := '';
-      WriteLn('E config read error: ' + Name);
-    end;
-  end;
-
 begin
+  WriteLn('TClientConfig.Load()');
   try
     FS := TFileStream.Create(ConcatPaths([DataDir, 'config.json']), fmOpenRead);
     JParser :=TJSONParser.Create(FS);
-    JObj := JParser.Parse as TJSONObject;
-
-    FAvatarData := TryReadString('Avatar', True);
-    if (Length(FAvatarData) > 0) and (Length(FAvatarData) <> 12288) then begin
-      FAvatarData := '';
-      WriteLn('E avatar data from config has wrong size');
-    end;
-    FAvatarAlphaData := TryReadString('AvatarAlpha', True);
-    if (Length(FAvatarAlphaData) > 0) and (Length(FAvatarAlphaData) <> 4096) then begin
-      FAvatarAlphaData := '';
-      WriteLn('E avatar alpha channel data from config has wrong size');
-    end;
-
+    FConfigData := JParser.Parse as TJSONObject;
   except
     on E: Exception do begin
       WriteLn('I TClientConfig.Load() could not load: ' + E.Message);
-      WriteLn('I Will use default config');
+      CreateDefaultConfig;
     end;
   end;
   if assigned(FS) then FreeAndNil(FS);
-  if assigned(JObj) then FreeAndNil(JObj);
   if assigned(JParser) then FreeAndNil(JParser);
 end;
 
 procedure TClientConfig.Save;
 var
   Path: String;
-  JObj : TJSONObject;
   JData: String;
   FileName: String;
   TempName: StrinG;
   FS: TFileStream = nil;
   Success: Boolean;
 begin
+  WriteLn('TClientConfig.Save()');
   Success := False;
   Path := DataDir;
   TempName := ConcatPaths([Path,'_config.json']);
   FileName := ConcatPaths([Path,'config.json']);
-  JObj := TJSONObject.Create;
 
-  JObj.Add('Avatar', EncodeStringBase64(FAvatarData));
-  JObj.Add('AvatarAlpha', EncodeStringBase64(FAvatarAlphaData));
-
-  JData := JObj.FormatJSON();
-  JObj.Free;
+  JData := FConfigData.FormatJSON([foDoNotQuoteMembers]);
   try
     FS := TFileStream.Create(TempName, fmCreate + fmOpenWrite);
     FS.Write(JData[1], Length(JData));
@@ -166,11 +134,29 @@ begin
     SafeDelete(TempName);
 end;
 
-procedure TClientConfig.SetAvatarData(RGB, Alpha: String);
+procedure TClientConfig.SetString(AKey: String; AValue: String; Encoded: Boolean);
 begin
-  FAvatarData := RGB;
-  FAvatarAlphaData := Alpha;
-  Save;
+  WriteLn(_F('TClientConfig.SetString(''%s'')', [AKey]));
+  if Encoded then
+    AValue := EncodeStringBase64(AValue);
+  try
+    FConfigData.Strings[AKey] := AValue;
+  except
+    WriteLn(_F('TClientConfig.SetString(%s, %s) could not set value', [AKey, DebugFormatBinary(AValue)]));
+  end;
+end;
+
+function TClientConfig.GetString(AKey: String; Encoded: Boolean): String;
+begin
+  WriteLn(_F('TClientConfig.GetString(''%s'')', [AKey]));
+  try
+    Result := FConfigData.Strings[AKey];
+    if Encoded then
+      Result := DecodeStringBase64(Result);
+  except
+    WriteLn('is empty');
+    Result := '';
+  end;
 end;
 
 function TClientConfig.DataDir: String;
@@ -224,16 +210,6 @@ begin
   Result := 11109;
 end;
 
-function TClientConfig.AvatarData: String;
-begin
-  Result := FAvatarData;
-end;
-
-function TClientConfig.AvatarAlphaData: String;
-begin
-  Result := FAvatarAlphaData;
-end;
-
 function DefaultPathTorExe: String;
 {$ifdef windows}
 var
@@ -246,6 +222,13 @@ begin
   {$else}
     Result := '/usr/sbin/tor';
   {$endif}
+end;
+
+procedure TClientConfig.CreateDefaultConfig;
+begin
+  WriteLn('TClientConfig.CreateDefaultConfig()');
+  FConfigData := TJSONObject.Create();
+  Save;
 end;
 
 end.

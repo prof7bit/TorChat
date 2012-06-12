@@ -68,14 +68,13 @@ type
   IClientConfig = interface
     procedure Load;
     procedure Save;
-    procedure SetAvatarData(RGB, Alpha: String);
+    procedure SetString(AKey: String; AValue: String; Encoded: Boolean=False);
+    function GetString(AKey: String; Encoded: Boolean=False): String;
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
     function TorHostName: String;
     function TorPort: DWord;
-    function AvatarData: String;
-    function AvatarAlphaData: String;
   end;
 
   IClient = interface
