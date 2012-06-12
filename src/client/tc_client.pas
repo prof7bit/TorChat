@@ -336,8 +336,8 @@ procedure TTorChatClient.SetOwnAvatarData(RGB, Alpha: String);
 var
   Buddy: IBuddy;
 begin
-  Config.SetString('AvatarData', RGB, True);
-  Config.SetString('AvatarAlphaData', Alpha, True);
+  Config.SetString('Avatar', RGB, True);
+  Config.SetString('AvatarAlpha', Alpha, True);
   Config.Save;
   for Buddy in Roster do
     Buddy.SendAvatar;
