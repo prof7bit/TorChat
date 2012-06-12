@@ -381,7 +381,7 @@ end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
-  WriteLn('<==OK incomig connection authenticated ', ID);
+  WriteLn('<==OK incoming connection authenticated ', ID);
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
