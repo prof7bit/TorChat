@@ -60,8 +60,8 @@ type
     FTimeCreated: TDateTime;
     FTimeLastDisconnect: TDateTime;
     FTimeLastStatusReceived: TDateTime;
+    FTimeLastPingReceived: TDateTime;
     FTimeLastStatusSent: TDateTime;
-    FMayBeBroken: Boolean; // if true then we dont reset times on every incoming ping
     FLnetClient: TLTcp;
     procedure OnProxyConnect(ASocket: TLSocket);
     procedure OnProxyConnectFailed;
@@ -145,7 +145,6 @@ var
 begin
   inherited Create;
   FConnecting := False;
-  FMayBeBroken := False;
   FClient := AClient;
   FMustSendPong := False;
   FReceivedCookie := '';
@@ -374,10 +373,8 @@ end;
 
 procedure TBuddy.CalcConnectIntervalAfterPing;
 begin
-  if not FMayBeBroken then begin
+  if TimeSince(FTimeLastPingReceived) > 15 * SecsPerMin then begin
     WriteLn(_F('%s got ping, resetting connect timers', [ID]));
-    // we wake it up only once. Pong will clear this flag again
-    FMayBeBroken := True;
     ResetAllTimes;
     if not FConnecting then
       CalcConnectInterval
@@ -386,6 +383,7 @@ begin
   end
   else
     WriteLn(_F('%s got another ping, will not reset timers again', [ID]));
+  FTimeLastPingReceived := Now;
 end;
 
 procedure TBuddy.OnOutgoingConnection;
@@ -414,7 +412,6 @@ procedure TBuddy.OnIncomingConnection;
 begin
   WriteLn('<==OK incoming connection authenticated ', ID);
   ResetAllTimes;
-  FMayBeBroken := False;
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
@@ -455,6 +452,7 @@ begin
   FTimeLastStatusSent := Now;
   FTimeLastDisconnect := Now;
   FTimeLastStatusReceived := Now;
+  FTimeLastPingReceived := Now;
 end;
 
 procedure TBuddy.DoDisconnect;
