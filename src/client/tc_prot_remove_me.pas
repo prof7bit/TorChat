@@ -82,7 +82,7 @@ begin
     LogWarningAndIgnore
   else begin
     if Buddy in FClient.Roster then begin
-      Buddy.ResetTimeCreated;
+      Buddy.ResetAllTimes;
       FClient.TempList.AddBuddy(Buddy); // there it will be autoremoved
       FClient.Roster.RemoveBuddy(Buddy);
     end;

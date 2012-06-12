@@ -108,7 +108,6 @@ begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
     Buddy.SetStatus(FStatus);
-    Buddy.ResetTimeout;
   end
   else
     LogWarningAndIgnore();

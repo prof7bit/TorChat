@@ -127,7 +127,6 @@ begin
     ABuddy := FClient.TempList.ByID(FID);
 
   if Assigned(ABuddy) then begin
-    ABuddy.ResetConnectInterval;
     ABuddy.MustSendPong(FCookie)
   end
   else begin

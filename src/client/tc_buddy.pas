@@ -51,16 +51,17 @@ type
     FProfileName: String;
     FProfileText: String;
     FStatus: TTorchatStatus;
-    FReconnectInterval: Double;
     FConnIncoming: IHiddenConnection;
     FConnOutgoing: IHiddenConnection;
     FMustSendPong: Boolean;
     FReceivedCookie: String;
     FConnecting: Boolean;
+    FReconnectInterval: Double;
     FTimeCreated: TDateTime;
-    FLastDisconnect: TDateTime;
-    FLastActivity: TDateTime;
-    FLastStatusSent: TDateTime;
+    FTimeLastDisconnect: TDateTime;
+    FTimeLastStatusReceived: TDateTime;
+    FTimeLastStatusSent: TDateTime;
+    FMayBeBroken: Boolean; // if true then we dont reset times on every incoming ping
     FLnetClient: TLTcp;
     procedure OnProxyConnect(ASocket: TLSocket);
     procedure OnProxyConnectFailed;
@@ -70,6 +71,8 @@ type
     procedure InitiateConnect;
     function CanUseThisName(AName: String): Boolean;
     procedure CallFromMainThread(AMethod: TMethodOfObject);
+    procedure CalcConnectInterval;
+    procedure CalcConnectIntervalAfterPing;
   public
     constructor Create(AClient: IClient); reintroduce;
     destructor Destroy; override;
@@ -84,9 +87,8 @@ type
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
     procedure ForgetLastPing;
-    procedure ResetConnectInterval;
-    procedure ResetTimeout;
-    procedure ResetTimeCreated;
+    procedure ResetKeepaliveTimeout;
+    procedure ResetAllTimes;
     procedure DoDisconnect;
     procedure RemoveYourself;
     function Client: IClient;
@@ -143,10 +145,8 @@ var
 begin
   inherited Create;
   FConnecting := False;
+  FMayBeBroken := False;
   FClient := AClient;
-  FLastActivity := Now;
-  FTimeCreated := Now;
-  FLastStatusSent := Now;
   FMustSendPong := False;
   FReceivedCookie := '';
   FStatus := TORCHAT_OFFLINE;
@@ -154,9 +154,8 @@ begin
   FOwnCookie := GUIDToString(GUID);
   FLnetClient := TLTcp.Create(nil);
   FLnetClient.Eventer := Client.LNetEventer;
-  // move the last disconnect a few seconds into the past
-  FLastDisconnect := Now - (SECONDS_INITIAL_RECONNECT - SECONDS_FIRST_CONNECT) / SecsPerDay;
-  ResetConnectInterval;
+  ResetAllTimes;
+  CalcConnectInterval;
   WriteLn('TBuddy.Create() created random cookie: ' + FOwnCookie);
 end;
 
@@ -210,15 +209,9 @@ begin
 end;
 
 procedure TBuddy.OnProxyConnectFailed;
-var
-  Slowdown: Double;
 begin
   FConnecting := False;
-  FLastDisconnect := Now;
-  Slowdown := 1 + Random(100)/200; // [1 .. 1.5]
-  FReconnectInterval := FReconnectInterval * Slowdown;
-  WriteLn(_F('%s next connection attempt in %g seconds',
-    [ID, FReconnectInterval]));
+  CalcConnectInterval;
 end;
 
 procedure TBuddy.OnProxyReceive(ASocket: TLSocket);
@@ -268,21 +261,21 @@ begin
 
   // Connect
   if not (Assigned(ConnOutgoing) or FConnecting) then begin
-    if TimeSince(FLastDisconnect) > FReconnectInterval then begin
+    if TimeSince(FTimeLastDisconnect) > FReconnectInterval then begin
       InitiateConnect;
     end;
   end;
 
   // send keep-alive
   if Assigned(ConnIncoming) and Assigned(ConnOutgoing) then begin
-    if TimeSince(FLastStatusSent) > SECONDS_SEND_KEEPLIVE then begin
+    if TimeSince(FTimeLastStatusSent) > SECONDS_SEND_KEEPLIVE then begin
       SendStatus;
     end;
   end;
 
   // check keep-alive timeout and disconect
   if Assigned(ConnOutgoing)
-  and (TimeSince(FLastActivity) > SECONDS_WAIT_KEEPALIVE) then begin
+  and (TimeSince(FTimeLastStatusReceived) > SECONDS_WAIT_KEEPALIVE) then begin
     WriteLn(_F('I TBuddy.CheckState() %s timeout, disconnecting',
       [FID]));
     DoDisconnect;
@@ -357,10 +350,49 @@ begin
   end
 end;
 
+procedure TBuddy.CalcConnectInterval;
+var
+  Minutes: Double;
+
+  { this function takes the minutes since last online and
+    returns the seconds to wait between connect attempts.}
+  function GetInterval(M: Double): Double;
+  begin
+    Result := M * 20; // after 3 hours we reach maximum waiting time
+    if Result > 3600 then
+      Result := 3600;
+    Result := Result + Random(Round(Result))/20;
+  end;
+
+begin
+  FTimeLastDisconnect := Now;
+  Minutes := TimeSince(FTimeLastStatusReceived) / SecsPerMin;
+  FReconnectInterval := GetInterval(Minutes);
+  WriteLn(_F('%s next connect attempt in %g seconds',
+    [ID, FReconnectInterval]));
+end;
+
+procedure TBuddy.CalcConnectIntervalAfterPing;
+begin
+  if not FMayBeBroken then begin
+    WriteLn(_F('%s got ping, resetting connect timers', [ID]));
+    // we wake it up only once. Pong will clear this flag again
+    FMayBeBroken := True;
+    ResetAllTimes;
+    if not FConnecting then
+      CalcConnectInterval
+    else
+      WriteLn(_F('%s is already trying to connect', [ID]));
+  end
+  else
+    WriteLn(_F('%s got another ping, will not reset timers again', [ID]));
+end;
+
 procedure TBuddy.OnOutgoingConnection;
 var
   Msg: IProtocolMessage;
 begin
+  ResetKeepaliveTimeout;
   Msg := TMsgPing.Create(Self, FOwnCookie);
   Msg.Send;
 
@@ -372,25 +404,25 @@ end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
 begin
-  FLastDisconnect := Now;
-  ResetConnectInterval;
   if Assigned(ConnIncoming) then
     ConnIncoming.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
+  CalcConnectInterval;
 end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
   WriteLn('<==OK incoming connection authenticated ', ID);
+  ResetAllTimes;
+  FMayBeBroken := False;
 end;
 
 procedure TBuddy.OnIncomingConnectionFail;
 begin
-  FLastDisconnect := Now;
-  ResetConnectInterval;
   if Assigned(ConnOutgoing) then
     ConnOutgoing.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
+  CalcConnectInterval;
 end;
 
 procedure TBuddy.MustSendPong(ACookie: String);
@@ -401,7 +433,9 @@ begin
   // if we are connected already we can send it
   // immediately, otherwise it will happen on connect
   if Assigned(ConnOutgoing) then
-    SendPong;
+    SendPong
+  else
+    CalcConnectIntervalAfterPing;
 end;
 
 procedure TBuddy.ForgetLastPing;
@@ -410,19 +444,17 @@ begin
   FMustSendPong := False;
 end;
 
-procedure TBuddy.ResetConnectInterval;
+procedure TBuddy.ResetKeepaliveTimeout;
 begin
-  FReconnectInterval := SECONDS_INITIAL_RECONNECT;
+  FTimeLastStatusReceived := Now;
 end;
 
-procedure TBuddy.ResetTimeout;
-begin
-  FLastActivity := Now;
-end;
-
-procedure TBuddy.ResetTimeCreated;
+procedure TBuddy.ResetAllTimes;
 begin
   FTimeCreated := Now;
+  FTimeLastStatusSent := Now;
+  FTimeLastDisconnect := Now;
+  FTimeLastStatusReceived := Now;
 end;
 
 procedure TBuddy.DoDisconnect;
@@ -454,7 +486,7 @@ begin
     RemoveMe := TMsgRemoveMe.Create(Self);
     RemoveMe.Send;
   end;
-  ResetTimeCreated;
+  ResetAllTimes;
   Client.TempList.AddBuddy(Self);
   Client.Roster.RemoveBuddyNoCallback(Self);
 end;
@@ -536,7 +568,6 @@ begin
       FConnIncoming := AConn;
       AConn.SetBuddy(Self);
       Client.UnregisterAnonConnection(AConn);
-      ResetTimeout;
       CallFromMainThread(@OnIncomingConnection);
     end
     else begin
@@ -552,7 +583,6 @@ begin
     if Assigned(AConn) then begin
       FConnOutgoing := AConn;
       AConn.SetBuddy(Self);
-      ResetTimeout;
       CallFromMainThread(@OnOutgoingConnection);
     end
     else begin
@@ -565,6 +595,7 @@ end;
 procedure TBuddy.SetStatus(AStatus: TTorchatStatus);
 begin
   FStatus := AStatus;
+  ResetKeepaliveTimeout;
   if Self in Client.Roster then
     Client.OnBuddyStatusChange(Self);
 end;
@@ -654,7 +685,7 @@ var
 begin
   Stat := TMsgStatus.Create(Self);
   Stat.Send;
-  FLastStatusSent := Now;
+  FTimeLastStatusSent := Now;
 end;
 
 procedure TBuddy.SendAvatar;

@@ -241,8 +241,7 @@ begin
     Buddy.SetFriendlyName(AAlias);
     Roster.AddBuddyNoCallback(Buddy);
     TempList.RemoveBuddy(Buddy);
-    Buddy.ResetConnectInterval;
-    Buddy.ResetTimeout;
+    Buddy.ResetAllTimes;
     Buddy.SendAddMe;
     Result := True;
   end

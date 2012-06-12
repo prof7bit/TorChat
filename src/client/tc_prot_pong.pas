@@ -95,10 +95,8 @@ begin
   Buddy := FClient.Roster.ByCookie(FCookie);
   if not Assigned(Buddy) then
     Buddy := FClient.TempList.ByCookie(FCookie);
-  if Assigned(Buddy) then begin
-    Buddy.SetIncoming(FConnection);
-    Buddy.ResetTimeout;
-  end
+  if Assigned(Buddy) then
+    Buddy.SetIncoming(FConnection)
   else
     LogWarningAndIgnore('unknown cookie');
 end;

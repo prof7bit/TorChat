@@ -138,9 +138,8 @@ type
     procedure OnIncomingConnectionFail;
     procedure MustSendPong(ACookie: String);
     procedure ForgetLastPing;
-    procedure ResetConnectInterval;
-    procedure ResetTimeout;
-    procedure ResetTimeCreated; // make it look like new (for the templist)
+    procedure ResetKeepaliveTimeout;
+    procedure ResetAllTimes; // make it look like new (for the templist)
     procedure DoDisconnect;
     procedure RemoveYourself;
     function Client: IClient;
