@@ -147,7 +147,7 @@ type
     function SoftwareVersion: String;
     function ID: String;
     function Cookie: String;
-    function FriendlyName: String;
+    function LocalAlias: String;
     function ConnIncoming: IHiddenConnection;
     function ConnOutgoing: IHiddenConnection;
     function IsFullyConnected: Boolean;
@@ -156,7 +156,7 @@ type
     function AvatarAlphaData: String; // raw 64*64*8 bitmap (or '' if empty)
     function ProfileName: String;
     function ProfileText: String;
-    procedure SetFriendlyName(AName: String);
+    procedure SetLocalAlias(AName: String);
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);

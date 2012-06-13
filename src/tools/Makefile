@@ -1,7 +1,7 @@
 BINDIR = ../../bin
 FPCOPT = \
-	-Fu../client \
-	-Fu../client/lnet-0.6.5 \
+	-Fu../core \
+	-Fu../core/lnet-0.6.5 \
 	-FU./lib \
 	-FE. \
 	-g- \
@@ -21,7 +21,7 @@ run:
 	./makezip
 
 clean:
-	$(MAKE) -C ../client clean
+	$(MAKE) -C ../core clean
 	$(RM) -r lib
 	$(RM) -r libpurpletorchat
 	$(RM) makezip

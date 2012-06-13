@@ -238,7 +238,7 @@ begin
   // first try the templist
   Buddy := TempList.ByID(AID);
   if Assigned(Buddy) then begin
-    Buddy.SetFriendlyName(AAlias);
+    Buddy.SetLocalAlias(AAlias);
     Roster.AddBuddyNoCallback(Buddy);
     TempList.RemoveBuddy(Buddy);
     Buddy.ResetAllTimes;
@@ -250,7 +250,7 @@ begin
   else begin
     Buddy := TBuddy.Create(Self);
     if Buddy.InitID(AID) then begin
-      Buddy.SetFriendlyName(AAlias);
+      Buddy.SetLocalAlias(AAlias);
       Roster.AddBuddyNoCallback(Buddy);
       Result := True;
     end

@@ -6,4 +6,4 @@ install:
 clean:
 	$(RM) *.res
 	$(RM) -r lib
-	$(MAKE) -C ../client clean
+	$(MAKE) -C ../core clean

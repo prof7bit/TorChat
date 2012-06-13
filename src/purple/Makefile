@@ -3,8 +3,8 @@ PLUGINDIR=$(PREFIX)/lib/purple-2
 COMPILEDIR=../../bin
 
 FPCOPT = \
-	-Fu../client \
-	-Fu../client/lnet-0.6.5 \
+	-Fu../core \
+	-Fu../core/lnet-0.6.5 \
 	-FU./lib \
 	-FE../../bin \
 	-g- \
@@ -25,7 +25,7 @@ install:
 	install --mode=0644 $(COMPILEDIR)/libpurpletorchat.so $(PLUGINDIR)
 
 clean:
-	$(MAKE) -C ../client clean
+	$(MAKE) -C ../core clean
 	$(RM) -r lib
 
 

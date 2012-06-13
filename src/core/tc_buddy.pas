@@ -43,7 +43,7 @@ type
     FID: String;
     FClient: IClient;
     FOwnCookie: String;
-    FFriendlyName: String;
+    FLocalAlias: String;
     FSoftware: String;
     FSoftwareVersion: String;
     FAvatarData: String;
@@ -94,7 +94,7 @@ type
     function Client: IClient;
     function ID: String;
     function Cookie: String;
-    function FriendlyName: String;
+    function LocalAlias: String;
     function ConnIncoming: IHiddenConnection;
     function ConnOutgoing: IHiddenConnection;
     function Status: TTorchatStatus;
@@ -107,7 +107,7 @@ type
     procedure SetIncoming(AConn: IHiddenConnection);
     procedure SetOutgoing(AConn: IHiddenConnection);
     procedure SetStatus(AStatus: TTorchatStatus);
-    procedure SetFriendlyName(AName: String);
+    procedure SetLocalAlias(AName: String);
     procedure SetSoftware(ASoftware: String);
     procedure SetSoftwareVersion(AVersion: String);
     procedure SetAvatarData(ABitmap: String);
@@ -296,7 +296,7 @@ function TBuddy.AsJsonObject: TJSONObject;
 begin
   Result := TJSONObject.Create;
   Result.Add('id', TJSONString.Create(FID));
-  Result.Add('friendlyname', TJSONString.Create(FFriendlyName));
+  Result.Add('alias', TJSONString.Create(FLocalAlias));
 end;
 
 procedure TBuddy.InitFromJsonObect(AObject: TJSONObject);
@@ -307,13 +307,12 @@ begin
     WriteLn('E cannot use this ID: ' + FID);
     raise Exception.Create('cannot use this id');
   end;
-  FFriendlyName := AObject.Strings['friendlyname'];
 
   // the following fields are optional (backwards compatibility)
   // they will be tried in excatly this order from oldest fields
   // first to newest last and failing at any point will be ignored
   try
-    // nothing yet
+    FLocalAlias := AObject.Strings['alias'];
   except
     // ignore from here on
   end;
@@ -504,9 +503,9 @@ begin
   Result := FOwnCookie;
 end;
 
-function TBuddy.FriendlyName: String;
+function TBuddy.LocalAlias: String;
 begin
-  Result := FFriendlyName;
+  Result := FLocalAlias;
 end;
 
 function TBuddy.ConnIncoming: IHiddenConnection;
@@ -598,9 +597,9 @@ begin
     Client.OnBuddyStatusChange(Self);
 end;
 
-procedure TBuddy.SetFriendlyName(AName: String);
+procedure TBuddy.SetLocalAlias(AName: String);
 begin
-  FFriendlyName := AName;
+  FLocalAlias := AName;
   Client.Roster.Save;
 end;
 

@@ -27,7 +27,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../client"/>
+            <OtherUnitFiles Value="../core"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -75,7 +75,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../client"/>
+            <OtherUnitFiles Value="../core"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -151,47 +151,47 @@
         <UnitName Value="language"/>
       </Unit2>
       <Unit3>
-        <Filename Value="../client/torprocess.pas"/>
+        <Filename Value="../core/torprocess.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="torprocess"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../client/clientconfig.pas"/>
+        <Filename Value="../core/clientconfig.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="clientconfig"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../client/torchatclient.pas"/>
+        <Filename Value="../core/torchatclient.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="torchatclient"/>
       </Unit5>
       <Unit6>
-        <Filename Value="../client/networking.pas"/>
+        <Filename Value="../core/networking.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networking"/>
       </Unit6>
       <Unit7>
-        <Filename Value="../client/torchatabstract.pas"/>
+        <Filename Value="../core/torchatabstract.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="torchatabstract"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../client/receiver.pas"/>
+        <Filename Value="../core/receiver.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="receiver"/>
       </Unit8>
       <Unit9>
-        <Filename Value="../client/connection.pas"/>
+        <Filename Value="../core/connection.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="connection"/>
       </Unit9>
       <Unit10>
-        <Filename Value="../client/miscfunc.pas"/>
+        <Filename Value="../core/miscfunc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="miscfunc"/>
       </Unit10>
       <Unit11>
-        <Filename Value="../client/torchatprotocol.pas"/>
+        <Filename Value="../core/torchatprotocol.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="torchatprotocol"/>
       </Unit11>
@@ -204,7 +204,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../client"/>
+      <OtherUnitFiles Value="../core"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

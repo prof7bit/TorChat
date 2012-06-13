@@ -59,7 +59,7 @@ begin
       writeln('TRoster.SetOwnID() adding "myself"-buddy ' + AID);
       Buddy := TBuddy.Create(FClient);
       Buddy.InitID(AID);
-      Buddy.SetFriendlyName('myself');
+      Buddy.SetLocalAlias('myself');
       AddBuddy(Buddy);
     end;
   end

@@ -378,7 +378,7 @@ begin
   TorChat := TorChatClients.Find(gc^.account);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
-    Buddy.SetFriendlyName(aalias);
+    Buddy.SetLocalAlias(aalias);
     serv_got_alias(gc, who, aalias);
   end;
 end;
@@ -529,7 +529,7 @@ begin
   Roster.Lock;
   for Buddy in Roster do begin
     purple_id := GetMemAndCopy(Buddy.ID);
-    purple_alias := GetMemAndCopy(Buddy.FriendlyName);
+    purple_alias := GetMemAndCopy(Buddy.LocalAlias);
     purple_buddy := purple_find_buddy(purple_account, purple_id);
     if not Assigned(purple_buddy) then begin
       if not Assigned(purple_group) then begin
@@ -660,7 +660,7 @@ var
 begin
   if not HSNameOk then exit; // because we don't have a group name yet
   buddy_name := GetMemAndCopy(ABuddy.ID);
-  buddy_alias := GetMemAndCopy(ABuddy.FriendlyName);
+  buddy_alias := GetMemAndCopy(ABuddy.LocalAlias);
   group_name := GetMemAndCopy(Roster.GroupName);
   if not assigned(purple_find_buddy(purple_account, buddy_name)) then begin
     purple_group := purple_find_group(group_name);

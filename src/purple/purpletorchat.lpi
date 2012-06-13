@@ -29,7 +29,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../client;../client/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -71,7 +71,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../client;../client/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -119,7 +119,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../client;../client/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -160,7 +160,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../client;../client/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -220,57 +220,57 @@
         <UnitName Value="purple"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../client/tc_client.pas"/>
+        <Filename Value="../core/tc_client.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_client"/>
       </Unit2>
       <Unit3>
-        <Filename Value="../client/tc_config.pas"/>
+        <Filename Value="../core/tc_config.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_config"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../client/tc_tor.pas"/>
+        <Filename Value="../core/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_tor"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../client/tc_misc.pas"/>
+        <Filename Value="../core/tc_misc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_misc"/>
       </Unit5>
       <Unit6>
-        <Filename Value="../client/tc_protocol.pas"/>
+        <Filename Value="../core/tc_protocol.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_protocol"/>
       </Unit6>
       <Unit7>
-        <Filename Value="../client/tc_conn.pas"/>
+        <Filename Value="../core/tc_conn.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_conn"/>
       </Unit7>
       <Unit8>
-        <Filename Value="../client/tc_interface.pas"/>
+        <Filename Value="../core/tc_interface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_interface"/>
       </Unit8>
       <Unit9>
-        <Filename Value="../client/tc_buddy.pas"/>
+        <Filename Value="../core/tc_buddy.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_buddy"/>
       </Unit9>
       <Unit10>
-        <Filename Value="../client/tc_prot_ping.pas"/>
+        <Filename Value="../core/tc_prot_ping.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_ping"/>
       </Unit10>
       <Unit11>
-        <Filename Value="../client/tc_prot_add_me.pas"/>
+        <Filename Value="../core/tc_prot_add_me.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_add_me"/>
       </Unit11>
       <Unit12>
-        <Filename Value="../client/tc_msgqueue.pas"/>
+        <Filename Value="../core/tc_msgqueue.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_msgqueue"/>
       </Unit12>
@@ -280,72 +280,72 @@
         <UnitName Value="purplehelper"/>
       </Unit13>
       <Unit14>
-        <Filename Value="../client/tc_roster.pas"/>
+        <Filename Value="../core/tc_roster.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_roster"/>
       </Unit14>
       <Unit15>
-        <Filename Value="../client/tc_templist.pas"/>
+        <Filename Value="../core/tc_templist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_templist"/>
       </Unit15>
       <Unit16>
-        <Filename Value="../client/tc_prot_not_implemented.pas"/>
+        <Filename Value="../core/tc_prot_not_implemented.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_not_implemented"/>
       </Unit16>
       <Unit17>
-        <Filename Value="../client/tc_prot_pong.pas"/>
+        <Filename Value="../core/tc_prot_pong.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_pong"/>
       </Unit17>
       <Unit18>
-        <Filename Value="../client/tc_prot_status.pas"/>
+        <Filename Value="../core/tc_prot_status.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_status"/>
       </Unit18>
       <Unit19>
-        <Filename Value="../client/tc_prot_remove_me.pas"/>
+        <Filename Value="../core/tc_prot_remove_me.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_remove_me"/>
       </Unit19>
       <Unit20>
-        <Filename Value="../client/tc_prot_version.pas"/>
+        <Filename Value="../core/tc_prot_version.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_version"/>
       </Unit20>
       <Unit21>
-        <Filename Value="../client/tc_prot_client.pas"/>
+        <Filename Value="../core/tc_prot_client.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_client"/>
       </Unit21>
       <Unit22>
-        <Filename Value="../client/tc_prot_message.pas"/>
+        <Filename Value="../core/tc_prot_message.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_message"/>
       </Unit22>
       <Unit23>
-        <Filename Value="../client/tc_prot_profile_avatar_alpha.pas"/>
+        <Filename Value="../core/tc_prot_profile_avatar_alpha.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_profile_avatar_alpha"/>
       </Unit23>
       <Unit24>
-        <Filename Value="../client/tc_prot_profile_avatar.pas"/>
+        <Filename Value="../core/tc_prot_profile_avatar.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_profile_avatar"/>
       </Unit24>
       <Unit25>
-        <Filename Value="../client/tc_const.pas"/>
+        <Filename Value="../core/tc_const.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_const"/>
       </Unit25>
       <Unit26>
-        <Filename Value="../client/tc_prot_profile_name.pas"/>
+        <Filename Value="../core/tc_prot_profile_name.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_profile_name"/>
       </Unit26>
       <Unit27>
-        <Filename Value="../client/tc_prot_profile_text.pas"/>
+        <Filename Value="../core/tc_prot_profile_text.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_profile_text"/>
       </Unit27>
@@ -358,7 +358,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../client;../client/lnet-0.6.5"/>
+      <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
