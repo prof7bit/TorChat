@@ -123,6 +123,7 @@ begin
     Line(Format('HiddenServicePort 11009 127.0.0.1:%d', [FClientListenPort]));
     Line('LongLivedPorts 11009');
     Line('AvoidDiskWrites 1');
+    Line('SocksTimeout 240');
 
     FileName := ConcatPaths([CurrentDirectory, 'torrc.in.txt']);
     try
