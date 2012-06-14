@@ -1,5 +1,5 @@
 all:
-	lazbuild -B --build-mode=Debug torchat.lpr
+	lazbuild -B torchat.lpi
 	
 install:
 

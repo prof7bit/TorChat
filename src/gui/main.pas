@@ -1,6 +1,6 @@
 { TorChat - Main window
 
-  Copyright (C) 2012 Bernd Kreuss <prof7bit@googlemail.com>
+  Copyright (C) 2012 Bernd Kreuss <prof7bit@gmail.com>
 
   This source is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free
@@ -24,26 +24,78 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, language,
-  torchatclient;
+  Classes,
+  Forms,
+  Controls,
+  ExtCtrls,
+  tc_interface,
+  tc_client;
 
 type
-  { derive own class of the client to override the virtual event methods }
-  TMyClient = class(TTorChatClient)
-
+  { TGuiClient }
+  TGuiClient = class(TTorChatClient)
+    procedure OnBuddyAdded(ABuddy: IBuddy); override;
+    procedure OnBuddyRemoved(ABuddy: IBuddy); override;
+    procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
+    procedure OnBuddyAvatarChange(ABuddy: IBuddy); override;
+    procedure OnInstantMessage(ABuddy: IBuddy; AText: String); override;
+    procedure OnGotOwnID; override;
+    procedure OnNeedPump; override;
   end;
 
   { TFMain }
   TFMain = class(TForm)
+    PumpTimer: TIdleTimer;
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure PumpTimerTimer(Sender: TObject);
   strict private
-    FClient : TMyClient;
+    FClient : TGuiClient;
   end;
 
 var
   FMain: TFMain;
 
 implementation
+uses
+  language;
+
+{ TGuiClient }
+
+procedure TGuiClient.OnBuddyAdded(ABuddy: IBuddy);
+begin
+
+end;
+
+procedure TGuiClient.OnBuddyRemoved(ABuddy: IBuddy);
+begin
+
+end;
+
+procedure TGuiClient.OnBuddyStatusChange(ABuddy: IBuddy);
+begin
+
+end;
+
+procedure TGuiClient.OnBuddyAvatarChange(ABuddy: IBuddy);
+begin
+
+end;
+
+procedure TGuiClient.OnInstantMessage(ABuddy: IBuddy; AText: String);
+begin
+
+end;
+
+procedure TGuiClient.OnGotOwnID;
+begin
+
+end;
+
+procedure TGuiClient.OnNeedPump;
+begin
+
+end;
 
 {$R *.lfm}
 
@@ -51,7 +103,17 @@ implementation
 
 procedure TFMain.FormCreate(Sender: TObject);
 begin
-  Self.FClient := TMyClient.Create(Self);
+  FClient := TGuiClient.Create(Self, 'guiclient');
+end;
+
+procedure TFMain.FormDestroy(Sender: TObject);
+begin
+  FClient.Free;
+end;
+
+procedure TFMain.PumpTimerTimer(Sender: TObject);
+begin
+  FClient.Pump;
 end;
 
 

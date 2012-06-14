@@ -5,5 +5,11 @@ object FMain: TFMain
   Width = 218
   Caption = 'TorChat'
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   LCLVersion = '1.1'
+  object PumpTimer: TIdleTimer
+    OnTimer = PumpTimerTimer
+    left = 29
+    top = 26
+  end
 end

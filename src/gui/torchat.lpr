@@ -1,6 +1,6 @@
 { TorChat - An anonymous p2p instant messenger
 
-  Copyright (C) 2012 Bernd Kreuss <prof7bit@googlemail.com>
+  Copyright (C) 2012 Bernd Kreuss <prof7bit@gmail.com>
 
   This source is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free
@@ -22,11 +22,13 @@ program torchat;
 {$mode objfpc}{$H+}
 
 uses
+  heaptrc,
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, main;
+  Forms,
+  main;
 
 {$R *.res}
 
