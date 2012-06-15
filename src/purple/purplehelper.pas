@@ -66,6 +66,7 @@ implementation
 uses
   {$ifdef windows}
   windows,
+  shlobj,
   {$else}
   Unix,
   BaseUnix,
@@ -111,6 +112,19 @@ begin
 end;
 {$endif}
 
+function GetHomeDir: String;
+{$ifdef windows}
+var
+  AppDataPath: Array[0..MaxPathLen] of Char;
+begin
+  SHGetSpecialFolderPath(0, AppDataPath, CSIDL_APPDATA, false);
+  Result := AppDataPath;
+end;
+{$else}
+begin
+  Result := ExpandFileName('~');
+end;
+{$endif}
 
 function GetMemAndCopy(Str: String): PChar;
 var
@@ -293,7 +307,7 @@ begin
   {$endif}
   {$ifdef DebugToFile}
     Filemode := fmShareDenyNone;
-    Assign(DebugFile, ExpandFileName('~/purpletorchat.log'));
+    Assign(DebugFile, ConcatPaths([GetHomeDir, 'purpletorchat.log']));
     Rewrite(DebugFile);
   {$endif}
 end;
