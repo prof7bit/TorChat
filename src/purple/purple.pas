@@ -83,9 +83,6 @@ type
   TPurplePluginPriority = Integer;
   PPurplePluginUiInfo = Pointer;
 
-  PPurplePluginAction = Pointer;
-  PPurplePluginActionCb = procedure(act: PPurplePluginAction);
-
   PPurplePluginInfo = ^TPurplePluginInfo;
 
   PPurplePlugin = ^TPurplePlugin;
@@ -105,6 +102,16 @@ type
     _purple_reserved2: Pointer;
     _purple_reserved3: Pointer;
     _purple_reserved4: Pointer;
+  end;
+
+  PPurplePluginAction = ^TPurplePluginAction;
+  PPurplePluginActionCb = procedure(act: PPurplePluginAction);
+  TPurplePluginAction = packed record
+    label_    : PChar;
+    callback  : PPurplePluginActionCb;
+    plugin    : PPurplePlugin;
+    context   : gpointer;
+    user_data : gpointer;
   end;
 
   TPurplePluginInfo = packed record
@@ -249,13 +256,16 @@ type
   TPurpleMediaSessionType = Integer;
   TPurpleMediaCaps = Integer;
   TPurpleMood = Integer;
-  PPurpleAccountUnregistrationCallback = procedure();
-  PPurpleSetPublicAliasSuccessCallback = procedure();
-  PPurpleSetPublicAliasFailureCallback = procedure();
-  PPurpleGetPublicAliasSuccessCallback = procedure();
-  PPurpleGetPublicAliasFailureCallback = procedure();
+  PPurpleAccountUnregistrationCallback = procedure(); // fixme: signature?
+  PPurpleSetPublicAliasSuccessCallback = procedure(); // fixme: signature?
+  PPurpleSetPublicAliasFailureCallback = procedure(); // fixme: signature?
+  PPurpleGetPublicAliasSuccessCallback = procedure(); // fixme: signature?
+  PPurpleGetPublicAliasFailureCallback = procedure(); // fixme: signature?
   PPurpleConversation = Pointer;
   PPurpleConvIm = Pointer;
+  PPurpleRequestFields = Pointer;
+  PPurpleRequestFieldGroup = Pointer;
+  PPurpleRequestField = Pointer;
 
   TPurpleConversationType = (
     PURPLE_CONV_TYPE_UNKNOWN = 0,
@@ -264,6 +274,7 @@ type
     PURPLE_CONV_TYPE_MISC,
     PURPLE_CONV_TYPE_ANY
   );
+
 
   TPurpleMessageFlags = Integer; // PURPLE_MESSAGE_XXX flags
 const
@@ -381,7 +392,8 @@ type
     PURPLE_NOTIFY_MSG_INFO         // Information notification.
   );
 
-  PPurpleNotifyCloseCallback = procedure(UserData: Pointer);
+  PPurpleNotifyCloseCb = procedure(user_data: Pointer);
+  PPurpleRequestDlgBtnCb = procedure(user_data: Pointer; fields: PPurpleRequestFields);
 
 
 (********************************************
@@ -418,7 +430,7 @@ function  purple_imgstore_get_data(img: PPurpleStoredImage): Pointer; external L
 function  purple_imgstore_get_size(img: PPurpleStoredImage): PtrUInt; external LIBPURPLE;
 function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
- cb: PPurpleNotifyCloseCallback; UserData: Pointer): GBoolean; external LIBPURPLE;
+ cb: PPurpleNotifyCloseCb; UserData: Pointer): GBoolean; external LIBPURPLE;
 procedure purple_notify_user_info_add_pair_plaintext(
   user_info: PPurpleNotifyUserInfo; label_, value: PChar); external LIBPURPLE;
 function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; external LIBPURPLE;
@@ -427,6 +439,24 @@ function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleS
 procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); external LIBPURPLE;
 procedure purple_prpl_got_user_status(account: PPurpleAccount;
   aname, status_id: PChar); external LIBPURPLE;
+function  purple_request_fields_new: PPurpleRequestFields; external LIBPURPLE;
+procedure purple_request_fields_add_group(fields: PPurpleRequestFields;
+  group: PPurpleRequestFieldGroup); external LIBPURPLE;
+function  purple_request_fields(handle: Pointer;
+  title, primary, secondary: PChar; fields: PPurpleRequestFields; ok_text: PChar;
+  ok_cb:  PPurpleRequestDlgBtnCb; cancel_text: PChar; cancel_cb: PPurpleRequestDlgBtnCb;
+  account: PPurpleAccount; who: PChar; conv: PPurpleConversation;
+  user_data: Pointer): Pointer; external LIBPURPLE; {<< this function
+  differs from the C headers, they originally defined the callbacks as
+  GCallback (which would take only one argument) but the callbacks will
+  actually be given two aruments. Therefore I have made the following
+  change: both callbacks now must be of type PPurpleRequestDlgBtnCb which
+  receives two arguments: user_data and fields. }
+procedure purple_request_field_group_add_field(group: PPurpleRequestFieldGroup;
+  field: PPurpleRequestField); external LIBPURPLE;
+function  purple_request_field_group_new(title: PChar): PPurpleRequestFieldGroup; external LIBPURPLE;
+function  purple_request_field_string_new(id, text, default_value: PChar;
+  multiline: gboolean): PPurpleRequestField; external LIBPURPLE;
 function  purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
 function  purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; external LIBPURPLE;
 function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;

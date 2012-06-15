@@ -205,10 +205,80 @@ begin
   Result := True;
 end;
 
-procedure torchat_set_user_info(act: PPurplePluginAction); cdecl;
+{ this is called when the user clicks ok in th the "set user info..."
+  dialog box, this callback was registered in torchat_set_user_info()
+  It will red the fields and set the data in TorChat. We will pass the
+  account handle as user_data}
+procedure torchat_set_user_info_ok(user_data: Pointer; fields: PPurpleRequestFields); cdecl;
+var
+  TorChat: IClient;
 begin
+  writeln(integer(user_data));
+  writeln(integer(fields));
+  TorChat := TorChatClients.Find(user_data); // user_data = account
+  if Assigned(TorChat) then begin
+
+  end;
 end;
 
+{ this is called when the user clicks the "set user info..." menu item
+  this callback was registered in torchat_actions(). This function will
+  create a dialog box and request the input of profile data. It will
+  register torchat_set_user_info_ok() as the cb for the OK-Button }
+procedure torchat_set_user_info(act: PPurplePluginAction); cdecl;
+var
+  fields: PPurpleRequestFields;
+  group: PPurpleRequestFieldGroup;
+  gc : PPurpleConnection;
+  account: PPurpleAccount;
+begin
+  gc := PPurpleConnection(act^.context);
+  account := gc^.account;
+  fields := purple_request_fields_new;
+  group := purple_request_field_group_new('Profile');
+  purple_request_fields_add_group(fields, group);
+
+  purple_request_field_group_add_field(
+    group,
+    purple_request_field_string_new(
+      'name',
+      'Name',
+      '',
+      False
+    )
+  );
+  purple_request_field_group_add_field(
+    group,
+    purple_request_field_string_new(
+      'text',
+      'About me',
+      '',
+      True
+    )
+  );
+
+  purple_request_fields(
+    gc,
+    'Set User Info',
+    nil,
+    nil,
+    fields,
+    'ok',
+    @torchat_set_user_info_ok,
+    'cancel',
+    nil,
+    account,
+    nil,
+    nil,
+    account
+  );
+  writeln(integer(account));
+  writeln(integer(fields));
+end;
+
+{ this callback is registered in the plugin_info record, purple will call
+  it when loading the plugin and here we set up the menu items and
+  register the callbacks to handle these menu items. }
 function torchat_actions(plugin: PPurplePlugin; context: Pointer): PGList; cdecl;
 var
   act   : PPurplePluginAction;
