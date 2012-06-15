@@ -83,15 +83,19 @@ procedure TClientConfig.Load;
 var
   FS: TFileStream = nil;
   JParser: TJSONParser = nil;
+  FileName: String;
 begin
   WriteLn('TClientConfig.Load()');
+  FileName := ConcatPaths([DataDir, 'config.json']);
   try
-    FS := TFileStream.Create(ConcatPaths([DataDir, 'config.json']), fmOpenRead);
+    FS := TFileStream.Create(FileName, fmOpenRead);
     JParser :=TJSONParser.Create(FS);
     FConfigData := JParser.Parse as TJSONObject;
   except
     on E: Exception do begin
-      WriteLn('I TClientConfig.Load() could not load: ' + E.Message);
+      WriteLn('W TClientConfig.Load() could not load: ' + E.Message);
+      if RenameFile(FileName, FileName + '.broken') then
+        WriteLn('E renamed broken config file to ' + FileName + '.broken');
       CreateDefaultConfig;
     end;
   end;
@@ -114,7 +118,7 @@ begin
   TempName := ConcatPaths([Path,'_config.json']);
   FileName := ConcatPaths([Path,'config.json']);
 
-  JData := FConfigData.FormatJSON([foDoNotQuoteMembers]);
+  JData := FConfigData.FormatJSON([]);
   try
     FS := TFileStream.Create(TempName, fmCreate + fmOpenWrite);
     FS.Write(JData[1], Length(JData));

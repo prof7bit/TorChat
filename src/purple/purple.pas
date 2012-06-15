@@ -452,6 +452,7 @@ function  purple_request_fields(handle: Pointer;
   actually be given two aruments. Therefore I have made the following
   change: both callbacks now must be of type PPurpleRequestDlgBtnCb which
   receives two arguments: user_data and fields. }
+function  purple_request_fields_get_string(fields: PPurpleRequestFields; id: PChar): PChar; external LIBPURPLE;
 procedure purple_request_field_group_add_field(group: PPurpleRequestFieldGroup;
   field: PPurpleRequestField); external LIBPURPLE;
 function  purple_request_field_group_new(title: PChar): PPurpleRequestFieldGroup; external LIBPURPLE;

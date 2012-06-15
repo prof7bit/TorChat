@@ -212,12 +212,14 @@ end;
 procedure torchat_set_user_info_ok(user_data: Pointer; fields: PPurpleRequestFields); cdecl;
 var
   TorChat: IClient;
+  ProfileName: String;
+  ProfileText: String;
 begin
-  writeln(integer(user_data));
-  writeln(integer(fields));
   TorChat := TorChatClients.Find(user_data); // user_data = account
   if Assigned(TorChat) then begin
-
+    ProfileName := purple_request_fields_get_string(fields, 'name');
+    ProfileText := purple_request_fields_get_string(fields, 'text');
+    TorChat.SetOwnProfile(ProfileName, ProfileText);
   end;
 end;
 
@@ -231,49 +233,52 @@ var
   group: PPurpleRequestFieldGroup;
   gc : PPurpleConnection;
   account: PPurpleAccount;
+  TorChat: IClient;
 begin
   gc := PPurpleConnection(act^.context);
   account := gc^.account;
-  fields := purple_request_fields_new;
-  group := purple_request_field_group_new('Profile');
-  purple_request_fields_add_group(fields, group);
+  TorChat := TorChatClients.Find(account);
+  if Assigned(TorChat) then begin
+    fields := purple_request_fields_new;
+    group := purple_request_field_group_new(
+      PChar('User info for ' + TorChat.Roster.OwnID));
+    purple_request_fields_add_group(fields, group);
 
-  purple_request_field_group_add_field(
-    group,
-    purple_request_field_string_new(
-      'name',
-      'Name',
-      '',
-      False
-    )
-  );
-  purple_request_field_group_add_field(
-    group,
-    purple_request_field_string_new(
-      'text',
-      'About me',
-      '',
-      True
-    )
-  );
+    purple_request_field_group_add_field(
+      group,
+      purple_request_field_string_new(
+        'name',
+        'Name',
+        PChar(TorChat.Config.GetString('ProfileName')),
+        False
+      )
+    );
+    purple_request_field_group_add_field(
+      group,
+      purple_request_field_string_new(
+        'text',
+        'About me',
+        PChar(TorChat.Config.GetString('ProfileText')),
+        True
+      )
+    );
 
-  purple_request_fields(
-    gc,
-    'Set User Info',
-    nil,
-    nil,
-    fields,
-    'ok',
-    @torchat_set_user_info_ok,
-    'cancel',
-    nil,
-    account,
-    nil,
-    nil,
-    account
-  );
-  writeln(integer(account));
-  writeln(integer(fields));
+    purple_request_fields(
+      gc,
+      'Set User Info',
+      nil,
+      nil,
+      fields,
+      'ok',
+      @torchat_set_user_info_ok,
+      'cancel',
+      nil,
+      account,
+      nil,
+      nil,
+      account
+    );
+  end;
 end;
 
 { this callback is registered in the plugin_info record, purple will call

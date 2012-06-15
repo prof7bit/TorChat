@@ -89,6 +89,7 @@ type
     function UserAddBuddy(AID, AAlias: String): Boolean;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetOwnAvatarData(RGB, Alpha: String);
+    procedure SetOwnProfile(AName, AText: String);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
@@ -171,6 +172,7 @@ type
     procedure SendAddMe;
     procedure SendStatus;
     procedure SendAvatar;
+    procedure SendProfile;
   end;
 
   IHiddenConnection = interface

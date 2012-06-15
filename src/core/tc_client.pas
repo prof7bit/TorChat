@@ -110,6 +110,7 @@ type
     function LNetEventer: TLEventer;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetOwnAvatarData(RGB, Alpha: String);
+    procedure SetOwnProfile(AName, AText: String);
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
   end;
@@ -342,6 +343,19 @@ begin
     Buddy.SendAvatar;
   for Buddy in TempList do
     Buddy.SendAvatar;
+end;
+
+procedure TTorChatClient.SetOwnProfile(AName, AText: String);
+var
+  Buddy: IBuddy;
+begin
+  Config.SetString('ProfileName', LineBreaksAnyToSpace(AName));
+  Config.SetString('ProfileText', LineBreaksAnyToNative(AText));
+  Config.Save;
+  for Buddy in Roster do
+    Buddy.SendProfile;
+  for Buddy in TempList do
+    Buddy.SendProfile;
 end;
 
 procedure TTorChatClient.RegisterAnonConnection(AConn: IHiddenConnection);

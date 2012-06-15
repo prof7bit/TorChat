@@ -119,6 +119,7 @@ type
     procedure SendAddMe;
     procedure SendStatus;
     procedure SendAvatar;
+    procedure SendProfile;
   end;
 
 implementation
@@ -295,24 +296,33 @@ end;
 function TBuddy.AsJsonObject: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('id', TJSONString.Create(FID));
-  Result.Add('alias', TJSONString.Create(FLocalAlias));
+  Result.Add('ID', TJSONString.Create(FID));
+  Result.Add('Alias', TJSONString.Create(FLocalAlias));
 end;
 
 procedure TBuddy.InitFromJsonObect(AObject: TJSONObject);
 begin
-  // these fields are mandatory, failing will raise exception
-  FID := AObject.Strings['id'];
+  // this field is mandatory, failing will raise exception
+  try
+    FID := AObject.Strings['ID'];
+  except
+    FID := AObject.Strings['id']; {$note deprecated, remove this}
+  end;
+
   if not CanUseThisName(FID) then begin
     WriteLn('E cannot use this ID: ' + FID);
-    raise Exception.Create('cannot use this id');
+    raise Exception.Create('cannot use this ID');
   end;
 
   // the following fields are optional (backwards compatibility)
   // they will be tried in excatly this order from oldest fields
   // first to newest last and failing at any point will be ignored
   try
-    FLocalAlias := AObject.Strings['alias'];
+    try
+      FLocalAlias := AObject.Strings['Alias'];
+    except
+      FLocalAlias := AObject.Strings['alias']; {$note deprecated, remove this}
+    end;
   except
     // ignore from here on
   end;
@@ -660,6 +670,7 @@ begin
   Msg := TMsgVersion.Create(Self, SOFTWARE_VERSION);
   Msg.Send;
   SendAvatar;
+  SendProfile;
   if Self in Client.Roster then
     SendAddMe;
   SendStatus;
@@ -706,6 +717,23 @@ begin
     Msg := TMsgProfileAvatarAlpha.Create(Self, '');
     Msg.Send;
     Msg := TMsgProfileAvatar.Create(Self, '');
+    Msg.Send;
+  end;
+end;
+
+procedure TBuddy.SendProfile;
+var
+  AName, AText: String;
+  Msg: IProtocolMessage;
+begin
+  AName := Client.Config.GetString('ProfileName');
+  AText := Client.Config.GetString('ProfileText');
+  if AName <> '' then begin
+    Msg := TMsgProfileName.Create(Self, AName);
+    Msg.Send;
+  end;
+  if AText <> '' then begin
+    Msg := TMsgProfileText.Create(Self, AText);
     Msg.Send;
   end;
 end;

@@ -65,6 +65,7 @@ type
 
 implementation
 uses
+  tc_misc,
   sysutils;
 
 { TMsgMessage }
@@ -74,42 +75,22 @@ begin
   Result := 'message';
 end;
 
-procedure TMsgMessage.Serialize;
-begin
-  // messages are always transmitted with $0a as line break
-  FBinaryContent := StringReplace(FMessageText,
-    LineEnding, #$0a, [rfReplaceAll]);
-end;
-
 constructor TMsgMessage.Create(ABuddy: IBuddy; AMessageText: String);
 begin
   inherited Create(ABuddy);
   FMessageText := AMessageText;
 end;
 
+procedure TMsgMessage.Serialize;
+begin
+  // "Be conservative in what you do..."
+  FBinaryContent := LineBreaksAnyToLF(FMessageText);
+end;
+
 procedure TMsgMessage.Parse;
 begin
-  // normally we would not need this all. The opposite
-  // operation of Serialize() would be enough.
-
-  // These replacements are just to satisfy the paranoid.
-  // By specification it should only contain $0a as line
-  // ending but there might be broken clients out there,
-  // so we replace everything that remotely looks like a
-  // line ending with a proper line ending. At the end we
-  // always end up with OS-dependent LineEnding so we
-  // can then just pass the string to the GUI and it will
-  // be ok.
-  FMessageText :=
-    StringReplace(
-    StringReplace(
-    StringReplace(
-    StringReplace(
-    Trim(FBinaryContent),
-    #$0d#$0a,   #$0a, [rfReplaceAll]),
-    #$0d,       #$0a, [rfReplaceAll]),
-    #$0b,       #$0a, [rfReplaceAll]), // 0x0b shift-enter on windows
-    #$0a, LineEnding, [rfReplaceAll]);
+  // "...be liberal in what you accept from others."
+  FMessageText := LineBreaksAnyToNative(FBinaryContent);
 end;
 
 procedure TMsgMessage.Execute;

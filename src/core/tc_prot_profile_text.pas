@@ -65,7 +65,7 @@ end;
 
 procedure TMsgProfileText.Serialize;
 begin
-  FBinaryContent := FText;
+  FBinaryContent := LineBreaksAnyToLF(FText);
 end;
 
 constructor TMsgProfileText.Create(ABuddy: IBuddy; AText: String);
@@ -76,7 +76,7 @@ end;
 
 procedure TMsgProfileText.Parse;
 begin
-  FText := FBinaryContent
+  FText := LineBreaksAnyToNative(FBinaryContent);
 end;
 
 procedure TMsgProfileText.Execute;

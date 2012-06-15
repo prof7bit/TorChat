@@ -109,16 +109,20 @@ end;
 
 procedure TRoster.Load;
 var
+  FileName: String;
   FS: TFileStream = nil;
   JParser: TJSONParser = nil;
   JList: TJSONArray = nil;
   LastI, I: Integer;
   tc_buddy: IBuddy;
+  Success: Boolean;
 begin
+  Success := True;
   FIsLoading := True; // prevent autosave while adding buddies
+  FileName := ConcatPaths([FClient.Config.DataDir, 'buddylist.json']);
   try
     writeln('TRoster.Load()');
-    FS := TFileStream.Create(ConcatPaths([FClient.Config.DataDir, 'buddylist.json']), fmOpenRead);
+    FS := TFileStream.Create(FileName, fmOpenRead);
     JParser :=TJSONParser.Create(FS);
     JList := JParser.Parse as TJSONArray;
     LastI := JList.Count - 1;
@@ -129,18 +133,23 @@ begin
         AddBuddyNoCallback(tc_buddy);
         writeln('TRoster.Load() ' + tc_buddy.ID + ' loaded');
       except
+        Success := False;
         FreeAndNil(tc_buddy);
         writeln('E TRoster.Load() error while parsing buddy');
       end;
     end;
   except
     on E: Exception do begin
+      Success := False;
       WriteLn('W TRoster.Load() could not load: ' + E.Message);
     end;
   end;
   if assigned(FS) then FreeAndNil(FS);
   if assigned(JList) then FreeAndNil(JList);
   if assigned(JParser) then FreeAndNil(JParser);
+  if not Success then
+    if RenameFile(FileName, FileName + '.broken') then
+      WriteLn('E renamed broken buddy list to ' + FileName + '.broken');
   FIsLoading := False;
   Save;
 end;
@@ -164,7 +173,7 @@ begin
   for Buddy in Self do
     JArr.Add(Buddy.AsJsonObject);
 
-  JData := JArr.FormatJSON([foSingleLineObject, foDoNotQuoteMembers]);
+  JData := JArr.FormatJSON([foSingleLineObject]);
   JArr.Free;
   try
     FS := TFileStream.Create(TempName, fmCreate + fmOpenWrite);

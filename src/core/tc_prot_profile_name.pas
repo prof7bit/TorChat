@@ -68,7 +68,7 @@ end;
 
 procedure TMsgProfileName.Serialize;
 begin
-  FBinaryContent := FName;
+  FBinaryContent := LineBreaksAnyToSpace(FName);
 end;
 
 constructor TMsgProfileName.Create(ABuddy: IBuddy; AText: String);
@@ -79,7 +79,7 @@ end;
 
 procedure TMsgProfileName.Parse;
 begin
-  FName := FBinaryContent
+  FName := LineBreaksAnyToSpace(FBinaryContent);
 end;
 
 procedure TMsgProfileName.Execute;

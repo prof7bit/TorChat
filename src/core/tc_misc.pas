@@ -62,6 +62,16 @@ function IsValidOnionName(AName: String): Boolean;
 { format someting printable for the binary string B }
 function DebugFormatBinary(B: String): String;
 
+{ convert any line breaks to the system native format }
+function LineBreaksAnyToNative(AText: String): String;
+
+{ convert any line breaks to LF (#$0a) }
+function LineBreaksAnyToLF(AText: String): String;
+
+{ convert any line breaks to Space (#$20) }
+function LineBreaksAnyToSpace(AText: String): String;
+
+
 implementation
 
 type
@@ -218,6 +228,43 @@ begin
       B[i] := '?';
   end;
   Result := B;
+end;
+
+function LineBreaksAnyToNative(AText: String): String;
+begin
+  Result :=
+    StringReplace(
+    StringReplace(
+    StringReplace(
+    StringReplace(
+    StringReplace(
+    Trim(AText),
+    '<br>',     #$0a, [rfReplaceAll]),
+    #$0d#$0a,   #$0a, [rfReplaceAll]),
+    #$0d,       #$0a, [rfReplaceAll]),
+    #$0b,       #$0a, [rfReplaceAll]), // 0x0b shift-enter on windows
+    #$0a, LineEnding, [rfReplaceAll]);
+end;
+
+function LineBreaksAnyToLF(AText: String): String;
+begin
+  Result :=
+    StringReplace(
+    StringReplace(
+    StringReplace(
+    StringReplace(
+    Trim(AText),
+    '<br>',     #$0a, [rfReplaceAll]),
+    #$0d#$0a,   #$0a, [rfReplaceAll]),
+    #$0d,       #$0a, [rfReplaceAll]),
+    #$0b,       #$0a, [rfReplaceAll]); // 0x0b shift-enter on windows
+end;
+
+function LineBreaksAnyToSpace(AText: String): String;
+begin
+  Result := StringReplace(
+    LineBreaksAnyToNative(AText),
+    LineEnding, ' ', [rfReplaceAll]);
 end;
 
 { TSafeDeleteThread }
