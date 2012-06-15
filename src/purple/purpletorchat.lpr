@@ -83,7 +83,6 @@ uses
   purplehelper,
   tc_interface,
   tc_client,
-  tc_config,
   tc_const,
   FPimage,
   FPWritePNG,
@@ -796,9 +795,6 @@ begin
 end;
 
 procedure Init;
-var
-  acc_opt: PPurpleAccountOption;
-  TorPath: PChar;
 begin
   SOFTWARE_NAME := 'libpurple/TorChat'; // for the 'client' message
 
@@ -844,10 +840,10 @@ begin
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 
-  // add additional fields to the settings dialog
-  TorPath := PChar(DefaultPathTorExe);
-  acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
-  plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
+  //// add additional fields to the settings dialog
+  //TorPath := PChar(DefaultPathTorExe);
+  //acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
+  //plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
 
   {$ifdef UseHeapTrc}
     WriteLn('W plugin has been compiled with -dUseHeapTrc. Not recommended.');
