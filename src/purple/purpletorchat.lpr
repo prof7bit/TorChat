@@ -267,6 +267,7 @@ var
   PtrRGB: P24Pixel;
   PtrAlpha: PByte;
   X, Y: Integer;
+  AllAlphaBits: Word;
   TorChat: TTorChatPurpleClient;
 
 begin
@@ -303,6 +304,7 @@ begin
       SetLength(Alpha8, 4096);
       PtrRGB := @RGB24[1];
       PtrAlpha := @Alpha8[1];
+      AllAlphaBits := $ffff;
       for Y := 0 to 63 do begin
         for X := 0 to 63 do begin
           Pixel := ImageScaled.Colors[X, Y];
@@ -310,12 +312,15 @@ begin
           PtrRGB^.Green := hi(Pixel.green);
           PtrRGB^.Blue := hi(Pixel.blue);
           PtrAlpha^ := hi(Pixel.alpha);
+          AllAlphaBits := AllAlphaBits and Pixel.alpha;
           Inc(PtrRGB);
           Inc(PtrAlpha);
         end;
       end;
       CanvasScaled.Free;
       ImageScaled.Free;
+      if AllAlphaBits = $ffff then
+        Alpha8 := '';
     end
     else begin
       RGB24 := '';
