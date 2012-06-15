@@ -205,6 +205,22 @@ begin
   Result := True;
 end;
 
+procedure torchat_set_user_info(act: PPurplePluginAction); cdecl;
+begin
+end;
+
+function torchat_actions(plugin: PPurplePlugin; Context: Pointer): PGList; cdecl;
+var
+  gc: PPurpleConnection;
+  act: PPurplePluginAction;
+  m: PGList;
+begin
+  gc := PPurpleConnection(Context);
+  act := purple_plugin_action_new('Set User Info...', @torchat_set_user_info);
+  m := g_list_append(nil, act);
+  Result := m;
+end;
+
 function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
 begin
   // pidgin has some strange policy regardig usable status types:
@@ -396,21 +412,21 @@ begin
     Buddy := TorChat.Roster.ByID(buddy_id);
     if Assigned(Buddy) then begin
       if Buddy.Software <> '' then begin
-        purple_notify_user_info_add_pair(
+        purple_notify_user_info_add_pair_plaintext(
           user_info,
           'Client',
           PChar(Buddy.Software + '-' + Buddy.SoftwareVersion)
         );
       end;
       if Buddy.ProfileName <> '' then begin
-        purple_notify_user_info_add_pair(
+        purple_notify_user_info_add_pair_plaintext(
           user_info,
           'Name',
           PChar(Buddy.ProfileName)
         );
       end;
       if Buddy.ProfileText <> '' then begin
-        purple_notify_user_info_add_pair(
+        purple_notify_user_info_add_pair_plaintext(
           user_info,
           'Profile',
           PChar(Buddy.ProfileText)
@@ -723,6 +739,7 @@ begin
     homepage := 'https://github.com/prof7bit/TorChat';
     load := @torchat_load;
     unload := @torchat_unload;
+    actions := @torchat_actions;
     extra_info := @plugin_protocol_info;
   end;
 
