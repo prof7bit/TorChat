@@ -209,13 +209,11 @@ procedure torchat_set_user_info(act: PPurplePluginAction); cdecl;
 begin
 end;
 
-function torchat_actions(plugin: PPurplePlugin; Context: Pointer): PGList; cdecl;
+function torchat_actions(plugin: PPurplePlugin; context: Pointer): PGList; cdecl;
 var
-  gc: PPurpleConnection;
-  act: PPurplePluginAction;
-  m: PGList;
+  act   : PPurplePluginAction;
+  m     : PGList;
 begin
-  gc := PPurpleConnection(Context);
   act := purple_plugin_action_new('Set User Info...', @torchat_set_user_info);
   m := g_list_append(nil, act);
   Result := m;

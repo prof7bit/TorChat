@@ -129,7 +129,7 @@ type
     ui_info: Pointer;
     extra_info: Pointer;
     prefs_info: PPurplePluginUiInfo;
-    actions: function(plugin: PPurplePlugin; Context: Pointer): PGList;
+    actions: function(plugin: PPurplePlugin; context: Pointer): PGList;
 
     _purple_reserved1: Pointer;
     _purple_reserved2: Pointer;
