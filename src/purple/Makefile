@@ -18,7 +18,7 @@ FPCOPT = \
 
 all:
 	mkdir -p lib
-	fpc $(FPCOPT) purpletorchat.lpr
+	fpc $(FPCOPT) -dDebugToConsole -dDebugToFile purpletorchat.lpr
 	
 install:
 	mkdir -p $(PLUGINDIR)
