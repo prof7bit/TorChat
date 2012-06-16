@@ -12,6 +12,7 @@ FPCOPT = \
 	-XX \
 	-Xs \
 	-O3 \
+	-fPIC \
 	-k--reduce-memory-overheads \
 	-k--no-keep-memory \
 	$(OPT) \

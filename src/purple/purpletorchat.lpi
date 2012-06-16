@@ -56,7 +56,8 @@
               <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-d_DebugToConsole 
+            <CustomOptions Value="-fPIC
+-d_DebugToConsole 
 -dDebugToFile
 -dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
@@ -107,6 +108,7 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
+            <CustomOptions Value="-fPIC"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -146,7 +148,8 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole 
+            <CustomOptions Value="-fPIC
+-dDebugToConsole 
 -dDebugToFile
 -dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
@@ -393,6 +396,7 @@
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
+      <CustomOptions Value="-fPIC"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
