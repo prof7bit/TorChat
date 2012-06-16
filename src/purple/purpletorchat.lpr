@@ -437,7 +437,9 @@ var
   Buddy: IBuddy;
   Msg: String;
 begin
+  {$note need a more universal approach to unescape all the other html and htmlentities that comes from pidgin}
   Msg := StringReplace(message, '<br>', LineEnding, [rfReplaceAll]);
+
   TorChat := TorChatClients.Find(gc^.account);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
