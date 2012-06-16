@@ -169,12 +169,9 @@ begin
   // not try to fire any late Events after the buddy is freed
   FLnetClient.IterReset;
   S := FLnetClient.Iterator; // the root handle of the TLTcp
-  if Assigned(S) then begin
-    S.OnRead := nil;
-    S.OnWrite := nil;
-    S.OnError := nil;
-  end;
-  FLnetClient.Disconnect(True);
+  if Assigned(S) then
+    S.Dispose := True;
+  FLnetClient.Disconnect;
   FLnetClient.Free;
   WriteLn('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;
