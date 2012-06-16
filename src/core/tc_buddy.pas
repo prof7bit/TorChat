@@ -160,20 +160,21 @@ begin
 end;
 
 destructor TBuddy.Destroy;
+var
+  S: TLSocket;
 begin
   WriteLn('TBuddy.Destroy() ' + ID);
 
   // make sure the handle that might still be stuck in select() will
   // not try to fire any late Events after the buddy is freed
   FLnetClient.IterReset;
-  if Assigned(FLnetClient.Iterator) then begin
-    with FLnetClient.Iterator do begin // the root handle of the TLTcp
-      IgnoreRead := True;
-      IgnoreWrite := True;
-      IgnoreError := True;
-    end;
+  S := FLnetClient.Iterator; // the root handle of the TLTcp
+  if Assigned(S) then begin
+    S.OnRead := nil;
+    S.OnWrite := nil;
+    S.OnError := nil;
   end;
-  FLnetClient.Disconnect();
+  FLnetClient.Disconnect(True);
   FLnetClient.Free;
   WriteLn('TBuddy.Destroy() ' + ID + ' finished');
   inherited Destroy;

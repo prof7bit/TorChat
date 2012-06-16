@@ -56,7 +56,7 @@
               <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dDebugToConsole 
+            <CustomOptions Value="-d_DebugToConsole 
 -dDebugToFile
 -dUseHeapTrc"/>
             <CompilerPath Value="$(CompPath)"/>
