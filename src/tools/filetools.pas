@@ -11,9 +11,15 @@ function FCopy(A,B: String): Boolean;
 function FMkDir(D: String): Boolean;
 function FDelete(D: String): Boolean;
 function FRename(A, B: String): Boolean;
+function FTar(A: String; F: array of AnsiString): String; // returns the archive name
 function FZip(A: String; F: array of AnsiString): String; // returns the archive name
 
+
 implementation
+
+const
+  TAR_EXE = '/bin/tar';
+  ZIP_EXE = '/usr/bin/zip';
 
 function FCopy(A, B: String): Boolean;
 var
@@ -37,12 +43,12 @@ begin
   except
     Result := False;
     if not Assigned(Fa) then
-      WriteLn('FCopy: could not open ', A, ' for reading')
+      WriteLn('!!! FCopy: could not open ', A, ' for reading')
     else
       if not Assigned(Fb) then
-        WriteLn('FCopy: could not open ', B, ' for writing')
+        WriteLn('!!! FCopy: could not open ', B, ' for writing')
       else
-        Writeln('FCopy: error while copying', LineEnding,
+        Writeln('!!! FCopy: error while copying', LineEnding,
           '  file ', A, LineEnding, '    to ', B);
   end;
   if Assigned(Fa) then Fa.Free;
@@ -74,25 +80,20 @@ begin
       RmDir(D);
     except
       Result := False;
-      WriteLn('FDelete: could not delete directory: ', D);
+      WriteLn('!!! FDelete: could not delete directory: ', D);
     end;
   end
   else begin
     if FileExists(D) then begin
       if not DeleteFile(D) then begin
         Result := False;
-        WriteLn('FDelete: could not delete file: ', D);
+        WriteLn('!!! FDelete: could not delete file: ', D);
       end;
     end;
   end;
 end;
 
-{$ifdef windows}
-function FZip(A: String; F: array of AnsiString): Boolean;
-begin
-end;
-{$else}
-function FZip(A: String; F: array of AnsiString): String;
+function FTar(A: String; F: array of AnsiString): String;
 var
   Args: Array of AnsiString;
   I: Integer;
@@ -106,12 +107,31 @@ begin
     writeln('   add ', F[i]);
     Args[i+2] := F[i];
   end;
-  if ExecuteProcess('/bin/tar', Args) = 0 then
+  if ExecuteProcess(TAR_EXE, Args) = 0 then
     Result := A
   else
     Result := '';
 end;
-{$endif}
+
+function FZip(A: String; F: array of AnsiString): String;
+var
+  Args: Array of AnsiString;
+  I: Integer;
+begin
+  A := A + '.zip';
+  WriteLn('create ', A);
+  SetLength(Args, Length(F) + 2);
+  Args[0] := '-r';
+  Args[1] := A;
+  for I := 0 to Length(F) - 1 do begin
+    writeln('   add ', F[i]);
+    Args[i+2] := F[i];
+  end;
+  if ExecuteProcess(ZIP_EXE, Args) = 0 then
+    Result := A
+  else
+    Result := '';
+end;
 
 function FRename(A, B: String): Boolean;
 begin

@@ -30,8 +30,8 @@ clean:
 
 
 ## this is only for making the preview
-## binary that I upload to github
+## binaries that I upload to github
 demo:
 	mkdir -p lib
 	fpc $(FPCOPT) -dDebugToConsole -dDebugToFile purpletorchat.lpr
-
+	fpc -Twin32 $(FPCOPT) -dDebugToConsole -dDebugToFile purpletorchat.lpr

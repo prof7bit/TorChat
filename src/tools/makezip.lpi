@@ -53,7 +53,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../client;../client/lnet-0.6.5"/>
+      <OtherUnitFiles Value="../core"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

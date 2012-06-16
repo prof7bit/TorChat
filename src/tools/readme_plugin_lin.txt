@@ -13,7 +13,7 @@ libpurpletorchat.so
   You also must have tor installed in /usr/sbin/tor which should 
 normally be the default location of tor if are on a debian based system.
 
-  Now start pidgin from within a console window. You should see a lot of
+  Now start pidgin from within a console window. You should see some
 debugging output. Additionally there will be a file ~/purpletorchat.log
 which contains the same debug output.
 
@@ -28,5 +28,4 @@ apart with a human readable name. It will create a config folder
 many accounts (profiles) as you want and use them all simultanously.
 
   This early alpha version of the plugin does only support instant
-messaging and NONE of the other features like file transfer, profile
-texts, etc., these will all be implemented in later versions.
+messaging and no file transfer, this will be implemented in later versions.
