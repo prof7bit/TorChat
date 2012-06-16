@@ -71,6 +71,8 @@ function LineBreaksAnyToLF(AText: String): String;
 { convert any line breaks to Space (#$20) }
 function LineBreaksAnyToSpace(AText: String): String;
 
+function Plain2Html(APlain: String): String;
+function Html2Plain(AHtml: String): String;
 
 implementation
 
@@ -265,6 +267,23 @@ begin
   Result := StringReplace(
     LineBreaksAnyToNative(AText),
     LineEnding, ' ', [rfReplaceAll]);
+end;
+
+function Plain2Html(APlain: String): String;
+begin
+  Result := StringReplace(APlain, '&', '&amp;', [rfReplaceAll]);
+  Result := StringReplace(Result, '<', '&lt;', [rfReplaceAll]);
+  Result := StringReplace(Result, '>', '&gt;', [rfReplaceAll]);
+  Result := StringReplace(Result, LineEnding, '<br>', [rfReplaceAll]);
+end;
+
+function Html2Plain(AHtml: String): String;
+begin
+  {$note this is crap. Find a library function somewhere to do this properly}
+  Result := StringReplace(AHtml, '<br>', LineEnding, [rfReplaceAll]);
+  Result := StringReplace(Result, '&lt;', '<', [rfReplaceAll]);
+  Result := StringReplace(Result, '&gt;', '>', [rfReplaceAll]);
+  Result := StringReplace(Result, '&amp;', '&', [rfReplaceAll]);
 end;
 
 { TSafeDeleteThread }
