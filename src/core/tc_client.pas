@@ -97,6 +97,8 @@ type
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String); virtual; abstract;
     function UserAddBuddy(AID, AAlias: String): Boolean;
     function MainThread: TThreadID;
+    procedure DummySocketEvent(AHandle: TLHandle);
+    procedure DummySocketError(AHandle: TLHandle; const Error: String);
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -264,6 +266,20 @@ end;
 function TTorChatClient.MainThread: TThreadID;
 begin
   Result := FMainThread;
+end;
+
+procedure TTorChatClient.DummySocketEvent(AHandle: TLHandle);
+begin
+  WriteLn('ignoring event from old socket ', AHandle.Handle);
+  WriteLn('Dispose=', AHandle.Dispose);
+  AHandle.Dispose := True;
+end;
+
+procedure TTorChatClient.DummySocketError(AHandle: TLHandle; const Error: String);
+begin
+  WriteLn('ignoring error from old socket ', AHandle.Handle, ' ', Error);
+  WriteLn('Dispose=', AHandle.Dispose);
+  AHandle.Dispose := True;
 end;
 
 function TTorChatClient.Roster: IRoster;

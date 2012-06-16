@@ -123,9 +123,9 @@ begin
     WriteLn('<=/=> disconnect ' + DebugInfo + ' ' + Error);
 
     //no more callbacks
-    FSocket.OnRead := nil;
-    FSocket.OnWrite := nil;
-    FSocket.OnError := nil;
+    FSocket.OnRead := @Client.DummySocketEvent;
+    FSocket.OnWrite := @Client.DummySocketEvent;
+    FSocket.OnError := @Client.DummySocketError;
     FSocket.Disconnect();
 
     // remove references to the connection in all other objects.

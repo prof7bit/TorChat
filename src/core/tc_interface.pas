@@ -30,6 +30,7 @@ interface
 uses
   Classes,
   fpjson,
+  lNet,
   lEvents;
 
 type
@@ -93,6 +94,8 @@ type
     procedure RegisterAnonConnection(AConn: IHiddenConnection);
     procedure UnregisterAnonConnection(AConn: IHiddenConnection);
     function  MainThread: TThreadID;
+    procedure DummySocketEvent(AHandle: TLHandle);
+    procedure DummySocketError(AHandle: TLHandle; const Error: String);
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
