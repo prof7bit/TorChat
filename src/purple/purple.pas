@@ -67,6 +67,8 @@ type
  *                                      *
  ****************************************)
 {$calling cdecl}
+{$packrecords c}
+
 const
   PURPLE_PLUGIN_MAGIC = 5;
   PURPLE_MAJOR_VERSION = 2;
