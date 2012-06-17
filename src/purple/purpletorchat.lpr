@@ -708,6 +708,7 @@ begin
     end;
     ImageWriter := TFPWriterPNG.create;
     ImageWriter.UseAlpha := HasAlpha;
+    ImageWriter.Indexed := False;
     ImageWriter.WordSized := False;
     ImageStream := TMemoryStream.Create;
     Image.SaveToStream(ImageStream, ImageWriter);
