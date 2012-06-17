@@ -8,9 +8,9 @@ and broke the innermost workings of the client and the protocol
 because they confused two similar sounding variable names.
 
 Update: After contacting the Debian maintainer it has been
-fixed in the debian repository very fast but Ubuntu is still
-not reacting to the bug report There does not seem to be 
-anybody home at the moment, maybe because it is summer?
+fixed in the Debian repository very fast but Ubuntu is still
+not reacting to anything, there does not seem to be anybody 
+home during summer...
 
 
 TorChat2
