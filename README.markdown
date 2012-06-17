@@ -1,12 +1,16 @@
-Don't use the Debian/Ubuntu/Mint Repositories
-=============================================
-...until further notice. They have again messed it up, in best debian 
-manner they did it again (remember the openssl debacle?) they patched 
-code they did not understand and now it contains a major hole. Please 
-use only the original .deb from github.
+Don't use the Ubuntu/Mint Repositories
+======================================
+...until further notice.  Please use only the original .deb 
+from github. Ubuntu version is broadcasting private information
+in the version field. They tried to fix something (that was
+not broken in the first place) regarding the version number
+and broke the innermost workings of the client and the protocol 
+because they confused two similar sounding variable names.
 
-The debian maintainer is notified and working on a solution. I will
-post updates here.
+Update: After contacting the Debian maintainer it has been
+fixed in the debian repository very fast but Ubuntu is still
+not reacting to the bug report There does not seem to be 
+anybody home at the moment, maybe because it is summer?
 
 
 TorChat2
