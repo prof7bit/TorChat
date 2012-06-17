@@ -489,25 +489,28 @@ begin
     buddy_id := purple_buddy_get_name(purple_buddy);
     Buddy := TorChat.Roster.ByID(buddy_id);
     if Assigned(Buddy) then begin
+      // we escape every < or > from all strings because
+      // it would break the entire tooltip window (it
+      // would be completely empty).
       if Buddy.Software <> '' then begin
-        purple_notify_user_info_add_pair_plaintext(
+        purple_notify_user_info_add_pair(
           user_info,
           'Client',
-          PChar(Buddy.Software + '-' + Buddy.SoftwareVersion)
+          PChar(EscapeAngleBrackets(Buddy.Software + '-' + Buddy.SoftwareVersion))
         );
       end;
       if Buddy.ProfileName <> '' then begin
-        purple_notify_user_info_add_pair_plaintext(
+        purple_notify_user_info_add_pair(
           user_info,
           'Name',
-          PChar(Buddy.ProfileName)
+          PChar(EscapeAngleBrackets(Buddy.ProfileName))
         );
       end;
       if Buddy.ProfileText <> '' then begin
-        purple_notify_user_info_add_pair_plaintext(
+        purple_notify_user_info_add_pair(
           user_info,
           'Profile',
-          PChar(Buddy.ProfileText)
+          PChar(EscapeAngleBrackets(Buddy.ProfileText))
         );
       end;
     end;

@@ -434,8 +434,8 @@ function  purple_imgstore_get_size(img: PPurpleStoredImage): csize_t; external L
 function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
  cb: PPurpleNotifyCloseCb; UserData: Pointer): GBoolean; external LIBPURPLE;
-procedure purple_notify_user_info_add_pair_plaintext(
-  user_info: PPurpleNotifyUserInfo; label_, value: PChar); external LIBPURPLE;
+procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
+  label_, value: PChar); external LIBPURPLE;
 function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; external LIBPURPLE;
 function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
 function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;

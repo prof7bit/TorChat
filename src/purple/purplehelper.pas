@@ -62,6 +62,13 @@ function NowUTCUnix: UInt64;
 { Current UTC as TDateTime }
 function NowUTC: TDateTime;
 
+{ The notification hint window will stay completely empty
+  if there are *any* occurrences of < or > in any of the
+  fields, even if it is a valid tag, not even <br> works,
+  so converting to proper HTML is not an option, the only
+  simple way around it is to escape all < and > }
+function EscapeAngleBrackets(AText: String): String;
+
 implementation
 uses
   {$ifdef windows}
@@ -190,6 +197,13 @@ begin
   a := (TimeVal.tv_sec * 1000.0) + (TimeVal.tv_usec / 1000.0);
   Result := (a / MSecsPerDay) + UnixDateDelta;
 end;
+
+function EscapeAngleBrackets(AText: String): String;
+begin
+  Result := StringReplace(AText, '<', '&lt;', [rfReplaceAll]);
+  Result := StringReplace(Result, '>', '&gt;', [rfReplaceAll]);
+end;
+
 {$endif}
 
 
