@@ -87,7 +87,7 @@ type
   PPurplePluginInfo = ^TPurplePluginInfo;
 
   PPurplePlugin = ^TPurplePlugin;
-  TPurplePlugin = packed record
+  TPurplePlugin = record
     native_plugin     : GBoolean;           // Native C plugin.
     loaded            : GBoolean;           // The loaded state.
     handle            : Pointer;            // The module handle.
@@ -107,7 +107,7 @@ type
 
   PPurplePluginAction = ^TPurplePluginAction;
   PPurplePluginActionCb = procedure(act: PPurplePluginAction);
-  TPurplePluginAction = packed record
+  TPurplePluginAction = record
     label_    : PChar;
     callback  : PPurplePluginActionCb;
     plugin    : PPurplePlugin;
@@ -115,7 +115,7 @@ type
     user_data : gpointer;
   end;
 
-  TPurplePluginInfo = packed record
+  TPurplePluginInfo = record
     magic           : cint;
     major_version   : cint;
     minor_version   : cint;
@@ -165,7 +165,7 @@ type
     PURPLE_ICON_SCALE_SEND    = $02     // We scale the icon before we send it to the server
   );
 
-  TPurpleBuddyIconSpec = packed record
+  TPurpleBuddyIconSpec = record
     format        : PChar;                  // Comma delimited list of formats
     min_width     : cint;                   // Minimum width of this icon
     min_height    : cint;                   // Minimum height of this icon
@@ -184,7 +184,7 @@ type
   PPurpleConnection = ^TPurpleConnection;
 
   PPurpleAccount = ^TPurpleAccount;
-  TPurpleAccount = packed record
+  TPurpleAccount = record
     username        : PChar;              // The username.
     aalias          : PChar;              // How you appear to yourself.
     password        : PChar;              // The account password.
@@ -219,7 +219,7 @@ type
   	PURPLE_CONNECTING        // Connecting.
   );
 
-  TPurpleConnection = packed record
+  TPurpleConnection = record
     prpl                : PPurplePlugin;          // The protocol plugin.
     flags               : TPurpleConnectionFlags; // Connection flags.
     state               : TPurpleConnectionState; // The connection state.
@@ -311,7 +311,7 @@ type
     PURPLE_STATUS_NUM_PRIMITIVES
   );
 
-  TPurplePluginProtocolInfo = packed record
+  TPurplePluginProtocolInfo = record
     options                 : TPurpleProtocolOptions;  (**< Protocol options.           *)
     user_splits             : PGList;  (**< A GList of PurpleAccountUserSplit  *)
     protocol_options        : PGList;  (**< A GList of PurpleAccountOption     *)
