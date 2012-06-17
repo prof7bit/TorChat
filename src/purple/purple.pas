@@ -139,10 +139,10 @@ type
     prefs_info      : PPurplePluginUiInfo;
     actions         : function(plugin: PPurplePlugin; context: Pointer): PGList;
 
-    _purple_reserved1: Pointer;
-    _purple_reserved2: Pointer;
-    _purple_reserved3: Pointer;
-    _purple_reserved4: Pointer;
+    _purple_reserved1: procedure();
+    _purple_reserved2: procedure();
+    _purple_reserved3: procedure();
+    _purple_reserved4: procedure();
   end;
 
 
