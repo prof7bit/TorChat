@@ -78,6 +78,7 @@ uses
   Classes,
   sysutils,
   contnrs,
+  ctypes,
   glib2,
   purple,
   purplehelper,
@@ -431,7 +432,7 @@ begin
   end;
 end;
 
-function torchat_send_im(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): Integer; cdecl;
+function torchat_send_im(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
 var
   TorChat: TTorChatPurpleClient;
   Buddy: IBuddy;
@@ -442,7 +443,7 @@ begin
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     if Assigned(Buddy) then
-      Result := Integer(Buddy.SendIM(Msg))
+      Result := cint(Buddy.SendIM(Msg))
     else begin
       {$note might have sent remove_me in the meantime, write a warning}
       Result := 0; // is this ok? probably not.
