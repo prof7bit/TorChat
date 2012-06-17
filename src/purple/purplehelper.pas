@@ -197,15 +197,13 @@ begin
   a := (TimeVal.tv_sec * 1000.0) + (TimeVal.tv_usec / 1000.0);
   Result := (a / MSecsPerDay) + UnixDateDelta;
 end;
+{$endif}
 
 function EscapeAngleBrackets(AText: String): String;
 begin
   Result := StringReplace(AText, '<', '&lt;', [rfReplaceAll]);
   Result := StringReplace(Result, '>', '&gt;', [rfReplaceAll]);
 end;
-
-{$endif}
-
 
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
