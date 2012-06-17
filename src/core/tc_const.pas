@@ -15,7 +15,7 @@ const
   SECONDS_FIRST_CONNECT = 5;     // first connect after TBuddy.Create
 
   SOFTWARE_NAME : String = 'TorChat';
-  SOFTWARE_VERSION : String = '2.0-alpha-10';
+  SOFTWARE_VERSION : String = '2.0-alpha-11';
 
 
 implementation
