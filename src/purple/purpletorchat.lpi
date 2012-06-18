@@ -211,6 +211,12 @@
         <HostApplicationFilename Value="/usr/bin/pidgin"/>
         <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
+      <environment>
+        <UserOverrides Count="2">
+          <Variable0 Name="LC_ALL" Value="C"/>
+          <Variable1 Name="LANG" Value="en_US"/>
+        </UserOverrides>
+      </environment>
     </RunParams>
     <Units Count="28">
       <Unit0>
