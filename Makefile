@@ -1,6 +1,8 @@
 MPURPLE = $(MAKE) -C src/purple
 MGUI = $(MAKE) -C src/gui
+MCORE = $(MAKE) -C src/core
 MTOOLS = $(MAKE) -C src/tools
+MBIN = $(MAKE) -C bin
 
 all: purple
 
@@ -19,15 +21,11 @@ installgui:
 	$(MGUI) install
 		
 clean:
+	$(MCORE) clean
 	$(MPURPLE) clean
 	$(MGUI) clean
 	$(MTOOLS) clean
-	$(RM) bin/*.dll 
-	$(RM) bin/*.so
-	$(RM) bin/*.tar.bz2
-	$(RM) bin/torchat
-	$(RM) bin/torchat.exe 
-	$(RM) bin/*.map 
+	$(MBIN) clean
 
 
 ## this is only for myself for making the
@@ -35,4 +33,4 @@ clean:
 demozip: clean
 	$(MPURPLE) demo
 	$(MTOOLS) all
-	$(MTOOLS) run
+	$(MTOOLS) zip

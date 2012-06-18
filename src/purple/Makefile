@@ -26,7 +26,6 @@ install:
 	install --mode=0644 $(COMPILEDIR)/libpurpletorchat.so $(PLUGINDIR)
 
 clean:
-	$(MAKE) -C ../core clean
 	$(RM) -r lib
 
 

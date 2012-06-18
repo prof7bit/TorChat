@@ -6,4 +6,3 @@ install:
 clean:
 	$(RM) *.res
 	$(RM) -r lib
-	$(MAKE) -C ../core clean

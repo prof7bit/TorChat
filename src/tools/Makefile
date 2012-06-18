@@ -17,11 +17,10 @@ all:
 	mkdir -p lib
 	fpc $(FPCOPT) makezip.lpr
 
-run:
+zip:
 	./makezip
 
 clean:
-	$(MAKE) -C ../core clean
 	$(RM) -r lib
 	$(RM) -r libpurpletorchat
 	$(RM) makezip
