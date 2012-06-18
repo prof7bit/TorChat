@@ -34,3 +34,13 @@ demozip: clean
 	$(MPURPLE) demo
 	$(MTOOLS) all
 	$(MTOOLS) zip
+
+
+## this one is for my friendly plugin tester
+update: clean pull purple demoinstall
+	
+pull:
+	git pull
+	
+demoinstall:
+	install bin/libpurpletorchat.so ~/.purple/plugins
