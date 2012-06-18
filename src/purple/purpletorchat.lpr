@@ -347,7 +347,6 @@ var
   X, Y: Integer;
   AllAlphaBits: Byte;
   TorChat: TTorChatPurpleClient;
-  S: String;
 begin
   TorChat := TorChatClients.Find(gc^.account);
   if Assigned(TorChat) then begin
@@ -391,14 +390,12 @@ begin
           PtrRGB^.Blue := hi(Pixel.blue);
           PtrAlpha^ := hi(Pixel.alpha);
           AllAlphaBits := AllAlphaBits and hi(Pixel.alpha);
-          S := S + (IntToHex(Ord(PtrAlpha^), 2)) + ' ';
           Inc(PtrRGB);
           Inc(PtrAlpha);
         end;
       end;
       CanvasScaled.Free;
       ImageScaled.Free;
-      writeln(S);
       if AllAlphaBits = $ff then
         Alpha8 := '';
     end
