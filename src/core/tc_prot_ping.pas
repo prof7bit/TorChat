@@ -138,7 +138,9 @@ begin
     end
     else begin
       writeln('W cannot create a buddy with this id: ' + FID);
-      // ref counting will free it again
+      LogWarningAndIgnore('malformed ping message');
+      // ref counting will free the buddy and timeout
+      // will free the connection.
     end;
   end;
 end;
