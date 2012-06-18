@@ -35,7 +35,6 @@ demozip: clean
 	$(MTOOLS) all
 	$(MTOOLS) zip
 
-
 ## this one is for my friendly plugin tester
 update: clean pull purple demoinstall
 	
@@ -44,3 +43,6 @@ pull:
 	
 demoinstall:
 	install bin/libpurpletorchat.so ~/.purple/plugins
+
+demosymlink:
+	ln -fs bin/libpurpletorchat.so ~/.purple/plugins/libpurpletorchat.so
