@@ -54,6 +54,7 @@ type
     FConnIncoming: IHiddenConnection;
     FConnOutgoing: IHiddenConnection;
     FMustSendPong: Boolean;
+    FPongAlreadySent: Boolean;
     FReceivedCookie: String;
     FConnecting: Boolean;
     FReconnectInterval: Double;
@@ -401,6 +402,7 @@ var
   Msg: IProtocolMessage;
 begin
   ResetKeepaliveTimeout;
+  FPongAlreadySent := False;
   Msg := TMsgPing.Create(Self, FOwnCookie);
   Msg.Send;
 
@@ -663,20 +665,26 @@ procedure TBuddy.SendPong;
 var
   Msg: IProtocolMessage;
 begin
-  WriteLn('TBuddy.SendPong() ', ID, ' sending pong and status');
-  Msg := TMsgPong.Create(Self, FReceivedCookie);
-  Msg.Send;
-  Msg := TMsgClient.Create(Self, SOFTWARE_NAME);
-  Msg.Send;
-  Msg := TMsgVersion.Create(Self, SOFTWARE_VERSION);
-  Msg.Send;
-  SendAvatar;
-  SendProfile;
-  if Self in Client.Roster then
-    SendAddMe;
-  SendStatus;
-  FMustSendPong := False;
-  FReceivedCookie := '';
+  if FPongAlreadySent then begin
+    WriteLn('TBuddy.SendPong() ', ID, ' NOT sending another pong over same connection');
+  end
+  else begin
+    WriteLn('TBuddy.SendPong() ', ID, ' sending pong and status');
+    Msg := TMsgPong.Create(Self, FReceivedCookie);
+    Msg.Send;
+    Msg := TMsgClient.Create(Self, SOFTWARE_NAME);
+    Msg.Send;
+    Msg := TMsgVersion.Create(Self, SOFTWARE_VERSION);
+    Msg.Send;
+    SendAvatar;
+    SendProfile;
+    if Self in Client.Roster then
+      SendAddMe;
+    SendStatus;
+    FMustSendPong := False;
+    FReceivedCookie := '';
+    FPongAlreadySent := True;
+  end;
 end;
 
 procedure TBuddy.SendAddMe;
