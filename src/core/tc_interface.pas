@@ -155,6 +155,7 @@ type
     function ConnIncoming: IHiddenConnection;
     function ConnOutgoing: IHiddenConnection;
     function IsFullyConnected: Boolean;
+    function MaySendText: Boolean;
     function Status: TTorchatStatus;
     function AvatarData: String; // raw 64*64*24 bitmap (or '' if empty)
     function AvatarAlphaData: String; // raw 64*64*8 bitmap (or '' if empty)

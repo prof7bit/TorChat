@@ -79,6 +79,7 @@ type
     destructor Destroy; override;
     procedure CheckState;
     function IsFullyConnected: Boolean;
+    function MaySendText: Boolean;
     function AsJsonObject: TJSONObject;
     procedure InitFromJsonObect(AObject: TJSONObject);
     function InitID(AID: String): Boolean;
@@ -402,7 +403,6 @@ var
   Msg: IProtocolMessage;
 begin
   ResetKeepaliveTimeout;
-  FPongAlreadySent := False;
   Msg := TMsgPing.Create(Self, FOwnCookie);
   Msg.Send;
 
@@ -536,6 +536,11 @@ begin
   Result := Assigned(ConnIncoming) and Assigned(ConnOutgoing);
 end;
 
+function TBuddy.MaySendText: Boolean;
+begin
+  Result := IsFullyConnected and FPongAlreadySent;
+end;
+
 function TBuddy.Status: TTorchatStatus;
 begin
   Result := FStatus;
@@ -589,6 +594,7 @@ end;
 
 procedure TBuddy.SetOutgoing(AConn: IHiddenConnection);
 begin
+  FPongAlreadySent := False;
   if AConn <> FConnOutgoing then begin
     if Assigned(AConn) then begin
       FConnOutgoing := AConn;
@@ -607,7 +613,8 @@ begin
   FStatus := AStatus;
   ResetKeepaliveTimeout;
   if Self in Client.Roster then
-    Client.OnBuddyStatusChange(Self);
+    if (AStatus = TORCHAT_OFFLINE) or MaySendText then
+      Client.OnBuddyStatusChange(Self); // only notify the GUI if we can send
 end;
 
 procedure TBuddy.SetLocalAlias(AName: String);
