@@ -116,7 +116,7 @@ type
   end;
 
   { TTorChatClients holds a list of clients since we can have
-    multiple "sccounts" in pidgin at the same time }
+    multiple "accounts" in pidgin at the same time }
   TTorChatClients = class(TFPHashObjectList)
     function Find(Account: PPurpleAccount): TTorChatPurpleClient;
   end;
@@ -296,8 +296,8 @@ end;
 
 function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
 begin
-  // pidgin has some strange policy regardig usable status types:
-  // as soon as there are more than one protocols active it will
+  // Pidgin has some strange policy regarding usable status types:
+  // As soon as there are more than one protocols active it will
   // fall back to a standard list of status types, no matter whether
   // all the protocols support them or any of them requested them,
   // so we are forced to register them all and then map them to
@@ -443,10 +443,11 @@ begin
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     if Assigned(Buddy) then
-      Result := cint(Buddy.SendIM(Msg))
+      Result := cint(Buddy.SendIM(Msg)) // wrong return value, see below!
     else begin
       {$note might have sent remove_me in the meantime, write a warning}
-      Result := 0; // is this ok? probably not.
+      {$warning there are error codes defined for sending IM, use them!}
+      Result := 0; // is this ok? No, its not, see $warning above.
     end;
   end;
 end;
@@ -490,8 +491,8 @@ begin
     Buddy := TorChat.Roster.ByID(buddy_id);
     if Assigned(Buddy) then begin
       // we escape every < or > from all strings because
-      // it would break the entire tooltip window (it
-      // would be completely empty).
+      // it would break the entire tooltip window. (It would
+      // be completely empty, this is a bug in Pidgin.)
       if Buddy.Software <> '' then begin
         purple_notify_user_info_add_pair(
           user_info,
@@ -529,6 +530,9 @@ begin
   // now it will look for torchat.png in several resolutions
   // in the folders /usr/share/pixmaps/pidgin/protocols/*/
   // the installer for the plugin must install these files.
+  // IMPORTANT: This will also be used for the name of the
+  // folder where the log files are stored. It is NOT allowed
+  // to return nil, this would break logging beyond all repair!
 end;
 
 procedure torchat_login(acc: PPurpleAccount); cdecl;
@@ -702,7 +706,7 @@ begin
           Inc(PtrAlpha8);
         end
         else
-          Pixel.alpha := 0;
+          Pixel.alpha := $ffff;     // 100% opaque
         Image.Colors[x,y] := Pixel;
       end;
     end;
@@ -823,7 +827,7 @@ begin
   end;
 
   with plugin_protocol_info do begin
-    options := OPT_PROTO_NO_PASSWORD or OPT_PROTO_REGISTER_NOSCREENNAME;
+    options := OPT_PROTO_NO_PASSWORD;
     with icon_spec do begin
       format := 'png';
       min_height := 64;
