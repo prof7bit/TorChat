@@ -42,7 +42,7 @@ type
     procedure Execute; override;
   end;
 
-  { TTorChatClient implements the abstract IClient.
+  { TTorChatClient implements the interface IClient.
     Together with all its contained objects this represents
     a fully functional TorChat client. The GUI (or
     libpurpletorchat or a command line client) will
@@ -271,14 +271,12 @@ end;
 procedure TTorChatClient.DummySocketEvent(AHandle: TLHandle);
 begin
   WriteLn('ignoring event from old socket ', AHandle.Handle);
-  WriteLn('Dispose=', AHandle.Dispose);
   AHandle.Dispose := True;
 end;
 
 procedure TTorChatClient.DummySocketError(AHandle: TLHandle; const Error: String);
 begin
   WriteLn('ignoring error from old socket ', AHandle.Handle, ' ', Error);
-  WriteLn('Dispose=', AHandle.Dispose);
   AHandle.Dispose := True;
 end;
 
