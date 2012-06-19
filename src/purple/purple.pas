@@ -398,6 +398,13 @@ type
 
   PPurpleNotifyCloseCb = procedure(user_data: Pointer);
   PPurpleRequestDlgBtnCb = procedure(user_data: Pointer; fields: PPurpleRequestFields);
+  PXferCb = procedure(xfer: PPurpleXfer);
+
+  TPurpleXferType = (
+    PURPLE_XFER_UNKNOWN = 0,  (**< Unknown file transfer type.  *)
+    PURPLE_XFER_SEND,         (**< File sending.                *)
+    PURPLE_XFER_RECEIVE       (**< File receiving.              *)
+  );
 
 
 
@@ -470,6 +477,13 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
   independent: GBoolean): PPurpleStatusType; external LIBPURPLE;
 function  purple_timeout_add(Interval: cint; cb: TGSourceFunc; UserData: Pointer): cint; external LIBPURPLE;
 function  purple_timeout_remove(handle: cint): GBoolean; external LIBPURPLE;
+function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; external LIBPURPLE;
+procedure purple_xfer_request(xfer: PPurpleXfer); external LIBPURPLE;
+procedure purple_xfer_set_init_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_cancel_send_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_end_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+function  purple_xfer_get_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
+function  purple_xfer_get_local_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
 procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); external LIBPURPLE;
 procedure serv_got_im(gc: PPurpleConnection; who, msg: PChar;
   flags: TPurpleMessageFlags; mtime: time_t); external LIBPURPLE;

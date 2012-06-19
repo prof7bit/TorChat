@@ -563,6 +563,85 @@ begin
   end;
 end;
 
+{ This will be called to decide whether it should enable the menu
+  item "send file" in the buddy list and in the conversation window}
+function torchat_can_receive_file(gc: PPurpleConnection; who: PChar): gboolean; cdecl;
+var
+  TorChat: IClient;
+  Buddy: IBuddy;
+begin
+  Result := False;
+  {$ifdef WithFileTransfer}
+  TorChat := TorChatClients.Find(gc^.account);
+  if Assigned(TorChat) then begin
+    Buddy := TorChat.Roster.ByID(who);
+    if Assigned(Buddy) then begin
+      Result := True;
+    end;
+  end;
+  {$endif}
+end;
+
+{ registered during torchat_send_file() }
+procedure torchat_xfer_init(xfer: PPurpleXfer); cdecl;
+var
+  FileName: String;
+begin
+  FileName := purple_xfer_get_local_filename(xfer);
+  WriteLn('xfer_init() ', FileName);
+end;
+
+{ registered during torchat_send_file() }
+procedure torchat_xfer_cancel_send(xfer: PPurpleXfer); cdecl;
+var
+  FileName: String;
+begin
+  FileName := purple_xfer_get_local_filename(xfer);
+  WriteLn('xfer_cancel_send() ', FileName);
+end;
+
+{ registered during torchat_send_file() }
+procedure torchat_xfer_end(xfer: PPurpleXfer); cdecl;
+var
+  FileName: String;
+begin
+  FileName := purple_xfer_get_local_filename(xfer);
+  WriteLn('xfer_end() ', FileName);
+end;
+
+{ This function is not what it seems to be. It will NOT simply be called
+  with the filename already known (as one might assume when looking at its
+  signature) instead it will be called with filename=nil when the user
+  clicks on the "Send File..." menu item. At this time there has not yet
+  been a file dialog to select the file, this will happen when we call
+  purple_xfer_request(). All the rest is then be done from within the
+  callbacks that we are registering here. }
+procedure torchat_send_file(gc: PPurpleConnection; who, filename: PChar); cdecl;
+var
+  xfer: PPurpleXfer;
+begin
+  Writeln(_F('send_file(%s, %s)', [who, filename]));
+  if not Assigned(filename) then begin
+    xfer := purple_xfer_new(gc^.account, PURPLE_XFER_SEND, who);
+		purple_xfer_set_init_fnc(xfer, @torchat_xfer_init);
+		purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_cancel_send);
+		purple_xfer_set_end_fnc(xfer, @torchat_xfer_end);
+    purple_xfer_request(xfer);
+  end
+  else begin
+    // what else???
+    // I have no idea what it is supposed to mean when there
+    // is a file name already set. If you know: please tell me.
+    WriteLn('W send_file() has been called with a filename. Why? Does it even matter?');
+  end;
+end;
+
+function torchat_new_xfer(gc: PPurpleConnection; who: PChar): PPurpleXfer; cdecl;
+begin
+  WriteLn(_F('new_xfer(%s)', [who]));
+  Result := nil;
+end;
+
 (********************************************************************
  *                 end of libpurple callbacks                       *
  ********************************************************************)
@@ -848,6 +927,9 @@ begin
     alias_buddy := @torchat_alias_buddy;
     tooltip_text := @torchat_tooltip_text;
     send_im := @torchat_send_im;
+    can_receive_file := @torchat_can_receive_file;
+    send_file := @torchat_send_file;
+    new_xfer := @torchat_new_xfer;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 

@@ -59,7 +59,8 @@
             <CustomOptions Value="-fPIC
 -d_DebugToConsole 
 -dDebugToFile
--dUseHeapTrc"/>
+-dUseHeapTrc
+-dWithFileTransfer"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
