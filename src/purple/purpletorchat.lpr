@@ -610,12 +610,12 @@ begin
 end;
 
 { This function is not what it seems to be. It will NOT simply be called
-  with the filename already known (as one might assume when looking at its
-  signature) instead it will be called with filename=nil when the user
-  clicks on the "Send File..." menu item. At this time there has not yet
-  been a file dialog to select the file, this will happen when we call
-  purple_xfer_request(). All the rest is then be done from within the
-  callbacks that we are registering here. }
+  with the filename already known (as one might assume when looking
+  at its signature) instead it will be called with filename=nil when
+  the user clicks on the "Send File..." menu item. At this time there
+  has not yet been a file dialog to select the file, this will happen
+  when we call purple_xfer_request(). All the rest is then done from
+  within the callbacks that we are registering here. }
 procedure torchat_send_file(gc: PPurpleConnection; who, filename: PChar); cdecl;
 var
   xfer: PPurpleXfer;
