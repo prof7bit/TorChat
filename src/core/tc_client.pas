@@ -17,6 +17,7 @@
   to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
   MA 02111-1307, USA.
 }
+
 unit tc_client;
 
 {$mode objfpc}{$H+}
@@ -126,7 +127,8 @@ uses
   tc_config,
   tc_misc,
   tc_conn,
-  tc_const;
+  tc_const,
+  tc_filetransfer;
 
 { TEventThread }
 

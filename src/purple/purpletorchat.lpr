@@ -623,9 +623,9 @@ begin
   Writeln(_F('send_file(%s, %s)', [who, filename]));
   if not Assigned(filename) then begin
     xfer := purple_xfer_new(gc^.account, PURPLE_XFER_SEND, who);
-		purple_xfer_set_init_fnc(xfer, @torchat_xfer_init);
-		purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_cancel_send);
-		purple_xfer_set_end_fnc(xfer, @torchat_xfer_end);
+    purple_xfer_set_init_fnc(xfer, @torchat_xfer_init);
+    purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_cancel_send);
+    purple_xfer_set_end_fnc(xfer, @torchat_xfer_end);
     purple_xfer_request(xfer);
   end
   else begin

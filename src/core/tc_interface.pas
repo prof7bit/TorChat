@@ -58,6 +58,7 @@ type
   IMessage = interface;
   IProtocolMessage = interface;
   IMsgQueue = interface;
+  IFileTransfer = interface;
   TAReceiver = class;
 
   TABuddyEnumerator = class
@@ -206,6 +207,9 @@ type
     procedure Put(Msg: IMessage);
     procedure PumpNext;
     procedure Clear;
+  end;
+
+  IFileTransfer = interface
   end;
 
   TAReceiver = class(TThread)

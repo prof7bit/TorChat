@@ -219,7 +219,7 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <Units Count="28">
+    <Units Count="29">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -360,6 +360,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_profile_text"/>
       </Unit27>
+      <Unit28>
+        <Filename Value="../core/tc_filetransfer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_filetransfer"/>
+      </Unit28>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
