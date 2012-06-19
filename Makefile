@@ -45,4 +45,4 @@ demoinstall:
 	install bin/libpurpletorchat.so ~/.purple/plugins
 
 demosymlink:
-	ln -fs bin/libpurpletorchat.so ~/.purple/plugins/libpurpletorchat.so
+	ln -fs `readlink -f bin/libpurpletorchat.so` ~/.purple/plugins/libpurpletorchat.so
