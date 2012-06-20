@@ -66,7 +66,7 @@ type
 
 implementation
 
-{ TMsgPing }
+{ TMsgStatus }
 
 class function TMsgStatus.GetCommand: String;
 begin

@@ -25,9 +25,58 @@ unit tc_prot_filedata;
 interface
 
 uses
-  Classes, SysUtils;
+  tc_interface,
+  tc_protocol;
+
+type
+  { TMsgFileData
+
+  }
+  TMsgFileData = class(TMsg)
+  strict protected
+    procedure Serialize; override;
+  public
+    class function GetCommand: String; override;
+    constructor Create(ABuddy: IBuddy); reintroduce;
+    procedure Parse; override;
+    procedure Execute; override;
+  end;
 
 implementation
 
+{ TMsgFileData }
+
+class function TMsgFileData.GetCommand: String;
+begin
+  Result := 'filedata';
+end;
+
+constructor TMsgFileData.Create(ABuddy: IBuddy);
+begin
+  inherited Create(ABuddy);
+end;
+
+procedure TMsgFileData.Parse;
+begin
+end;
+
+procedure TMsgFileData.Serialize;
+begin
+end;
+
+procedure TMsgFileData.Execute;
+var
+  Buddy: IBuddy;
+begin
+  Buddy := FConnection.Buddy;
+  if Assigned(Buddy) then begin
+    //
+  end
+  else
+    LogWarningAndIgnore();
+end;
+
+begin
+  RegisterMessageClass(TMsgFileData);
 end.
 

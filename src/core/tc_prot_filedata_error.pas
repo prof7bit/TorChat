@@ -25,9 +25,59 @@ unit tc_prot_filedata_error;
 interface
 
 uses
-  Classes, SysUtils;
+  tc_interface,
+  tc_protocol;
+
+type
+  { TMsgFileDataError
+
+  }
+  TMsgFileDataError = class(TMsg)
+  strict protected
+    procedure Serialize; override;
+  public
+    class function GetCommand: String; override;
+    constructor Create(ABuddy: IBuddy); reintroduce;
+    procedure Parse; override;
+    procedure Execute; override;
+  end;
 
 implementation
 
+{ TMsgFileDataError }
+
+class function TMsgFileDataError.GetCommand: String;
+begin
+  Result := 'filedata_error';
+end;
+
+constructor TMsgFileDataError.Create(ABuddy: IBuddy);
+begin
+  inherited Create(ABuddy);
+end;
+
+procedure TMsgFileDataError.Parse;
+begin
+end;
+
+procedure TMsgFileDataError.Serialize;
+begin
+end;
+
+procedure TMsgFileDataError.Execute;
+var
+  Buddy: IBuddy;
+begin
+  Buddy := FConnection.Buddy;
+  if Assigned(Buddy) then begin
+    //
+  end
+  else
+    LogWarningAndIgnore();
+end;
+
+begin
+  RegisterMessageClass(TMsgFileDataError);
 end.
+
 

@@ -25,9 +25,59 @@ unit tc_prot_file_stop_sending;
 interface
 
 uses
-  Classes, SysUtils;
+  tc_interface,
+  tc_protocol;
+
+type
+  { TMsgFileStopSending
+
+  }
+  TMsgFileStopSending = class(TMsg)
+  strict protected
+    procedure Serialize; override;
+  public
+    class function GetCommand: String; override;
+    constructor Create(ABuddy: IBuddy); reintroduce;
+    procedure Parse; override;
+    procedure Execute; override;
+  end;
 
 implementation
 
+{ TMsgFileStopSending }
+
+class function TMsgFileStopSending.GetCommand: String;
+begin
+  Result := 'file_stop_sending';
+end;
+
+constructor TMsgFileStopSending.Create(ABuddy: IBuddy);
+begin
+  inherited Create(ABuddy);
+end;
+
+procedure TMsgFileStopSending.Parse;
+begin
+end;
+
+procedure TMsgFileStopSending.Serialize;
+begin
+end;
+
+procedure TMsgFileStopSending.Execute;
+var
+  Buddy: IBuddy;
+begin
+  Buddy := FConnection.Buddy;
+  if Assigned(Buddy) then begin
+    //
+  end
+  else
+    LogWarningAndIgnore();
+end;
+
+begin
+  RegisterMessageClass(TMsgFileStopSending);
 end.
+
 

@@ -133,8 +133,7 @@ uses
   tc_config,
   tc_misc,
   tc_conn,
-  tc_const,
-  tc_filetransfer;
+  tc_const;
 
 { TEventThread }
 

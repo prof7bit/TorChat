@@ -25,9 +25,58 @@ unit tc_prot_filename;
 interface
 
 uses
-  Classes, SysUtils;
+  tc_interface,
+  tc_protocol;
+
+type
+  { TMsgFileName
+
+  }
+  TMsgFileName = class(TMsg)
+  strict protected
+    procedure Serialize; override;
+  public
+    class function GetCommand: String; override;
+    constructor Create(ABuddy: IBuddy); reintroduce;
+    procedure Parse; override;
+    procedure Execute; override;
+  end;
 
 implementation
 
+{ TMsgFileName }
+
+class function TMsgFileName.GetCommand: String;
+begin
+  Result := 'filename';
+end;
+
+constructor TMsgFileName.Create(ABuddy: IBuddy);
+begin
+  inherited Create(ABuddy);
+end;
+
+procedure TMsgFileName.Parse;
+begin
+end;
+
+procedure TMsgFileName.Serialize;
+begin
+end;
+
+procedure TMsgFileName.Execute;
+var
+  Buddy: IBuddy;
+begin
+  Buddy := FConnection.Buddy;
+  if Assigned(Buddy) then begin
+    //
+  end
+  else
+    LogWarningAndIgnore();
+end;
+
+begin
+  RegisterMessageClass(TMsgFileName);
 end.
 

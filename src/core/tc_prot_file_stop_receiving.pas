@@ -25,9 +25,59 @@ unit tc_prot_file_stop_receiving;
 interface
 
 uses
-  Classes, SysUtils;
+  tc_interface,
+  tc_protocol;
+
+type
+  { TMsgFileStopReceiving
+
+  }
+  TMsgFileStopReceiving = class(TMsg)
+  strict protected
+    procedure Serialize; override;
+  public
+    class function GetCommand: String; override;
+    constructor Create(ABuddy: IBuddy); reintroduce;
+    procedure Parse; override;
+    procedure Execute; override;
+  end;
 
 implementation
 
+{ TMsgFileStopReceiving }
+
+class function TMsgFileStopReceiving.GetCommand: String;
+begin
+  Result := 'file_stop_receiving';
+end;
+
+constructor TMsgFileStopReceiving.Create(ABuddy: IBuddy);
+begin
+  inherited Create(ABuddy);
+end;
+
+procedure TMsgFileStopReceiving.Parse;
+begin
+end;
+
+procedure TMsgFileStopReceiving.Serialize;
+begin
+end;
+
+procedure TMsgFileStopReceiving.Execute;
+var
+  Buddy: IBuddy;
+begin
+  Buddy := FConnection.Buddy;
+  if Assigned(Buddy) then begin
+    //
+  end
+  else
+    LogWarningAndIgnore();
+end;
+
+begin
+  RegisterMessageClass(TMsgFileStopReceiving);
 end.
+
 
