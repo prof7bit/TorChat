@@ -98,6 +98,7 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy); virtual; abstract;
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String); virtual; abstract;
+    procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: PtrUInt; ABlockSize: Integer); virtual; abstract;
     function UserAddBuddy(AID, AAlias: String): Boolean;
     function MainThread: TThreadID;
     procedure DummySocketEvent(AHandle: TLHandle);

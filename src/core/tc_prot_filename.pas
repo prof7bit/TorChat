@@ -34,15 +34,23 @@ type
   }
   TMsgFileName = class(TMsg)
   strict protected
+    FTransferID: String;
+    FFileSize: PtrUInt;
+    FBlockSize: Integer;
+    FFileName: String;
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
-    constructor Create(ABuddy: IBuddy); reintroduce;
+    function GetSendConnection: IHiddenConnection; override;
+    constructor Create(Buddy: IBuddy; TransferID: String; FileSize: PtrUInt; BlockSize: Integer; FileName: String); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;
 
 implementation
+uses
+  sysutils,
+  tc_misc;
 
 { TMsgFileName }
 
@@ -51,17 +59,35 @@ begin
   Result := 'filename';
 end;
 
-constructor TMsgFileName.Create(ABuddy: IBuddy);
+function TMsgFileName.GetSendConnection: IHiddenConnection;
 begin
-  inherited Create(ABuddy);
+  if Assigned(FBuddy) then
+    Result := FBuddy.ConnIncoming
+  else
+    Result := Nil;
+end;
+
+constructor TMsgFileName.Create(Buddy: IBuddy; TransferID: String; FileSize: PtrUInt; BlockSize: Integer; FileName: String);
+begin
+  inherited Create(Buddy);
+  FTransferID := TransferID;
+  FFileSize := FileSize;
+  FBlockSize := BlockSize;
+  FFileName := FileName; // only the name, without path!
 end;
 
 procedure TMsgFileName.Parse;
 begin
+  FTransferID := PopFirstWord(FBinaryContent);
+  FFileSize := StrToInt64Def(PopFirstWord(FBinaryContent), 0);
+  FBlockSize := StrToIntDef(PopFirstWord(FBinaryContent), 0);
+  FFileName := SanitizeFileName(FBinaryContent);
 end;
 
 procedure TMsgFileName.Serialize;
 begin
+  FBinaryContent := _F('%s %d %d %s',
+    [FTransferID, FFileSize, FBlockSize, FFileName]);
 end;
 
 procedure TMsgFileName.Execute;
@@ -69,9 +95,8 @@ var
   Buddy: IBuddy;
 begin
   Buddy := FConnection.Buddy;
-  if Assigned(Buddy) then begin
-    //
-  end
+  if Assigned(Buddy) then
+    Buddy.Client.OnIncomingFileTransfer(Buddy, FTransferID, FFileName, FFileSize, FBlockSize)
   else
     LogWarningAndIgnore();
 end;

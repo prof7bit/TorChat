@@ -193,7 +193,7 @@ end;
 
 function TMsg.GetSendConnection: IHiddenConnection;
 begin
-  if Assigned(FBuddy) and Assigned(FBuddy.ConnOutgoing) then
+  if Assigned(FBuddy) then
     Result := FBuddy.ConnOutgoing
   else
     Result := nil;

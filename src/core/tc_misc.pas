@@ -74,6 +74,8 @@ function LineBreaksAnyToSpace(AText: String): String;
 function Plain2Html(APlain: String): String;
 function Html2Plain(AHtml: String): String;
 
+function SanitizeFileName(AFileName: String): String;
+
 implementation
 
 type
@@ -284,6 +286,16 @@ begin
   Result := StringReplace(Result, '&lt;', '<', [rfReplaceAll]);
   Result := StringReplace(Result, '&gt;', '>', [rfReplaceAll]);
   Result := StringReplace(Result, '&amp;', '&', [rfReplaceAll]);
+end;
+
+function SanitizeFileName(AFileName: String): String;
+begin
+  Result := StringReplace(AFileName, '/', '', [rfReplaceAll]);
+  Result := StringReplace(Result, '\', '', [rfReplaceAll]);
+  While (Length(Result) > 0) and (Result[1] = '.') do
+    Result := RightStr(Result, Length(Result) - 1);
+  if Length(Result) = 0 then
+    Result := 'unknown';
 end;
 
 { TSafeDeleteThread }
