@@ -86,6 +86,7 @@ type
     procedure OnListenerAccept(ASocket: TLSocket);
     procedure CheckHiddenServiceName;
     procedure CheckAnonConnTimeouts;
+    procedure CheckFileTransfers;
   public
     constructor Create(AOwner: TComponent; AProfileName: String); reintroduce;
     destructor Destroy; override;
@@ -104,6 +105,7 @@ type
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
     function FindFileTransfer(Id: String): IFileTransfer;
+    function FindFileTransfer(GuiHandle: Pointer): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -240,6 +242,7 @@ begin
   Roster.CheckState;
   TempList.CheckState;
   CheckAnonConnTimeouts;
+  CheckFileTransfers;
 end;
 
 function TTorChatClient.UserAddBuddy(AID, AAlias: String): Boolean;
@@ -307,6 +310,19 @@ begin
   for I := FFileTransfers.Count - 1 downto 0 do begin
     FT := IFileTransfer(FFileTransfers.Items[I]);
     if FT.ID = ID then
+      exit(FT);
+  end;
+end;
+
+function TTorChatClient.FindFileTransfer(GuiHandle: Pointer): IFileTransfer;
+var
+  I: Integer;
+  FT: IFileTransfer;
+begin
+  Result := nil;
+  for I := FFileTransfers.Count - 1 downto 0 do begin
+    FT := IFileTransfer(FFileTransfers.Items[I]);
+    if FT.GuiHandle = GuiHandle then
       exit(FT);
   end;
 end;
@@ -477,6 +493,17 @@ begin
         WriteLn('I anonymous connection timed out, closing');
       Conn.Disconnect;
     end;
+  end;
+end;
+
+procedure TTorChatClient.CheckFileTransfers;
+var
+  FT: IFileTransfer;
+  I: Integer;
+begin
+  for I := FFileTransfers.Count -1 downto 0 do begin
+    FT :=  IFileTransfer(FFileTransfers.Items[I]);
+    FT.CheckState;
   end;
 end;
 

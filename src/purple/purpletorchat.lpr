@@ -124,7 +124,6 @@ type
     event methods know how to speak with libpuple }
   TPurpleFileTransfer = class(TFileTransfer)
   public
-    xfer: PPurpleXfer;
     procedure OnProgress; override;
     procedure OnCancel; override;
     procedure OnComplete; override;
@@ -594,13 +593,29 @@ begin
   {$endif}
 end;
 
-{ registered during torchat_send_file() }
-procedure torchat_xfer_init(xfer: PPurpleXfer); cdecl;
+{ registered during torchat_send_file() and called after the
+  "file open" dialog has been finished with OK. Here we create
+  a new TPurpleFileTransfer object in TorChat and start the
+  file sending }
+procedure torchat_xfer_init_send(xfer: PPurpleXfer); cdecl;
 var
   FileName: String;
+  TorChat: IClient;
+  Buddy: IBuddy;
+  FT: TPurpleFileTransfer;
 begin
-  FileName := purple_xfer_get_local_filename(xfer);
-  WriteLn('xfer_init() ', FileName);
+  WriteLn('torchat_xfer_init_send() ', FileName);
+  TorChat := TorChatClients.Find(purple_xfer_get_account(xfer));
+  if Assigned(TorChat) then begin
+    FileName := purple_xfer_get_local_filename(xfer);
+    Buddy := TorChat.Roster.ByID(purple_xfer_get_remote_user(xfer));
+    if Assigned(Buddy) then begin
+      FT := TPurpleFileTransfer.Create(Buddy, FileName);
+      FT.SetGuiHandle(xfer);
+      TorChat.AddFileTransfer(FT);
+      FT.StartSending;
+    end;
+  end;
 end;
 
 { registered during torchat_send_file() }
@@ -609,7 +624,7 @@ var
   FileName: String;
 begin
   FileName := purple_xfer_get_local_filename(xfer);
-  WriteLn('xfer_cancel_send() ', FileName);
+  WriteLn('torchat_xfer_cancel_send() ', FileName);
 end;
 
 { registered during torchat_send_file() }
@@ -618,16 +633,14 @@ var
   FileName: String;
 begin
   FileName := purple_xfer_get_local_filename(xfer);
-  WriteLn('xfer_end() ', FileName);
+  WriteLn('torchat_xfer_end() ', FileName);
 end;
 
-{ This function is not what it seems to be. It will NOT simply be called
-  with the filename already known (as one might assume when looking
-  at its signature) instead it will be called with filename=nil when
-  the user clicks on the "Send File..." menu item. At this time there
-  has not yet been a file dialog to select the file, this will happen
-  when we call purple_xfer_request(). All the rest is then done from
-  within the callbacks that we are registering here. }
+{ This function is called when the user clicks on the "Send File..."
+  menu item. At this time there has not yet been a file dialog to select
+  the file and filename will be nil. When the user drops a file to the
+  chat window then it WILL be called with filename. In that case we need
+  to initiate it a little bit differently. }
 procedure torchat_send_file(gc: PPurpleConnection; who, filename: PChar); cdecl;
 var
   xfer: PPurpleXfer;
@@ -635,16 +648,15 @@ begin
   Writeln(_F('send_file(%s, %s)', [who, filename]));
   if not Assigned(filename) then begin
     xfer := purple_xfer_new(gc^.account, PURPLE_XFER_SEND, who);
-    purple_xfer_set_init_fnc(xfer, @torchat_xfer_init);
+    purple_xfer_set_init_fnc(xfer, @torchat_xfer_init_send);
     purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_cancel_send);
     purple_xfer_set_end_fnc(xfer, @torchat_xfer_end);
-    purple_xfer_request(xfer);
+    purple_xfer_request(xfer); // this will trigger the "file open" dialog
+    // all the rest will now happen with the above callback functions.
   end
   else begin
-    // what else???
-    // I have no idea what it is supposed to mean when there
-    // is a file name already set. If you know: please tell me.
-    WriteLn('W send_file() has been called with a filename. Why? Does it even matter?');
+    WriteLn('W send_file() we have a file name already, this is not yet implemeted');
+    {$warning implement this also}
   end;
 end;
 

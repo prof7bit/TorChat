@@ -38,6 +38,7 @@ type
   TFileTransfer = class(TInterfacedObject, IFileTransfer)
   strict private
     FID: String;
+    FGuiHandle: Pointer;
     FClient: IClient;
     FBuddy: IBuddy;
     FFileName: String;
@@ -46,6 +47,8 @@ type
     constructor Create(ABuddy: IBuddy; AFileName: String);
     destructor Destroy; override;
     function ID: String;
+    procedure SetGuiHandle(AHandle: Pointer);
+    function GuiHandle: Pointer;
     procedure StartSending;
     procedure CheckState;
     procedure OnProgress; virtual; abstract;
@@ -73,6 +76,16 @@ end;
 function TFileTransfer.ID: String;
 begin
   Result := FID;
+end;
+
+procedure TFileTransfer.SetGuiHandle(AHandle: Pointer);
+begin
+  FGuiHandle := AHandle;
+end;
+
+function TFileTransfer.GuiHandle: Pointer;
+begin
+  Result := FGuiHandle;
 end;
 
 procedure TFileTransfer.StartSending;

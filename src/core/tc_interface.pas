@@ -100,6 +100,7 @@ type
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
     function FindFileTransfer(Id: String): IFileTransfer;
+    function FindFileTransfer(GuiHandle: Pointer): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -214,6 +215,8 @@ type
 
   IFileTransfer = interface
     function ID: String;
+    procedure SetGuiHandle(AHandle: Pointer);
+    function GuiHandle: Pointer;
     procedure StartSending;
     procedure CheckState;
   end;
