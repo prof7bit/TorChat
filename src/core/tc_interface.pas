@@ -220,6 +220,8 @@ type
     function GuiHandle: Pointer;
     procedure StartSending;
     procedure CheckState;
+    procedure ReceivedFileChunk(StartByte: PtrUInt; FileChunk: String);
+    procedure ReceivedBrokenChunk(StartByte: PtrUInt);
   end;
 
   TAReceiver = class(TThread)

@@ -34,15 +34,30 @@ type
   }
   TMsgFileData = class(TMsg)
   strict protected
+    FTransferID: String;
+    FStartByte: PtrUInt;
+    FCheckSum: String;
+    FFileChunk: String;
+    FCheckSumOK: Boolean;
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
-    constructor Create(ABuddy: IBuddy); reintroduce;
+    function GetSendConnection: IHiddenConnection; override;
+    constructor Create(Buddy: IBuddy; ID: String; StartByte: PtrUInt; FileChunk: String);
     procedure Parse; override;
     procedure Execute; override;
   end;
 
 implementation
+uses
+  sysutils,
+  tc_misc,
+  md5;
+
+function CheckSum(Data: String): String;
+begin
+  Result := MDPrint(MD5String(Data));
+end;
 
 { TMsgFileData }
 
@@ -51,26 +66,58 @@ begin
   Result := 'filedata';
 end;
 
-constructor TMsgFileData.Create(ABuddy: IBuddy);
+function TMsgFileData.GetSendConnection: IHiddenConnection;
 begin
-  inherited Create(ABuddy);
+  if Assigned(FBuddy) then
+    Result := FBuddy.ConnIncoming
+  else
+    Result := nil;
+end;
+
+constructor TMsgFileData.Create(Buddy: IBuddy; ID: String; StartByte: PtrUInt; FileChunk: String);
+begin
+  inherited Create(Buddy);
+  FTransferID := ID;
+  FStartByte := StartByte;
+  FCheckSum := CheckSum(FileChunk);
+  FFileChunk := FileChunk;
 end;
 
 procedure TMsgFileData.Parse;
 begin
+  FTransferID := PopFirstWord(FBinaryContent);
+  FStartByte := StrToInt64Def(PopFirstWord(FBinaryContent), 0);
+  FCheckSum := PopFirstWord(FBinaryContent);
+  FFileChunk := FBinaryContent;
+  FCheckSumOK := (CheckSum(FFileChunk) = FCheckSum);
+  if not FCheckSumOK then
+    WriteLn('E received file data checksum wrong');
 end;
 
 procedure TMsgFileData.Serialize;
 begin
+  FBinaryContent := _F('%s %d %s %s',
+    [FTransferID, FStartByte, FCheckSum, FFileChunk]);
 end;
 
 procedure TMsgFileData.Execute;
 var
   Buddy: IBuddy;
+  Transfer: IFileTransfer;
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    //
+    Transfer := FBuddy.Client.FindFileTransfer(FTransferID);
+    if Assigned(Transfer) then begin
+      if FCheckSumOK then
+        Transfer.ReceivedFileChunk(FStartByte, FFileChunk)
+      else
+        Transfer.ReceivedBrokenChunk(FStartByte);
+    end
+    else begin
+      WriteLn('E received file data that does not belong to any running transfer');
+      {$note reply with a "file_stop_sending" message nere (once this is implemented)}
+    end;
   end
   else
     LogWarningAndIgnore();

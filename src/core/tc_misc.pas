@@ -292,6 +292,7 @@ function SanitizeFileName(AFileName: String): String;
 begin
   Result := StringReplace(AFileName, '/', '', [rfReplaceAll]);
   Result := StringReplace(Result, '\', '', [rfReplaceAll]);
+  Result := StringReplace(Result, ' ', '_', [rfReplaceAll]);
   While (Length(Result) > 0) and (Result[1] = '.') do
     Result := RightStr(Result, Length(Result) - 1);
   if Length(Result) = 0 then
