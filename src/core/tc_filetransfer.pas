@@ -30,11 +30,60 @@ uses
   tc_interface;
 
 type
-  TFileTransfer = class(TInterfacedObject, IFileTransfer)
 
+  { TFileTransfer represents a file transfer. It can be either a sender
+    or a receiver, this depends on what methods have been used after
+    construction. The GUI will define a descendant that will implement
+    the abstract event methods }
+  TFileTransfer = class(TInterfacedObject, IFileTransfer)
+  strict private
+    FID: String;
+    FClient: IClient;
+    FBuddy: IBuddy;
+    FFileName: String;
+    FIsSender: Boolean;
+  public
+    constructor Create(ABuddy: IBuddy; AFileName: String);
+    destructor Destroy; override;
+    function ID: String;
+    procedure StartSending;
+    procedure CheckState;
+    procedure OnProgress; virtual; abstract;
+    procedure OnCancel; virtual; abstract;
+    procedure OnComplete; virtual; abstract;
   end;
 
 implementation
+
+{ TFileTransfer }
+
+constructor TFileTransfer.Create(ABuddy: IBuddy; AFileName: String);
+begin
+  inherited Create;
+  FIsSender := False;
+  FBuddy := ABuddy;
+  FClient := ABuddy.Client;
+end;
+
+destructor TFileTransfer.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TFileTransfer.ID: String;
+begin
+  Result := FID;
+end;
+
+procedure TFileTransfer.StartSending;
+begin
+  FIsSender := True;
+end;
+
+procedure TFileTransfer.CheckState;
+begin
+
+end;
 
 end.
 

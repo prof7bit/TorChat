@@ -97,6 +97,9 @@ type
     function  MainThread: TThreadID;
     procedure DummySocketEvent(AHandle: TLHandle);
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
+    procedure AddFileTransfer(ATransfer: IFileTransfer);
+    procedure RemoveFileTransfer(ATransfer: IFileTransfer);
+    function FindFileTransfer(Id: String): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -210,6 +213,9 @@ type
   end;
 
   IFileTransfer = interface
+    function ID: String;
+    procedure StartSending;
+    procedure CheckState;
   end;
 
   TAReceiver = class(TThread)

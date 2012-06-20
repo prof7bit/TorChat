@@ -80,6 +80,7 @@ type
     FHSNameOK: Boolean;
     FStatus: TTorchatStatus;
     FConnInList: IInterfaceList;
+    FFileTransfers: IInterfaceList;
     FLnetEventer: TLEventer;
     FLnetListener: TLTcp;
     procedure OnListenerAccept(ASocket: TLSocket);
@@ -100,6 +101,9 @@ type
     function MainThread: TThreadID;
     procedure DummySocketEvent(AHandle: TLHandle);
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
+    procedure AddFileTransfer(ATransfer: IFileTransfer);
+    procedure RemoveFileTransfer(ATransfer: IFileTransfer);
+    function FindFileTransfer(Id: String): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -164,6 +168,7 @@ begin
   FHSNameOK := False;
   FTimeStarted := 0; // we will initialize it on first Pump() call
   FConnInList := TInterfaceList.Create;
+  FFileTransfers := TInterfaceList.Create;
   FQueue := TMsgQueue.Create(Self);
   FTempList := TTempList.Create(Self);
   FRoster := TRoster.Create(Self);
@@ -211,6 +216,7 @@ begin
 
   FEventThread.Free;
 
+  FFileTransfers.Clear;
   FRoster.Clear;
   FTempList.Clear;
   FQueue.Clear;
@@ -280,6 +286,29 @@ procedure TTorChatClient.DummySocketError(AHandle: TLHandle; const Error: String
 begin
   WriteLn('ignoring error from old socket ', AHandle.Handle, ' ', Error);
   AHandle.Dispose := True;
+end;
+
+procedure TTorChatClient.AddFileTransfer(ATransfer: IFileTransfer);
+begin
+  FFileTransfers.Add(ATransfer);
+end;
+
+procedure TTorChatClient.RemoveFileTransfer(ATransfer: IFileTransfer);
+begin
+  FFileTransfers.Remove(ATransfer);
+end;
+
+function TTorChatClient.FindFileTransfer(Id: String): IFileTransfer;
+var
+  I: Integer;
+  FT: IFileTransfer;
+begin
+  Result := nil;
+  for I := FFileTransfers.Count - 1 downto 0 do begin
+    FT := IFileTransfer(FFileTransfers.Items[I]);
+    if FT.ID = ID then
+      exit(FT);
+  end;
 end;
 
 function TTorChatClient.Roster: IRoster;
