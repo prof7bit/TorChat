@@ -219,7 +219,7 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <Units Count="29">
+    <Units Count="35">
       <Unit0>
         <Filename Value="purpletorchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -365,6 +365,36 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_filetransfer"/>
       </Unit28>
+      <Unit29>
+        <Filename Value="../core/tc_prot_filename.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filename"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="../core/tc_prot_filedata.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filedata"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="../core/tc_prot_filedata_ok.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filedata_ok"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="../core/tc_prot_filedata_error.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filedata_error"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="../core/tc_prot_file_stop_sending.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_file_stop_sending"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="../core/tc_prot_file_stop_receiving.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_file_stop_receiving"/>
+      </Unit34>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

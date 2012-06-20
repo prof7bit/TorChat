@@ -57,6 +57,14 @@ type
   end;
 
 implementation
+uses
+  tc_prot_filename,
+  tc_prot_filedata,
+  tc_prot_filedata_ok,
+  tc_prot_filedata_error,
+  tc_prot_file_stop_sending,
+  tc_prot_file_stop_receiving;
+
 
 { TFileTransfer }
 
