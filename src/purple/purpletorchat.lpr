@@ -103,9 +103,9 @@ const
   PRPL_ID_INVISIBLE = 'invisible';
 
 type
-  { TPurpleTorChatClient is a TTorChat client whose
-    event methods know how to speak with libpurple }
-  TPurpleTorChatClient = class(TTorChatClient)
+  { TTorChat is a TTorChatClient whose event
+    methods know how to speak with libpurple }
+  TTorChat = class(TTorChatClient)
   public
     purple_account: PPurpleAccount;
     purple_timer: Integer;
@@ -121,24 +121,24 @@ type
     procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer); override;
   end;
 
-  { TPurpleFileTransfer is a TFileTransfer whose
-    event methods know how to speak with libpuple }
-  TPurpleFileTransfer = class(TFileTransfer)
+  { TTransfer is a TFileTransfer whose event
+    methods know how to speak with libpuple }
+  TTransfer = class(TFileTransfer)
   public
     procedure OnProgress; override;
     procedure OnCancel; override;
     procedure OnComplete; override;
   end;
 
-  { TTorChatClients holds a list of clients since we can have
+  { TClients holds a list of clients since we can have
     multiple "accounts" in pidgin at the same time }
-  TTorChatClients = class(TFPHashObjectList)
-    function Find(Account: PPurpleAccount): TPurpleTorChatClient;
+  TClients = class(TFPHashObjectList)
+    function Find(Account: PPurpleAccount): TTorChat;
   end;
 
 var
-  PurplePlugin: PPurplePlugin;
-  TorChatClients: TTorChatClients;
+  purple_plugin: PPurplePlugin;
+  Clients: TClients;
 
 
 (********************************************************************
@@ -154,13 +154,13 @@ var
 
 function cb_purple_timer(data: Pointer): GBoolean; cdecl;
 begin
-  TPurpleTorChatClient(data).Pump;
+  TTorChat(data).Pump;
   Result := True;
 end;
 
 function cb_purple_timer_oneshot(data: Pointer): GBoolean; cdecl;
 begin
-  TPurpleTorChatClient(data).Pump;
+  TTorChat(data).Pump;
   Result := False; // purple timer will not fire again
 end;
 
@@ -202,8 +202,8 @@ end;
 
 function torchat_load(plugin: PPurplePlugin): GBoolean; cdecl;
 begin
-  PurplePlugin := plugin;
-  TorChatClients := TTorChatClients.Create(False);
+  purple_plugin := plugin;
+  Clients := TClients.Create(False);
   {$ifdef DebugTimer}
   DEBUG_FUNC_ADDR := @__debug;
   purple_timeout_add(DEBUG_TIMER_DELAY*1000, DEBUG_FUNC_ADDR, nil);
@@ -215,7 +215,7 @@ end;
 
 function torchat_unload(plugin: PPurplePlugin): GBoolean; cdecl;
 begin
-  TorChatClients.Free;
+  Clients.Free;
   WriteLn('plugin unloaded');
   Result := True;
 end;
@@ -230,7 +230,7 @@ var
   ProfileName: String;
   ProfileText: String;
 begin
-  TorChat := TorChatClients.Find(user_data); // user_data = account
+  TorChat := Clients.Find(user_data); // user_data = account
   if Assigned(TorChat) then begin
     ProfileName := purple_request_fields_get_string(fields, 'name');
     ProfileText := purple_request_fields_get_string(fields, 'text');
@@ -252,7 +252,7 @@ var
 begin
   gc := PPurpleConnection(act^.context);
   account := gc^.account;
-  TorChat := TorChatClients.Find(account);
+  TorChat := Clients.Find(account);
   if Assigned(TorChat) then begin
     fields := purple_request_fields_new;
     group := purple_request_field_group_new(
@@ -338,7 +338,7 @@ begin
     PURPLE_STATUS_EXTENDED_AWAY: TorchatStatus := TORCHAT_XA;
     PURPLE_STATUS_INVISIBLE: TorchatStatus := TORCHAT_OFFLINE;
   end;
-  TorChatClients.Find(acc).SetStatus(TorchatStatus);
+  Clients.Find(acc).SetStatus(TorchatStatus);
 end;
 
 procedure torchat_set_buddy_icon(gc: PPurpleConnection; img: PPurpleStoredImage); cdecl;
@@ -358,9 +358,9 @@ var
   PtrAlpha: PByte;
   X, Y: Integer;
   AllAlphaBits: Byte;
-  TorChat: TPurpleTorChatClient;
+  TorChat: TTorChat;
 begin
-  TorChat := TorChatClients.Find(gc^.account);
+  TorChat := Clients.Find(gc^.account);
   if Assigned(TorChat) then begin
     len := purple_imgstore_get_size(img);
     data := purple_imgstore_get_data(img);
@@ -426,16 +426,16 @@ end;
 
 procedure torchat_add_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
 var
-  TorChat : TPurpleTorChatClient;
+  TorChat : TTorChat;
   purple_id: PChar;
   purple_alias: PChar;
 begin
-  TorChat := TorChatClients.Find(gc^.account);
+  TorChat := Clients.Find(gc^.account);
   if Assigned(TorChat) then begin
     purple_id := purple_buddy_get_name(purple_buddy);
     purple_alias := purple_buddy_get_alias_only(purple_buddy);
     if not TorChat.UserAddBuddy(purple_id, purple_alias) then begin
-      purple_notify_message(PurplePlugin, PURPLE_NOTIFY_MSG_ERROR,
+      purple_notify_message(purple_plugin, PURPLE_NOTIFY_MSG_ERROR,
         'Cannot add buddy',
         'A buddy with this ID cannot be added',
         'Either this ID contains invalid characters or it is incomplete or the ID is already on the list.',
@@ -448,12 +448,12 @@ end;
 
 function torchat_send_im(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
 var
-  TorChat: TPurpleTorChatClient;
+  TorChat: TTorChat;
   Buddy: IBuddy;
   Msg: String;
 begin
   Msg := Html2Plain(message);
-  TorChat := TorChatClients.Find(gc^.account);
+  TorChat := Clients.Find(gc^.account);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     if Assigned(Buddy) then
@@ -473,7 +473,7 @@ var
   purple_id: PChar;
 begin
   purple_id := purple_buddy_get_name(purple_buddy);
-  TorChat := TorChatClients.Find(gc^.account);
+  TorChat := Clients.Find(gc^.account);
   Buddy := TorChat.Roster.ByID(purple_id);
   if Assigned(Buddy) then
     Buddy.RemoveYourself;
@@ -481,10 +481,10 @@ end;
 
 procedure torchat_alias_buddy(gc: PPurpleConnection; who, aalias: PChar); cdecl;
 var
-  TorChat: TPurpleTorChatClient;
+  TorChat: TTorChat;
   Buddy: IBuddy;
 begin
-  TorChat := TorChatClients.Find(gc^.account);
+  TorChat := Clients.Find(gc^.account);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     Buddy.SetLocalAlias(aalias);
@@ -495,11 +495,11 @@ end;
 procedure torchat_tooltip_text(purple_buddy: PPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean); cdecl;
 var
   buddy_id : PChar;
-  TorChat: TPurpleTorChatClient;
+  TorChat: TTorChat;
   Buddy: IBuddy;
 begin
   if not full then exit;
-  TorChat := TorChatClients.Find(purple_buddy_get_account(purple_buddy));
+  TorChat := Clients.Find(purple_buddy_get_account(purple_buddy));
   if Assigned(TorChat) then begin
     buddy_id := purple_buddy_get_name(purple_buddy);
     Buddy := TorChat.Roster.ByID(buddy_id);
@@ -551,12 +551,12 @@ end;
 
 procedure torchat_login(acc: PPurpleAccount); cdecl;
 var
-  TorChat: TPurpleTorChatClient;
+  TorChat: TTorChat;
   purple_status: PPurpleStatus;
 begin
-  TorChat := TPurpleTorChatClient.Create(nil, acc^.username, acc);
+  TorChat := TTorChat.Create(nil, acc^.username, acc);
   TorChat.purple_timer := purple_timeout_add(1000, @cb_purple_timer, TorChat);
-  TorChatClients.Add(acc^.username, TorChat);
+  Clients.Add(acc^.username, TorChat);
 
   // it won't call set_status after login, so we have to do it ourselves
   purple_status := purple_presence_get_active_status(acc^.presence);
@@ -565,12 +565,12 @@ end;
 
 procedure torchat_close(gc: PPurpleConnection); cdecl;
 var
-  TorChat: TPurpleTorChatClient;
+  TorChat: TTorChat;
 begin
-  TorChat := TorChatClients.Find(gc^.account);
+  TorChat := Clients.Find(gc^.account);
   if Assigned(TorChat) then begin
     purple_timeout_remove(TorChat.purple_timer);
-    TorChatClients.Remove(TorChat);
+    Clients.Remove(TorChat);
     TorChat.Free;
   end;
 end;
@@ -584,7 +584,7 @@ var
 begin
   Result := False;
   {$ifdef WithFileTransfer}
-  TorChat := TorChatClients.Find(gc^.account);
+  TorChat := Clients.Find(gc^.account);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     if Assigned(Buddy) then begin
@@ -603,15 +603,15 @@ var
   FileName: String;
   TorChat: IClient;
   Buddy: IBuddy;
-  FT: TPurpleFileTransfer;
+  FT: TTransfer;
 begin
   WriteLn('torchat_xfer_init_send() ', FileName);
-  TorChat := TorChatClients.Find(purple_xfer_get_account(xfer));
+  TorChat := Clients.Find(purple_xfer_get_account(xfer));
   if Assigned(TorChat) then begin
     FileName := purple_xfer_get_local_filename(xfer);
     Buddy := TorChat.Roster.ByID(purple_xfer_get_remote_user(xfer));
     if Assigned(Buddy) then begin
-      FT := TPurpleFileTransfer.Create(Buddy, FileName);
+      FT := TTransfer.Create(Buddy, FileName);
       FT.SetGuiHandle(xfer);
       TorChat.AddFileTransfer(FT);
       FT.StartSending;
@@ -630,7 +630,7 @@ var
   Transfer: IFileTransfer;
 begin
   WriteLn('torchat_xfer_cancel_send()');
-  TorChat := TorChatClients.Find(purple_xfer_get_account(xfer));
+  TorChat := Clients.Find(purple_xfer_get_account(xfer));
   if Assigned(TorChat) then begin
     Transfer := TorChat.FindFileTransfer(xfer);
     if Assigned(Transfer) then begin
@@ -674,7 +674,7 @@ end;
 
 { TPurpleFileTransfer }
 
-procedure TPurpleFileTransfer.OnProgress;
+procedure TTransfer.OnProgress;
 var
   xfer: PPurpleXfer;
 begin
@@ -683,12 +683,12 @@ begin
   purple_xfer_update_progress(xfer);
 end;
 
-procedure TPurpleFileTransfer.OnCancel;
+procedure TTransfer.OnCancel;
 begin
 
 end;
 
-procedure TPurpleFileTransfer.OnComplete;
+procedure TTransfer.OnComplete;
 var
   xfer: PPurpleXfer;
 begin
@@ -705,14 +705,14 @@ end;
 
 { TClients }
 
-function TTorChatClients.Find(Account: PPurpleAccount): TPurpleTorChatClient;
+function TClients.Find(Account: PPurpleAccount): TTorChat;
 begin
-  Result := inherited Find(Account^.username) as TPurpleTorChatClient;
+  Result := inherited Find(Account^.username) as TTorChat;
 end;
 
 { TTorchatPurpleClient }
 
-constructor TPurpleTorChatClient.Create(AOwner: TComponent; AProfileName: String;
+constructor TTorChat.Create(AOwner: TComponent; AProfileName: String;
   account: PPurpleAccount);
 begin
   purple_account := account;
@@ -733,12 +733,12 @@ end;
  *                                                                  *
  ********************************************************************)
 
-procedure TPurpleTorChatClient.OnNeedPump;
+procedure TTorChat.OnNeedPump;
 begin
   purple_timeout_add(0, @cb_purple_timer_oneshot, Self);
 end;
 
-procedure TPurpleTorChatClient.OnGotOwnID;
+procedure TTorChat.OnGotOwnID;
 var
   Buddy: IBuddy;
   purple_buddy: PPurpleBuddy;
@@ -789,7 +789,7 @@ begin
   FreeMem(group_name);
 end;
 
-procedure TPurpleTorChatClient.OnBuddyStatusChange(ABuddy: IBuddy);
+procedure TTorChat.OnBuddyStatusChange(ABuddy: IBuddy);
 var
   buddy_name: PChar;
   status_id: PChar;
@@ -806,7 +806,7 @@ begin
   FreeMem(buddy_name);
 end;
 
-procedure TPurpleTorChatClient.OnBuddyAvatarChange(ABuddy: IBuddy);
+procedure TTorChat.OnBuddyAvatarChange(ABuddy: IBuddy);
 var
   buddy_name: PChar;
   icon_data: Pointer;
@@ -890,7 +890,7 @@ begin
   FreeMem(buddy_name);
 end;
 
-procedure TPurpleTorChatClient.OnBuddyAdded(ABuddy: IBuddy);
+procedure TTorChat.OnBuddyAdded(ABuddy: IBuddy);
 var
   group_name: PChar;
   buddy_name: PChar;
@@ -916,7 +916,7 @@ begin
   FreeMem(group_name);
 end;
 
-procedure TPurpleTorChatClient.OnBuddyRemoved(ABuddy: IBuddy);
+procedure TTorChat.OnBuddyRemoved(ABuddy: IBuddy);
 var
   buddy_name: PChar;
   purple_buddy: PPurpleBuddy;
@@ -930,7 +930,7 @@ begin
   {$note must do something when an IM window is currently open}
 end;
 
-procedure TPurpleTorChatClient.OnInstantMessage(ABuddy: IBuddy; AText: String);
+procedure TTorChat.OnInstantMessage(ABuddy: IBuddy; AText: String);
 begin
   serv_got_im(
     purple_account^.gc,
@@ -941,7 +941,7 @@ begin
   );
 end;
 
-procedure TPurpleTorChatClient.OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer);
+procedure TTorChat.OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer);
 begin
 
 end;
