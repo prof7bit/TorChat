@@ -124,7 +124,10 @@ type
   { TTransfer is a TFileTransfer whose event
     methods know how to speak with libpuple }
   TTransfer = class(TFileTransfer)
+  private
+    PurpleProgressStarted: Boolean;
   public
+    constructor Create(ABuddy: IBuddy; AFileName: String);
     procedure OnProgress; override;
     procedure OnCancel; override;
     procedure OnComplete; override;
@@ -615,10 +618,6 @@ begin
       FT.SetGuiHandle(xfer);
       TorChat.AddFileTransfer(FT);
       FT.StartSending;
-
-      // this will start the timer, so it will calculate
-      // transfer rate and estimated time remaining
-      purple_xfer_start(xfer, -1, nil, 0);
     end;
   end;
 end;
@@ -674,11 +673,21 @@ end;
 
 { TPurpleFileTransfer }
 
+constructor TTransfer.Create(ABuddy: IBuddy; AFileName: String);
+begin
+  inherited Create(Buddy, AFileName);
+  PurpleProgressStarted := False;
+end;
+
 procedure TTransfer.OnProgress;
 var
   xfer: PPurpleXfer;
 begin
   xfer := GuiHandle;
+  if not PurpleProgressStarted then begin
+    purple_xfer_start(xfer, -1, nil, 0);
+    PurpleProgressStarted := True;
+  end;
   purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_update_progress(xfer);
 end;
