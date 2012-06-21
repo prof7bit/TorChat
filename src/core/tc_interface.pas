@@ -217,11 +217,17 @@ type
   IFileTransfer = interface
     function ID: String;
     procedure SetGuiHandle(AHandle: Pointer);
+    function Client: IClient;
+    function Buddy: IBuddy;
+    function IsSender: Boolean;
     function GuiHandle: Pointer;
+    function BytesCompleted: UInt64;
     procedure StartSending;
     procedure CheckState;
     procedure ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
     procedure ReceivedBrokenChunk(StartByte: UInt64);
+    procedure ReceivedOk(StartByte: UInt64);
+    procedure ReceivedError(StartByte: UInt64);
   end;
 
   TAReceiver = class(TThread)

@@ -34,21 +34,35 @@ type
   }
   TMsgFileDataError = class(TMsg)
   strict protected
+    FTransferID: String;
+    FStartByte: UInt64;
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
+    function GetSendConnection: IHiddenConnection; override;
     constructor Create(ABuddy: IBuddy); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;
 
 implementation
+uses
+  sysutils,
+  tc_misc;
 
 { TMsgFileDataError }
 
 class function TMsgFileDataError.GetCommand: String;
 begin
   Result := 'filedata_error';
+end;
+
+function TMsgFileDataError.GetSendConnection: IHiddenConnection;
+begin
+  if Assigned(FBuddy) then
+    Result := FBuddy.ConnIncoming
+  else
+    Result := nil;
 end;
 
 constructor TMsgFileDataError.Create(ABuddy: IBuddy);
@@ -58,19 +72,27 @@ end;
 
 procedure TMsgFileDataError.Parse;
 begin
+  FTransferID := PopFirstWord(FBinaryContent);
+  FStartByte := StrToInt64Def(FBinaryContent, 0);
 end;
 
 procedure TMsgFileDataError.Serialize;
 begin
+  FBinaryContent := _F('%s %d', [FTransferID, FStartByte]);
 end;
 
 procedure TMsgFileDataError.Execute;
 var
   Buddy: IBuddy;
+  Transfer: IFileTransfer;
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    //
+    Transfer := Buddy.Client.FindFileTransfer(FTransferID);
+    if Assigned(Transfer) then
+      Transfer.ReceivedError(FStartByte)
+    else
+      WriteLn('E received "filedata_error" that does not belong to any running transfer');
   end
   else
     LogWarningAndIgnore();

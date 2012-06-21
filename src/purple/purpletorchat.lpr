@@ -622,10 +622,17 @@ end;
 { registered during torchat_send_file() }
 procedure torchat_xfer_cancel_send(xfer: PPurpleXfer); cdecl;
 var
-  FileName: String;
+  TorChat: IClient;
+  Transfer: IFileTransfer;
 begin
-  FileName := purple_xfer_get_local_filename(xfer);
-  WriteLn('torchat_xfer_cancel_send() ', FileName);
+  WriteLn('torchat_xfer_cancel_send()');
+  TorChat := TorChatClients.Find(purple_xfer_get_account(xfer));
+  if Assigned(TorChat) then begin
+    Transfer := TorChat.FindFileTransfer(xfer);
+    if Assigned(Transfer) then begin
+      TorChat.RemoveFileTransfer(Transfer);
+    end;
+  end;
 end;
 
 { registered during torchat_send_file() }
@@ -670,8 +677,12 @@ end;
 { TPurpleFileTransfer }
 
 procedure TPurpleFileTransfer.OnProgress;
+var
+  xfer: PPurpleXfer;
 begin
-
+  xfer := GuiHandle;
+  purple_xfer_set_bytes_sent(xfer, BytesCompleted);
+  purple_xfer_update_progress(xfer);
 end;
 
 procedure TPurpleFileTransfer.OnCancel;
@@ -680,8 +691,14 @@ begin
 end;
 
 procedure TPurpleFileTransfer.OnComplete;
+var
+  xfer: PPurpleXfer;
 begin
-
+  xfer := GuiHandle;
+  purple_xfer_set_bytes_sent(xfer, BytesCompleted);
+  purple_xfer_set_completed(xfer, True);
+  purple_xfer_update_progress(xfer);
+  Client.RemoveFileTransfer(Self);
 end;
 
 (********************************************************************

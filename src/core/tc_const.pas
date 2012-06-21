@@ -5,6 +5,9 @@ unit tc_const;
 interface
 
 const
+  SOFTWARE_NAME : String = 'TorChat';
+  SOFTWARE_VERSION : String = '2.0-alpha-11';
+
   SECONDS_SEND_KEEPLIVE = 120;   // don't change, protocol specification
   SECONDS_WAIT_KEEPALIVE = 240;  // don't change, protocol specification
 
@@ -14,8 +17,8 @@ const
   SECONDS_INITIAL_RECONNECT = 10;
   SECONDS_FIRST_CONNECT = 5;     // first connect after TBuddy.Create
 
-  SOFTWARE_NAME : String = 'TorChat';
-  SOFTWARE_VERSION : String = '2.0-alpha-11';
+  FILE_TRANSFER_BLOCK_SIZE = 8192;
+  FILE_TRANSFER_BLOCKS_WAIT = 16;
 
 
 implementation

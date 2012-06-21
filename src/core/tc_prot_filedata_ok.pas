@@ -34,21 +34,35 @@ type
   }
   TMsgFileDataOk = class(TMsg)
   strict protected
+    FTransferID: String;
+    FStartByte: UInt64;
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
+    function GetSendConnection: IHiddenConnection; override;
     constructor Create(ABuddy: IBuddy); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;
 
 implementation
+uses
+  sysutils,
+  tc_misc;
 
 { TMsgFileDataOk }
 
 class function TMsgFileDataOk.GetCommand: String;
 begin
   Result := 'filedata_ok';
+end;
+
+function TMsgFileDataOk.GetSendConnection: IHiddenConnection;
+begin
+  if Assigned(FBuddy) then
+    Result := FBuddy.ConnIncoming
+  else
+    Result := nil;
 end;
 
 constructor TMsgFileDataOk.Create(ABuddy: IBuddy);
@@ -58,19 +72,27 @@ end;
 
 procedure TMsgFileDataOk.Parse;
 begin
+  FTransferID := PopFirstWord(FBinaryContent);
+  FStartByte := StrToInt64Def(FBinaryContent, 0);
 end;
 
 procedure TMsgFileDataOk.Serialize;
 begin
+  FBinaryContent := _F('%s %d', [FTransferID, FStartByte]);
 end;
 
 procedure TMsgFileDataOk.Execute;
 var
   Buddy: IBuddy;
+  Transfer: IFileTransfer;
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    //
+    Transfer := Buddy.Client.FindFileTransfer(FTransferID);
+    if Assigned(Transfer) then
+      Transfer.ReceivedOk(FStartByte)
+    else
+      WriteLn('E received "filedata_ok" that does not belong to any running transfer');
   end
   else
     LogWarningAndIgnore();

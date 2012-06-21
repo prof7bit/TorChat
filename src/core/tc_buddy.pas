@@ -679,6 +679,11 @@ begin
     WriteLn('TBuddy.SendPong() ', ID, ' sending pong and status');
     Msg := TMsgPong.Create(Self, FReceivedCookie);
     Msg.Send;
+
+    // send another ping. No infinite loop because all this only once per connection.
+    Msg := TMsgPing.Create(Self, FOwnCookie);
+    Msg.Send;
+
     Msg := TMsgClient.Create(Self, SOFTWARE_NAME);
     Msg.Send;
     Msg := TMsgVersion.Create(Self, SOFTWARE_VERSION);

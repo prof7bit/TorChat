@@ -479,9 +479,12 @@ function  purple_timeout_add(Interval: cint; cb: TGSourceFunc; UserData: Pointer
 function  purple_timeout_remove(handle: cint): GBoolean; external LIBPURPLE;
 function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; external LIBPURPLE;
 procedure purple_xfer_request(xfer: PPurpleXfer); external LIBPURPLE;
-procedure purple_xfer_set_init_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_bytes_sent(xfer: PPurpleXfer; bytes_sent: csize_t); external LIBPURPLE;
 procedure purple_xfer_set_cancel_send_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_completed(xfer: PPurpleXfer; completed: gboolean); external LIBPURPLE;
 procedure purple_xfer_set_end_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_init_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_update_progress(xfer: PPurpleXfer); external LIBPURPLE;
 function  purple_xfer_get_account(xfer: PPurpleXfer): PPurpleAccount; external LIBPURPLE;
 function  purple_xfer_get_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
 function  purple_xfer_get_local_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
