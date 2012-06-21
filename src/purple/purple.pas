@@ -484,6 +484,8 @@ procedure purple_xfer_set_cancel_send_fnc(xfer: PPurpleXfer; fnc: PXferCb); exte
 procedure purple_xfer_set_completed(xfer: PPurpleXfer; completed: gboolean); external LIBPURPLE;
 procedure purple_xfer_set_end_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
 procedure purple_xfer_set_init_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_start(xfer: PPurpleXfer; fd: cint; ip: PChar;
+  port: cuint); external LIBPURPLE;
 procedure purple_xfer_update_progress(xfer: PPurpleXfer); external LIBPURPLE;
 function  purple_xfer_get_account(xfer: PPurpleXfer): PPurpleAccount; external LIBPURPLE;
 function  purple_xfer_get_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;

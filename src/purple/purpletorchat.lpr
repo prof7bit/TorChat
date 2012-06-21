@@ -615,6 +615,10 @@ begin
       FT.SetGuiHandle(xfer);
       TorChat.AddFileTransfer(FT);
       FT.StartSending;
+
+      // this will start the timer, so it will calculate
+      // transfer rate and estimated time remaining
+      purple_xfer_start(xfer, -1, nil, 0);
     end;
   end;
 end;
@@ -666,12 +670,6 @@ begin
     WriteLn('W send_file() we have a file name already, this is not yet implemeted');
     {$warning implement this also}
   end;
-end;
-
-function torchat_new_xfer(gc: PPurpleConnection; who: PChar): PPurpleXfer; cdecl;
-begin
-  WriteLn(_F('new_xfer(%s)', [who]));
-  Result := nil;
 end;
 
 { TPurpleFileTransfer }
@@ -993,7 +991,6 @@ begin
     send_im := @torchat_send_im;
     can_receive_file := @torchat_can_receive_file;
     send_file := @torchat_send_file;
-    new_xfer := @torchat_new_xfer;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 
