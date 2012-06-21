@@ -118,7 +118,7 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy); override;
     procedure OnBuddyRemoved(ABuddy: IBuddy); override;
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String); override;
-    procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: PtrUInt; ABlockSize: Integer); override;
+    procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer); override;
   end;
 
   { TPurpleFileTransfer is a TFileTransfer whose
@@ -926,7 +926,7 @@ begin
   );
 end;
 
-procedure TPurpleTorChatClient.OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: PtrUInt; ABlockSize: Integer);
+procedure TPurpleTorChatClient.OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer);
 begin
 
 end;

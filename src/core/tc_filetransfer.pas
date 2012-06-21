@@ -54,8 +54,8 @@ type
     procedure OnProgress; virtual; abstract;
     procedure OnCancel; virtual; abstract;
     procedure OnComplete; virtual; abstract;
-    procedure ReceivedFileChunk(StartByte: PtrUInt; FileChunk: String);
-    procedure ReceivedBrokenChunk(StartByte: PtrUInt);
+    procedure ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
+    procedure ReceivedBrokenChunk(StartByte: UInt64);
   end;
 
 implementation
@@ -108,12 +108,12 @@ begin
 
 end;
 
-procedure TFileTransfer.ReceivedFileChunk(StartByte: PtrUInt; FileChunk: String);
+procedure TFileTransfer.ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
 begin
 
 end;
 
-procedure TFileTransfer.ReceivedBrokenChunk(StartByte: PtrUInt);
+procedure TFileTransfer.ReceivedBrokenChunk(StartByte: UInt64);
 begin
 
 end;

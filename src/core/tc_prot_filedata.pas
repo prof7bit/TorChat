@@ -35,7 +35,7 @@ type
   TMsgFileData = class(TMsg)
   strict protected
     FTransferID: String;
-    FStartByte: PtrUInt;
+    FStartByte: UInt64;
     FCheckSum: String;
     FFileChunk: String;
     FCheckSumOK: Boolean;
@@ -43,7 +43,7 @@ type
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
-    constructor Create(Buddy: IBuddy; ID: String; StartByte: PtrUInt; FileChunk: String);
+    constructor Create(Buddy: IBuddy; ID: String; StartByte: UInt64; FileChunk: String);
     procedure Parse; override;
     procedure Execute; override;
   end;
@@ -74,7 +74,7 @@ begin
     Result := nil;
 end;
 
-constructor TMsgFileData.Create(Buddy: IBuddy; ID: String; StartByte: PtrUInt; FileChunk: String);
+constructor TMsgFileData.Create(Buddy: IBuddy; ID: String; StartByte: UInt64; FileChunk: String);
 begin
   inherited Create(Buddy);
   FTransferID := ID;

@@ -88,7 +88,7 @@ type
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String);
-    procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: PtrUInt; ABlockSize: Integer);
+    procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer);
     function UserAddBuddy(AID, AAlias: String): Boolean;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetOwnAvatarData(RGB, Alpha: String);
@@ -220,8 +220,8 @@ type
     function GuiHandle: Pointer;
     procedure StartSending;
     procedure CheckState;
-    procedure ReceivedFileChunk(StartByte: PtrUInt; FileChunk: String);
-    procedure ReceivedBrokenChunk(StartByte: PtrUInt);
+    procedure ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
+    procedure ReceivedBrokenChunk(StartByte: UInt64);
   end;
 
   TAReceiver = class(TThread)
