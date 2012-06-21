@@ -124,10 +124,8 @@ type
   { TTransfer is a TFileTransfer whose event
     methods know how to speak with libpuple }
   TTransfer = class(TFileTransfer)
-  private
-    PurpleProgressStarted: Boolean;
   public
-    constructor Create(ABuddy: IBuddy; AFileName: String); reintroduce;
+    procedure OnStart; override;
     procedure OnProgress; override;
     procedure OnCancel; override;
     procedure OnComplete; override;
@@ -608,7 +606,6 @@ var
   Buddy: IBuddy;
   FT: TTransfer;
 begin
-  WriteLn('torchat_xfer_init_send() ', FileName);
   TorChat := Clients.Find(purple_xfer_get_account(xfer));
   if Assigned(TorChat) then begin
     FileName := purple_xfer_get_local_filename(xfer);
@@ -673,10 +670,12 @@ end;
 
 { TPurpleFileTransfer }
 
-constructor TTransfer.Create(ABuddy: IBuddy; AFileName: String);
+procedure TTransfer.OnStart;
+var
+  xfer: PPurpleXfer;
 begin
-  inherited Create(ABuddy, AFileName);
-  PurpleProgressStarted := False;
+  xfer := GuiHandle;
+  purple_xfer_start(xfer, -1, nil, 0);
 end;
 
 procedure TTransfer.OnProgress;
@@ -684,17 +683,17 @@ var
   xfer: PPurpleXfer;
 begin
   xfer := GuiHandle;
-  if not PurpleProgressStarted then begin
-    purple_xfer_start(xfer, -1, nil, 0);
-    PurpleProgressStarted := True;
-  end;
   purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_update_progress(xfer);
 end;
 
 procedure TTransfer.OnCancel;
+var
+  xfer: PPurpleXfer;
 begin
-
+  xfer := GuiHandle;
+  purple_xfer_cancel_remote(xfer);
+  Client.RemoveFileTransfer(Self);
 end;
 
 procedure TTransfer.OnComplete;

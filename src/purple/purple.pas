@@ -477,6 +477,7 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
   independent: GBoolean): PPurpleStatusType; external LIBPURPLE;
 function  purple_timeout_add(Interval: cint; cb: TGSourceFunc; UserData: Pointer): cint; external LIBPURPLE;
 function  purple_timeout_remove(handle: cint): GBoolean; external LIBPURPLE;
+procedure purple_xfer_cancel_remote(xfer: PPurpleXfer); external LIBPURPLE;
 function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; external LIBPURPLE;
 procedure purple_xfer_request(xfer: PPurpleXfer); external LIBPURPLE;
 procedure purple_xfer_set_bytes_sent(xfer: PPurpleXfer; bytes_sent: csize_t); external LIBPURPLE;

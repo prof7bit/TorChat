@@ -47,11 +47,13 @@ type
     FFileSize: UInt64;
     FIsSender: Boolean;
     FChunk: String;
+    FStarted: Boolean;
+    FTimeLastReceive: TDateTime;
 
     // these are used when sending a file
     FFileNameMessageSent: Boolean;
-    FSendNext: UInt64;  // start position (bytes) of next block to send
-    FConfirmed: UInt64; // start position of last confirmed block
+    FSendNext: Int64;  // start position (bytes) of next block to send
+    FConfirmed: Int64; // start position of last confirmed block
 
   public
     constructor Create(ABuddy: IBuddy; AFileName: String);
@@ -65,6 +67,7 @@ type
     function BytesCompleted: UInt64;
     procedure StartSending;
     procedure CheckState;
+    procedure OnStart; virtual; abstract;
     procedure OnProgress; virtual; abstract;
     procedure OnCancel; virtual; abstract;
     procedure OnComplete; virtual; abstract;
@@ -72,6 +75,7 @@ type
     procedure ReceivedBrokenChunk(StartByte: UInt64);
     procedure ReceivedOk(StartByte: UInt64);
     procedure ReceivedError(StartByte: UInt64);
+    procedure ReceivedCancel;
   end;
 
 implementation
@@ -95,6 +99,7 @@ begin
   FClient := ABuddy.Client;
   FFileName := AFileName;
   FSendFile := nil;
+  FStarted := False;
   FFileNameMessageSent := False;
 end;
 
@@ -145,15 +150,15 @@ end;
 procedure TFileTransfer.StartSending;
 var
   GUID: TGuid;
-  Msg: IProtocolMessage;
 begin
   FIsSender := True;
   CreateGUID(GUID);
   FTransferID := GUIDToString(GUID);
+  FTimeLastReceive := Now;
   try
     FSendFile := TFileStream.Create(FFileName, fmOpenRead);
     FSendNext := 0;
-    FConfirmed := 0;
+    FConfirmed := -FILE_TRANSFER_BLOCK_SIZE;
     FFileSize := FSendFile.Size;
   except
     WriteLn(_F('E could not open %s for reading', [FFileName]));
@@ -168,6 +173,12 @@ begin
   if FIsSender then begin
     if not Assigned(FSendFile) then
       exit;
+    if TimeSince(FTimeLastReceive) > 60 then begin
+      WriteLn(_F('W transfer to %s: long time without ack, resetting to last confirmed position',
+        [FBuddy.ID]));
+      FSendNext := FConfirmed + FILE_TRANSFER_BLOCK_SIZE;
+      FTimeLastReceive := Now;
+    end;
     if not Buddy.MaySendText then
       exit;
     if FSendNext = FFileSize then
@@ -211,6 +222,11 @@ end;
 procedure TFileTransfer.ReceivedOk(StartByte: UInt64);
 begin
   FConfirmed := StartByte;
+  FTimeLastReceive := Now;
+  if not FStarted then begin
+    OnStart;
+    FStarted := True;
+  end;
   if FConfirmed + FILE_TRANSFER_BLOCK_SIZE >= FFileSize then
     OnComplete
   else
@@ -219,7 +235,21 @@ end;
 
 procedure TFileTransfer.ReceivedError(StartByte: UInt64);
 begin
+  FTimeLastReceive := Now;
+  FStarted := True;
   FSendNext := StartByte;
+  if not FStarted then begin
+    FStarted := True;
+    OnStart;
+  end;
+end;
+
+procedure TFileTransfer.ReceivedCancel;
+begin
+  if IsSender then begin
+    FSendNext := FFileSize;
+    OnCancel;
+  end;
 end;
 
 end.

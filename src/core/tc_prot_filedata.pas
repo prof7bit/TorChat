@@ -43,7 +43,7 @@ type
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
-    constructor Create(Buddy: IBuddy; ID: String; StartByte: UInt64; FileChunk: String);
+    constructor Create(Buddy: IBuddy; ID: String; StartByte: UInt64; FileChunk: String); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;

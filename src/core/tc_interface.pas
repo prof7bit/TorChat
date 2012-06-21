@@ -30,7 +30,6 @@ interface
 uses
   Classes,
   fpjson,
-  lNet,
   lEvents;
 
 type
@@ -228,6 +227,7 @@ type
     procedure ReceivedBrokenChunk(StartByte: UInt64);
     procedure ReceivedOk(StartByte: UInt64);
     procedure ReceivedError(StartByte: UInt64);
+    procedure ReceivedCancel;
   end;
 
   TAReceiver = class(TThread)

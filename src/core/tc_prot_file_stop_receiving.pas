@@ -34,9 +34,11 @@ type
   }
   TMsgFileStopReceiving = class(TMsg)
   strict protected
+    FTransferID: String;
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
+    function GetSendConnection: IHiddenConnection; override;
     constructor Create(ABuddy: IBuddy); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
@@ -51,6 +53,14 @@ begin
   Result := 'file_stop_receiving';
 end;
 
+function TMsgFileStopReceiving.GetSendConnection: IHiddenConnection;
+begin
+  if Assigned(FBuddy) then
+    Result := FBuddy.ConnIncoming
+  else
+    Result := nil;
+end;
+
 constructor TMsgFileStopReceiving.Create(ABuddy: IBuddy);
 begin
   inherited Create(ABuddy);
@@ -58,19 +68,26 @@ end;
 
 procedure TMsgFileStopReceiving.Parse;
 begin
+  FTransferID := FBinaryContent;
 end;
 
 procedure TMsgFileStopReceiving.Serialize;
 begin
+  FBinaryContent := FTransferID;
 end;
 
 procedure TMsgFileStopReceiving.Execute;
 var
   Buddy: IBuddy;
+  Transfer: IFileTransfer;
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    //
+    Transfer := FClient.FindFileTransfer(FTransferID);
+    if Assigned(Transfer) then
+      Transfer.ReceivedCancel
+    else
+      WriteLn('E received "file_stop_receiving" that does not belong to any running transfer');
   end
   else
     LogWarningAndIgnore();
