@@ -127,7 +127,7 @@ type
   private
     PurpleProgressStarted: Boolean;
   public
-    constructor Create(ABuddy: IBuddy; AFileName: String);
+    constructor Create(ABuddy: IBuddy; AFileName: String); reintroduce;
     procedure OnProgress; override;
     procedure OnCancel; override;
     procedure OnComplete; override;
@@ -675,7 +675,7 @@ end;
 
 constructor TTransfer.Create(ABuddy: IBuddy; AFileName: String);
 begin
-  inherited Create(Buddy, AFileName);
+  inherited Create(ABuddy, AFileName);
   PurpleProgressStarted := False;
 end;
 

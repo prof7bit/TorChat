@@ -49,6 +49,7 @@ type
     FChunk: String;
 
     // these are used when sending a file
+    FFileNameMessageSent: Boolean;
     FSendNext: UInt64;  // start position (bytes) of next block to send
     FConfirmed: UInt64; // start position of last confirmed block
 
@@ -94,6 +95,7 @@ begin
   FClient := ABuddy.Client;
   FFileName := AFileName;
   FSendFile := nil;
+  FFileNameMessageSent := False;
 end;
 
 destructor TFileTransfer.Destroy;
@@ -144,7 +146,6 @@ procedure TFileTransfer.StartSending;
 var
   GUID: TGuid;
   Msg: IProtocolMessage;
-  FileNameOnly: String;
 begin
   FIsSender := True;
   CreateGUID(GUID);
@@ -154,11 +155,6 @@ begin
     FSendNext := 0;
     FConfirmed := 0;
     FFileSize := FSendFile.Size;
-    FileNameOnly := ExtractFileName(FFileName);
-    Msg := TMsgFileName.Create(
-      Buddy, FTransferID, FFileSize, FILE_TRANSFER_BLOCK_SIZE, FileNameOnly);
-    Msg.Send;
-    Client.OnNeedPump;
   except
     WriteLn(_F('E could not open %s for reading', [FFileName]));
   end;
@@ -178,6 +174,14 @@ begin
       exit; // nothing to send anymore
     if (FSendNext - FConfirmed) > FILE_TRANSFER_BLOCKS_WAIT * FILE_TRANSFER_BLOCK_SIZE then
       exit;
+
+    if not FFileNameMessageSent then begin
+      Msg := TMsgFileName.Create(Buddy, FTransferID, FFileSize,
+        FILE_TRANSFER_BLOCK_SIZE, ExtractFileName(FFileName));
+      Msg.Send;
+      FFileNameMessageSent := True;
+    end;
+
     FSendFile.Seek(FSendNext, soBeginning);
     ChunkSize := FSendFile.Size - FSendNext;
     if ChunkSize > FILE_TRANSFER_BLOCK_SIZE then
