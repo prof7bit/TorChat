@@ -23,9 +23,10 @@ type
   { TMsgCallMethod call a method without arguments from the main thread }
   TMsgCallMethod = class(TInterfacedObject, IMessage)
   strict private
+    FObject: IUnknown;
     FMethod : TMethodOfObject;
   public
-    constructor Create(AMethod: TMethodOfObject);
+    constructor Create(AObject: IUnknown; AMethod: TMethodOfObject);
     procedure Execute;
   end;
 
@@ -67,8 +68,9 @@ end;
 
 { TMsgCallMethod }
 
-constructor TMsgCallMethod.Create(AMethod: TMethodOfObject);
+constructor TMsgCallMethod.Create(AObject: IUnknown; AMethod: TMethodOfObject);
 begin
+  FObject := AObject; // keep a reference to it as long as this msg exists
   FMethod := AMethod;
 end;
 

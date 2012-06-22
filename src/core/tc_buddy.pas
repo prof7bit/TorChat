@@ -356,7 +356,7 @@ begin
   if ThreadID = Client.MainThread then
     AMethod()
   else begin
-    Msg := TMsgCallMethod.Create(AMethod);
+    Msg := TMsgCallMethod.Create(Self, AMethod);
     Client.Queue.Put(Msg);
   end
 end;
