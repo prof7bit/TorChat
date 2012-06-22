@@ -399,11 +399,22 @@ type
   PPurpleNotifyCloseCb = procedure(user_data: Pointer);
   PPurpleRequestDlgBtnCb = procedure(user_data: Pointer; fields: PPurpleRequestFields);
   PXferCb = procedure(xfer: PPurpleXfer);
+  PXferAckCb = procedure(xfer: PPurpleXfer; par1: Pchar; par2: csize_t);
 
   TPurpleXferType = (
     PURPLE_XFER_UNKNOWN = 0,  (**< Unknown file transfer type.  *)
     PURPLE_XFER_SEND,         (**< File sending.                *)
     PURPLE_XFER_RECEIVE       (**< File receiving.              *)
+  );
+
+  TPurpleXferStatusType = (
+    PURPLE_XFER_STATUS_UNKNOWN = 0,   (**< Unknown, the xfer may be null.  *)
+    PURPLE_XFER_STATUS_NOT_STARTED,   (**< It hasn't started yet.  *)
+    PURPLE_XFER_STATUS_ACCEPTED,      (**< Receive accepted, but destination file not selected yet  *)
+    PURPLE_XFER_STATUS_STARTED,       (**< purple_xfer_start has been called.  *)
+    PURPLE_XFER_STATUS_DONE,          (**< The xfer completed successfully.  *)
+    PURPLE_XFER_STATUS_CANCEL_LOCAL,  (**< The xfer was cancelled by us.  *)
+    PURPLE_XFER_STATUS_CANCEL_REMOTE  (**< The xfer was cancelled by the other end, or we couldn't connect.  *)
   );
 
 
@@ -480,18 +491,24 @@ function  purple_timeout_remove(handle: cint): GBoolean; external LIBPURPLE;
 procedure purple_xfer_cancel_remote(xfer: PPurpleXfer); external LIBPURPLE;
 function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; external LIBPURPLE;
 procedure purple_xfer_request(xfer: PPurpleXfer); external LIBPURPLE;
+procedure purple_xfer_set_ack_fnc(xfer: PPurpleXfer; fnc: PXferAckCb); external LIBPURPLE;
 procedure purple_xfer_set_bytes_sent(xfer: PPurpleXfer; bytes_sent: csize_t); external LIBPURPLE;
 procedure purple_xfer_set_cancel_send_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_cancel_recv_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
 procedure purple_xfer_set_completed(xfer: PPurpleXfer; completed: gboolean); external LIBPURPLE;
 procedure purple_xfer_set_end_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_filename(xfer: PPurpleXfer; filename: PChar); external LIBPURPLE;
 procedure purple_xfer_set_init_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
 procedure purple_xfer_start(xfer: PPurpleXfer; fd: cint; ip: PChar;
   port: cuint); external LIBPURPLE;
+procedure purple_xfer_set_request_denied_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+procedure purple_xfer_set_size(xfer: PPurpleXfer; size: csize_t); external LIBPURPLE;
 procedure purple_xfer_update_progress(xfer: PPurpleXfer); external LIBPURPLE;
 function  purple_xfer_get_account(xfer: PPurpleXfer): PPurpleAccount; external LIBPURPLE;
 function  purple_xfer_get_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
 function  purple_xfer_get_local_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
 function  purple_xfer_get_remote_user(xfer: PPurpleXfer): PChar; external LIBPURPLE;
+function purple_xfer_get_status(xfer: PPurpleXfer): TPurpleXferStatusType; external LIBPURPLE;
 procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); external LIBPURPLE;
 procedure serv_got_im(gc: PPurpleConnection; who, msg: PChar;
   flags: TPurpleMessageFlags; mtime: time_t); external LIBPURPLE;

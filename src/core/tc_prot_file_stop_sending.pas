@@ -84,7 +84,7 @@ var
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    Transfer := Buddy.Client.FindFileTransfer(FTransferID);
+    Transfer := Buddy.Client.FindFileTransferSend(FTransferID);
     if Assigned(Transfer) then
       Transfer.ReceivedCancel
     else

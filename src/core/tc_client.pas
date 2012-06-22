@@ -21,6 +21,7 @@
 unit tc_client;
 
 {$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
 
 interface
 
@@ -105,8 +106,9 @@ type
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
-    function FindFileTransfer(Id: String): IFileTransfer;
-    function FindFileTransfer(FindFunc: TFindFunc): IFileTransfer;
+    function FindFileTransferSend(Id: String): IFileTransfer;
+    function FindFileTransferRecv(Id: String): IFileTransfer;
+    function FindFileTransfer(GuiID: Pointer): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -301,7 +303,7 @@ begin
   FFileTransfers.Remove(ATransfer);
 end;
 
-function TTorChatClient.FindFileTransfer(Id: String): IFileTransfer;
+function TTorChatClient.FindFileTransferSend(Id: String): IFileTransfer;
 var
   I: Integer;
   FT: IFileTransfer;
@@ -309,12 +311,12 @@ begin
   Result := nil;
   for I := FFileTransfers.Count - 1 downto 0 do begin
     FT := IFileTransfer(FFileTransfers.Items[I]);
-    if FT.ID = ID then
+    if FT.IsSender and (FT.ID = ID) then
       exit(FT);
   end;
 end;
 
-function TTorChatClient.FindFileTransfer(FindFunc: TFindFunc): IFileTransfer;
+function TTorChatClient.FindFileTransferRecv(Id: String): IFileTransfer;
 var
   I: Integer;
   FT: IFileTransfer;
@@ -322,8 +324,21 @@ begin
   Result := nil;
   for I := FFileTransfers.Count - 1 downto 0 do begin
     FT := IFileTransfer(FFileTransfers.Items[I]);
-    if FindFunc(Self) then
+    if (not FT.IsSender) and (FT.ID = ID) then
       exit(FT);
+  end;
+end;
+
+function TTorChatClient.FindFileTransfer(GuiID: Pointer): IFileTransfer;
+var
+  I: Integer;
+  F: IFileTransfer;
+begin
+  Result := nil;
+  for I := FFileTransfers.Count - 1 downto 0 do begin
+    F := IFileTransfer(FFileTransfers.Items[I]);
+    if F.GuiID = GuiID then
+      exit(F);
   end;
 end;
 

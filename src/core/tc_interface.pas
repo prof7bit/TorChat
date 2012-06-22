@@ -101,8 +101,9 @@ type
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
-    function FindFileTransfer(Id: String): IFileTransfer;
-    function FindFileTransfer(FindFunc: TFindFunc): IFileTransfer;
+    function FindFileTransferSend(Id: String): IFileTransfer;
+    function FindFileTransferRecv(Id: String): IFileTransfer;
+    function FindFileTransfer(GuiID: Pointer): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -220,12 +221,17 @@ type
     function Client: IClient;
     function Buddy: IBuddy;
     function IsSender: Boolean;
-    function BytesCompleted: UInt64;
+    function IsComplete: Boolean;
+    function BytesCompleted: Int64;
+    function FileSize: Int64;
+    function GuiID: Pointer; // optional, can be some related GUI object
+    procedure SetGuiID(AGuiID: Pointer);
     procedure CheckState;
+    procedure MoveReceivedFile(DestName: String);
     procedure ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
     procedure ReceivedBrokenChunk;
-    procedure ReceivedOk(StartByte: UInt64);
-    procedure ReceivedError(StartByte: UInt64);
+    procedure ReceivedOk(StartByte: Int64);
+    procedure ReceivedError(StartByte: Int64);
     procedure ReceivedCancel;
   end;
 

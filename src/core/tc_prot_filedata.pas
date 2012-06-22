@@ -107,7 +107,7 @@ var
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    Transfer := Buddy.Client.FindFileTransfer(FTransferID);
+    Transfer := Buddy.Client.FindFileTransferRecv(FTransferID);
     if Assigned(Transfer) then begin
       if FCheckSumOK then
         Transfer.ReceivedFileChunk(FStartByte, FFileChunk)
