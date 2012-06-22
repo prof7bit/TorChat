@@ -39,7 +39,6 @@ type
   TFileTransfer = class(TInterfacedObject, IFileTransfer)
   strict private
     FTransferID: String;
-    FGuiHandle: Pointer;
     FClient: IClient;
     FBuddy: IBuddy;
     FSendFile: TFileStream;
@@ -62,8 +61,6 @@ type
     function Client: IClient;
     function Buddy: IBuddy;
     function IsSender: Boolean;
-    procedure SetGuiHandle(AHandle: Pointer);
-    function GuiHandle: Pointer;
     function BytesCompleted: UInt64;
     procedure StartSending;
     procedure CheckState;
@@ -128,16 +125,6 @@ end;
 function TFileTransfer.IsSender: Boolean;
 begin
   Result := FIsSender;
-end;
-
-procedure TFileTransfer.SetGuiHandle(AHandle: Pointer);
-begin
-  FGuiHandle := AHandle;
-end;
-
-function TFileTransfer.GuiHandle: Pointer;
-begin
-  Result := FGuiHandle;
 end;
 
 function TFileTransfer.BytesCompleted: UInt64;

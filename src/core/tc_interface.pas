@@ -24,6 +24,7 @@
 unit tc_interface;
 
 {$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
 
 interface
 
@@ -49,6 +50,7 @@ type
   end;
 
   TMethodOfObject = procedure of object;
+  TFindFunc = function(O: TObject): Boolean is nested;
 
   IBuddy = interface;
   IRoster = interface;
@@ -100,7 +102,7 @@ type
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
     function FindFileTransfer(Id: String): IFileTransfer;
-    function FindFileTransfer(GuiHandle: Pointer): IFileTransfer;
+    function FindFileTransfer(FindFunc: TFindFunc): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -215,11 +217,9 @@ type
 
   IFileTransfer = interface
     function ID: String;
-    procedure SetGuiHandle(AHandle: Pointer);
     function Client: IClient;
     function Buddy: IBuddy;
     function IsSender: Boolean;
-    function GuiHandle: Pointer;
     function BytesCompleted: UInt64;
     procedure StartSending;
     procedure CheckState;

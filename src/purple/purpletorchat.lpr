@@ -70,6 +70,7 @@ library purpletorchat;
   {$fatal *** You need Free Pascal Compiler version 2.6.0 or higher *** }
 {$endif}
 {$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
 
 uses
   {$ifdef UseHeapTrc} // do it with -dUseHeapTrc, not with -gh
@@ -125,6 +126,7 @@ type
     methods know how to speak with libpuple }
   TTransfer = class(TFileTransfer)
   public
+    xfer: PPurpleXfer;
     procedure OnStart; override;
     procedure OnProgress; override;
     procedure OnCancel; override;
@@ -612,7 +614,7 @@ begin
     Buddy := TorChat.Roster.ByID(purple_xfer_get_remote_user(xfer));
     if Assigned(Buddy) then begin
       FT := TTransfer.Create(Buddy, FileName);
-      FT.SetGuiHandle(xfer);
+      FT.xfer := xfer;
       TorChat.AddFileTransfer(FT);
       FT.StartSending;
     end;
@@ -624,11 +626,17 @@ procedure torchat_xfer_cancel_send(xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
+
+  function FindFunc(O: TObject): Boolean;
+  begin
+    Result := (TTransfer(O).xfer = xfer);
+  end;
+
 begin
   WriteLn('torchat_xfer_cancel_send()');
   TorChat := Clients.Find(purple_xfer_get_account(xfer));
   if Assigned(TorChat) then begin
-    Transfer := TorChat.FindFileTransfer(xfer);
+    Transfer := TorChat.FindFileTransfer(@FindFunc);
     if Assigned(Transfer) then begin
       TorChat.RemoveFileTransfer(Transfer);
     end;
@@ -668,48 +676,36 @@ begin
   end;
 end;
 
+(********************************************************************
+ *                 end of libpurple callbacks                       *
+ ********************************************************************)
+
 { TPurpleFileTransfer }
 
 procedure TTransfer.OnStart;
-var
-  xfer: PPurpleXfer;
 begin
-  xfer := GuiHandle;
   purple_xfer_start(xfer, -1, nil, 0);
 end;
 
 procedure TTransfer.OnProgress;
-var
-  xfer: PPurpleXfer;
 begin
-  xfer := GuiHandle;
   purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_update_progress(xfer);
 end;
 
 procedure TTransfer.OnCancel;
-var
-  xfer: PPurpleXfer;
 begin
-  xfer := GuiHandle;
   purple_xfer_cancel_remote(xfer);
   Client.RemoveFileTransfer(Self);
 end;
 
 procedure TTransfer.OnComplete;
-var
-  xfer: PPurpleXfer;
 begin
-  xfer := GuiHandle;
   purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_set_completed(xfer, True);
   purple_xfer_update_progress(xfer);
   Client.RemoveFileTransfer(Self);
 end;
-
-(********************************************************************
- *                 end of libpurple callbacks                       *
- ********************************************************************)
 
 { TClients }
 

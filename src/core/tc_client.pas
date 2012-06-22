@@ -106,7 +106,7 @@ type
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
     function FindFileTransfer(Id: String): IFileTransfer;
-    function FindFileTransfer(GuiHandle: Pointer): IFileTransfer;
+    function FindFileTransfer(FindFunc: TFindFunc): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
@@ -314,7 +314,7 @@ begin
   end;
 end;
 
-function TTorChatClient.FindFileTransfer(GuiHandle: Pointer): IFileTransfer;
+function TTorChatClient.FindFileTransfer(FindFunc: TFindFunc): IFileTransfer;
 var
   I: Integer;
   FT: IFileTransfer;
@@ -322,7 +322,7 @@ begin
   Result := nil;
   for I := FFileTransfers.Count - 1 downto 0 do begin
     FT := IFileTransfer(FFileTransfers.Items[I]);
-    if FT.GuiHandle = GuiHandle then
+    if FindFunc(Self) then
       exit(FT);
   end;
 end;
