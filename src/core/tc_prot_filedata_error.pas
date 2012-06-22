@@ -35,12 +35,12 @@ type
   TMsgFileDataError = class(TMsg)
   strict protected
     FTransferID: String;
-    FStartByte: UInt64;
+    FStartByte: Int64;
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
-    constructor Create(ABuddy: IBuddy); reintroduce;
+    constructor Create(ABuddy: IBuddy; TransferID: String; StartByte: Int64); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;
@@ -65,9 +65,11 @@ begin
     Result := nil;
 end;
 
-constructor TMsgFileDataError.Create(ABuddy: IBuddy);
+constructor TMsgFileDataError.Create(ABuddy: IBuddy; TransferID: String; StartByte: Int64);
 begin
   inherited Create(ABuddy);
+  FTransferID := TransferID;
+  FStartByte := StartByte;
 end;
 
 procedure TMsgFileDataError.Parse;

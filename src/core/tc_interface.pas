@@ -221,10 +221,9 @@ type
     function Buddy: IBuddy;
     function IsSender: Boolean;
     function BytesCompleted: UInt64;
-    procedure StartSending;
     procedure CheckState;
     procedure ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
-    procedure ReceivedBrokenChunk(StartByte: UInt64);
+    procedure ReceivedBrokenChunk;
     procedure ReceivedOk(StartByte: UInt64);
     procedure ReceivedError(StartByte: UInt64);
     procedure ReceivedCancel;

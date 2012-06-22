@@ -39,7 +39,7 @@ type
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
-    constructor Create(ABuddy: IBuddy); reintroduce;
+    constructor Create(ABuddy: IBuddy; TransferID: String); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;
@@ -61,9 +61,10 @@ begin
     Result := nil;
 end;
 
-constructor TMsgFileStopReceiving.Create(ABuddy: IBuddy);
+constructor TMsgFileStopReceiving.Create(ABuddy: IBuddy; TransferID: String);
 begin
   inherited Create(ABuddy);
+  FTransferID := TransferID;
 end;
 
 procedure TMsgFileStopReceiving.Parse;
@@ -83,7 +84,7 @@ var
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
-    Transfer := FClient.FindFileTransfer(FTransferID);
+    Transfer := Buddy.Client.FindFileTransfer(FTransferID);
     if Assigned(Transfer) then
       Transfer.ReceivedCancel
     else

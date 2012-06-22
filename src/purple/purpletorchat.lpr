@@ -616,7 +616,6 @@ begin
       FT := TTransfer.Create(Buddy, FileName);
       FT.xfer := xfer;
       TorChat.AddFileTransfer(FT);
-      FT.StartSending;
     end;
   end;
 end;
@@ -946,8 +945,18 @@ begin
 end;
 
 procedure TTorChat.OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer);
+var
+  TorChat: TTorChat;
+  Transfer: TTransfer;
+  account: PPurpleAccount;
+  xfer: PPurpleXfer;
 begin
-
+  TorChat := ABuddy.Client as TTorChat;
+  account := TorChat.purple_account;
+  xfer := purple_xfer_new(account, PURPLE_XFER_RECEIVE, PChar(ABuddy.ID));
+  Transfer := TTransfer.Create(ABuddy, AFileName, AID, AFileSize, ABlockSize);
+  Transfer.xfer := xfer;
+  ABuddy.Client.AddFileTransfer(Transfer);
 end;
 
 procedure Init;

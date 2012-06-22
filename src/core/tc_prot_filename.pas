@@ -35,14 +35,14 @@ type
   TMsgFileName = class(TMsg)
   strict protected
     FTransferID: String;
-    FFileSize: PtrUInt;
+    FFileSize: Int64;
     FBlockSize: Integer;
     FFileName: String;
     procedure Serialize; override;
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
-    constructor Create(Buddy: IBuddy; TransferID: String; FileSize: PtrUInt; BlockSize: Integer; FileName: String); reintroduce;
+    constructor Create(Buddy: IBuddy; TransferID: String; FileSize: Int64; BlockSize: Integer; FileName: String); reintroduce;
     procedure Parse; override;
     procedure Execute; override;
   end;
@@ -67,7 +67,7 @@ begin
     Result := Nil;
 end;
 
-constructor TMsgFileName.Create(Buddy: IBuddy; TransferID: String; FileSize: PtrUInt; BlockSize: Integer; FileName: String);
+constructor TMsgFileName.Create(Buddy: IBuddy; TransferID: String; FileSize: Int64; BlockSize: Integer; FileName: String);
 begin
   inherited Create(Buddy);
   FTransferID := TransferID;
