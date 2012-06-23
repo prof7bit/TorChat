@@ -281,7 +281,6 @@ end;
 
 function Html2Plain(AHtml: String): String;
 begin
-  {$note this is crap. Find a library function somewhere to do this properly}
   Result := StringReplace(AHtml, '<br>', LineEnding, [rfReplaceAll]);
   Result := StringReplace(Result, '&lt;', '<', [rfReplaceAll]);
   Result := StringReplace(Result, '&gt;', '>', [rfReplaceAll]);
