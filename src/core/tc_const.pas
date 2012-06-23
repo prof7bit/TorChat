@@ -6,7 +6,7 @@ interface
 
 const
   SOFTWARE_NAME : String = 'TorChat';
-  SOFTWARE_VERSION : String = '2.0-alpha-11';
+  SOFTWARE_VERSION : String = '2.0-alpha-12';
 
   SECONDS_SEND_KEEPLIVE = 120;   // don't change, protocol specification
   SECONDS_WAIT_KEEPALIVE = 240;  // don't change, protocol specification
