@@ -217,7 +217,7 @@ end;
 function TryThesePaths(List: array of String): String;
 begin
   For Result in List do begin
-    WriteLn('Trying path: ', Result);
+    WriteLn('trying path: ', Result);
     if FileExists(Result) then begin
       WriteLn('found: ', Result);
       Exit;

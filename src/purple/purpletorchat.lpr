@@ -752,6 +752,7 @@ begin
   purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_set_completed(xfer, True);
   purple_xfer_update_progress(xfer);
+  purple_xfer_end(xfer);
   Client.RemoveFileTransfer(Self);
 end;
 
