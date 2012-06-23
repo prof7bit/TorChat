@@ -599,10 +599,13 @@ begin
   end;
 end;
 
-{ registered during torchat_send_file() and called after the
-  "file open" dialog has been finished with OK. Here we create
-  a new TPurpleFileTransfer object in TorChat and start the
-  file sending }
+{ this and all the following torchat_xfer_*() functions are
+  registered when an xfer structure is created for a transfer.
+  This function is called after the "file open" dialog has been
+  finished with OK. Here we create a new TPurpleFileTransfer
+  object in TorChat which will automtically start sending
+  the file and fire its OnXxxxSending() event methods as
+  soon as it is created }
 procedure torchat_xfer_send_init(xfer: PPurpleXfer); cdecl;
 var
   FileName: String;
@@ -623,7 +626,7 @@ begin
   end;
 end;
 
-{ registered during torchat_send_file() }
+{ The local user has canceled the transfer }
 procedure torchat_xfer_send_cancel(xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
@@ -648,6 +651,11 @@ begin
   WriteLn('torchat_xfer_receive_denied()');
   TorChat := Clients.Find(purple_xfer_get_account(xfer));
   Transfer := TorChat.FindFileTransfer(xfer);
+  // The following call will free the transfer object.
+  // In its destructor it will properly cancel the transfer
+  // (which is already running in the bakground) by sending
+  // the the file_stop_sending message, and then wipe and
+  // delete the temporary partially received file.
   TorChat.RemoveFileTransfer(Transfer);
 end;
 
@@ -673,6 +681,7 @@ begin
   end;
 end;
 
+{ the local user has canceled the transfer }
 procedure torchat_xfer_receive_cancel(xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
@@ -713,39 +722,44 @@ end;
 
 { TPurpleFileTransfer }
 
+{ The first packet was successfully sent, sending has started }
 procedure TTransfer.OnStartSending;
 begin
   purple_xfer_start(xfer, -1, nil, 0);
 end;
 
+{ Each time we receive a filedata_ok we update the progress bar }
 procedure TTransfer.OnProgressSending;
 begin
   purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_update_progress(xfer);
 end;
 
+{ The remote side has canceled the transfer }
 procedure TTransfer.OnCancelSending;
 begin
   purple_xfer_cancel_remote(xfer);
   Client.RemoveFileTransfer(Self);
 end;
 
+{ The transfer is complete }
 procedure TTransfer.OnCompleteSending;
 begin
   WriteLn('TTransfer.OnComplete');
-  if IsSender then
-    purple_xfer_set_bytes_sent(xfer, BytesCompleted);
+  purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_set_completed(xfer, True);
   purple_xfer_update_progress(xfer);
   Client.RemoveFileTransfer(Self);
 end;
 
+{ The first chunk of data has arrived }
 procedure TTransfer.OnStartReceiving;
 begin
   // nothing because before the user has accepted it
-  // will just begin silently in the background
+  // we will begin it silently in the background
 end;
 
+{ Each new received chunk will trigger this }
 procedure TTransfer.OnProgressReceiving;
 begin
   // only if the user has accepted and choosen a destination file
@@ -757,12 +771,18 @@ begin
   end;
 end;
 
+{ The remote side has canceled the transfer }
 procedure TTransfer.OnCancelReceiving;
 begin
   purple_xfer_cancel_remote(xfer);
-  Client.RemoveFileTransfer(Self);
+  Client.RemoveFileTransfer(Self); // this will also free it
 end;
 
+{ The transfer is complete. Now the file is in a temporary file
+  in TorChat's data directory. We should now move it to the
+  destination file. If the local user still has not accepted
+  it then we do nothing and just leave it hanging around, one
+  of the callbacks for accept or deny will then do the rest. }
 procedure TTransfer.OnCompleteReceiving;
 begin
   if purple_xfer_get_status(xfer) = PURPLE_XFER_STATUS_STARTED then begin
@@ -770,7 +790,7 @@ begin
     purple_xfer_update_progress(xfer);
     purple_xfer_set_completed(xfer, True);
     MoveReceivedFile(purple_xfer_get_local_filename(xfer));
-    Client.RemoveFileTransfer(Self);
+    Client.RemoveFileTransfer(Self); // will free transfer and delete temp file
   end
   else begin // completely received but still waiting for the user to accept
     WriteLn('Transfer has completed in background, now waiting for accept or deny');
