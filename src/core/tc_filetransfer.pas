@@ -60,7 +60,9 @@ type
     // these are used for receiving
     FTempFileName: String;
     FPosReceiveNext: Int64;
+    FPosLastError: Int64;
 
+    procedure SendErrorMessage(Position: Int64; Always: Boolean=False);
   public
     constructor Create(ABuddy: IBuddy);
     // create for sending
@@ -88,8 +90,8 @@ type
     procedure OnProgressReceiving; virtual; abstract;
     procedure OnCancelReceiving; virtual; abstract;
     procedure OnCompleteReceiving; virtual; abstract;
-    procedure ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
-    procedure ReceivedBrokenChunk;
+    procedure ReceivedFileChunk(StartByte: Int64; FileChunk: String);
+    procedure ReceivedBrokenChunk(StartByte: Int64);
     procedure ReceivedOk(StartByte: Int64);
     procedure ReceivedError(StartByte: Int64);
     procedure ReceivedCancel;
@@ -105,8 +107,22 @@ uses
   tc_prot_file_stop_receiving,
   tc_misc;
 
+const
+  NO_ERROR = -1;
 
 { TFileTransfer }
+
+procedure TFileTransfer.SendErrorMessage(Position: Int64; Always: Boolean);
+var
+  Msg: IProtocolMessage;
+begin
+  // send errors for the same position only once
+  if Always or (Position <> FPosLastError) then begin;
+    Msg := TMsgFileDataError.Create(Buddy, ID, Position);
+    Msg.Send;
+    FPosLastError := Position;
+  end;
+end;
 
 constructor TFileTransfer.Create(ABuddy: IBuddy);
 begin
@@ -116,8 +132,10 @@ begin
   FHasStarted := False;
   FTimeLastReceive := Now;
   FComplete := False;
+  FPosLastError := NO_ERROR;
 end;
 
+{ sending constructor }
 constructor TFileTransfer.Create(ABuddy: IBuddy; AFileName: String);
 var
   GUID: TGuid;
@@ -131,7 +149,7 @@ begin
   FTransferID := GUIDToString(GUID);
   FBlockSize := FILE_TRANSFER_BLOCK_SIZE;
   try
-    FFileStream := TFileStream.Create(FFileName, fmOpenRead);
+    FFileStream := TFileStream.Create(FFileName, fmOpenRead or fmShareDenyNone);
     FPosSendNext := 0;
     FPosConfirmed := -FBlockSize;
     FFileSize := FFileStream.Size;
@@ -140,6 +158,7 @@ begin
   end;
 end;
 
+{ receiving constructor }
 constructor TFileTransfer.Create(ABuddy: IBuddy; AFileName: String; ATransferID: String; AFileSize: Int64; ABlockSize: Integer);
 begin
   Create(ABuddy);
@@ -234,7 +253,7 @@ begin
   if FIsSender then begin
     if not Assigned(FFileStream) then
       exit;
-    if TimeSince(FTimeLastReceive) > 60 then begin
+    if TimeSince(FTimeLastReceive) > FILE_TRANSFER_SECONDS_WAIT then begin
       WriteLn(_F('W transfer to %s: long time without ack, resetting to last confirmed position',
         [FBuddy.ID]));
       FPosSendNext := FPosConfirmed + FBlockSize;
@@ -267,6 +286,13 @@ begin
     Inc(FPosSendNext, FBlockSize);
     if FPosSendNext >= FFileSize then
       FPosSendNext := FFileSize;
+  end
+  else begin
+    if TimeSince(FTimeLastReceive) > FILE_TRANSFER_SECONDS_WAIT then begin
+      WriteLn('long time without receiving file chunks, sending error message.');
+      FTimeLastReceive := Now;
+      SendErrorMessage(FPosReceiveNext, True);
+    end;
   end;
 end;
 
@@ -287,21 +313,28 @@ begin
   if Assigned(F) then F.Free;
 end;
 
-procedure TFileTransfer.ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
+procedure TFileTransfer.ReceivedFileChunk(StartByte: Int64; FileChunk: String);
 var
   Msg: IProtocolMessage;
 begin
   FTimeLastReceive := Now;
+  if FPosLastError <> NO_ERROR then
+    if StartByte <> FPosLastError then
+      exit // ignore this, still waiting for chunk at FPosLastError;
+    else
+      FPosLastError := NO_ERROR;
 
-  if FComplete or (StartByte >= FFileSize) then begin
+  if (StartByte >= FFileSize) then begin
+    WriteLn(_f('W received chunk with startbyte %d but total size is only %d',
+      [StartByte, FileSize]));
     Msg := TMsgFileStopSending.Create(Buddy, ID);
     Msg.Send;
     exit;
   end;
 
   if StartByte > FPosReceiveNext then begin
-    Msg := TMsgFileDataError.Create(Buddy, ID, FPosReceiveNext);
-    Msg.Send;
+    WriteLn('W received chunk with wrong position');
+    SendErrorMessage(FPosReceiveNext);
     exit;
   end;
 
@@ -322,19 +355,21 @@ begin
   end;
 end;
 
-procedure TFileTransfer.ReceivedBrokenChunk;
-var
-  Msg: IProtocolMessage;
+procedure TFileTransfer.ReceivedBrokenChunk(StartByte: Int64);
 begin
   FTimeLastReceive := Now;
-  Msg := TMsgFileDataError.Create(Buddy, ID, FPosReceiveNext);
-  Msg.Send;
+  if FPosLastError <> NO_ERROR then
+    if StartByte <> FPosLastError then
+      exit; // ignore this, still waiting for chunk at FPosLastError;
+
+  SendErrorMessage(FPosReceiveNext, True);
 end;
 
 procedure TFileTransfer.ReceivedOk(StartByte: Int64);
 begin
   FPosConfirmed := StartByte;
   FTimeLastReceive := Now;
+
   if not FHasStarted then begin
     OnStartSending;
     FHasStarted := True;

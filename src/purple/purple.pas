@@ -492,6 +492,7 @@ procedure purple_xfer_cancel_remote(xfer: PPurpleXfer); external LIBPURPLE;
 procedure purple_xfer_end(xfer: PPurpleXfer); external LIBPURPLE;
 function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; external LIBPURPLE;
 procedure purple_xfer_request(xfer: PPurpleXfer); external LIBPURPLE;
+procedure purple_xfer_request_accepted(xfer: PPurpleXfer; filename: PChar); external LIBPURPLE;
 procedure purple_xfer_set_ack_fnc(xfer: PPurpleXfer; fnc: PXferAckCb); external LIBPURPLE;
 procedure purple_xfer_set_bytes_sent(xfer: PPurpleXfer; bytes_sent: csize_t); external LIBPURPLE;
 procedure purple_xfer_set_cancel_send_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;

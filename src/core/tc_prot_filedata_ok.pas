@@ -94,7 +94,7 @@ begin
     if Assigned(Transfer) then
       Transfer.ReceivedOk(FStartByte)
     else
-      WriteLn('E received "filedata_ok" that does not belong to any running transfer');
+      WriteLn('E received "filedata_ok" that does not belong to any running transfer, ignoring.');
   end
   else
     LogWarningAndIgnore();

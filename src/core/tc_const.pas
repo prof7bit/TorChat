@@ -18,7 +18,8 @@ const
   SECONDS_FIRST_CONNECT = 5;     // first connect after TBuddy.Create
 
   FILE_TRANSFER_BLOCK_SIZE = 8192;
-  FILE_TRANSFER_BLOCKS_WAIT = 16;
+  FILE_TRANSFER_BLOCKS_WAIT = 8;
+  FILE_TRANSFER_SECONDS_WAIT = 120;
 
 
 implementation

@@ -114,7 +114,7 @@ begin
       if FCheckSumOK then
         Transfer.ReceivedFileChunk(FStartByte, FFileChunk)
       else
-        Transfer.ReceivedBrokenChunk;
+        Transfer.ReceivedBrokenChunk(FStartByte);
     end
     else begin
       WriteLn('E received file data that does not belong to any running transfer');

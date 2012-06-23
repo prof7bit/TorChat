@@ -706,17 +706,13 @@ var
   xfer: PPurpleXfer;
 begin
   Writeln(_F('send_file(%s, %s)', [who, filename]));
-  if not Assigned(filename) then begin
-    xfer := purple_xfer_new(gc^.account, PURPLE_XFER_SEND, who);
-    purple_xfer_set_init_fnc(xfer, @torchat_xfer_send_init);
-    purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_send_cancel);
-    purple_xfer_request(xfer); // this will trigger the "file open" dialog
-    // all the rest will now happen with the above callback functions.
-  end
-  else begin
-    WriteLn('W send_file() we have a file name already, this is not yet implemeted');
-    {$warning implement file sending via drag/drop}
-  end;
+  xfer := purple_xfer_new(gc^.account, PURPLE_XFER_SEND, who);
+  purple_xfer_set_init_fnc(xfer, @torchat_xfer_send_init);
+  purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_send_cancel);
+  if not Assigned(filename) then
+    purple_xfer_request(xfer) // this will trigger the "file open" dialog
+  else
+    purple_xfer_request_accepted(xfer, filename);
 end;
 
 (********************************************************************
@@ -728,12 +724,14 @@ end;
 { The first packet was successfully sent, sending has started }
 procedure TTransfer.OnStartSending;
 begin
+  WriteLn('OnStartSending()');
   purple_xfer_start(xfer, -1, nil, 0);
 end;
 
 { Each time we receive a filedata_ok we update the progress bar }
 procedure TTransfer.OnProgressSending;
 begin
+  WriteLn('OnProgressSending()');
   purple_xfer_set_bytes_sent(xfer, BytesCompleted);
   purple_xfer_update_progress(xfer);
 end;

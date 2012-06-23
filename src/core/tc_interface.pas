@@ -216,6 +216,8 @@ type
     procedure Clear;
   end;
 
+  { IFileTransfer }
+
   IFileTransfer = interface
     function ID: String;
     function Client: IClient;
@@ -228,8 +230,8 @@ type
     procedure SetGuiID(AGuiID: Pointer);
     procedure CheckState;
     procedure MoveReceivedFile(DestName: String);
-    procedure ReceivedFileChunk(StartByte: UInt64; FileChunk: String);
-    procedure ReceivedBrokenChunk;
+    procedure ReceivedFileChunk(StartByte: Int64; FileChunk: String);
+    procedure ReceivedBrokenChunk(StartByte: Int64);
     procedure ReceivedOk(StartByte: Int64);
     procedure ReceivedError(StartByte: Int64);
     procedure ReceivedCancel;
