@@ -214,6 +214,20 @@ begin
   Result := 11109;
 end;
 
+function TryThesePaths(List: array of String): String;
+begin
+  For Result in List do begin
+    WriteLn('Trying path: ', Result);
+    if FileExists(Result) then begin
+      WriteLn('found: ', Result);
+      Exit;
+    end;
+  end;
+  WriteLn('W none of the tested paths existed');
+  Result := '';
+end;
+
+
 function DefaultPathTorExe: String;
 {$ifdef windows}
 var
@@ -221,10 +235,21 @@ var
 {$endif}
 begin
   {$ifdef windows}
-    SHGetSpecialFolderPath(0, ProgramsPath, CSIDL_PROGRAM_FILES, false);
-    Result := ConcatPaths([ProgramsPath, 'Tor', 'tor.exe']);
+  SHGetSpecialFolderPath(0, ProgramsPath, CSIDL_PROGRAM_FILES, false);
+  Result := TryThesePaths([
+    ConcatPaths([ProgramsPath, 'Tor', 'tor.exe']),
+    ConcatPaths([ProgramsPath, 'Vidalia Bundle', 'Tor', 'tor.exe']),
+    ConcatPaths([ProgramsPath, 'Vidalia Relay Bundle', 'Tor', 'tor.exe'])
+  ]);
   {$else}
-    Result := '/usr/sbin/tor';
+  Result := TryThesePaths(
+    '/usr/local/sbin/tor',
+    '/usr/local/bin/tor',
+    '/usr/sbin/tor',
+    '/usr/bin/tor',
+    '/sbin/tor',
+    '/bin/tor'
+  );
   {$endif}
 end;
 
