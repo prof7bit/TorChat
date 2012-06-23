@@ -242,14 +242,14 @@ begin
     ConcatPaths([ProgramsPath, 'Vidalia Relay Bundle', 'Tor', 'tor.exe'])
   ]);
   {$else}
-  Result := TryThesePaths(
+  Result := TryThesePaths([
     '/usr/local/sbin/tor',
     '/usr/local/bin/tor',
     '/usr/sbin/tor',
     '/usr/bin/tor',
     '/sbin/tor',
     '/bin/tor'
-  );
+  ]);
   {$endif}
 end;
 

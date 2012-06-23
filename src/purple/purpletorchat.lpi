@@ -107,6 +107,7 @@
               <ShowHintsForUnusedUnitsInMainSrc Value="True"/>
             </Verbosity>
             <CompilerMessages>
+              <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
             <CustomOptions Value="-fPIC"/>
@@ -147,6 +148,7 @@
               <ShowHintsForUnusedUnitsInMainSrc Value="True"/>
             </Verbosity>
             <CompilerMessages>
+              <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
             <CustomOptions Value="-fPIC
@@ -436,6 +438,7 @@
         <ShowHintsForUnusedUnitsInMainSrc Value="True"/>
       </Verbosity>
       <CompilerMessages>
+        <IgnoredMessages idx5024="True"/>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
       <CustomOptions Value="-fPIC"/>

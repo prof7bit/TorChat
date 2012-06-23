@@ -639,17 +639,6 @@ begin
   end;
 end;
 
-{ registered during torchat_send_file() }
-procedure torchat_xfer_send_end(xfer: PPurpleXfer); cdecl;
-begin
-  WriteLn('**** torchat_xfer_send_end()');
-end;
-
-procedure torchat_xfer_receive_ack(xfer: PPurpleXfer; filename: PChar; whatever: csize_t); cdecl;
-begin
-  WriteLn('**** torchat_xfer_receive_ack() ', filename, ' ', whatever);
-end;
-
 { the local user has denied receiving this file }
 procedure torchat_xfer_receive_denied(xfer: PPurpleXfer); cdecl;
 var
@@ -689,15 +678,10 @@ var
   TorChat: IClient;
   Transfer: IFileTransfer;
 begin
-  WriteLn('**** torchat_xfer_receive_cancel()');
+  WriteLn('torchat_xfer_receive_cancel()');
   TorChat := Clients.Find(purple_xfer_get_account(xfer));
   Transfer := TorChat.FindFileTransfer(xfer);
   TorChat.RemoveFileTransfer(Transfer);
-end;
-
-procedure torchat_xfer_receive_end(xfer: PPurpleXfer); cdecl;
-begin
-  WriteLn('**** torchat_xfer_receive_end()');
 end;
 
 { This function is called when the user clicks on the "Send File..."
@@ -714,7 +698,6 @@ begin
     xfer := purple_xfer_new(gc^.account, PURPLE_XFER_SEND, who);
     purple_xfer_set_init_fnc(xfer, @torchat_xfer_send_init);
     purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_send_cancel);
-    purple_xfer_set_end_fnc(xfer, @torchat_xfer_send_end);
     purple_xfer_request(xfer); // this will trigger the "file open" dialog
     // all the rest will now happen with the above callback functions.
   end
@@ -1046,8 +1029,6 @@ begin
   purple_xfer_set_filename(xfer, PChar(AFileName));
   purple_xfer_set_init_fnc(xfer, @torchat_xfer_receive_init);
   purple_xfer_set_cancel_recv_fnc(xfer, @torchat_xfer_receive_cancel);
-  purple_xfer_set_end_fnc(xfer, @torchat_xfer_receive_end);
-  purple_xfer_set_ack_fnc(xfer, @torchat_xfer_receive_ack);
   purple_xfer_set_request_denied_fnc(xfer, @torchat_xfer_receive_denied);
   purple_xfer_request(xfer);
   Transfer := TTransfer.Create(ABuddy, AFileName, AID, AFileSize, ABlockSize);
