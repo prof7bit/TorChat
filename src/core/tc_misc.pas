@@ -314,7 +314,9 @@ const
 var
   I,S : Integer;
   B : PByte;
+  TempName: String;
 begin
+  TempName := FFileStream.FileName;
   B := GetMem(BLOCK);
   FillByte(B[0], BLOCK, 0);
   S := FFileStream.Size div BLOCK;
@@ -325,9 +327,9 @@ begin
   {$else}
   fpfsync(FFileStream.Handle);
   {$endif}
-  DeleteFile(FFileStream.FileName);
   FFileStream.Free;
   FreeMem(B);
+  DeleteFile(TempName);
 end;
 
 end.
