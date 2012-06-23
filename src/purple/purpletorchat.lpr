@@ -664,16 +664,19 @@ procedure torchat_xfer_receive_init(xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
+  DestFileName: String;
 begin
   WriteLn('torchat_xfer_receive_init()');
   purple_xfer_start(xfer, -1, nil, 0);
   TorChat := Clients.Find(purple_xfer_get_account(xfer));
   Transfer := TorChat.FindFileTransfer(xfer);
   if Transfer.IsComplete then begin
+    DestFileName := purple_xfer_get_local_filename(xfer);
     purple_xfer_set_bytes_sent(xfer, Transfer.FileSize);
     purple_xfer_update_progress(xfer);
     purple_xfer_set_completed(xfer, True);
-    Transfer.MoveReceivedFile(purple_xfer_get_local_filename(xfer));
+    purple_xfer_end(xfer);
+    Transfer.MoveReceivedFile(DestFileName);
     TorChat.RemoveFileTransfer(Transfer);
   end
   else begin
@@ -784,12 +787,16 @@ end;
   it then we do nothing and just leave it hanging around, one
   of the callbacks for accept or deny will then do the rest. }
 procedure TTransfer.OnCompleteReceiving;
+var
+  DestFileName: String;
 begin
   if purple_xfer_get_status(xfer) = PURPLE_XFER_STATUS_STARTED then begin
+    DestFileName := purple_xfer_get_local_filename(xfer);
     purple_xfer_set_bytes_sent(xfer, FileSize);
     purple_xfer_update_progress(xfer);
     purple_xfer_set_completed(xfer, True);
-    MoveReceivedFile(purple_xfer_get_local_filename(xfer));
+    purple_xfer_end(xfer);
+    MoveReceivedFile(DestFileName);
     Client.RemoveFileTransfer(Self); // will free transfer and delete temp file
   end
   else begin // completely received but still waiting for the user to accept
