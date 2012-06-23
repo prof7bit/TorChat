@@ -52,6 +52,7 @@ implementation
 uses
   sysutils,
   tc_misc,
+  tc_prot_file_stop_sending,
   md5;
 
 function CheckSum(Data: String): String;
@@ -104,6 +105,7 @@ procedure TMsgFileData.Execute;
 var
   Buddy: IBuddy;
   Transfer: IFileTransfer;
+  Msg: IProtocolMessage;
 begin
   Buddy := FConnection.Buddy;
   if Assigned(Buddy) then begin
@@ -116,7 +118,8 @@ begin
     end
     else begin
       WriteLn('E received file data that does not belong to any running transfer');
-      {$note reply with a "file_stop_sending" message nere (once this is implemented)}
+      Msg := TMsgFileStopSending.Create(Buddy, FTransferID);
+      Msg.Send;
     end;
   end
   else
