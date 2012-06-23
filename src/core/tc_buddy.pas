@@ -306,11 +306,7 @@ end;
 procedure TBuddy.InitFromJsonObect(AObject: TJSONObject);
 begin
   // this field is mandatory, failing will raise exception
-  try
-    FID := AObject.Strings['ID'];
-  except
-    FID := AObject.Strings['id']; {$note deprecated, remove this}
-  end;
+  FID := AObject.Strings['ID'];
 
   if not CanUseThisName(FID) then begin
     WriteLn('E cannot use this ID: ' + FID);
@@ -321,11 +317,7 @@ begin
   // they will be tried in excatly this order from oldest fields
   // first to newest last and failing at any point will be ignored
   try
-    try
-      FLocalAlias := AObject.Strings['Alias'];
-    except
-      FLocalAlias := AObject.Strings['alias']; {$note deprecated, remove this}
-    end;
+    FLocalAlias := AObject.Strings['Alias'];
   except
     // ignore from here on
   end;
