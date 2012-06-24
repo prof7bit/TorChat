@@ -57,6 +57,13 @@ type
     time_t = DWord;
   {$endif}
 
+  { TWrapper }
+
+  TWrapper = class
+    constructor Create;
+    procedure Free;
+  end;
+
 {$define purple_interface}
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
@@ -410,6 +417,8 @@ var
   plugin_protocol_info: TPurplePluginProtocolInfo;
 
 implementation
+uses
+  sysutils;
 
 function _PChar(S: String): PChar; inline;
 begin
@@ -418,6 +427,19 @@ begin
   else
     Result := PChar(S);
 end;
+
+{ TWrapper }
+
+constructor TWrapper.Create;
+begin
+  raise Exception.Create('you cannot create this wrapper object yourself: ' + Self.ToString);
+end;
+
+procedure TWrapper.Free;
+begin
+  raise Exception.Create('you cannot free this wrapper object yourself: ' + Self.ToString);
+end;
+
 
 {$define purple_implementation}
 {$include purple_inc_connection.pas}

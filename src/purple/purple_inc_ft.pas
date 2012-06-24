@@ -23,9 +23,9 @@ type
 
   { TPurpleXfer }
 
-  TPurpleXfer = class
+  TPurpleXfer = class(TWrapper)
     class function Create(Account: TPurpleAccount; Typ: TPurpleXferType; Who: String): TPurpleXfer;
-    procedure Free; // will close and free everything
+    procedure Free; // will call purple_xfer_end()
     procedure CancelRemote;
     procedure Request;
     procedure RequestAccepted(FileName: String);

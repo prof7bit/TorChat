@@ -1,7 +1,7 @@
 {$ifdef purple_interface}
 type
   { TPurpleAccount }
-  TPurpleAccount = class
+  TPurpleAccount = class(TWrapper)
     function GetString(Name, DefaultValue: String): String;
     function GetUsername: String;
     function GetConnection: TPurpleConnection;

@@ -12,7 +12,7 @@ type
 
   { TPurpleConnection }
 
-  TPurpleConnection = class
+  TPurpleConnection = class(TWrapper)
     function GetAccount: TPurpleAccount;
     procedure SetState(State: TPurpleConnectionState);
   end;

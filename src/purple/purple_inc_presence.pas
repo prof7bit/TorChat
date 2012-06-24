@@ -4,7 +4,7 @@ type
 
   { TPurplePresence }
 
-  TPurplePresence = class
+  TPurplePresence = class(TWrapper)
     function GetActiveStatus: PPurpleStatus;
     procedure SwitchStatus(StatusID: String);
   end;

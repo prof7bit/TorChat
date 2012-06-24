@@ -7,7 +7,7 @@ type
 
   { TPurpleBuddy }
 
-  TPurpleBuddy = class
+  TPurpleBuddy = class(TWrapper)
     class function Create(Acc: TPurpleAccount; AName, AAlias: String): TPurpleBuddy;
     class function Find(Acc: TPurpleAccount; AName: String): TPurpleBuddy;
     function GetAccount: TPurpleAccount;
@@ -21,7 +21,7 @@ type
 
   { TPurpleGroup }
 
-  TPurpleGroup = class
+  TPurpleGroup = class(TWrapper)
     class function Create(AName: String): TPurpleGroup;
     class function Find(AName: String): TPurpleGroup;
     procedure Add(Node: PPurpleBlistNode);
