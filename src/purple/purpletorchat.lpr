@@ -628,7 +628,7 @@ begin
     Xfer.SetBytesSent(Transfer.FileSize);
     Xfer.UpdateProgress;
     Xfer.SetCompleted(True);
-    Xfer.EndTransfer;
+    Xfer.Free;
     Transfer.MoveReceivedFile(DestFileName);
     TorChat.RemoveFileTransfer(Transfer);
   end
@@ -703,7 +703,7 @@ begin
   Xfer.SetBytesSent(BytesCompleted);
   Xfer.SetCompleted(True);
   Xfer.UpdateProgress;
-  Xfer.EndTransfer;
+  Xfer.Free;
   Client.RemoveFileTransfer(Self);
 end;
 
@@ -747,7 +747,7 @@ begin
     Xfer.SetBytesSent(FileSize);
     Xfer.UpdateProgress;
     Xfer.SetCompleted(True);
-    Xfer.EndTransfer;
+    Xfer.Free;
     MoveReceivedFile(DestFileName);
     Client.RemoveFileTransfer(Self); // will free transfer and delete temp file
   end

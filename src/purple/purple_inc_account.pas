@@ -20,7 +20,7 @@ function purple_account_get_username(account: TPurpleAccount): PChar; cdecl; ext
 
 function TPurpleAccount.GetString(Name, DefaultValue: String): String;
 begin
-  Result := purple_account_get_string(Self, PChar(Name), PChar(DefaultValue));
+  Result := purple_account_get_string(Self, _PChar(Name), _PChar(DefaultValue));
 end;
 
 function TPurpleAccount.GetUsername: String;

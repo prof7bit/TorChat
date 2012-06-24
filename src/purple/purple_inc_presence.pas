@@ -24,7 +24,7 @@ end;
 
 procedure TPurplePresence.SwitchStatus(StatusID: String);
 begin
-  purple_presence_switch_status(Self, PChar(StatusID));
+  purple_presence_switch_status(Self, _PChar(StatusID));
 end;
 
 {$endif}

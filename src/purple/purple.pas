@@ -411,6 +411,14 @@ var
 
 implementation
 
+function _PChar(S: String): PChar; inline;
+begin
+  if Length(S) = 0 then
+    Result := nil
+  else
+    Result := PChar(S);
+end;
+
 {$define purple_implementation}
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}

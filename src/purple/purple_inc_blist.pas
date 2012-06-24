@@ -9,7 +9,7 @@ type
 
   TPurpleBuddy = class
     class function Create(Acc: TPurpleAccount; AName, AAlias: String): TPurpleBuddy;
-    class function Find(AAccount: TPurpleAccount; AName: String): TPurpleBuddy;
+    class function Find(Acc: TPurpleAccount; AName: String): TPurpleBuddy;
     function GetAccount: TPurpleAccount;
     function GetAliasOnly: String;
     function GetName: String;
@@ -50,12 +50,12 @@ procedure purple_blist_add_group(group: TPurpleGroup; node: PPurpleBlistNode); c
 
 class function TPurpleBuddy.Create(Acc: TPurpleAccount; AName, AAlias: String): TPurpleBuddy;
 begin
-  Result := purple_buddy_new(Acc, PChar(AName), PChar(AAlias));
+  Result := purple_buddy_new(Acc, _PChar(AName), _PChar(AAlias));
 end;
 
-class function TPurpleBuddy.Find(AAccount: TPurpleAccount; AName: String): TPurpleBuddy;
+class function TPurpleBuddy.Find(Acc: TPurpleAccount; AName: String): TPurpleBuddy;
 begin
-  Result := purple_find_buddy(AAccount, PChar(AName));
+  Result := purple_find_buddy(Acc, _PChar(AName));
 end;
 
 function TPurpleBuddy.GetAccount: TPurpleAccount;
@@ -80,7 +80,7 @@ end;
 
 procedure TPurpleBuddy.SetAlias(AAlias: String);
 begin
-  purple_blist_alias_buddy(Self, PChar(AAlias));
+  purple_blist_alias_buddy(Self, _PChar(AAlias));
 end;
 
 procedure TPurpleBuddy.Remove;
@@ -96,12 +96,12 @@ end;
 
 class function TPurpleGroup.Create(AName: String): TPurpleGroup;
 begin
-  Result := purple_group_new(PChar(AName));
+  Result := purple_group_new(_PChar(AName));
 end;
 
 class function TPurpleGroup.Find(AName: String): TPurpleGroup;
 begin
-  Result := purple_find_group(PChar(AName));
+  Result := purple_find_group(_PChar(AName));
 end;
 
 procedure TPurpleGroup.Add(Node: PPurpleBlistNode);

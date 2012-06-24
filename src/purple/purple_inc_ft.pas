@@ -25,7 +25,7 @@ type
 
   TPurpleXfer = class
     class function Create(Account: TPurpleAccount; Typ: TPurpleXferType; Who: String): TPurpleXfer;
-    procedure EndTransfer; // will close and free everything
+    procedure Free; // will close and free everything
     procedure CancelRemote;
     procedure Request;
     procedure RequestAccepted(FileName: String);
@@ -78,10 +78,10 @@ function purple_xfer_get_status(xfer: TPurpleXfer): TPurpleXferStatusType; cdecl
 
 class function TPurpleXfer.Create(Account: TPurpleAccount; Typ: TPurpleXferType; Who: String): TPurpleXfer;
 begin
-  Result := purple_xfer_new(Account, Typ, PChar(Who));
+  Result := purple_xfer_new(Account, Typ, _PChar(Who));
 end;
 
-procedure TPurpleXfer.EndTransfer;
+procedure TPurpleXfer.Free;
 begin
   purple_xfer_end(Self);
 end;
@@ -98,7 +98,7 @@ end;
 
 procedure TPurpleXfer.RequestAccepted(FileName: String);
 begin
-  purple_xfer_request_accepted(Self, PChar(FileName));
+  purple_xfer_request_accepted(Self, _PChar(FileName));
 end;
 
 procedure TPurpleXfer.SetAckFnc(Fnc: PXferAckCb);
@@ -128,7 +128,7 @@ end;
 
 procedure TPurpleXfer.SetFileName(FileName: String);
 begin
-  purple_xfer_set_filename(Self, PChar(FileName));
+  purple_xfer_set_filename(Self, _PChar(FileName));
 end;
 
 procedure TPurpleXfer.SetInitFnc(Fnc: PXferCb);
@@ -138,7 +138,7 @@ end;
 
 procedure TPurpleXfer.Start(fd: cint; ip: String; port: cuint);
 begin
-  purple_xfer_start(Self, fd, PChar(ip), port);
+  purple_xfer_start(Self, fd, _PChar(ip), port);
 end;
 
 procedure TPurpleXfer.SetRequestDeniedFnc(Fnc: PXferCb);
