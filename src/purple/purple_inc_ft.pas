@@ -1,15 +1,4 @@
-unit purple_ft;
-
-{$mode objfpc}{$H+}
-
-interface
-
-uses
-  purple_common,
-  purple_account,
-  ctypes,
-  glib2;
-
+{$ifdef purple_interface}
 type
   TPurpleXfer = class;
 
@@ -58,35 +47,32 @@ type
     function GetStatus: TPurpleXferStatusType;
   end;
 
+{$endif}
+{$ifdef purple_implementation}
 
-implementation
-
-{$calling cdecl}
-function  purple_xfer_new(account: TPurpleAccount; type_: TPurpleXferType; who: PChar): TPurpleXfer; external LIBPURPLE;
-procedure purple_xfer_end(xfer: TPurpleXfer); external LIBPURPLE;
-procedure purple_xfer_cancel_remote(xfer: TPurpleXfer); external LIBPURPLE;
-procedure purple_xfer_request(xfer: TPurpleXfer); external LIBPURPLE;
-procedure purple_xfer_request_accepted(xfer: TPurpleXfer; filename: PChar); external LIBPURPLE;
-procedure purple_xfer_set_ack_fnc(xfer: TPurpleXfer; fnc: PXferAckCb); external LIBPURPLE;
-procedure purple_xfer_set_bytes_sent(xfer: TPurpleXfer; bytes_sent: csize_t); external LIBPURPLE;
-procedure purple_xfer_set_cancel_send_fnc(xfer: TPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-procedure purple_xfer_set_cancel_recv_fnc(xfer: TPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-procedure purple_xfer_set_completed(xfer: TPurpleXfer; completed: gboolean); external LIBPURPLE;
-procedure purple_xfer_set_end_fnc(xfer: TPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-procedure purple_xfer_set_filename(xfer: TPurpleXfer; filename: PChar); external LIBPURPLE;
-procedure purple_xfer_set_init_fnc(xfer: TPurpleXfer; fnc: PXferCb); external LIBPURPLE;
+function  purple_xfer_new(account: TPurpleAccount; type_: TPurpleXferType; who: PChar): TPurpleXfer; cdecl; external LIBPURPLE;
+procedure purple_xfer_end(xfer: TPurpleXfer); cdecl; external LIBPURPLE;
+procedure purple_xfer_cancel_remote(xfer: TPurpleXfer); cdecl; external LIBPURPLE;
+procedure purple_xfer_request(xfer: TPurpleXfer); cdecl; external LIBPURPLE;
+procedure purple_xfer_request_accepted(xfer: TPurpleXfer; filename: PChar); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_ack_fnc(xfer: TPurpleXfer; fnc: PXferAckCb); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_bytes_sent(xfer: TPurpleXfer; bytes_sent: csize_t); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_cancel_send_fnc(xfer: TPurpleXfer; fnc: PXferCb); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_cancel_recv_fnc(xfer: TPurpleXfer; fnc: PXferCb); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_completed(xfer: TPurpleXfer; completed: gboolean); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_end_fnc(xfer: TPurpleXfer; fnc: PXferCb); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_filename(xfer: TPurpleXfer; filename: PChar); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_init_fnc(xfer: TPurpleXfer; fnc: PXferCb); cdecl; external LIBPURPLE;
 procedure purple_xfer_start(xfer: TPurpleXfer; fd: cint; ip: PChar;
-  port: cuint); external LIBPURPLE;
-procedure purple_xfer_set_request_denied_fnc(xfer: TPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-procedure purple_xfer_set_size(xfer: TPurpleXfer; size: csize_t); external LIBPURPLE;
-procedure purple_xfer_update_progress(xfer: TPurpleXfer); external LIBPURPLE;
-
-function  purple_xfer_get_account(xfer: TPurpleXfer): TPurpleAccount; external LIBPURPLE;
-function  purple_xfer_get_filename(xfer: TPurpleXfer): PChar; external LIBPURPLE;
-function  purple_xfer_get_local_filename(xfer: TPurpleXfer): PChar; external LIBPURPLE;
-function  purple_xfer_get_remote_user(xfer: TPurpleXfer): PChar; external LIBPURPLE;
-function purple_xfer_get_status(xfer: TPurpleXfer): TPurpleXferStatusType; external LIBPURPLE;
-{$calling default}
+  port: cuint); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_request_denied_fnc(xfer: TPurpleXfer; fnc: PXferCb); cdecl; external LIBPURPLE;
+procedure purple_xfer_set_size(xfer: TPurpleXfer; size: csize_t); cdecl; external LIBPURPLE;
+procedure purple_xfer_update_progress(xfer: TPurpleXfer); cdecl; external LIBPURPLE;
+function  purple_xfer_get_account(xfer: TPurpleXfer): TPurpleAccount; cdecl; external LIBPURPLE;
+function  purple_xfer_get_filename(xfer: TPurpleXfer): PChar; cdecl; external LIBPURPLE;
+function  purple_xfer_get_local_filename(xfer: TPurpleXfer): PChar; cdecl; external LIBPURPLE;
+function  purple_xfer_get_remote_user(xfer: TPurpleXfer): PChar; cdecl; external LIBPURPLE;
+function purple_xfer_get_status(xfer: TPurpleXfer): TPurpleXferStatusType; cdecl; external LIBPURPLE;
 
 { TPurpleXfer }
 
@@ -195,6 +181,4 @@ begin
   Result := purple_xfer_get_status(Self);
 end;
 
-
-end.
-
+{$endif}

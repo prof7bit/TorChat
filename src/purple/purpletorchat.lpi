@@ -57,7 +57,7 @@
               <UseMsgFile Value="True"/>
             </CompilerMessages>
             <CustomOptions Value="-fPIC
--d_DebugToConsole 
+-dDebugToConsole 
 -dDebugToFile
 -dUseHeapTrc
 -dWithFileTransfer"/>
@@ -221,7 +221,7 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <Units Count="38">
+    <Units Count="36">
       <Unit0>
         <Filename Value="../core/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
@@ -402,16 +402,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="purple_ft"/>
       </Unit35>
-      <Unit36>
-        <Filename Value="purple_common.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="purple_common"/>
-      </Unit36>
-      <Unit37>
-        <Filename Value="purple_account.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="purple_account"/>
-      </Unit37>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

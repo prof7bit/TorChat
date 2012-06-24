@@ -84,7 +84,6 @@ uses
   contnrs,
   ctypes,
   glib2,
-  purple_ft,
   purple,
   purplehelper,
   tc_interface,
@@ -109,10 +108,10 @@ type
     methods know how to speak with libpurple }
   TTorChat = class(TTorChatClient)
   public
-    purple_account: PPurpleAccount;
+    PurpleAccount: TPurpleAccount;
     purple_timer: Integer;
     constructor Create(AOwner: TComponent; AProfileName: String;
-      account: PPurpleAccount); reintroduce;
+      Account: TPurpleAccount); reintroduce;
     procedure OnNeedPump; override;
     procedure OnGotOwnID; override;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
@@ -127,7 +126,7 @@ type
     methods know how to speak with libpuple }
   TTransfer = class(TFileTransfer)
   public
-    xfer: PPurpleXfer;
+    Xfer: TPurpleXfer;
     procedure OnStartSending; override;
     procedure OnProgressSending; override;
     procedure OnCancelSending; override;
@@ -141,7 +140,6 @@ type
   { TClients holds a list of clients since we can have
     multiple "accounts" in pidgin at the same time }
   TClients = class(TFPHashObjectList)
-    function Find(Account: PPurpleAccount): TTorChat;
     function Find(Account: TPurpleAccount): TTorChat;
   end;
 
@@ -232,14 +230,14 @@ end;
 { this is called when the user clicks ok in th the "set user info..."
   dialog box, this callback was registered in torchat_set_user_info()
   It will red the fields and set the data in TorChat. We will pass the
-  account handle as user_data}
+  Account handle as user_data}
 procedure torchat_set_user_info_ok(user_data: Pointer; fields: PPurpleRequestFields); cdecl;
 var
   TorChat: IClient;
   ProfileName: String;
   ProfileText: String;
 begin
-  TorChat := Clients.Find(user_data); // user_data = account
+  TorChat := Clients.Find(TPurpleAccount(user_data)); // user_data = Account
   if Assigned(TorChat) then begin
     ProfileName := purple_request_fields_get_string(fields, 'name');
     ProfileText := purple_request_fields_get_string(fields, 'text');
@@ -255,13 +253,13 @@ procedure torchat_set_user_info(act: PPurplePluginAction); cdecl;
 var
   fields: PPurpleRequestFields;
   group: PPurpleRequestFieldGroup;
-  gc : PPurpleConnection;
-  account: PPurpleAccount;
+  gc : TPurpleConnection;
+  Account: TPurpleAccount;
   TorChat: IClient;
 begin
-  gc := PPurpleConnection(act^.context);
-  account := gc^.account;
-  TorChat := Clients.Find(account);
+  gc := TPurpleConnection(act^.context);
+  Account := gc.GetAccount;
+  TorChat := Clients.Find(Account);
   if Assigned(TorChat) then begin
     fields := purple_request_fields_new;
     group := purple_request_field_group_new(
@@ -297,10 +295,10 @@ begin
       @torchat_set_user_info_ok,
       'cancel',
       nil,
-      account,
+      Account,
       nil,
       nil,
-      account
+      Account
     );
   end;
 end;
@@ -318,7 +316,7 @@ begin
   Result := m;
 end;
 
-function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
+function torchat_status_types(acc: TPurpleAccount): PGList; cdecl;
 begin
   // Pidgin has some strange policy regarding usable status types:
   // As soon as there are more than one protocols active it will
@@ -334,7 +332,7 @@ begin
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, nil, True, True, False));
 end;
 
-procedure torchat_set_status(acc: PPurpleAccount; status: PPurpleStatus); cdecl;
+procedure torchat_set_status(acc: TPurpleAccount; status: PPurpleStatus); cdecl;
 var
   status_prim   : TPurpleStatusPrimitive;
   TorchatStatus : TTorchatStatus;
@@ -350,7 +348,7 @@ begin
   Clients.Find(acc).SetStatus(TorchatStatus);
 end;
 
-procedure torchat_set_buddy_icon(gc: PPurpleConnection; img: PPurpleStoredImage); cdecl;
+procedure torchat_set_buddy_icon(gc: TPurpleConnection; img: PPurpleStoredImage); cdecl;
 var
   HaveImage: Boolean;
   len: PtrUInt;
@@ -369,7 +367,7 @@ var
   AllAlphaBits: Byte;
   TorChat: TTorChat;
 begin
-  TorChat := Clients.Find(gc^.account);
+  TorChat := Clients.Find(gc.GetAccount);
   if Assigned(TorChat) then begin
     len := purple_imgstore_get_size(img);
     data := purple_imgstore_get_data(img);
@@ -433,13 +431,13 @@ begin
   end;
 end;
 
-procedure torchat_add_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
+procedure torchat_add_buddy(gc: TPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
 var
   TorChat : TTorChat;
   purple_id: PChar;
   purple_alias: PChar;
 begin
-  TorChat := Clients.Find(gc^.account);
+  TorChat := Clients.Find(gc.GetAccount);
   if Assigned(TorChat) then begin
     purple_id := purple_buddy_get_name(purple_buddy);
     purple_alias := purple_buddy_get_alias_only(purple_buddy);
@@ -455,14 +453,14 @@ begin
   end;
 end;
 
-function torchat_send_im(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
+function torchat_send_im(gc: TPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
 var
   TorChat: TTorChat;
   Buddy: IBuddy;
   Msg: String;
 begin
   Msg := Html2Plain(message);
-  TorChat := Clients.Find(gc^.account);
+  TorChat := Clients.Find(gc.GetAccount);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     if Assigned(Buddy) then
@@ -475,25 +473,25 @@ begin
   end;
 end;
 
-procedure torchat_remove_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
+procedure torchat_remove_buddy(gc: TPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
 var
   TorChat: IClient;
   Buddy: IBuddy;
   purple_id: PChar;
 begin
   purple_id := purple_buddy_get_name(purple_buddy);
-  TorChat := Clients.Find(gc^.account);
+  TorChat := Clients.Find(gc.GetAccount);
   Buddy := TorChat.Roster.ByID(purple_id);
   if Assigned(Buddy) then
     Buddy.RemoveYourself;
 end;
 
-procedure torchat_alias_buddy(gc: PPurpleConnection; who, aalias: PChar); cdecl;
+procedure torchat_alias_buddy(gc: TPurpleConnection; who, aalias: PChar); cdecl;
 var
   TorChat: TTorChat;
   Buddy: IBuddy;
 begin
-  TorChat := Clients.Find(gc^.account);
+  TorChat := Clients.Find(gc.GetAccount);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     Buddy.SetLocalAlias(aalias);
@@ -541,13 +539,13 @@ begin
   end;
 end;
 
-function torchat_get_text_table(acc: PPurpleAccount): PGHashTable; cdecl;
+function torchat_get_text_table(acc: TPurpleAccount): PGHashTable; cdecl;
 begin
   Result := g_hash_table_new(@g_str_hash, @g_str_equal);
   g_hash_table_insert(Result, PChar('login_label'), PChar('profile name'));
 end;
 
-function torchat_list_icon(acc: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
+function torchat_list_icon(acc: TPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
   Result := 'torchat';
   // now it will look for torchat.png in several resolutions
@@ -558,25 +556,25 @@ begin
   // to return nil, this would break logging beyond all repair!
 end;
 
-procedure torchat_login(acc: PPurpleAccount); cdecl;
+procedure torchat_login(acc: TPurpleAccount); cdecl;
 var
   TorChat: TTorChat;
   purple_status: PPurpleStatus;
 begin
-  TorChat := TTorChat.Create(nil, acc^.username, acc);
+  TorChat := TTorChat.Create(nil, acc.GetUsername, acc);
   TorChat.purple_timer := purple_timeout_add(1000, @cb_purple_timer, TorChat);
-  Clients.Add(acc^.username, TorChat);
+  Clients.Add(acc.GetUsername, TorChat);
 
   // it won't call set_status after login, so we have to do it ourselves
-  purple_status := purple_presence_get_active_status(acc^.presence);
+  purple_status := purple_presence_get_active_status(acc.GetPresence);
   torchat_set_status(acc, purple_status);
 end;
 
-procedure torchat_close(gc: PPurpleConnection); cdecl;
+procedure torchat_close(gc: TPurpleConnection); cdecl;
 var
   TorChat: TTorChat;
 begin
-  TorChat := Clients.Find(gc^.account);
+  TorChat := Clients.Find(gc.GetAccount);
   if Assigned(TorChat) then begin
     purple_timeout_remove(TorChat.purple_timer);
     Clients.Remove(TorChat);
@@ -586,13 +584,13 @@ end;
 
 { This will be called to decide whether it should enable the menu
   item "send file" in the buddy list and in the conversation window}
-function torchat_can_receive_file(gc: PPurpleConnection; who: PChar): gboolean; cdecl;
+function torchat_can_receive_file(gc: TPurpleConnection; who: PChar): gboolean; cdecl;
 var
   TorChat: IClient;
   Buddy: IBuddy;
 begin
   Result := False;
-  TorChat := Clients.Find(gc^.account);
+  TorChat := Clients.Find(gc.GetAccount);
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     if Assigned(Buddy) then begin
@@ -602,42 +600,42 @@ begin
 end;
 
 { this and all the following torchat_xfer_*() functions are
-  registered when an xfer structure is created for a transfer.
+  registered when an Xfer structure is created for a transfer.
   This function is called after the "file open" dialog has been
   finished with OK. Here we create a new TPurpleFileTransfer
   object in TorChat which will automtically start sending
   the file and fire its OnXxxxSending() event methods as
   soon as it is created }
-procedure torchat_xfer_send_init(xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_send_init(Xfer: TPurpleXfer); cdecl;
 var
   FileName: String;
   TorChat: IClient;
   Buddy: IBuddy;
   Transfer: TTransfer;
 begin
-  TorChat := Clients.Find(PPurpleAccount(xfer.GetAccount));
+  TorChat := Clients.Find(Xfer.GetAccount);
   if Assigned(TorChat) then begin
-    FileName := xfer.GetLocalFileName;
-    Buddy := TorChat.Roster.ByID(xfer.GetRemoteUser);
+    FileName := Xfer.GetLocalFileName;
+    Buddy := TorChat.Roster.ByID(Xfer.GetRemoteUser);
     if Assigned(Buddy) then begin
       Transfer := TTransfer.Create(Buddy, FileName);
-      Transfer.xfer := xfer;
-      Transfer.SetGuiID(xfer);
+      Transfer.Xfer := Xfer;
+      Transfer.SetGuiID(Xfer);
       TorChat.AddFileTransfer(Transfer);
     end;
   end;
 end;
 
 { The local user has canceled the transfer }
-procedure torchat_xfer_send_cancel(xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_send_cancel(Xfer: TPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
 begin
   WriteLn('torchat_xfer_send_cancel()');
-  TorChat := Clients.Find(PPurpleAccount(xfer.GetAccount));
+  TorChat := Clients.Find(Xfer.GetAccount);
   if Assigned(TorChat) then begin
-    Transfer := TorChat.FindFileTransfer(xfer);
+    Transfer := TorChat.FindFileTransfer(Xfer);
     if Assigned(Transfer) then begin
       TorChat.RemoveFileTransfer(Transfer);
     end;
@@ -645,14 +643,14 @@ begin
 end;
 
 { the local user has denied receiving this file }
-procedure torchat_xfer_receive_denied(xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_receive_denied(Xfer: TPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
 begin
   WriteLn('torchat_xfer_receive_denied()');
-  TorChat := Clients.Find(xfer.GetAccount);
-  Transfer := TorChat.FindFileTransfer(xfer);
+  TorChat := Clients.Find(Xfer.GetAccount);
+  Transfer := TorChat.FindFileTransfer(Xfer);
   // The following call will free the transfer object.
   // In its destructor it will properly cancel the transfer
   // (which is already running in the bakground) by sending
@@ -662,22 +660,22 @@ begin
 end;
 
 { the local user has accepted the receiving file and choosen a file name}
-procedure torchat_xfer_receive_init(xfer: PPurpleXfer); cdecl;
+procedure torchat_xfer_receive_init(Xfer: TPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
   DestFileName: String;
 begin
   WriteLn('torchat_xfer_receive_init()');
-  purple_xfer_start(xfer, -1, nil, 0);
-  TorChat := Clients.Find(purple_xfer_get_account(xfer));
-  Transfer := TorChat.FindFileTransfer(xfer);
+  Xfer.Start(-1, '', 0);
+  TorChat := Clients.Find(Xfer.GetAccount);
+  Transfer := TorChat.FindFileTransfer(Xfer);
   if Transfer.IsComplete then begin
-    DestFileName := purple_xfer_get_local_filename(xfer);
-    purple_xfer_set_bytes_sent(xfer, Transfer.FileSize);
-    purple_xfer_update_progress(xfer);
-    purple_xfer_set_completed(xfer, True);
-    purple_xfer_end(xfer);
+    DestFileName := Xfer.GetLocalFileName;
+    Xfer.SetBytesSent(Transfer.FileSize);
+    Xfer.UpdateProgress;
+    Xfer.SetCompleted(True);
+    Xfer.EndTransfer;
     Transfer.MoveReceivedFile(DestFileName);
     TorChat.RemoveFileTransfer(Transfer);
   end
@@ -687,14 +685,14 @@ begin
 end;
 
 { the local user has canceled the transfer }
-procedure torchat_xfer_receive_cancel(xfer: PPurpleXfer); cdecl;
+procedure torchat_xfer_receive_cancel(Xfer: TPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
 begin
   WriteLn('torchat_xfer_receive_cancel()');
-  TorChat := Clients.Find(purple_xfer_get_account(xfer));
-  Transfer := TorChat.FindFileTransfer(xfer);
+  TorChat := Clients.Find(Xfer.GetAccount);
+  Transfer := TorChat.FindFileTransfer(Xfer);
   TorChat.RemoveFileTransfer(Transfer);
 end;
 
@@ -703,18 +701,18 @@ end;
   the file and filename will be nil. When the user drops a file to the
   chat window then it WILL be called with filename. In that case we need
   to initiate it a little bit differently. }
-procedure torchat_send_file(gc: PPurpleConnection; who, filename: PChar); cdecl;
+procedure torchat_send_file(gc: TPurpleConnection; who, filename: PChar); cdecl;
 var
-  xfer: PPurpleXfer;
+  Xfer: TPurpleXfer;
 begin
   Writeln(_F('send_file(%s, %s)', [who, filename]));
-  xfer := purple_xfer_new(gc^.account, PURPLE_XFER_SEND, who);
-  purple_xfer_set_init_fnc(xfer, @torchat_xfer_send_init);
-  purple_xfer_set_cancel_send_fnc(xfer, @torchat_xfer_send_cancel);
+  Xfer := TPurpleXfer.Create(gc.GetAccount, PURPLE_XFER_SEND, who);
+  Xfer.SetInitFnc(@torchat_xfer_send_init);
+  Xfer.SetCancelSendFnc(@torchat_xfer_send_cancel);
   if not Assigned(filename) then
-    purple_xfer_request(xfer) // this will trigger the "file open" dialog
+    Xfer.Request // this will trigger the "file open" dialog
   else
-    purple_xfer_request_accepted(xfer, filename);
+    Xfer.RequestAccepted(filename);
 end;
 
 (********************************************************************
@@ -727,21 +725,21 @@ end;
 procedure TTransfer.OnStartSending;
 begin
   WriteLn('OnStartSending()');
-  purple_xfer_start(xfer, -1, nil, 0);
+  Xfer.Start(-1, '', 0);
 end;
 
 { Each time we receive a filedata_ok we update the progress bar }
 procedure TTransfer.OnProgressSending;
 begin
   WriteLn('OnProgressSending()');
-  purple_xfer_set_bytes_sent(xfer, BytesCompleted);
-  purple_xfer_update_progress(xfer);
+  Xfer.SetBytesSent(BytesCompleted);
+  Xfer.UpdateProgress;
 end;
 
 { The remote side has canceled the transfer }
 procedure TTransfer.OnCancelSending;
 begin
-  purple_xfer_cancel_remote(xfer);
+  Xfer.CancelRemote;
   Client.RemoveFileTransfer(Self);
 end;
 
@@ -749,10 +747,10 @@ end;
 procedure TTransfer.OnCompleteSending;
 begin
   WriteLn('TTransfer.OnComplete');
-  purple_xfer_set_bytes_sent(xfer, BytesCompleted);
-  purple_xfer_set_completed(xfer, True);
-  purple_xfer_update_progress(xfer);
-  purple_xfer_end(xfer);
+  Xfer.SetBytesSent(BytesCompleted);
+  Xfer.SetCompleted(True);
+  Xfer.UpdateProgress;
+  Xfer.EndTransfer;
   Client.RemoveFileTransfer(Self);
 end;
 
@@ -769,16 +767,16 @@ begin
   // only if the user has accepted and choosen a destination file
   // there will be a progress bar to update. Before that has
   // happened we do nothing and let it happen in the background.
-  if purple_xfer_get_status(xfer) = PURPLE_XFER_STATUS_STARTED then begin
-    purple_xfer_set_bytes_sent(xfer, BytesCompleted);
-    purple_xfer_update_progress(xfer);
+  if Xfer.GetStatus = PURPLE_XFER_STATUS_STARTED then begin
+    Xfer.SetBytesSent(BytesCompleted);
+    Xfer.UpdateProgress;
   end;
 end;
 
 { The remote side has canceled the transfer }
 procedure TTransfer.OnCancelReceiving;
 begin
-  purple_xfer_cancel_remote(xfer);
+  Xfer.CancelRemote;
   Client.RemoveFileTransfer(Self); // this will also free it
 end;
 
@@ -791,12 +789,12 @@ procedure TTransfer.OnCompleteReceiving;
 var
   DestFileName: String;
 begin
-  if purple_xfer_get_status(xfer) = PURPLE_XFER_STATUS_STARTED then begin
-    DestFileName := purple_xfer_get_local_filename(xfer);
-    purple_xfer_set_bytes_sent(xfer, FileSize);
-    purple_xfer_update_progress(xfer);
-    purple_xfer_set_completed(xfer, True);
-    purple_xfer_end(xfer);
+  if Xfer.GetStatus = PURPLE_XFER_STATUS_STARTED then begin
+    DestFileName := Xfer.GetLocalFileName;
+    Xfer.SetBytesSent(FileSize);
+    Xfer.UpdateProgress;
+    Xfer.SetCompleted(True);
+    Xfer.EndTransfer;
     MoveReceivedFile(DestFileName);
     Client.RemoveFileTransfer(Self); // will free transfer and delete temp file
   end
@@ -807,22 +805,18 @@ end;
 
 { TClients }
 
-function TClients.Find(Account: PPurpleAccount): TTorChat;
-begin
-  Result := inherited Find(Account^.username) as TTorChat;
-end;
-
 function TClients.Find(Account: TPurpleAccount): TTorChat;
 begin
-  Result := inherited Find(PPurpleAccount(Account^.username)) as TTorChat;
+  Result := inherited Find(Account.GetUsername) as TTorChat;
 end;
+
 
 { TTorchatPurpleClient }
 
 constructor TTorChat.Create(AOwner: TComponent; AProfileName: String;
-  account: PPurpleAccount);
+  Account: TPurpleAccount);
 begin
-  purple_account := account;
+  PurpleAccount := Account;
   inherited Create(AOwner, AProfileName);
 end;
 
@@ -856,13 +850,13 @@ var
   purple_list: PGSList;
 begin
   WriteLn('Switching accout to "connected", synchronizing buddy lists');
-  purple_connection_set_state(purple_account^.gc, PURPLE_CONNECTED);
+  PurpleAccount.GetConnection.SetState(PURPLE_CONNECTED);
 
   group_name := GetMemAndCopy(Roster.GroupName);
   purple_group := purple_find_group(group_name);
 
   // remove buddies from purple's list that not in TorChat's list
-  purple_list := purple_find_buddies(purple_account, nil);
+  purple_list := purple_find_buddies(PurpleAccount, nil);
   while Assigned(purple_list) do begin
     purple_id := purple_buddy_get_name(purple_list^.data);
     if not Assigned(Roster.ByID(purple_id)) then begin
@@ -876,17 +870,17 @@ begin
   for Buddy in Roster do begin
     purple_id := GetMemAndCopy(Buddy.ID);
     purple_alias := GetMemAndCopy(Buddy.LocalAlias);
-    purple_buddy := purple_find_buddy(purple_account, purple_id);
+    purple_buddy := purple_find_buddy(PurpleAccount, purple_id);
     if not Assigned(purple_buddy) then begin
       if not Assigned(purple_group) then begin
         purple_group := purple_group_new(group_name);
         purple_blist_add_group(purple_group, nil);
       end;
-      purple_buddy := purple_buddy_new(purple_account, purple_id, purple_alias);
+      purple_buddy := purple_buddy_new(PurpleAccount, purple_id, purple_alias);
       purple_blist_add_buddy(purple_buddy, nil, purple_group, nil);
     end
     else begin
-      serv_got_alias(purple_account^.gc, purple_id, purple_alias);
+      serv_got_alias(PurpleAccount.GetConnection, purple_id, purple_alias);
       purple_blist_alias_buddy(purple_buddy, purple_alias);
     end;
     FreeMem(purple_id);
@@ -908,7 +902,7 @@ begin
     TORCHAT_XA: status_id := GetMemAndCopy(PRPL_ID_XA);
     TORCHAT_OFFLINE: status_id := GetMemAndCopy(PRPL_ID_OFFLINE);
   end;
-  purple_prpl_got_user_status(purple_account, buddy_name, status_id);
+  purple_prpl_got_user_status(PurpleAccount, buddy_name, status_id);
   FreeMem(status_id);
   FreeMem(buddy_name);
 end;
@@ -973,7 +967,7 @@ begin
     // because it is well supported and can handle transparency.
     WriteLn(_F('%s setting avatar in libpurple', [ABuddy.ID]));
     purple_buddy_icons_set_for_user(
-      purple_account,
+      PurpleAccount,
       buddy_name,
       icon_data,
       icon_len,
@@ -987,7 +981,7 @@ begin
   else begin // empty avatar
     WriteLn(_F('%s removing avatar in libpurple', [ABuddy.ID]));
     purple_buddy_icons_set_for_user(
-      purple_account,
+      PurpleAccount,
       buddy_name,
       nil,
       0,
@@ -1009,13 +1003,13 @@ begin
   buddy_name := GetMemAndCopy(ABuddy.ID);
   buddy_alias := GetMemAndCopy(ABuddy.LocalAlias);
   group_name := GetMemAndCopy(Roster.GroupName);
-  if not assigned(purple_find_buddy(purple_account, buddy_name)) then begin
+  if not assigned(purple_find_buddy(PurpleAccount, buddy_name)) then begin
     purple_group := purple_find_group(group_name);
     if not Assigned(purple_group) then begin
       purple_group := purple_group_new(group_name);
       purple_blist_add_group(purple_group, nil);
     end;
-    purple_buddy := purple_buddy_new(purple_account, buddy_name, buddy_alias);
+    purple_buddy := purple_buddy_new(PurpleAccount, buddy_name, buddy_alias);
     purple_blist_add_buddy(purple_buddy, nil, purple_group, nil);
   end;
   FreeMem(buddy_alias);
@@ -1029,7 +1023,7 @@ var
   purple_buddy: PPurpleBuddy;
 begin
   buddy_name := GetMemAndCopy(ABuddy.ID);
-  purple_buddy := purple_find_buddy(purple_account, buddy_name);
+  purple_buddy := purple_find_buddy(PurpleAccount, buddy_name);
   if Assigned(purple_buddy) then begin
     purple_blist_remove_buddy(purple_buddy);
   end;
@@ -1040,7 +1034,7 @@ end;
 procedure TTorChat.OnInstantMessage(ABuddy: IBuddy; AText: String);
 begin
   serv_got_im(
-    purple_account^.gc,
+    PurpleAccount.GetConnection,
     PChar(ABuddy.ID),
     Pchar(Plain2Html(AText)),
     PURPLE_MESSAGE_RECV,
@@ -1052,21 +1046,21 @@ procedure TTorChat.OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName
 var
   TorChat: TTorChat;
   Transfer: TTransfer;
-  account: PPurpleAccount;
-  xfer: PPurpleXfer;
+  Account: TPurpleAccount;
+  Xfer: TPurpleXfer;
 begin
   TorChat := ABuddy.Client as TTorChat;
-  account := TorChat.purple_account;
-  xfer := purple_xfer_new(account, PURPLE_XFER_RECEIVE, PChar(ABuddy.ID));
-  purple_xfer_set_size(xfer, AFileSize);
-  purple_xfer_set_filename(xfer, PChar(AFileName));
-  purple_xfer_set_init_fnc(xfer, @torchat_xfer_receive_init);
-  purple_xfer_set_cancel_recv_fnc(xfer, @torchat_xfer_receive_cancel);
-  purple_xfer_set_request_denied_fnc(xfer, @torchat_xfer_receive_denied);
-  purple_xfer_request(xfer);
+  Account := TorChat.PurpleAccount;
+  Xfer := TPurpleXfer.Create(Account, PURPLE_XFER_RECEIVE, ABuddy.ID);
+  Xfer.SetSize(AFileSize);
+  Xfer.SetFileName(AFileName);
+  Xfer.SetInitFnc(@torchat_xfer_receive_init);
+  Xfer.SetCancelRecvFnc(@torchat_xfer_receive_cancel);
+  Xfer.SetRequestDeniedFnc(@torchat_xfer_receive_denied);
+  Xfer.Request;
   Transfer := TTransfer.Create(ABuddy, AFileName, AID, AFileSize, ABlockSize);
-  Transfer.xfer := xfer;
-  Transfer.SetGuiID(xfer);
+  Transfer.Xfer := Xfer;
+  Transfer.SetGuiID(Xfer);
   ABuddy.Client.AddFileTransfer(Transfer);
 end;
 
@@ -1148,7 +1142,7 @@ end.
     * torchat_load() callback is called by purple
 
     the above happens only once during application start.
-    Then for every account (TorChat profile) that is configured in
+    Then for every Account (TorChat profile) that is configured in
     Pidgin and activated it will call the login function:
 
     * torchat_login() once for every account when going online

@@ -35,6 +35,7 @@
 }
 unit purple;
 {$mode objfpc}{$H+}
+{$packrecords c}
 
 interface
 uses
@@ -56,6 +57,12 @@ type
     time_t = DWord;
   {$endif}
 
+{$define purple_interface}
+{$include purple_inc_connection.pas}
+{$include purple_inc_account.pas}
+{$include purple_inc_ft.pas}
+{$undef purple_interface}
+
 
 (****************************************
  *                                      *
@@ -66,8 +73,6 @@ type
  *   down to the next section).         *
  *                                      *
  ****************************************)
-{$calling cdecl}
-{$packrecords c}
 
 const
   PURPLE_PLUGIN_MAGIC = 5;
@@ -108,7 +113,7 @@ type
   end;
 
   PPurplePluginAction = ^TPurplePluginAction;
-  PPurplePluginActionCb = procedure(act: PPurplePluginAction);
+  PPurplePluginActionCb = procedure(act: PPurplePluginAction); cdecl;
   TPurplePluginAction = record
     label_    : PChar;
     callback  : PPurplePluginActionCb;
@@ -133,18 +138,18 @@ type
     description     : PChar;
     author          : PChar;
     homepage        : PChar;
-    load            : function(plugin: PPurplePlugin): GBoolean;
-    unload          : function(plugin: PPurplePlugin): GBoolean;
-    destroy         : procedure(plugin: PPurplePlugin);
+    load            : function(plugin: PPurplePlugin): GBoolean; cdecl;
+    unload          : function(plugin: PPurplePlugin): GBoolean; cdecl;
+    destroy         : procedure(plugin: PPurplePlugin); cdecl;
     ui_info         : Pointer;
     extra_info      : Pointer;
     prefs_info      : PPurplePluginUiInfo;
-    actions         : function(plugin: PPurplePlugin; context: Pointer): PGList;
+    actions         : function(plugin: PPurplePlugin; context: Pointer): PGList; cdecl;
 
-    _purple_reserved1: procedure();
-    _purple_reserved2: procedure();
-    _purple_reserved3: procedure();
-    _purple_reserved4: procedure();
+    _purple_reserved1: procedure(); cdecl;
+    _purple_reserved2: procedure(); cdecl;
+    _purple_reserved3: procedure(); cdecl;
+    _purple_reserved4: procedure(); cdecl;
   end;
 
 
@@ -177,69 +182,9 @@ type
     scale_rules   : TPurpleIconScaleRules;  // How to stretch this icon
   end;
 
-  PPurpleProxyInfo              = Pointer;
-  PPurplePrivacyType            = Pointer;
-  PPurplePresence               = Pointer;
-  PPurpleLog                    = Pointer;
-  PPurpleAccountRegistrationCb  = procedure();
 
-  PPurpleConnection = ^TPurpleConnection;
 
-  PPurpleAccount = ^TPurpleAccount;
-  TPurpleAccount = record
-    username        : PChar;              // The username.
-    aalias          : PChar;              // How you appear to yourself.
-    password        : PChar;              // The account password.
-    user_info       : PChar;              // User information.
-    buddy_icon_path : PChar;              // The buddy icon's non-cached path.
-    remember_pass   : GBoolean;           // Remember the password.
-    protocol_id     : PChar;              // The ID of the protocol.
-    gc              : PPurpleConnection;  // The connection handle.
-    disconnecting   : GBoolean;           // The account is currently disconnecting
-    settings        : PGHashTable;        // Protocol-specific settings.
-    ui_settings     : PGHashTable;        // UI-specific settings.
-    proxy_info      : PPurpleProxyInfo;   { Proxy information.  This will be set
-                                            to NULL when the account inherits
-                                            proxy settings from global prefs.}
-    permit          : PGSList;            // Permit list.
-    deny            : PGSList;            // Deny list.
-    perm_deny       : PPurplePrivacyType; // The permit/deny setting.
-    status_types    : PGList;             // Status types.
-    presence        : PPurplePresence;    // Presence.                              */
-    sytem_log       : PPurpleLog;         // The system log                         */
-    ui_data         : Pointer;            // The UI can put data here.              */
-    registration_cb : PPurpleAccountRegistrationCb;
-    registration_cb_user_data: Pointer;
-    priv            : Pointer;            // Pointer to opaque private data.
-  end;
 
-  TPurpleConnectionFlags = cint;
-
-  TPurpleConnectionState = (
-  	PURPLE_DISCONNECTED = 0, // Disconnected.
-  	PURPLE_CONNECTED,        // Connected.
-  	PURPLE_CONNECTING        // Connecting.
-  );
-
-  TPurpleConnection = record
-    prpl                : PPurplePlugin;          // The protocol plugin.
-    flags               : TPurpleConnectionFlags; // Connection flags.
-    state               : TPurpleConnectionState; // The connection state.
-    account             : PPurpleAccount;         // The account being connected to.
-    password            : PChar;                  // The password used.
-    inpa                : cint;                   // The input watcher.
-    buddy_chats         : PGSList;                { A list of active chats
-                                                    (#PurpleConversation
-                                                    structs of type
-                                                    #PURPLE_CONV_TYPE_CHAT).}
-    proto_data          : Pointer;                // Protocol-specific data.
-    display_name        : PChar;                  // How you appear to other people.
-    keepalive           : cint;                   // Keep-alive.
-    wants_to_die        : GBoolean;
-    disconnect_timeout  : cint;                   // Timer used for nasty stack tricks
-    last_received       : time_t;                 { When we last received a packet. Set by the
-                                                    prpl to avoid sending unneeded keepalives}
-  end;
 
   PPurpleAccountOption      = Pointer;
   PPurpleBuddy              = Pointer;
@@ -260,11 +205,11 @@ type
   TPurpleMediaSessionType   = cint;
   TPurpleMediaCaps          = cint;
   TPurpleMood               = cint;
-  PPurpleAccountUnregistrationCallback = procedure(); // fixme: signature?
-  PPurpleSetPublicAliasSuccessCallback = procedure(); // fixme: signature?
-  PPurpleSetPublicAliasFailureCallback = procedure(); // fixme: signature?
-  PPurpleGetPublicAliasSuccessCallback = procedure(); // fixme: signature?
-  PPurpleGetPublicAliasFailureCallback = procedure(); // fixme: signature?
+  PPurpleAccountUnregistrationCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleSetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleSetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleGetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleGetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
   PPurpleConversation       = Pointer;
   PPurpleConvIm             = Pointer;
   PPurpleRequestFields      = Pointer;
@@ -318,76 +263,76 @@ type
     user_splits             : PGList;  (**< A GList of PurpleAccountUserSplit  *)
     protocol_options        : PGList;  (**< A GList of PurpleAccountOption     *)
     icon_spec               : TPurpleBuddyIconSpec;  (**< The icon spec.  *)
-    list_icon               : function(account: PPurpleAccount; buddy: PPurpleBuddy): PChar;
-    list_emblem             : function(buddy: PPurpleBuddy): PChar;
-    status_text             : function(buddy: PPurpleBuddy): PChar;
-    tooltip_text            : procedure(buddy: PPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean);
-    status_types            : function(account: PPurpleAccount): PGList;
-    blist_node_menu         : function(node: PPurpleBlistNode): PGList;
-    chat_info               : function(gc: PPurpleConnection): PGList;
-    chat_info_defaults      : function(gc: PPurpleConnection; chat_name: PChar): PGHashTable;
-    login                   : procedure(account: PPurpleAccount);
-    close                   : procedure(gc: PPurpleConnection);
-    send_im                 : function(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint;
-    set_info                : procedure(gc: PPurpleConnection; info: PChar);
-    send_typing             : function(gc: PPurpleConnection; name_: PChar; state: TPurpleTypingState): cint;
-    get_info                : procedure(gc: PPurpleConnection; who: PChar);
-    set_status              : procedure(account: PPurpleAccount; status: PPurpleStatus);
-    set_idle                : procedure(gc: PPurpleConnection; idletime: cint);
-    change_passwd           : procedure(gc: PPurpleConnection; old_pass, new_pass: PChar);
-    add_buddy               : procedure(gc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
-    add_buddies             : procedure(gc: PPurpleConnection; buddies, groups: PGList);
-    remove_buddy            : procedure(gc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup);
-    remove_buddies          : procedure(gc: PPurpleConnection; buddies, groups: PGList);
-    add_permit              : procedure(gc: PPurpleConnection; name_: PChar);
-    add_deny                : procedure(gc: PPurpleConnection; name_: PChar);
-    rem_permit              : procedure(gc: PPurpleConnection; name_: PChar);
-    rem_deny                : procedure(gc: PPurpleConnection; name_: PChar);
-    set_permit_deny         : procedure(gc: PPurpleConnection);
-    join_chat               : procedure(gc: PPurpleConnection; components: PGHashTable);
-    reject_chat             : procedure(gc: PPurpleConnection; components: PGHashTable);
-    get_chat_name           : function(components: PGHashTable): PChar;
-    chat_invite             : procedure(gc: PPurpleConnection; id: cint; message, who: PChar);
-    chat_leave              : procedure(gc: PPurpleConnection; id: cint);
-    chat_whisper            : procedure(gc: PPurpleConnection; id: cint; who, message: PChar);
-    chat_send               : function(gc: PPurpleConnection; id: cint; message: PChar; flags: TPurpleMessageFlags): cint;
-    keepalive               : procedure(gc: PPurpleConnection);
-    register_user           : procedure(account: PPurpleAccount);
-    get_cb_info             : procedure(gc: PPurpleConnection; par1: cint; who: PChar);
-    get_cb_away             : procedure(gc: PPurpleConnection; par1: cint; who: PChar);
-    alias_buddy             : procedure(gc: PPurpleConnection; who, alias_: PChar);
-    group_buddy             : procedure(gc: PPurpleConnection; who, old_group, new_group: PChar);
-    rename_group            : procedure(gc: PPurpleConnection; old_name: PChar; group: PPurpleGroup; moved_buddies: PGList);
-    buddy_free              : procedure(buddy: PPurpleBuddy);
-    convo_closed            : procedure(gc: PPurpleConnection; who: PChar);
-    normalize               : function(account: PPurpleAccount; who: PChar): PChar;
-    set_buddy_icon          : procedure(gc: PPurpleConnection; img: PPurpleStoredImage);
-    remove_group            : procedure(gc: PPurpleConnection; group: PPurpleGroup);
-    get_cb_real_name        : function(gc: PPurpleConnection; id: cint; who: PChar): PChar;
-    set_chat_topic          : procedure(gc: PPurpleConnection; id: cint; topic: PChar);
-    find_blist_chat         : function(account: PPurpleAccount; name_: PChar): PPurpleChat;
-    roomlist_get_list       : function(gc: PPurpleConnection): PPurpleRoomlist;
-    roomlist_cancel         : procedure(list: PPurpleRoomlist);
-    roomlist_expand_category: procedure(list: PPurpleRoomlist; category: PPurpleRoomlistRoom);
-    can_receive_file        : function(gc: PPurpleConnection; who: PChar): gboolean;
-    send_file               : procedure(gc: PPurpleConnection; who, filename: PChar);
-    new_xfer                : function(gc: PPurpleConnection; who: PChar): PPurpleXfer;
-    offline_message         : function(buddy: PPurpleBuddy): gboolean;
+    list_icon               : function(account: TPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
+    list_emblem             : function(buddy: PPurpleBuddy): PChar; cdecl;
+    status_text             : function(buddy: PPurpleBuddy): PChar; cdecl;
+    tooltip_text            : procedure(buddy: PPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean); cdecl;
+    status_types            : function(account: TPurpleAccount): PGList; cdecl;
+    blist_node_menu         : function(node: PPurpleBlistNode): PGList; cdecl;
+    chat_info               : function(gc: TPurpleConnection): PGList; cdecl;
+    chat_info_defaults      : function(gc: TPurpleConnection; chat_name: PChar): PGHashTable; cdecl;
+    login                   : procedure(account: TPurpleAccount); cdecl;
+    close                   : procedure(gc: TPurpleConnection); cdecl;
+    send_im                 : function(gc: TPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
+    set_info                : procedure(gc: TPurpleConnection; info: PChar); cdecl;
+    send_typing             : function(gc: TPurpleConnection; name_: PChar; state: TPurpleTypingState): cint; cdecl;
+    get_info                : procedure(gc: TPurpleConnection; who: PChar); cdecl;
+    set_status              : procedure(account: TPurpleAccount; status: PPurpleStatus); cdecl;
+    set_idle                : procedure(gc: TPurpleConnection; idletime: cint); cdecl;
+    change_passwd           : procedure(gc: TPurpleConnection; old_pass, new_pass: PChar); cdecl;
+    add_buddy               : procedure(gc: TPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
+    add_buddies             : procedure(gc: TPurpleConnection; buddies, groups: PGList); cdecl;
+    remove_buddy            : procedure(gc: TPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
+    remove_buddies          : procedure(gc: TPurpleConnection; buddies, groups: PGList); cdecl;
+    add_permit              : procedure(gc: TPurpleConnection; name_: PChar); cdecl;
+    add_deny                : procedure(gc: TPurpleConnection; name_: PChar); cdecl;
+    rem_permit              : procedure(gc: TPurpleConnection; name_: PChar); cdecl;
+    rem_deny                : procedure(gc: TPurpleConnection; name_: PChar); cdecl;
+    set_permit_deny         : procedure(gc: TPurpleConnection); cdecl;
+    join_chat               : procedure(gc: TPurpleConnection; components: PGHashTable); cdecl;
+    reject_chat             : procedure(gc: TPurpleConnection; components: PGHashTable); cdecl;
+    get_chat_name           : function(components: PGHashTable): PChar; cdecl;
+    chat_invite             : procedure(gc: TPurpleConnection; id: cint; message, who: PChar); cdecl;
+    chat_leave              : procedure(gc: TPurpleConnection; id: cint); cdecl;
+    chat_whisper            : procedure(gc: TPurpleConnection; id: cint; who, message: PChar); cdecl;
+    chat_send               : function(gc: TPurpleConnection; id: cint; message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
+    keepalive               : procedure(gc: TPurpleConnection); cdecl;
+    register_user           : procedure(account: TPurpleAccount); cdecl;
+    get_cb_info             : procedure(gc: TPurpleConnection; par1: cint; who: PChar); cdecl;
+    get_cb_away             : procedure(gc: TPurpleConnection; par1: cint; who: PChar); cdecl;
+    alias_buddy             : procedure(gc: TPurpleConnection; who, alias_: PChar); cdecl;
+    group_buddy             : procedure(gc: TPurpleConnection; who, old_group, new_group: PChar); cdecl;
+    rename_group            : procedure(gc: TPurpleConnection; old_name: PChar; group: PPurpleGroup; moved_buddies: PGList); cdecl;
+    buddy_free              : procedure(buddy: PPurpleBuddy); cdecl;
+    convo_closed            : procedure(gc: TPurpleConnection; who: PChar); cdecl;
+    normalize               : function(account: TPurpleAccount; who: PChar): PChar; cdecl;
+    set_buddy_icon          : procedure(gc: TPurpleConnection; img: PPurpleStoredImage); cdecl;
+    remove_group            : procedure(gc: TPurpleConnection; group: PPurpleGroup); cdecl;
+    get_cb_real_name        : function(gc: TPurpleConnection; id: cint; who: PChar): PChar; cdecl;
+    set_chat_topic          : procedure(gc: TPurpleConnection; id: cint; topic: PChar); cdecl;
+    find_blist_chat         : function(account: TPurpleAccount; name_: PChar): PPurpleChat; cdecl;
+    roomlist_get_list       : function(gc: TPurpleConnection): PPurpleRoomlist; cdecl;
+    roomlist_cancel         : procedure(list: PPurpleRoomlist); cdecl;
+    roomlist_expand_category: procedure(list: PPurpleRoomlist; category: PPurpleRoomlistRoom); cdecl;
+    can_receive_file        : function(gc: TPurpleConnection; who: PChar): gboolean; cdecl;
+    send_file               : procedure(gc: TPurpleConnection; who, filename: PChar); cdecl;
+    new_xfer                : function(gc: TPurpleConnection; who: PChar): PPurpleXfer; cdecl;
+    offline_message         : function(buddy: PPurpleBuddy): gboolean; cdecl;
     whiteboard_prpl_ops     : PPurpleWhiteboardPrplOps;
-    send_raw                : function(gc: PPurpleConnection; buf: PChar; len: cint): cint;
-    roomlist_room_serialize : function(room: PPurpleRoomlistRoom): PChar;
-    unregister_user         : procedure(account: PPurpleAccount; cb: PPurpleAccountUnregistrationCallback; user_data: Pointer);
-    send_attention          : function(gc: PPurpleConnection; username: PChar; type_: guint): gboolean;
-    get_attention_types     : function(acct: PPurpleAccount): PGList;
+    send_raw                : function(gc: TPurpleConnection; buf: PChar; len: cint): cint; cdecl;
+    roomlist_room_serialize : function(room: PPurpleRoomlistRoom): PChar; cdecl;
+    unregister_user         : procedure(account: TPurpleAccount; cb: PPurpleAccountUnregistrationCallback; user_data: Pointer); cdecl;
+    send_attention          : function(gc: TPurpleConnection; username: PChar; type_: guint): gboolean; cdecl;
+    get_attention_types     : function(acct: TPurpleAccount): PGList; cdecl;
     struct_size             : cint;
-    get_account_text_table  : function(account: PPurpleAccount): PGHashTable;
-    initiate_media          : function(account: PPurpleAccount; who: PChar; type_: TPurpleMediaSessionType): gboolean;
-    get_media_caps          : function(account: PPurpleAccount; who: PChar): TPurpleMediaCaps;
-    get_moods               : function(account: PPurpleAccount): TPurpleMood;
-    set_public_alias        : procedure(gc: PPurpleConnection; alias_: PChar; success_cb: PPurpleSetPublicAliasSuccessCallback; failure_cb: PPurpleSetPublicAliasFailureCallback);
-    get_public_alias        : procedure(gc: PPurpleConnection; success_cb: PPurpleGetPublicAliasSuccessCallback; failure_cb: PPurpleGetPublicAliasFailureCallback);
-    add_buddy_with_invite   : procedure(pc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup; message: PChar);
-    add_buddies_with_invite : procedure(pc: PPurpleConnection; buddies, groups: PGList; message: PChar);
+    get_account_text_table  : function(account: TPurpleAccount): PGHashTable; cdecl;
+    initiate_media          : function(account: TPurpleAccount; who: PChar; type_: TPurpleMediaSessionType): gboolean; cdecl;
+    get_media_caps          : function(account: TPurpleAccount; who: PChar): TPurpleMediaCaps; cdecl;
+    get_moods               : function(account: TPurpleAccount): TPurpleMood; cdecl;
+    set_public_alias        : procedure(gc: TPurpleConnection; alias_: PChar; success_cb: PPurpleSetPublicAliasSuccessCallback; failure_cb: PPurpleSetPublicAliasFailureCallback); cdecl;
+    get_public_alias        : procedure(gc: TPurpleConnection; success_cb: PPurpleGetPublicAliasSuccessCallback; failure_cb: PPurpleGetPublicAliasFailureCallback); cdecl;
+    add_buddy_with_invite   : procedure(pc: TPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup; message: PChar); cdecl;
+    add_buddies_with_invite : procedure(pc: TPurpleConnection; buddies, groups: PGList; message: PChar); cdecl;
   end;
 
   TPurpleNotifyMsgType = (
@@ -396,27 +341,8 @@ type
     PURPLE_NOTIFY_MSG_INFO         // Information notification.
   );
 
-  PPurpleNotifyCloseCb = procedure(user_data: Pointer);
-  PPurpleRequestDlgBtnCb = procedure(user_data: Pointer; fields: PPurpleRequestFields);
-  PXferCb = procedure(xfer: PPurpleXfer);
-  PXferAckCb = procedure(xfer: PPurpleXfer; par1: Pchar; par2: csize_t);
-
-  TPurpleXferType = (
-    PURPLE_XFER_UNKNOWN = 0,  (**< Unknown file transfer type.  *)
-    PURPLE_XFER_SEND,         (**< File sending.                *)
-    PURPLE_XFER_RECEIVE       (**< File receiving.              *)
-  );
-
-  TPurpleXferStatusType = (
-    PURPLE_XFER_STATUS_UNKNOWN = 0,   (**< Unknown, the xfer may be null.  *)
-    PURPLE_XFER_STATUS_NOT_STARTED,   (**< It hasn't started yet.  *)
-    PURPLE_XFER_STATUS_ACCEPTED,      (**< Receive accepted, but destination file not selected yet  *)
-    PURPLE_XFER_STATUS_STARTED,       (**< purple_xfer_start has been called.  *)
-    PURPLE_XFER_STATUS_DONE,          (**< The xfer completed successfully.  *)
-    PURPLE_XFER_STATUS_CANCEL_LOCAL,  (**< The xfer was cancelled by us.  *)
-    PURPLE_XFER_STATUS_CANCEL_REMOTE  (**< The xfer was cancelled by the other end, or we couldn't connect.  *)
-  );
-
+  PPurpleNotifyCloseCb = procedure(user_data: Pointer); cdecl;
+  PPurpleRequestDlgBtnCb = procedure(user_data: Pointer; fields: PPurpleRequestFields); cdecl;
 
 
 (********************************************
@@ -424,96 +350,71 @@ type
  *   function imports from libpurple        *
  *                                          *
  ********************************************)
-{$calling cdecl}
 
-function  purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; external LIBPURPLE;
-function  purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; external LIBPURPLE;
+function  purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
+function  purple_account_get_string(account: TPurpleAccount; aname, default_value: PChar): PChar; cdecl; external LIBPURPLE;
 procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
-  group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
-procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); external LIBPURPLE;
-procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); external LIBPURPLE;
-function  purple_find_group(name_: PChar): PPurpleGroup; external LIBPURPLE;
-function  purple_group_new(name_: PChar): PPurpleGroup; external LIBPURPLE;
-procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); external LIBPURPLE;
-function  purple_buddy_get_account(buddy: PPurpleBuddy): PPurpleAccount; external LIBPURPLE;
-function  purple_buddy_get_alias_only(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
-function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; external LIBPURPLE;
-function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; external LIBPURPLE;
-procedure purple_buddy_icons_set_for_user(account: PPurpleAccount;
-  username: PChar; icon_data: Pointer; icon_len: csize_t; checksum: PChar); external LIBPURPLE;
-function  purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; external LIBPURPLE;
-procedure purple_connection_set_state(gc: PPurpleConnection; state: TPurpleConnectionState); external LIBPURPLE;
-procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
-procedure purple_debug_info(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
-procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
-procedure purple_debug_error(category: PChar; format: PChar; args: array of const); external LIBPURPLE;
-function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; external LIBPURPLE;
-function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; external LIBPURPLE;
-function  purple_imgstore_get_data(img: PPurpleStoredImage): Pointer; external LIBPURPLE;
-function  purple_imgstore_get_size(img: PPurpleStoredImage): csize_t; external LIBPURPLE;
+  group: PPurpleGroup; node: PPurpleBlistNode); cdecl; external LIBPURPLE;
+procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); cdecl; external LIBPURPLE;
+procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; external LIBPURPLE;
+function  purple_find_group(name_: PChar): PPurpleGroup; cdecl; external LIBPURPLE;
+function  purple_group_new(name_: PChar): PPurpleGroup; cdecl; external LIBPURPLE;
+procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); cdecl; external LIBPURPLE;
+function  purple_buddy_get_account(buddy: PPurpleBuddy): TPurpleAccount; cdecl; external LIBPURPLE;
+function  purple_buddy_get_alias_only(buddy: PPurpleBuddy): PChar; cdecl; external LIBPURPLE;
+function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; cdecl; external LIBPURPLE;
+function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; cdecl; external LIBPURPLE;
+procedure purple_buddy_icons_set_for_user(account: TPurpleAccount;
+  username: PChar; icon_data: Pointer; icon_len: csize_t; checksum: PChar); cdecl; external LIBPURPLE;
+function  purple_buddy_new(account: TPurpleAccount; aname, aalias: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
+procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
+procedure purple_debug_info(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
+procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
+procedure purple_debug_error(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
+function  purple_find_buddies(account: TPurpleAccount; aname: PChar): PGSList; cdecl; external LIBPURPLE;
+function  purple_find_buddy(account: TPurpleAccount; aname: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
+function  purple_imgstore_get_data(img: PPurpleStoredImage): Pointer; cdecl; external LIBPURPLE;
+function  purple_imgstore_get_size(img: PPurpleStoredImage): csize_t; cdecl; external LIBPURPLE;
 function  purple_notify_message(Plugin: PPurplePlugin;
  typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
- cb: PPurpleNotifyCloseCb; UserData: Pointer): GBoolean; external LIBPURPLE;
+ cb: PPurpleNotifyCloseCb; UserData: Pointer): GBoolean; cdecl; external LIBPURPLE;
 procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
-  label_, value: PChar); external LIBPURPLE;
-function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; external LIBPURPLE;
-function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; external LIBPURPLE;
-function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; external LIBPURPLE;
-procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); external LIBPURPLE;
-procedure purple_prpl_got_user_status(account: PPurpleAccount;
-  aname, status_id: PChar); external LIBPURPLE;
-function  purple_request_fields_new: PPurpleRequestFields; external LIBPURPLE;
+  label_, value: PChar); cdecl; external LIBPURPLE;
+function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
+function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
+function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; cdecl; external LIBPURPLE;
+procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); cdecl; external LIBPURPLE;
+procedure purple_prpl_got_user_status(account: TPurpleAccount;
+  aname, status_id: PChar); cdecl; external LIBPURPLE;
+function  purple_request_fields_new: PPurpleRequestFields; cdecl; external LIBPURPLE;
 procedure purple_request_fields_add_group(fields: PPurpleRequestFields;
-  group: PPurpleRequestFieldGroup); external LIBPURPLE;
+  group: PPurpleRequestFieldGroup); cdecl; external LIBPURPLE;
 function  purple_request_fields(handle: Pointer;
   title, primary, secondary: PChar; fields: PPurpleRequestFields; ok_text: PChar;
   ok_cb:  PPurpleRequestDlgBtnCb; cancel_text: PChar; cancel_cb: PPurpleRequestDlgBtnCb;
-  account: PPurpleAccount; who: PChar; conv: PPurpleConversation;
-  user_data: Pointer): Pointer; external LIBPURPLE; {<< this function
+  account: TPurpleAccount; who: PChar; conv: PPurpleConversation;
+  user_data: Pointer): Pointer; cdecl; external LIBPURPLE; {<< this function
   differs from the C headers, they originally defined the callbacks as
   GCallback (which would take only one argument) but the callbacks will
   actually be given two aruments. Therefore I have made the following
   change: both callbacks now must be of type PPurpleRequestDlgBtnCb which
   receives two arguments: user_data and fields. }
-function  purple_request_fields_get_string(fields: PPurpleRequestFields; id: PChar): PChar; external LIBPURPLE;
+function  purple_request_fields_get_string(fields: PPurpleRequestFields; id: PChar): PChar; cdecl; external LIBPURPLE;
 procedure purple_request_field_group_add_field(group: PPurpleRequestFieldGroup;
-  field: PPurpleRequestField); external LIBPURPLE;
-function  purple_request_field_group_new(title: PChar): PPurpleRequestFieldGroup; external LIBPURPLE;
+  field: PPurpleRequestField); cdecl; external LIBPURPLE;
+function  purple_request_field_group_new(title: PChar): PPurpleRequestFieldGroup; cdecl; external LIBPURPLE;
 function  purple_request_field_string_new(id, text, default_value: PChar;
-  multiline: gboolean): PPurpleRequestField; external LIBPURPLE;
-function  purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; external LIBPURPLE;
-function  purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; external LIBPURPLE;
+  multiline: gboolean): PPurpleRequestField; cdecl; external LIBPURPLE;
+function  purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; cdecl; external LIBPURPLE;
+function  purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; cdecl; external LIBPURPLE;
 function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
   id: PChar; name: Pchar; saveable: GBoolean; user_settable: GBoolean;
-  independent: GBoolean): PPurpleStatusType; external LIBPURPLE;
-function  purple_timeout_add(Interval: cint; cb: TGSourceFunc; UserData: Pointer): cint; external LIBPURPLE;
-function  purple_timeout_remove(handle: cint): GBoolean; external LIBPURPLE;
-//procedure purple_xfer_cancel_remote(xfer: PPurpleXfer); external LIBPURPLE;
-//procedure purple_xfer_end(xfer: PPurpleXfer); external LIBPURPLE;
-//function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; external LIBPURPLE;
-//procedure purple_xfer_request(xfer: PPurpleXfer); external LIBPURPLE;
-//procedure purple_xfer_request_accepted(xfer: PPurpleXfer; filename: PChar); external LIBPURPLE;
-//procedure purple_xfer_set_ack_fnc(xfer: PPurpleXfer; fnc: PXferAckCb); external LIBPURPLE;
-//procedure purple_xfer_set_bytes_sent(xfer: PPurpleXfer; bytes_sent: csize_t); external LIBPURPLE;
-//procedure purple_xfer_set_cancel_send_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-//procedure purple_xfer_set_cancel_recv_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-//procedure purple_xfer_set_completed(xfer: PPurpleXfer; completed: gboolean); external LIBPURPLE;
-//procedure purple_xfer_set_end_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-//procedure purple_xfer_set_filename(xfer: PPurpleXfer; filename: PChar); external LIBPURPLE;
-//procedure purple_xfer_set_init_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-//procedure purple_xfer_start(xfer: PPurpleXfer; fd: cint; ip: PChar;
-//  port: cuint); external LIBPURPLE;
-//procedure purple_xfer_set_request_denied_fnc(xfer: PPurpleXfer; fnc: PXferCb); external LIBPURPLE;
-//procedure purple_xfer_set_size(xfer: PPurpleXfer; size: csize_t); external LIBPURPLE;
-//procedure purple_xfer_update_progress(xfer: PPurpleXfer); external LIBPURPLE;
-//function  purple_xfer_get_account(xfer: PPurpleXfer): PPurpleAccount; external LIBPURPLE;
-//function  purple_xfer_get_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
-//function  purple_xfer_get_local_filename(xfer: PPurpleXfer): PChar; external LIBPURPLE;
-//function  purple_xfer_get_remote_user(xfer: PPurpleXfer): PChar; external LIBPURPLE;
-//function purple_xfer_get_status(xfer: PPurpleXfer): TPurpleXferStatusType; external LIBPURPLE;
-procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); external LIBPURPLE;
-procedure serv_got_im(gc: PPurpleConnection; who, msg: PChar;
-  flags: TPurpleMessageFlags; mtime: time_t); external LIBPURPLE;
+  independent: GBoolean): PPurpleStatusType; cdecl; external LIBPURPLE;
+function  purple_timeout_add(Interval: cint; cb: TGSourceFunc; UserData: Pointer): cint; cdecl; external LIBPURPLE;
+function  purple_timeout_remove(handle: cint): GBoolean; cdecl; external LIBPURPLE;
+procedure serv_got_alias(gc: TPurpleConnection; who, aalias: PChar); external LIBPURPLE;
+procedure serv_got_im(gc: TPurpleConnection; who, msg: PChar;
+  flags: TPurpleMessageFlags; mtime: time_t); cdecl; external LIBPURPLE;
 
 
 { purple_init_plugin is the only exported symbol.
@@ -522,7 +423,7 @@ procedure serv_got_im(gc: PPurpleConnection; who, msg: PChar;
   PURPLE_INIT_PLUGIN but here we don't have macros to hide
   such things and the plugin library that is using this unit
   must explicitly export it. }
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
+function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 
 var
   plugin_info: TPurplePluginInfo;
@@ -530,11 +431,18 @@ var
 
 implementation
 
+{$define purple_implementation}
+{$include purple_inc_connection.pas}
+{$include purple_inc_account.pas}
+{$include purple_inc_ft.pas}
+{$undef purple_implementation}
+
+
 { This re-implements the stuff that is behind the PURPLE_INIT_PLUGIN macro.
   In C the macro would define the function and export it, here we only
   define it and the library must export it (because we can't export it
   from within a unit directly). }
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean;
+function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
 begin
   Plugin.info := @plugin_info;
   Result := purple_plugin_register(Plugin);
