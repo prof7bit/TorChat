@@ -221,7 +221,7 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <Units Count="35">
+    <Units Count="38">
       <Unit0>
         <Filename Value="../core/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
@@ -397,6 +397,21 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="purpletorchat"/>
       </Unit34>
+      <Unit35>
+        <Filename Value="purple_ft.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="purple_ft"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="purple_common.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="purple_common"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="purple_account.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="purple_account"/>
+      </Unit37>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

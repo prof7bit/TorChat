@@ -84,6 +84,7 @@ uses
   contnrs,
   ctypes,
   glib2,
+  purple_ft,
   purple,
   purplehelper,
   tc_interface,
@@ -141,6 +142,7 @@ type
     multiple "accounts" in pidgin at the same time }
   TClients = class(TFPHashObjectList)
     function Find(Account: PPurpleAccount): TTorChat;
+    function Find(Account: TPurpleAccount): TTorChat;
   end;
 
 var
@@ -606,17 +608,17 @@ end;
   object in TorChat which will automtically start sending
   the file and fire its OnXxxxSending() event methods as
   soon as it is created }
-procedure torchat_xfer_send_init(xfer: PPurpleXfer); cdecl;
+procedure torchat_xfer_send_init(xfer: TPurpleXfer); cdecl;
 var
   FileName: String;
   TorChat: IClient;
   Buddy: IBuddy;
   Transfer: TTransfer;
 begin
-  TorChat := Clients.Find(purple_xfer_get_account(xfer));
+  TorChat := Clients.Find(PPurpleAccount(xfer.GetAccount));
   if Assigned(TorChat) then begin
-    FileName := purple_xfer_get_local_filename(xfer);
-    Buddy := TorChat.Roster.ByID(purple_xfer_get_remote_user(xfer));
+    FileName := xfer.GetLocalFileName;
+    Buddy := TorChat.Roster.ByID(xfer.GetRemoteUser);
     if Assigned(Buddy) then begin
       Transfer := TTransfer.Create(Buddy, FileName);
       Transfer.xfer := xfer;
@@ -627,13 +629,13 @@ begin
 end;
 
 { The local user has canceled the transfer }
-procedure torchat_xfer_send_cancel(xfer: PPurpleXfer); cdecl;
+procedure torchat_xfer_send_cancel(xfer: TPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
 begin
   WriteLn('torchat_xfer_send_cancel()');
-  TorChat := Clients.Find(purple_xfer_get_account(xfer));
+  TorChat := Clients.Find(PPurpleAccount(xfer.GetAccount));
   if Assigned(TorChat) then begin
     Transfer := TorChat.FindFileTransfer(xfer);
     if Assigned(Transfer) then begin
@@ -643,13 +645,13 @@ begin
 end;
 
 { the local user has denied receiving this file }
-procedure torchat_xfer_receive_denied(xfer: PPurpleXfer); cdecl;
+procedure torchat_xfer_receive_denied(xfer: TPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
 begin
   WriteLn('torchat_xfer_receive_denied()');
-  TorChat := Clients.Find(purple_xfer_get_account(xfer));
+  TorChat := Clients.Find(xfer.GetAccount);
   Transfer := TorChat.FindFileTransfer(xfer);
   // The following call will free the transfer object.
   // In its destructor it will properly cancel the transfer
@@ -808,6 +810,11 @@ end;
 function TClients.Find(Account: PPurpleAccount): TTorChat;
 begin
   Result := inherited Find(Account^.username) as TTorChat;
+end;
+
+function TClients.Find(Account: TPurpleAccount): TTorChat;
+begin
+  Result := inherited Find(PPurpleAccount(Account^.username)) as TTorChat;
 end;
 
 { TTorchatPurpleClient }
