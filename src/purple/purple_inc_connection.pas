@@ -1,10 +1,6 @@
 {$ifdef purple_interface}
 type
-  PPurpleProxyInfo              = Pointer;
-  PPurplePrivacyType            = Pointer;
   PPurplePresence               = Pointer;
-  PPurpleLog                    = Pointer;
-  PPurpleAccountRegistrationCb  = procedure();
 
   TPurpleConnectionState = (
   	PURPLE_DISCONNECTED = 0, // Disconnected.
