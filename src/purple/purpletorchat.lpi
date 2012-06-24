@@ -8,7 +8,7 @@
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
+      <MainUnit Value="34"/>
       <Title Value="purpletorchat"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -42,7 +42,6 @@
             <Options>
               <PassLinkerOptions Value="True"/>
               <LinkerOptions Value="--stats --no-keep-memory --reduce-memory-overheads"/>
-              <ExecutableType Value="Library"/>
             </Options>
           </Linking>
           <Other>
@@ -223,179 +222,179 @@
     </RunParams>
     <Units Count="35">
       <Unit0>
-        <Filename Value="purpletorchat.lpr"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="purpletorchat"/>
-      </Unit0>
-      <Unit1>
-        <Filename Value="purple.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="purple"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="../core/tc_client.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_client"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="../core/tc_config.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_config"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="../core/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_tor"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="../core/tc_misc.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_misc"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="../core/tc_protocol.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_protocol"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="../core/tc_conn.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_conn"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="../core/tc_interface.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_interface"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="../core/tc_buddy.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_buddy"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="../core/tc_prot_ping.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_ping"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="../core/tc_prot_add_me.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_add_me"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="../core/tc_msgqueue.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_msgqueue"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="purplehelper.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="purplehelper"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="../core/tc_roster.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_roster"/>
-      </Unit14>
-      <Unit15>
+      </Unit0>
+      <Unit1>
         <Filename Value="../core/tc_templist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_templist"/>
-      </Unit15>
-      <Unit16>
-        <Filename Value="../core/tc_prot_not_implemented.pas"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../core/tc_roster.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_not_implemented"/>
-      </Unit16>
-      <Unit17>
-        <Filename Value="../core/tc_prot_pong.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_pong"/>
-      </Unit17>
-      <Unit18>
-        <Filename Value="../core/tc_prot_status.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_status"/>
-      </Unit18>
-      <Unit19>
-        <Filename Value="../core/tc_prot_remove_me.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_remove_me"/>
-      </Unit19>
-      <Unit20>
+        <UnitName Value="tc_roster"/>
+      </Unit2>
+      <Unit3>
         <Filename Value="../core/tc_prot_version.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_version"/>
-      </Unit20>
-      <Unit21>
-        <Filename Value="../core/tc_prot_client.pas"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../core/tc_prot_status.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_client"/>
-      </Unit21>
-      <Unit22>
-        <Filename Value="../core/tc_prot_message.pas"/>
+        <UnitName Value="tc_prot_status"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../core/tc_prot_remove_me.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_message"/>
-      </Unit22>
-      <Unit23>
-        <Filename Value="../core/tc_prot_profile_avatar_alpha.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_profile_avatar_alpha"/>
-      </Unit23>
-      <Unit24>
-        <Filename Value="../core/tc_prot_profile_avatar.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_profile_avatar"/>
-      </Unit24>
-      <Unit25>
-        <Filename Value="../core/tc_const.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_const"/>
-      </Unit25>
-      <Unit26>
-        <Filename Value="../core/tc_prot_profile_name.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_profile_name"/>
-      </Unit26>
-      <Unit27>
+        <UnitName Value="tc_prot_remove_me"/>
+      </Unit5>
+      <Unit6>
         <Filename Value="../core/tc_prot_profile_text.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_profile_text"/>
-      </Unit27>
-      <Unit28>
-        <Filename Value="../core/tc_filetransfer.pas"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../core/tc_prot_profile_name.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_filetransfer"/>
-      </Unit28>
-      <Unit29>
-        <Filename Value="../core/tc_prot_filename.pas"/>
+        <UnitName Value="tc_prot_profile_name"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../core/tc_prot_profile_avatar.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_filename"/>
-      </Unit29>
-      <Unit30>
-        <Filename Value="../core/tc_prot_filedata.pas"/>
+        <UnitName Value="tc_prot_profile_avatar"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../core/tc_prot_profile_avatar_alpha.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_filedata"/>
-      </Unit30>
-      <Unit31>
-        <Filename Value="../core/tc_prot_filedata_ok.pas"/>
+        <UnitName Value="tc_prot_profile_avatar_alpha"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../core/tc_prot_pong.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_filedata_ok"/>
-      </Unit31>
-      <Unit32>
-        <Filename Value="../core/tc_prot_filedata_error.pas"/>
+        <UnitName Value="tc_prot_pong"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../core/tc_prot_ping.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_prot_filedata_error"/>
-      </Unit32>
-      <Unit33>
+        <UnitName Value="tc_prot_ping"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="../core/tc_prot_not_implemented.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_not_implemented"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../core/tc_prot_message.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_message"/>
+      </Unit13>
+      <Unit14>
         <Filename Value="../core/tc_prot_file_stop_sending.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_file_stop_sending"/>
-      </Unit33>
-      <Unit34>
+      </Unit14>
+      <Unit15>
         <Filename Value="../core/tc_prot_file_stop_receiving.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_prot_file_stop_receiving"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="../core/tc_prot_filedata_ok.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filedata_ok"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="../core/tc_prot_filedata_error.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filedata_error"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="../core/tc_prot_filedata.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filedata"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../core/tc_prot_filename.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_filename"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="../core/tc_prot_client.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_client"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="../core/tc_prot_add_me.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_prot_add_me"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="../core/tc_protocol.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_protocol"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="../core/tc_misc.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_misc"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="../core/tc_msgqueue.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_msgqueue"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="../core/tc_interface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_interface"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="../core/tc_filetransfer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_filetransfer"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="../core/tc_const.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_const"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="../core/tc_conn.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_conn"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="../core/tc_config.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_config"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="../core/tc_client.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_client"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="../core/tc_buddy.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_buddy"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="purplehelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="purplehelper"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="purple.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="purple"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="purpletorchat.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="purpletorchat"/>
       </Unit34>
     </Units>
   </ProjectOptions>
