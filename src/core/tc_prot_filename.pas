@@ -42,7 +42,7 @@ type
     procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
-    function GetSendConnection: IHiddenConnection; override;
+    class function ReceiveOnOutgoing: Boolean; override;
     constructor Create(Buddy: IBuddy; TransferID: String; FileSize: Int64; BlockSize: Integer; FileName: String); reintroduce;
     procedure Parse; override;
   end;
@@ -59,12 +59,9 @@ begin
   Result := 'filename';
 end;
 
-function TMsgFileName.GetSendConnection: IHiddenConnection;
+class function TMsgFileName.ReceiveOnOutgoing: Boolean;
 begin
-  if Assigned(FBuddy) then
-    Result := FBuddy.ConnIncoming
-  else
-    Result := Nil;
+  Result := True;
 end;
 
 constructor TMsgFileName.Create(Buddy: IBuddy; TransferID: String; FileSize: Int64; BlockSize: Integer; FileName: String);

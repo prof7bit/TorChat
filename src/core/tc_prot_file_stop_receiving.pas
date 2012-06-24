@@ -39,7 +39,7 @@ type
     procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
-    function GetSendConnection: IHiddenConnection; override;
+    class function ReceiveOnOutgoing: Boolean; override;
     constructor Create(ABuddy: IBuddy; TransferID: String); reintroduce;
     procedure Parse; override;
   end;
@@ -53,12 +53,9 @@ begin
   Result := 'file_stop_receiving';
 end;
 
-function TMsgFileStopReceiving.GetSendConnection: IHiddenConnection;
+class function TMsgFileStopReceiving.ReceiveOnOutgoing: Boolean;
 begin
-  if Assigned(FBuddy) then
-    Result := FBuddy.ConnIncoming
-  else
-    Result := nil;
+  Result := True;
 end;
 
 constructor TMsgFileStopReceiving.Create(ABuddy: IBuddy; TransferID: String);

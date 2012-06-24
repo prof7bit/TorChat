@@ -85,6 +85,7 @@ type
     procedure ExecuteWithoutBuddy; virtual;
   public
     class function GetCommand: String; virtual; abstract;
+    class function ReceiveOnOutgoing: Boolean; virtual;
     constructor Create(AConnection: IHiddenConnection; ACommand, AEncodedContent: String); virtual;
     constructor Create(ABuddy: IBuddy);
     procedure Parse; virtual; abstract;
@@ -195,8 +196,12 @@ end;
 
 function TMsg.GetSendConnection: IHiddenConnection;
 begin
-  if Assigned(FBuddy) then
-    Result := FBuddy.ConnOutgoing
+  if Assigned(FBuddy) then begin
+    if ReceiveOnOutgoing then
+      Result := FBuddy.ConnIncoming
+    else
+      Result := FBuddy.ConnOutgoing;
+  end
   else
     Result := nil;
 end;
@@ -254,6 +259,11 @@ end;
 procedure TMsg.ExecuteWithoutBuddy;
 begin
   LogWarningAndIgnore;
+end;
+
+class function TMsg.ReceiveOnOutgoing: Boolean;
+begin
+  Result := False;
 end;
 
 { this is the virtual constructor for incoming messages }

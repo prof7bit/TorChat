@@ -191,6 +191,7 @@ end;
 procedure THiddenConnection.OnReceivedLine(EncodedLine: String);
 var
   Command: String;
+  MsgClass: TMsgClass;
   Msg: IProtocolMessage;
 begin
   try
@@ -202,17 +203,24 @@ begin
     EncodedLine := '';
   end;
 
-  Msg := GetMsgClassFromCommand(Command).Create(
-    Self, Command, EncodedLine);
-  try
-    Msg.Parse;
-    Client.Queue.Put(Msg);
-  except
-    on Ex: Exception do begin
-      WriteLn(_F('E error while parsing protocol command ''%s'': %s %s',
-        [Command, Ex.ToString, Ex.Message]));
+  MsgClass := GetMsgClassFromCommand(Command);
+  if IsOutgoing = MsgClass.ReceiveOnOutgoing then begin
+    Msg := MsgClass.Create(Self, Command, EncodedLine);
+    try
+      Msg.Parse;
+      Client.Queue.Put(Msg);
+    except
+      on Ex: Exception do begin
+        WriteLn(_F('E error while parsing protocol command ''%s'': %s %s',
+          [Command, Ex.ToString, Ex.Message]));
+      end;
     end;
+  end
+  else begin
+    WriteLn(_F('W received %s on wrong connection %s, ignoring.',
+      [Command, DebugInfo]));
   end;
+
 end;
 
 procedure THiddenConnection.Send(AData: String);
