@@ -19,53 +19,6 @@
 }
 library purpletorchat;
 
-{ Naming Conventions:
-
-  Type names:
-  -----------
-  Normally in Pascal we use Uppercase/CamelCase identifiers and
-  type names start with 'T', pointer types with 'P', interfaces
-  with 'I', which will then look like TSomeThing or PSomeThing.
-
-  C programmers on the other hand normally don't define separate
-  names to denote pointer types, they just use the asterisk
-  everywhere in their code and write SomeType and SomeType*
-
-  I don't do the Pascal equivalent of * here (which would be
-  ^SomeType) because it would make it totally inconsistent.
-  Type names are the most important names of all, they should
-  be clear and consistent. I have translated the purple types:
-
-    PurpleSomething  is now TPurpleSomething
-    PurpleSomething* is now PPurpleSomething
-
-  and I am trying to avoid using the name PurpleSomething (without
-  T or P) entirely. (PurpleSomething would be a good name for a
-  variable in Pascal but this would confuse the hell out of every
-  libpurple dev who is used to know this as a type name. So I'm
-  not using it at all.)
-
-  Variable names and function names
-  ---------------------------------
-  libpurple callback functions and variables that hold libpurple
-  or glib types are named with lowercase and under_score and all
-  other variables are using the normal Pascal naming conventions.
-
-  The TorChat engine will call overridden virtual methods when
-  TorChat events happen, these are the methods that start with
-
-    TTorChatPurpleClient.OnXxxx()
-
-  and the callback fuctions that are called by libpurple when
-  Pidgin/libpurple wants something to happen are the procedures
-  and functions that start with
-
-    torchat_xxx()
-
-  and the xxx corresponds to the field names in the info records
-  where these callbacks have been registered.
-}
-
 {$if FPC_FULLVERSION < 20600}
   {$fatal *** You need Free Pascal Compiler version 2.6.0 or higher *** }
 {$endif}
