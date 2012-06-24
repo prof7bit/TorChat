@@ -566,7 +566,7 @@ begin
   Clients.Add(acc.GetUsername, TorChat);
 
   // it won't call set_status after login, so we have to do it ourselves
-  purple_status := purple_presence_get_active_status(acc.GetPresence);
+  purple_status := acc.GetPresence.GetActiveStatus;
   torchat_set_status(acc, purple_status);
 end;
 

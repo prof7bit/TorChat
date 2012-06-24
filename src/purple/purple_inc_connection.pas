@@ -1,6 +1,6 @@
 {$ifdef purple_interface}
 type
-  PPurplePresence               = Pointer;
+  TPurplePresence = class;
 
   TPurpleConnectionState = (
   	PURPLE_DISCONNECTED = 0, // Disconnected.
@@ -35,5 +35,5 @@ begin
   purple_connection_set_state(Self, State);
 end;
 
-
 {$endif}
+

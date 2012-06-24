@@ -61,6 +61,7 @@ type
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
 {$include purple_inc_ft.pas}
+{$include purple_inc_presence}
 {$undef purple_interface}
 
 
@@ -191,7 +192,6 @@ type
   PPurpleContact            = Pointer;
   PPurpleGroup              = Pointer;
   PPurpleNotifyUserInfo     = Pointer;
-  PPurpleStatus             = Pointer;
   PPurpleStatusType         = Pointer;
   PPurpleStoredImage        = Pointer;
   PPurpleBlistNode          = Pointer;
@@ -352,7 +352,6 @@ type
  ********************************************)
 
 function  purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
-function  purple_account_get_string(account: TPurpleAccount; aname, default_value: PChar): PChar; cdecl; external LIBPURPLE;
 procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
   group: PPurpleGroup; node: PPurpleBlistNode); cdecl; external LIBPURPLE;
 procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); cdecl; external LIBPURPLE;
@@ -363,7 +362,7 @@ procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); cdecl; external LIBPUR
 function  purple_buddy_get_account(buddy: PPurpleBuddy): TPurpleAccount; cdecl; external LIBPURPLE;
 function  purple_buddy_get_alias_only(buddy: PPurpleBuddy): PChar; cdecl; external LIBPURPLE;
 function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; cdecl; external LIBPURPLE;
-function  purple_buddy_get_presence(buddy: PPurpleBuddy): PPurplePresence; cdecl; external LIBPURPLE;
+function  purple_buddy_get_presence(buddy: PPurpleBuddy): TPurplePresence; cdecl; external LIBPURPLE;
 procedure purple_buddy_icons_set_for_user(account: TPurpleAccount;
   username: PChar; icon_data: Pointer; icon_len: csize_t; checksum: PChar); cdecl; external LIBPURPLE;
 function  purple_buddy_new(account: TPurpleAccount; aname, aalias: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
@@ -382,8 +381,6 @@ procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
   label_, value: PChar); cdecl; external LIBPURPLE;
 function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
 function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
-function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; cdecl; external LIBPURPLE;
-procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); cdecl; external LIBPURPLE;
 procedure purple_prpl_got_user_status(account: TPurpleAccount;
   aname, status_id: PChar); cdecl; external LIBPURPLE;
 function  purple_request_fields_new: PPurpleRequestFields; cdecl; external LIBPURPLE;
@@ -435,6 +432,7 @@ implementation
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
 {$include purple_inc_ft.pas}
+{$include purple_inc_presence}
 {$undef purple_implementation}
 
 
