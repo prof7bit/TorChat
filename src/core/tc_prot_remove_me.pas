@@ -47,10 +47,10 @@ type
   TMsgRemoveMe = class(TMsg)
   strict protected
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -73,19 +73,12 @@ begin
   //
 end;
 
-procedure TMsgRemoveMe.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgRemoveMe.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else begin
-    if Buddy in FClient.Roster then begin
-      Buddy.ResetAllTimes;
-      FClient.TempList.AddBuddy(Buddy); // there it will be autoremoved
-      FClient.Roster.RemoveBuddy(Buddy);
-    end;
+  if FBuddy in FClient.Roster then begin
+    FBuddy.ResetAllTimes;
+    FClient.TempList.AddBuddy(FBuddy); // there it will be autoremoved
+    FClient.Roster.RemoveBuddy(FBuddy);
   end;
 end;
 

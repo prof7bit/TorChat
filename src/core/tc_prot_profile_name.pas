@@ -47,11 +47,11 @@ type
   strict protected
     FName: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     constructor Create(ABuddy: IBuddy; AText: String); reintroduce;
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -82,15 +82,9 @@ begin
   FName := LineBreaksAnyToSpace(FBinaryContent);
 end;
 
-procedure TMsgProfileName.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgProfileName.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else
-    Buddy.SetProfileName(FName);
+  FBuddy.SetProfileName(FName);
 end;
 
 begin

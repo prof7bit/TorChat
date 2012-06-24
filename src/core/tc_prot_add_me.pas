@@ -47,10 +47,10 @@ type
   TMsgAddMe = class(TMsg)
   strict protected
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -68,26 +68,20 @@ begin
   //
 end;
 
+procedure TMsgAddMe.ExecuteWithBuddy;
+begin
+  if FBuddy in FClient.TempList then begin
+    FClient.TempList.RemoveBuddy(FBuddy);
+    FClient.Roster.AddBuddy(FBuddy);
+    FBuddy.SendStatus; // one cannot send too many status messages ;-)
+  end;
+end;
+
 procedure TMsgAddMe.Parse;
 begin
   //
 end;
 
-procedure TMsgAddMe.Execute;
-var
-  Buddy: IBuddy;
-begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else begin
-    if Buddy in FClient.TempList then begin
-      FClient.TempList.RemoveBuddy(Buddy);
-      FClient.Roster.AddBuddy(Buddy);
-      Buddy.SendStatus; // one cannot send too many status messages ;-)
-    end;
-  end;
-end;
 
 begin
   RegisterMessageClass(TMsgAddMe);

@@ -37,12 +37,12 @@ type
     FTransferID: String;
     FStartByte: Int64;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
     constructor Create(ABuddy: IBuddy; TransferID: String; StartByte: Int64); reintroduce;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 implementation
@@ -83,21 +83,15 @@ begin
   FBinaryContent := _F('%s %d', [FTransferID, FStartByte]);
 end;
 
-procedure TMsgFileDataError.Execute;
+procedure TMsgFileDataError.ExecuteWithBuddy;
 var
-  Buddy: IBuddy;
   Transfer: IFileTransfer;
 begin
-  Buddy := FConnection.Buddy;
-  if Assigned(Buddy) then begin
-    Transfer := Buddy.Client.FindFileTransferSend(FTransferID);
-    if Assigned(Transfer) then
-      Transfer.ReceivedError(FStartByte)
-    else
-      WriteLn('E received "filedata_error" that does not belong to any running transfer, ignoring.');
-  end
+  Transfer := FClient.FindFileTransferSend(FTransferID);
+  if Assigned(Transfer) then
+    Transfer.ReceivedError(FStartByte)
   else
-    LogWarningAndIgnore();
+    WriteLn('E received "filedata_error" that does not belong to any running transfer, ignoring.');
 end;
 
 begin

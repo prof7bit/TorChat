@@ -36,12 +36,12 @@ type
   strict protected
     FTransferID: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
     constructor Create(ABuddy: IBuddy; TransferID: String); reintroduce;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 implementation
@@ -77,21 +77,15 @@ begin
   FBinaryContent := FTransferID;
 end;
 
-procedure TMsgFileStopSending.Execute;
+procedure TMsgFileStopSending.ExecuteWithBuddy;
 var
-  Buddy: IBuddy;
   Transfer: IFileTransfer;
 begin
-  Buddy := FConnection.Buddy;
-  if Assigned(Buddy) then begin
-    Transfer := Buddy.Client.FindFileTransferSend(FTransferID);
-    if Assigned(Transfer) then
-      Transfer.ReceivedCancel
-    else
-      WriteLn('E received "file_stop_sending" that does not belong to any running transfer');
-  end
+  Transfer := FClient.FindFileTransferSend(FTransferID);
+  if Assigned(Transfer) then
+    Transfer.ReceivedCancel
   else
-    LogWarningAndIgnore();
+    WriteLn('E received "file_stop_sending" that does not belong to any running transfer');
 end;
 
 begin

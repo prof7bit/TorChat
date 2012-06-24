@@ -52,11 +52,11 @@ type
   strict protected
     FBitmap: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     constructor Create(ABuddy: IBuddy; AAvatarData: String); reintroduce;
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -101,15 +101,9 @@ begin
   end;
 end;
 
-procedure TMsgProfileAvatar.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgProfileAvatar.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else
-    Buddy.SetAvatarData(FBitmap);
+  FBuddy.SetAvatarData(FBitmap);
 end;
 
 begin

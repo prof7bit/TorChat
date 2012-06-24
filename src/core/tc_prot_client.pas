@@ -49,11 +49,11 @@ type
   strict protected
     FSoftwareName: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     constructor Create(ABuddy: IBuddy; ASoftwareName: String); reintroduce;
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -71,6 +71,11 @@ begin
   FBinaryContent := FSoftwareName;
 end;
 
+procedure TMsgClient.ExecuteWithBuddy;
+begin
+  FBuddy.SetSoftware(FSoftwareName);
+end;
+
 constructor TMsgClient.Create(ABuddy: IBuddy; ASoftwareName: String);
 begin
   inherited Create(ABuddy);
@@ -80,17 +85,6 @@ end;
 procedure TMsgClient.Parse;
 begin
   FSoftwareName := FBinaryContent;
-end;
-
-procedure TMsgClient.Execute;
-var
-  Buddy: IBuddy;
-begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else
-    Buddy.SetSoftware(FSoftwareName);
 end;
 
 begin

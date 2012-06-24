@@ -55,11 +55,11 @@ type
   strict protected
     FMessageText: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     constructor Create(ABuddy: IBuddy; AMessageText: String); reintroduce;
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -93,15 +93,9 @@ begin
   FMessageText := LineBreaksAnyToNative(FBinaryContent);
 end;
 
-procedure TMsgMessage.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgMessage.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else
-    Buddy.Client.OnInstantMessage(Buddy, FMessageText);
+  FClient.OnInstantMessage(FBuddy, FMessageText);
 end;
 
 begin

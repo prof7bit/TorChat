@@ -55,15 +55,18 @@ type
   strict protected
     FCookie: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
+    procedure ExecuteWithoutBuddy; override;
   public
     class function GetCommand: String; override;
     constructor Create(ABuddy: IBuddy; ACookie: String); reintroduce;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
 implementation
+uses
+  tc_misc;
 
 { TMsgPong }
 
@@ -88,15 +91,21 @@ begin
   FCookie := FBinaryContent;
 end;
 
-procedure TMsgPong.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgPong.ExecuteWithBuddy;
 begin
-  Buddy := FClient.Roster.ByCookie(FCookie);
-  if not Assigned(Buddy) then
-    Buddy := FClient.TempList.ByCookie(FCookie);
-  if Assigned(Buddy) then
-    Buddy.SetIncoming(FConnection)
+  WriteLn(_F('ignoring pong on already authenticated connection %s %s',
+    [FBuddy.ID, FCookie]));
+end;
+
+procedure TMsgPong.ExecuteWithoutBuddy;
+var
+  ABuddy: IBuddy;
+begin
+  ABuddy := FClient.Roster.ByCookie(FCookie);
+  if not Assigned(ABuddy) then
+    ABuddy := FClient.TempList.ByCookie(FCookie);
+  if Assigned(ABuddy) then
+    ABuddy.SetIncoming(FConnection)
   else
     LogWarningAndIgnore('unknown cookie');
 end;

@@ -39,12 +39,12 @@ type
     FBlockSize: Integer;
     FFileName: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
     constructor Create(Buddy: IBuddy; TransferID: String; FileSize: Int64; BlockSize: Integer; FileName: String); reintroduce;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 implementation
@@ -90,15 +90,9 @@ begin
     [FTransferID, FFileSize, FBlockSize, FFileName]);
 end;
 
-procedure TMsgFileName.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgFileName.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if Assigned(Buddy) then
-    Buddy.Client.OnIncomingFileTransfer(Buddy, FTransferID, FFileName, FFileSize, FBlockSize)
-  else
-    LogWarningAndIgnore();
+  FBuddy.Client.OnIncomingFileTransfer(FBuddy, FTransferID, FFileName, FFileSize, FBlockSize)
 end;
 
 begin

@@ -42,6 +42,7 @@
             <Options>
               <PassLinkerOptions Value="True"/>
               <LinkerOptions Value="--stats --no-keep-memory --reduce-memory-overheads"/>
+              <ExecutableType Value="Library"/>
             </Options>
           </Linking>
           <Other>

@@ -44,11 +44,11 @@ type
   strict protected
     FText: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     constructor Create(ABuddy: IBuddy; AText: String); reintroduce;
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -79,15 +79,9 @@ begin
   FText := LineBreaksAnyToNative(FBinaryContent);
 end;
 
-procedure TMsgProfileText.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgProfileText.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else
-    Buddy.SetProfileText(FText);
+  FBuddy.SetProfileText(FText);
 end;
 
 begin

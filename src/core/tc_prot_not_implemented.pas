@@ -84,8 +84,7 @@ end;
 
 procedure TMsgNotImplemented.Execute;
 begin
-  if not Assigned(FConnection.Buddy) then
-    LogWarningAndIgnore(FUnknownCommand)
+  LogWarningAndIgnore(FUnknownCommand)
 end;
 
 begin

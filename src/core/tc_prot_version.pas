@@ -51,11 +51,11 @@ type
   strict protected
     FSoftwareVersion: String;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     constructor Create(ABuddy: IBuddy; ASoftwareVersion: String); reintroduce;
     class function GetCommand: String; override;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 
@@ -84,15 +84,9 @@ begin
   FSoftwareVersion := FBinaryContent;
 end;
 
-procedure TMsgVersion.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgVersion.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if not Assigned(Buddy) then
-    LogWarningAndIgnore
-  else
-    Buddy.SetSoftwareVersion(FSoftwareVersion);
+  FBuddy.SetSoftwareVersion(FSoftwareVersion);
 end;
 
 begin

@@ -81,12 +81,14 @@ type
     procedure LogReceive;
     procedure LogSend;
     procedure Serialize; virtual; abstract;
+    procedure ExecuteWithBuddy; virtual;
+    procedure ExecuteWithoutBuddy; virtual;
   public
     class function GetCommand: String; virtual; abstract;
     constructor Create(AConnection: IHiddenConnection; ACommand, AEncodedContent: String); virtual;
     constructor Create(ABuddy: IBuddy);
     procedure Parse; virtual; abstract;
-    procedure Execute; virtual; abstract;
+    procedure Execute; virtual;
     procedure Send; virtual;
   end;
 
@@ -244,11 +246,22 @@ begin
       [GetCommand, DebugInfo]));
 end;
 
+procedure TMsg.ExecuteWithBuddy;
+begin
+
+end;
+
+procedure TMsg.ExecuteWithoutBuddy;
+begin
+  LogWarningAndIgnore;
+end;
+
 { this is the virtual constructor for incoming messages }
 constructor TMsg.Create(AConnection: IHiddenConnection; ACommand, AEncodedContent: String);
 begin
   FConnection := AConnection;
   FClient := FConnection.Client;
+  FBuddy := FConnection.Buddy;
   FCommand := ACommand;
   FBinaryContent := BinaryDecode(AEncodedContent);
   LogReceive;
@@ -259,6 +272,14 @@ constructor TMsg.Create(ABuddy: IBuddy);
 begin
   FBuddy := ABuddy;
   FClient := FBuddy.Client;
+end;
+
+procedure TMsg.Execute;
+begin
+  if Assigned(FBuddy) then
+    ExecuteWithBuddy
+  else
+    ExecuteWithoutBuddy;
 end;
 
 procedure TMsg.Send;

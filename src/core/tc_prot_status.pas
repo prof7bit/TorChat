@@ -57,11 +57,11 @@ type
   strict protected
     FStatus: TTorchatStatus;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
     constructor Create(ABuddy: IBuddy); reintroduce;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 implementation
@@ -101,16 +101,9 @@ begin
   end;
 end;
 
-procedure TMsgStatus.Execute;
-var
-  Buddy: IBuddy;
+procedure TMsgStatus.ExecuteWithBuddy;
 begin
-  Buddy := FConnection.Buddy;
-  if Assigned(Buddy) then begin
-    Buddy.SetStatus(FStatus);
-  end
-  else
-    LogWarningAndIgnore();
+  FBuddy.SetStatus(FStatus);
 end;
 
 begin

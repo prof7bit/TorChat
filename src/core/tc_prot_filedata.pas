@@ -40,12 +40,12 @@ type
     FFileChunk: String;
     FCheckSumOK: Boolean;
     procedure Serialize; override;
+    procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
     function GetSendConnection: IHiddenConnection; override;
     constructor Create(Buddy: IBuddy; ID: String; StartByte: Int64; FileChunk: String); reintroduce;
     procedure Parse; override;
-    procedure Execute; override;
   end;
 
 implementation
@@ -101,29 +101,23 @@ begin
     [FTransferID, FStartByte, FCheckSum, FFileChunk]);
 end;
 
-procedure TMsgFileData.Execute;
+procedure TMsgFileData.ExecuteWithBuddy;
 var
-  Buddy: IBuddy;
   Transfer: IFileTransfer;
   Msg: IProtocolMessage;
 begin
-  Buddy := FConnection.Buddy;
-  if Assigned(Buddy) then begin
-    Transfer := Buddy.Client.FindFileTransferRecv(FTransferID);
-    if Assigned(Transfer) then begin
-      if FCheckSumOK then
-        Transfer.ReceivedFileChunk(FStartByte, FFileChunk)
-      else
-        Transfer.ReceivedBrokenChunk(FStartByte);
-    end
-    else begin
-      WriteLn('E received file data that does not belong to any running transfer');
-      Msg := TMsgFileStopSending.Create(Buddy, FTransferID);
-      Msg.Send;
-    end;
+  Transfer := FBuddy.Client.FindFileTransferRecv(FTransferID);
+  if Assigned(Transfer) then begin
+    if FCheckSumOK then
+      Transfer.ReceivedFileChunk(FStartByte, FFileChunk)
+    else
+      Transfer.ReceivedBrokenChunk(FStartByte);
   end
-  else
-    LogWarningAndIgnore();
+  else begin
+    WriteLn('E received file data that does not belong to any running transfer');
+    Msg := TMsgFileStopSending.Create(FBuddy, FTransferID);
+    Msg.Send;
+  end;
 end;
 
 begin
