@@ -117,24 +117,22 @@ begin
 end;
 
 procedure TMsgPing.Execute;
-var
-  ABuddy: IBuddy;
 begin
   FConnection.SetPingBuddyID(FID);
 
-  ABuddy := FClient.Roster.ByID(FID);
-  if not Assigned(ABuddy) then
-    ABuddy := FClient.TempList.ByID(FID);
+  FBuddy := FClient.Roster.ByID(FID);
+  if not Assigned(FBuddy) then
+    FBuddy := FClient.TempList.ByID(FID);
 
-  if Assigned(ABuddy) then begin
-    ABuddy.MustSendPong(FCookie)
+  if Assigned(FBuddy) then begin
+    FBuddy.MustSendPong(FCookie)
   end
   else begin
     Writeln('I got Ping from unknown Buddy, creating temporary buddy: ' + FID);
-    ABuddy := TBuddy.Create(FClient);
-    if ABuddy.InitID(FID) then begin // this will check if ID is valid and allowed
-      ABuddy.MustSendPong(FCookie);
-      FClient.TempList.AddBuddy(ABuddy);
+    FBuddy := TBuddy.Create(FClient);
+    if FBuddy.InitID(FID) then begin // this will check if ID is valid and allowed
+      FBuddy.MustSendPong(FCookie);
+      FClient.TempList.AddBuddy(FBuddy);
     end
     else begin
       writeln('W cannot create a buddy with this id: ' + FID);

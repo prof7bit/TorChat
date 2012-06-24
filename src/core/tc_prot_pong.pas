@@ -98,14 +98,12 @@ begin
 end;
 
 procedure TMsgPong.ExecuteWithoutBuddy;
-var
-  ABuddy: IBuddy;
 begin
-  ABuddy := FClient.Roster.ByCookie(FCookie);
-  if not Assigned(ABuddy) then
-    ABuddy := FClient.TempList.ByCookie(FCookie);
-  if Assigned(ABuddy) then
-    ABuddy.SetIncoming(FConnection)
+  FBuddy := FClient.Roster.ByCookie(FCookie);
+  if not Assigned(FBuddy) then
+    FBuddy := FClient.TempList.ByCookie(FCookie);
+  if Assigned(FBuddy) then
+    FBuddy.SetIncoming(FConnection)
   else
     LogWarningAndIgnore('unknown cookie');
 end;
