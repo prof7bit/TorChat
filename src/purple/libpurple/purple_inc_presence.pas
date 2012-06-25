@@ -1,21 +1,22 @@
-{$ifdef interface_type}
-  PPurpleStatus = Pointer;
+{$ifdef _type_forward}
+  PPurplePresence = ^TPurplePresence;
+{$endif}
 
-  { TPurplePresence }
-
-  // PPurplePresence is already declared forward in purple.pas
+{$ifdef _type}
   TPurplePresence = object
     function GetActiveStatus: PPurpleStatus;
     procedure SwitchStatus(StatusID: String);
   end;
 {$endif}
 
-{$ifdef import_func}
+
+{$ifdef _func}
 function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; cdecl; external LIBPURPLE;
 procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); cdecl; external LIBPURPLE;
 {$endif}
 
-{$ifdef implementation}
+
+{$ifdef _impl}
 { TPurplePresence }
 
 function TPurplePresence.GetActiveStatus: PPurpleStatus;

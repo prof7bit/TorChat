@@ -1,8 +1,8 @@
-{$ifdef interface_const}
+{$ifdef _const}
   PURPLE_PLUGIN_MAGIC = 5;
 {$endif}
 
-{$ifdef interface_type}
+{$ifdef _type}
   TPurplePluginType = (
     PURPLE_PLUGIN_UNKNOWN  := -1,  // Unknown type.
     PURPLE_PLUGIN_STANDARD := 0,   // Standard plugin.
@@ -36,12 +36,16 @@
 
   PPurplePluginAction = ^TPurplePluginAction;
   PPurplePluginActionCb = procedure(act: PPurplePluginAction); cdecl;
-  TPurplePluginAction = record
+
+  { TPurplePluginAction }
+
+  TPurplePluginAction = object
     label_    : PChar;
     callback  : PPurplePluginActionCb;
     plugin    : PPurplePlugin;
     context   : gpointer;
     user_data : gpointer;
+    class function New(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
   end;
 
   TPurplePluginInfo = record
@@ -75,8 +79,18 @@
   end;
 {$endif}
 
-{$ifdef purple_implementation}
+{$ifdef _func_public}
+function  purple_plugin_register(Plugin: PPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
+{$endif}
 
+{$ifdef _func}
+function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
+{$endif}
 
+{$ifdef _impl}
+class function TPurplePluginAction.New(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
+begin
+  Result := purple_plugin_action_new(_PChar(ALabel), ACallBack);
+end;
 {$endif}
 

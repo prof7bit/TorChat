@@ -1,4 +1,4 @@
-{$ifdef interface_type}
+{$ifdef _type}
   PPurpleRoomlist = ^TPurpleRoomlist;
   TPurpleRoomlist = object
   enD;

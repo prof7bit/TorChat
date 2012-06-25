@@ -242,17 +242,15 @@ end;
 { this callback is registered in the plugin_info record, purple will call
   it when loading the plugin and here we set up the menu items and
   register the callbacks to handle these menu items. }
-function torchat_actions(plugin: PPurplePlugin; context: Pointer): PGList; cdecl;
+function torchat_actions(Plugin: PPurplePlugin; Context: Pointer): PGList; cdecl;
 var
-  act   : PPurplePluginAction;
-  m     : PGList;
+  Action   : PPurplePluginAction;
 begin
-  act := purple_plugin_action_new('Set User Info...', @torchat_set_user_info);
-  m := g_list_append(nil, act);
-  Result := m;
+  Action := TPurplePluginAction.New('Set User Info...', @torchat_set_user_info);
+  Result := g_list_append(nil, Action);
 end;
 
-function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
+function torchat_status_types(Account: PPurpleAccount): PGList; cdecl;
 begin
   // Pidgin has some strange policy regarding usable status types:
   // As soon as there are more than one protocols active it will
@@ -261,27 +259,28 @@ begin
   // so we are forced to register them all and then map them to
   // TorChat statuses in our torchat_set_status() callback.
   Result := nil;
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_UNAVAILABLE, PRPL_ID_XA, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_INVISIBLE, PRPL_ID_INVISIBLE, nil, True, True, False));
-  Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, nil, True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_UNAVAILABLE, PRPL_ID_XA, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_INVISIBLE, PRPL_ID_INVISIBLE, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, '', True, True, False));
 end;
 
-procedure torchat_set_status(acc: PPurpleAccount; status: PPurpleStatus); cdecl;
+procedure torchat_set_status(Account: PPurpleAccount; Status: PPurpleStatus); cdecl;
 var
-  status_prim   : TPurpleStatusPrimitive;
+  StatusPrim   : TPurpleStatusPrimitive;
   TorchatStatus : TTorchatStatus;
 begin
-  status_prim := purple_status_type_get_primitive(purple_status_get_type(status));
-  case status_prim of
+  // StatusPrim := purple_status_type_get_primitive(purple_status_get_type(Status));
+  StatusPrim := Status.GetType.GetPrimitive;
+  case StatusPrim of
     PURPLE_STATUS_AVAILABLE: TorchatStatus := TORCHAT_AVAILABLE;
     PURPLE_STATUS_UNAVAILABLE: TorchatStatus := TORCHAT_XA;
     PURPLE_STATUS_AWAY: TorchatStatus := TORCHAT_AWAY;
     PURPLE_STATUS_EXTENDED_AWAY: TorchatStatus := TORCHAT_XA;
     PURPLE_STATUS_INVISIBLE: TorchatStatus := TORCHAT_OFFLINE;
   end;
-  Clients.Find(acc).SetStatus(TorchatStatus);
+  Clients.Find(Account).SetStatus(TorchatStatus);
 end;
 
 procedure torchat_set_buddy_icon(gc: PPurpleConnection; PurpleImage: PPurpleStoredImage); cdecl;

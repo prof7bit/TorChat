@@ -1,4 +1,4 @@
-{$ifdef interface_type}
+{$ifdef _type}
   { TPurpleDebug is just abused as a namespace for the debug function}
   TPurpleDebug = object
     class procedure Misc(Category, Text: String);
@@ -8,14 +8,14 @@
   end;
 {$endif}
 
-{$ifdef import_func}
+{$ifdef _func}
 procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
 procedure purple_debug_info(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
 procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
 procedure purple_debug_error(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
 {$endif}
 
-{$ifdef implementation}
+{$ifdef _impl}
 class procedure TPurpleDebug.Misc(Category, Text: String);
 begin
   purple_debug_misc(_PChar(Category), _PChar(Text), []);

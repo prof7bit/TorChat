@@ -50,10 +50,6 @@ const
     LIBPURPLE = 'purple';
   {$endif}
 
-{$define interface_const}
-{$include purple_inc_all.pas}
-{$undef interface_const}
-
 type
   {$ifdef cpu64}
     time_t = UInt64;
@@ -61,32 +57,30 @@ type
     time_t = DWord;
   {$endif}
 
-  PPurpleAccount = ^TPurpleAccount;
-  PPurplePresence = ^TPurplePresence;
+(************************************************
+ * The includes are parsed in multiple separate *
+ * passes to make them appear nicely ordered in *
+ * the code explorer and most importantly to be *
+ * able to resolve the cyclic dependencies with *
+ * forward type declarations in a separate pass *
+ ************************************************)
+const
+  {$define _const}
+  {$include purple_inc_all.pas}
+  {$undef _const}
 
-{$define interface_type}
+type
+  {$define _type_forward}
+  {$include purple_inc_all.pas}
+  {$undef _type_forward}
+
+  {$define _type}
+  {$include purple_inc_all.pas}
+  {$undef _type}
+
+{$define _func_public}
 {$include purple_inc_all.pas}
-{$undef interface_type}
-
-(********************************************
- *                                          *
- *   function imports from libpurple        *
- *                                          *
- ********************************************)
-
-function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
-function  purple_plugin_register(Plugin: PPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
-function  purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; cdecl; external LIBPURPLE;
-function  purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; cdecl; external LIBPURPLE;
-function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
-  id: PChar; name: Pchar; saveable: GBoolean; user_settable: GBoolean;
-  independent: GBoolean): PPurpleStatusType; cdecl; external LIBPURPLE;
-function  purple_timeout_add(Interval: cint; cb: TGSourceFunc; UserData: Pointer): cint; cdecl; external LIBPURPLE;
-function  purple_timeout_remove(handle: cint): GBoolean; cdecl; external LIBPURPLE;
-procedure serv_got_alias(gc: PPurpleConnection; who, aalias: PChar); external LIBPURPLE;
-procedure serv_got_im(gc: PPurpleConnection; who, msg: PChar;
-  flags: TPurpleMessageFlags; mtime: time_t); cdecl; external LIBPURPLE;
-
+{$undef _func_public}
 
 { purple_init_plugin is the only exported symbol.
   It is called when libpurple is probing all libs in the plugin
@@ -100,17 +94,9 @@ var
   plugin_info: TPurplePluginInfo;
   plugin_protocol_info: TPurplePluginProtocolInfo;
 
-{$define import_func_public}
-{$include purple_inc_all.pas}
-{$undef import_func_public}
-
 implementation
 uses
   sysutils;
-
-{$define import_func}
-{$include purple_inc_all.pas}
-{$undef import_func}
 
 function _PChar(S: String): PChar; inline;
 begin
@@ -120,9 +106,13 @@ begin
     Result := PChar(S);
 end;
 
-{$define implementation}
+{$define _func}
 {$include purple_inc_all.pas}
-{$undef implementation}
+{$undef _func}
+
+{$define _impl}
+{$include purple_inc_all.pas}
+{$undef _impl}
 
 { This re-implements the stuff that is behind the PURPLE_INIT_PLUGIN macro.
   In C the macro would define the function and export it, here we only

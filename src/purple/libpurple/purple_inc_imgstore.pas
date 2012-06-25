@@ -1,4 +1,4 @@
-{$ifdef interface_type}
+{$ifdef _type}
   PPurpleStoredImage = ^TPurpleStoredImage;
 
   { TPurpleStoredImage }
@@ -9,12 +9,12 @@
   end;
 {$endif}
 
-{$ifdef import_func}
+{$ifdef _func}
 function  purple_imgstore_get_data(img: PPurpleStoredImage): Pointer; cdecl; external LIBPURPLE;
 function  purple_imgstore_get_size(img: PPurpleStoredImage): csize_t; cdecl; external LIBPURPLE;
 {$endif}
 
-{$ifdef implementation}
+{$ifdef _impl}
 { TPurpleStoredImage }
 
 function TPurpleStoredImage.GetData: Pointer;

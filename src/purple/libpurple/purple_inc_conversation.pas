@@ -1,4 +1,4 @@
-{$ifdef interface_const}
+{$ifdef _const}
   PURPLE_MESSAGE_SEND         = $0001;
   PURPLE_MESSAGE_RECV         = $0002;
   PURPLE_MESSAGE_SYSTEM       = $0004;
@@ -16,8 +16,9 @@
   PURPLE_MESSAGE_INVISIBLE    = $8000;
 {$endif}
 
-{$ifdef interface_type}
+{$ifdef _type}
   TPurpleMessageFlags = cint; // PURPLE_MESSAGE_XXX flags
+
   TPurpleTypingState = cint;
 
   TPurpleConversationType = (

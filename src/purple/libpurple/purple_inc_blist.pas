@@ -1,4 +1,4 @@
-{$ifdef interface_type}
+{$ifdef _type}
   PPurpleContact            = Pointer;
   PPurpleBlistNode          = Pointer;
   PPurpleChat               = Pointer;
@@ -29,9 +29,7 @@
   end;
 {$endif}
 
-{$ifdef import_func}
-function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
-
+{$ifdef _func}
 procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; external LIBPURPLE;
 procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); cdecl; external LIBPURPLE;
 function  purple_buddy_get_account(buddy: PPurpleBuddy): PPurpleAccount; cdecl; external LIBPURPLE;
@@ -45,10 +43,13 @@ procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
 function  purple_group_new(name_: PChar): PPurpleGroup; cdecl; external LIBPURPLE;
 function  purple_find_group(name_: PChar): PPurpleGroup; cdecl; external LIBPURPLE;
 procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); cdecl; external LIBPURPLE;
+
+function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
 function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; cdecl; external LIBPURPLE;
 {$endif}
 
-{$ifdef implementation}
+
+{$ifdef _impl}
 class function TPurpleBuddy.Create(Acc: PPurpleAccount; AName, AAlias: String): PPurpleBuddy;
 begin
   Result := purple_buddy_new(Acc, _PChar(AName), _PChar(AAlias));

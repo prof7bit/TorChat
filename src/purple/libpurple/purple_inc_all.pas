@@ -5,6 +5,7 @@
 {$include purple_inc_account.pas}
 {$include purple_inc_accountopt.pas}
 {$include purple_inc_ft.pas}
+{$include purple_inc_status.pas}
 {$include purple_inc_presence.pas}
 {$include purple_inc_blist.pas}
 {$include purple_inc_notify.pas}
@@ -13,7 +14,8 @@
 {$include purple_inc_roomlist.pas}
 {$include purple_inc_whiteboard.pas}
 {$include purple_inc_media.pas}
-{$include purple_inc_status.pas}
 {$include purple_inc_request.pas}
+{$include purple_inc_eventloop.pas}
+{$include purple_inc_server.pas}
 {$include purple_inc_prpl.pas}
 

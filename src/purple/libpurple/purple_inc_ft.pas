@@ -1,4 +1,4 @@
-{$ifdef interface_type}
+{$ifdef _type}
   PPurpleXfer = ^TPurpleXfer;
 
   TPurpleXferType = (
@@ -47,7 +47,8 @@
   end;
 {$endif}
 
-{$ifdef import_func}
+
+{$ifdef _func}
 function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; cdecl; external LIBPURPLE;
 procedure purple_xfer_end(xfer: PPurpleXfer); cdecl; external LIBPURPLE;
 procedure purple_xfer_cancel_remote(xfer: PPurpleXfer); cdecl; external LIBPURPLE;
@@ -73,9 +74,8 @@ function  purple_xfer_get_remote_user(xfer: PPurpleXfer): PChar; cdecl; external
 function purple_xfer_get_status(xfer: PPurpleXfer): TPurpleXferStatusType; cdecl; external LIBPURPLE;
 {$endif}
 
-{$ifdef implementation}
-{ TPurpleXfer }
 
+{$ifdef _impl}
 class function TPurpleXfer.Create(Account: PPurpleAccount; Typ: TPurpleXferType; Who: String): PPurpleXfer;
 begin
   Result := purple_xfer_new(Account, Typ, _PChar(Who));

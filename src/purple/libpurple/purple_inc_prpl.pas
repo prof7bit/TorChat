@@ -1,4 +1,4 @@
-{$ifdef interface_const}
+{$ifdef _const}
   OPT_PROTO_UNIQUE_CHATNAME       = $00000004;
   OPT_PROTO_CHAT_TOPIC            = $00000008;
   OPT_PROTO_NO_PASSWORD           = $00000010;
@@ -11,7 +11,7 @@
   OPT_PROTO_INVITE_MESSAGE        = $00000800;
 {$endif}
 
-{$ifdef interface_type}
+{$ifdef _type}
   TPurpleProtocolOptions = DWord; // bitfield of OPT_PROTO_ constants
 
   TPurpleIconScaleRules = (
@@ -107,7 +107,9 @@
   end;
 {$endif}
 
-{$ifdef import_func}
+
+{$ifdef _func}
 procedure purple_prpl_got_user_status(account: PPurpleAccount;
   aname, status_id: PChar); cdecl; external LIBPURPLE;
 {$endif}
+

@@ -1,4 +1,4 @@
-{$ifdef interface_type}
+{$ifdef _type}
   PPurpleRequestFields = ^TPurpleRequestFields;
   PPurpleRequestFieldGroup = ^TPurpleRequestFieldGroup;
   PPurpleRequestField = ^TPurpleRequestField;
@@ -29,7 +29,8 @@
   end;
 {$endif}
 
-{$ifdef import_func}
+
+{$ifdef _func}
 function  purple_request_fields_new: PPurpleRequestFields; cdecl; external LIBPURPLE;
 procedure purple_request_fields_add_group(fields: PPurpleRequestFields;
   group: PPurpleRequestFieldGroup); cdecl; external LIBPURPLE;
@@ -51,7 +52,8 @@ function  purple_request_field_string_new(id, text, default_value: PChar;
   multiline: gboolean): PPurpleRequestField; cdecl; external LIBPURPLE;
 {$endif}
 
-{$ifdef implementation}
+
+{$ifdef _impl}
 { TPurpleRequestFields }
 
 class function TPurpleRequestFields.New: PPurpleRequestFields;

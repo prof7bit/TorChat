@@ -1,4 +1,4 @@
-{$ifdef interface_type}
+{$ifdef _type}
   TPurpleMediaSessionType   = cint;
   TPurpleMediaCaps          = cint;
 {$endif}

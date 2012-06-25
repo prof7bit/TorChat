@@ -1,13 +1,8 @@
-{$ifdef interface_type}
-  PPurpleAccountUnregistrationCallback = procedure(); cdecl; // fixme: signature?
-  PPurpleSetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
-  PPurpleSetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
-  PPurpleGetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
-  PPurpleGetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
+{$ifdef _type_forward}
+  PPurpleAccount = ^TPurpleAccount;
+{$endif}
 
-  { TPurpleAccount }
-
-  // PPurpleAccount is already declared forward in purple.pas
+{$ifdef _type}
   TPurpleAccount = object
     function GetString(Name, DefaultValue: String): String;
     function GetUsername: String;
@@ -18,9 +13,15 @@
     procedure GotUserStatus(AName, AStatusID: String);
   end;
 
+  PPurpleAccountUnregistrationCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleSetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleSetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleGetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleGetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
 {$endif}
 
-{$ifdef import_func}
+
+{$ifdef _func}
 function purple_account_get_string(account: PPurpleAccount; aname, default_value: PChar): PChar; cdecl; external LIBPURPLE;
 function purple_account_get_connection(account: PPurpleAccount): PPurpleConnection; cdecl; external LIBPURPLE;
 function purple_account_get_presence(account: PPurpleAccount): PPurplePresence; cdecl; external LIBPURPLE;
@@ -30,9 +31,8 @@ procedure purple_buddy_icons_set_for_user(account: PPurpleAccount;
   username: PChar; icon_data: Pointer; icon_len: csize_t; checksum: PChar); cdecl; external LIBPURPLE;
 {$endif}
 
-{$ifdef implementation}
-{ TPurpleAccount }
 
+{$ifdef _impl}
 function TPurpleAccount.GetString(Name, DefaultValue: String): String;
 begin
   Result := purple_account_get_string(@Self, _PChar(Name), _PChar(DefaultValue));
@@ -67,5 +67,5 @@ procedure TPurpleAccount.GotUserStatus(AName, AStatusID: String);
 begin
   purple_prpl_got_user_status(@self, _PChar(AName), _PChar(AStatusID));
 end;
-
 {$endif}
+
