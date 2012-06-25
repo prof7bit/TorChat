@@ -91,7 +91,7 @@ function  purple_notify_message(Plugin: PPurplePlugin;
 procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
   label_, value: PChar); cdecl; external LIBPURPLE;
 function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
-function  purple_plugin_register(var Plugin: PPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
+function  purple_plugin_register(Plugin: PPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
 procedure purple_prpl_got_user_status(account: PPurpleAccount;
   aname, status_id: PChar); cdecl; external LIBPURPLE;
 function  purple_request_fields_new: PPurpleRequestFields; cdecl; external LIBPURPLE;
