@@ -199,7 +199,6 @@ type
   PPurpleNotifyUserInfo     = Pointer;
   PPurpleStatusType         = Pointer;
   PPurpleStoredImage        = Pointer;
-  PPurpleBuddyIcon          = Pointer;
   PPurpleChat               = Pointer;
   PPurpleRoomlist           = Pointer;
   PPurpleRoomlistRoom       = Pointer;
@@ -214,7 +213,6 @@ type
   PPurpleGetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
   PPurpleGetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
   PPurpleConversation       = Pointer;
-  PPurpleConvIm             = Pointer;
   PPurpleRequestFields      = Pointer;
   PPurpleRequestFieldGroup  = Pointer;
   PPurpleRequestField       = Pointer;
