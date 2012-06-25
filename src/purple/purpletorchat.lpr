@@ -184,16 +184,16 @@ end;
   dialog box, this callback was registered in torchat_set_user_info()
   It will red the fields and set the data in TorChat. We will pass the
   Account handle as user_data}
-procedure torchat_set_user_info_ok(user_data: Pointer; fields: PPurpleRequestFields); cdecl;
+procedure torchat_set_user_info_ok(UserData: Pointer; Fields: PPurpleRequestFields); cdecl;
 var
   TorChat: IClient;
   ProfileName: String;
   ProfileText: String;
 begin
-  TorChat := Clients.Find(PPurpleAccount(user_data)); // user_data = Account
+  TorChat := Clients.Find(PPurpleAccount(UserData)); // UserData = Account
   if Assigned(TorChat) then begin
-    ProfileName := purple_request_fields_get_string(fields, 'name');
-    ProfileText := purple_request_fields_get_string(fields, 'text');
+    ProfileName := Fields.GetString('name');
+    ProfileText := Fields.GetString('text');
     TorChat.SetOwnProfile(ProfileName, ProfileText);
   end;
 end;
@@ -202,57 +202,40 @@ end;
   this callback was registered in torchat_actions(). This function will
   create a dialog box and request the input of profile data. It will
   register torchat_set_user_info_ok() as the cb for the OK-Button }
-procedure torchat_set_user_info(act: PPurplePluginAction); cdecl;
+procedure torchat_set_user_info(Action: PPurplePluginAction); cdecl;
 var
-  fields: PPurpleRequestFields;
-  group: PPurpleRequestFieldGroup;
+  Fields: PPurpleRequestFields;
+  Group: PPurpleRequestFieldGroup;
   gc : PPurpleConnection;
   Account: PPurpleAccount;
   TorChat: IClient;
 begin
-  gc := PPurpleConnection(act^.context);
+  gc := PPurpleConnection(Action.context);
   Account := gc.GetAccount;
   TorChat := Clients.Find(Account);
   if Assigned(TorChat) then begin
-    fields := purple_request_fields_new;
-    group := purple_request_field_group_new(
-      PChar('User info for ' + TorChat.Roster.OwnID));
-    purple_request_fields_add_group(fields, group);
-
-    purple_request_field_group_add_field(
-      group,
-      purple_request_field_string_new(
+    Fields := TPurpleRequestFields.new;
+    Group := TPurpleRequestFieldGroup.New('User info for ' + TorChat.Roster.OwnID);
+    Fields.AddGroup(Group);
+    Group.AddField(
+      TPurpleRequestField.StringNew(
         'name',
         'Name',
-        PChar(TorChat.Config.GetString('ProfileName')),
+        TorChat.Config.GetString('ProfileName'),
         False
       )
     );
-    purple_request_field_group_add_field(
-      group,
-      purple_request_field_string_new(
+    Group.AddField(
+      TPurpleRequestField.StringNew(
         'text',
         'About me',
-        PChar(TorChat.Config.GetString('ProfileText')),
+        TorChat.Config.GetString('ProfileText'),
         True
       )
     );
-
-    purple_request_fields(
-      gc,
-      'Set User Info',
-      nil,
-      nil,
-      fields,
-      'ok',
-      @torchat_set_user_info_ok,
-      'cancel',
-      nil,
-      Account,
-      nil,
-      nil,
-      Account
-    );
+    Fields.Request(gc, 'Set User Info', '', '',
+      'ok', @torchat_set_user_info_ok,
+      'cancel', nil, Account, '', nil, Account);
   end;
 end;
 

@@ -76,25 +76,6 @@ type
 
 function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
 function  purple_plugin_register(Plugin: PPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
-function  purple_request_fields_new: PPurpleRequestFields; cdecl; external LIBPURPLE;
-procedure purple_request_fields_add_group(fields: PPurpleRequestFields;
-  group: PPurpleRequestFieldGroup); cdecl; external LIBPURPLE;
-function  purple_request_fields(handle: Pointer;
-  title, primary, secondary: PChar; fields: PPurpleRequestFields; ok_text: PChar;
-  ok_cb:  PPurpleRequestDlgBtnCb; cancel_text: PChar; cancel_cb: PPurpleRequestDlgBtnCb;
-  account: PPurpleAccount; who: PChar; conv: PPurpleConversation;
-  user_data: Pointer): Pointer; cdecl; external LIBPURPLE; {<< this function
-  differs from the C headers, they originally defined the callbacks as
-  GCallback (which would take only one argument) but the callbacks will
-  actually be given two aruments. Therefore I have made the following
-  change: both callbacks now must be of type PPurpleRequestDlgBtnCb which
-  receives two arguments: user_data and fields. }
-function  purple_request_fields_get_string(fields: PPurpleRequestFields; id: PChar): PChar; cdecl; external LIBPURPLE;
-procedure purple_request_field_group_add_field(group: PPurpleRequestFieldGroup;
-  field: PPurpleRequestField); cdecl; external LIBPURPLE;
-function  purple_request_field_group_new(title: PChar): PPurpleRequestFieldGroup; cdecl; external LIBPURPLE;
-function  purple_request_field_string_new(id, text, default_value: PChar;
-  multiline: gboolean): PPurpleRequestField; cdecl; external LIBPURPLE;
 function  purple_status_get_type(status: PPurpleStatus): PPurpleStatusType; cdecl; external LIBPURPLE;
 function  purple_status_type_get_primitive(status_type: PPurpleStatusType): TPurpleStatusPrimitive; cdecl; external LIBPURPLE;
 function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
