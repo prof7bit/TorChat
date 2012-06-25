@@ -85,9 +85,9 @@ begin
   FIsOutgoing := Assigned(ABuddy);
   FShuttingDown := False;
   if IsOutgoing then
-    WriteLn('====> connected to', DebugInfo , ' ', ASocket.Handle)
+    WriteLn('<==== connected to', DebugInfo , ' ', ASocket.Handle)
   else
-    WriteLn('<==== connected from', DebugInfo , ' ', ASocket.Handle);
+    WriteLn('====> connected from', DebugInfo , ' ', ASocket.Handle);
 
   // THiddenConnection is reference counted (use it only with
   // variables of type IHiddenConnection and never call

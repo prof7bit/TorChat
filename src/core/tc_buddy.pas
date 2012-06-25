@@ -200,7 +200,7 @@ procedure TBuddy.OnProxyConnect(ASocket: TLSocket);
 var
   Req: String;
 begin
-  WriteLn('~~~~> ', ID, ' connected to Tor, sending Socks4a request');
+  WriteLn('<~~~~ ', ID, ' connected to Tor, sending Socks4a request');
   SetLength(Req, 8);
   Req[1] := #4; // Socks 4
   Req[2] := #1; // CONNECT command
@@ -241,7 +241,7 @@ begin
       Err := IntToStr(Ord((Ans[2])))
     else
       Err := 'wrong answer from proxy (' + IntToStr(Num) + ' bytes)';
-    WriteLn('~~/~> ', ID, ' Socks4a connection failed: ', Err);
+    WriteLn('<~/~~ ', ID, ' Socks4a connection failed: ', Err);
     ASocket.Disconnect();
   end;
 end;
@@ -254,7 +254,7 @@ end;
 
 procedure TBuddy.OnProxyError(const Error: String; ASocket: TLSocket);
 begin
-  WriteLn('~~?~> ', ID, ' Tor connection error: ', Error);
+  WriteLn('<~?~~ ', ID, ' Tor connection error: ', Error);
   OnProxyConnectFailed;
 end;
 
@@ -414,7 +414,7 @@ end;
 
 procedure TBuddy.OnIncomingConnection;
 begin
-  WriteLn('<==OK incoming connection authenticated ', ID);
+  WriteLn('OK==> incoming connection authenticated ', ID);
   ResetAllTimes;
 end;
 

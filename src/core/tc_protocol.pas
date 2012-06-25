@@ -234,20 +234,20 @@ end;
 procedure TMsg.LogReceive;
 begin
   if Length(FBinaryContent) > 0 then
-    WriteLn(_F('<---- "%s" from %s data: %s',
+    WriteLn(_F('----> "%s" from %s data: %s',
       [FCommand, DebugInfo, DebugFormatBinary(FBinaryContent)]))
   else
-    WriteLn(_F('<---- "%s" from %s',
+    WriteLn(_F('----> "%s" from %s',
       [FCommand, DebugInfo]))
 end;
 
 procedure TMsg.LogSend;
 begin
   if Length(FBinaryContent) > 0 then
-    WriteLn(_F('----> "%s" to %s data: %s',
+    WriteLn(_F('<---- "%s" to %s data: %s',
       [GetCommand, DebugInfo, DebugFormatBinary(FBinaryContent)]))
   else
-    WriteLn(_F('----> "%s" to %s',
+    WriteLn(_F('<---- "%s" to %s',
       [GetCommand, DebugInfo]));
 end;
 
