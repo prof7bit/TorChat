@@ -13,5 +13,4 @@
 
   TPurpleRequestField = object
   end;
-
 {$endif}

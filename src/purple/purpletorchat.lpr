@@ -301,11 +301,11 @@ begin
   Clients.Find(acc).SetStatus(TorchatStatus);
 end;
 
-procedure torchat_set_buddy_icon(gc: PPurpleConnection; img: PPurpleStoredImage); cdecl;
+procedure torchat_set_buddy_icon(gc: PPurpleConnection; PurpleImage: PPurpleStoredImage); cdecl;
 var
   HaveImage: Boolean;
-  len: PtrUInt;
-  data: Pointer;
+  Len: PtrUInt;
+  Data: Pointer;
   ImageOriginal: TFPMemoryImage;
   ImageScaled: TFPMemoryImage;
   CanvasScaled: TFPImageCanvas;
@@ -322,13 +322,13 @@ var
 begin
   TorChat := Clients.Find(gc.GetAccount);
   if Assigned(TorChat) then begin
-    len := purple_imgstore_get_size(img);
-    data := purple_imgstore_get_data(img);
+    Len := PurpleImage.GetSize;
+    Data := PurpleImage.GetData;
 
     // read the PNG image from memory
     ImageOriginal := TFPMemoryImage.Create(0, 0);
     ImageStream := TMemoryStream.Create;
-    ImageStream.Write(data^, len);
+    ImageStream.Write(Data^, Len);
     ImageStream.Seek(0, soBeginning);
     ImageReader := TFPReaderPNG.Create;
     try
@@ -336,7 +336,7 @@ begin
       HaveImage := True;
     except
       WriteLn('I received invalid or empty image from libpurple');
-      WriteLn(len);
+      WriteLn(Len);
       HaveImage := False;
     end;
 
@@ -452,40 +452,37 @@ begin
   end;
 end;
 
-procedure torchat_tooltip_text(purple_buddy: PPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean); cdecl;
+procedure torchat_tooltip_text(PurpleBuddy: PPurpleBuddy; UserInfo: PPurpleNotifyUserInfo; full: gboolean); cdecl;
 var
   ID : String;
   TorChat: TTorChat;
   Buddy: IBuddy;
 begin
   if not full then exit;
-  TorChat := Clients.Find(purple_buddy.GetAccount);
+  TorChat := Clients.Find(PurpleBuddy.GetAccount);
   if Assigned(TorChat) then begin
-    ID := purple_buddy.GetName;
+    ID := PurpleBuddy.GetName;
     Buddy := TorChat.Roster.ByID(ID);
     if Assigned(Buddy) then begin
       // we escape every < or > from all strings because
       // it would break the entire tooltip window. (It would
       // be completely empty, this is a bug in Pidgin.)
       if Buddy.Software <> '' then begin
-        purple_notify_user_info_add_pair(
-          user_info,
+        UserInfo.AddPair(
           'Client',
-          PChar(EscapeAngleBrackets(Buddy.Software + '-' + Buddy.SoftwareVersion))
+          EscapeAngleBrackets(Buddy.Software + '-' + Buddy.SoftwareVersion)
         );
       end;
       if Buddy.ProfileName <> '' then begin
-        purple_notify_user_info_add_pair(
-          user_info,
+        UserInfo.AddPair(
           'Name',
-          PChar(EscapeAngleBrackets(Buddy.ProfileName))
+          EscapeAngleBrackets(Buddy.ProfileName)
         );
       end;
       if Buddy.ProfileText <> '' then begin
-        purple_notify_user_info_add_pair(
-          user_info,
+        UserInfo.AddPair(
           'Profile',
-          PChar(EscapeAngleBrackets(Buddy.ProfileText))
+          EscapeAngleBrackets(Buddy.ProfileText)
         );
       end;
     end;
@@ -808,7 +805,7 @@ begin
   PurpleGroup := TPurpleGroup.Find(group_name);
 
   // remove buddies from purple's list that not in TorChat's list
-  purple_list := purple_find_buddies(PurpleAccount, nil);
+  purple_list := PurpleAccount.FindBuddies('');
   while Assigned(purple_list) do begin
     ID := PPurpleBuddy(purple_list^.data).GetName;
     if not Assigned(Roster.ByID(ID)) then begin
@@ -851,14 +848,13 @@ begin
     TORCHAT_XA: status_id := GetMemAndCopy(PRPL_ID_XA);
     TORCHAT_OFFLINE: status_id := GetMemAndCopy(PRPL_ID_OFFLINE);
   end;
-  purple_prpl_got_user_status(PurpleAccount, buddy_name, status_id);
+  PurpleAccount.GotUserStatus(buddy_name, status_id);
   FreeMem(status_id);
   FreeMem(buddy_name);
 end;
 
 procedure TTorChat.OnBuddyAvatarChange(ABuddy: IBuddy);
 var
-  buddy_name: PChar;
   icon_data: Pointer;
   icon_len: PtrUInt;
   Image: TFPMemoryImage;
@@ -872,7 +868,6 @@ var
   PtrPixel24: P24Pixel;
   PtrAlpha8: PByte;
 begin
-  buddy_name := GetMemAndCopy(ABuddy.ID);
   Raw24Bitmap := ABuddy.AvatarData;
   if Length(Raw24Bitmap) = 12288 then begin;
     Raw8Alpha := ABuddy.AvatarAlphaData;
@@ -915,12 +910,11 @@ begin
     // without caring what it is). PNG is fine for our purposes
     // because it is well supported and can handle transparency.
     WriteLn(_F('%s setting avatar in libpurple', [ABuddy.ID]));
-    purple_buddy_icons_set_for_user(
-      PurpleAccount,
-      buddy_name,
+    PurpleAccount.SetIconForBuddy(
+      ABuddy.ID,
       icon_data,
       icon_len,
-      nil
+      ''
     );
 
     ImageStream.Free;
@@ -929,15 +923,13 @@ begin
   end
   else begin // empty avatar
     WriteLn(_F('%s removing avatar in libpurple', [ABuddy.ID]));
-    purple_buddy_icons_set_for_user(
-      PurpleAccount,
-      buddy_name,
+    PurpleAccount.SetIconForBuddy(
+      ABuddy.ID,
       nil,
       0,
-      nil
+      ''
     );
   end;
-  FreeMem(buddy_name);
 end;
 
 procedure TTorChat.OnBuddyAdded(ABuddy: IBuddy);

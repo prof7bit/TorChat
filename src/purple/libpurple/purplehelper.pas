@@ -208,10 +208,10 @@ end;
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
   case Level of
-    DEBUG_MISC: purple_debug_misc(plugin_info.id, PChar(Msg + LineEnding), []);
-    DEBUG_INFO: purple_debug_info(plugin_info.id, PChar(Msg + LineEnding), []);
-    DEBUG_WARNING: purple_debug_warning(plugin_info.id, PChar(Msg + LineEnding), []);
-    DEBUG_ERROR: purple_debug_error(plugin_info.id, PChar(Msg + LineEnding), []);
+    DEBUG_MISC: TPurpleDebug.Misc(plugin_info.id, PChar(Msg + LineEnding));
+    DEBUG_INFO: TPurpleDebug.Info(plugin_info.id, PChar(Msg + LineEnding));
+    DEBUG_WARNING: TPurpleDebug.Warning(plugin_info.id, PChar(Msg + LineEnding));
+    DEBUG_ERROR: TPurpleDebug.Error(plugin_info.id, PChar(Msg + LineEnding));
   end;
 end;
 

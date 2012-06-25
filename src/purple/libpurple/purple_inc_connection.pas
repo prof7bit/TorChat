@@ -12,14 +12,14 @@
     function GetAccount: PPurpleAccount;
     procedure SetState(State: TPurpleConnectionState);
   end;
-
-
 {$endif}
-{$ifdef implementation}
 
+{$ifdef import_func}
 function purple_connection_get_account(gc: TPurpleConnection): PPurpleAccount; cdecl; external LIBPURPLE;
 procedure purple_connection_set_state(gc: TPurpleConnection; state: TPurpleConnectionState); cdecl; external LIBPURPLE;
+{$endif}
 
+{$ifdef implementation}
 { TPurpleConnection }
 function TPurpleConnection.GetAccount: PPurpleAccount;
 begin

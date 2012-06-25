@@ -27,10 +27,9 @@
     class function Find(AName: String): PPurpleGroup;
     procedure Add(Node: PPurpleBlistNode);
   end;
-
 {$endif}
-{$ifdef implementation}
 
+{$ifdef import_func}
 function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
 
 procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; external LIBPURPLE;
@@ -46,9 +45,10 @@ procedure purple_blist_add_buddy(buddy: PPurpleBuddy; contact: PPurpleContact;
 function  purple_group_new(name_: PChar): PPurpleGroup; cdecl; external LIBPURPLE;
 function  purple_find_group(name_: PChar): PPurpleGroup; cdecl; external LIBPURPLE;
 procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); cdecl; external LIBPURPLE;
+function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; cdecl; external LIBPURPLE;
+{$endif}
 
-
-
+{$ifdef implementation}
 class function TPurpleBuddy.Create(Acc: PPurpleAccount; AName, AAlias: String): PPurpleBuddy;
 begin
   Result := purple_buddy_new(Acc, _PChar(AName), _PChar(AAlias));

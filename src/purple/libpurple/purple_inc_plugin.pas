@@ -73,8 +73,8 @@
     _purple_reserved3: procedure(); cdecl;
     _purple_reserved4: procedure(); cdecl;
   end;
-
 {$endif}
+
 {$ifdef purple_implementation}
 
 

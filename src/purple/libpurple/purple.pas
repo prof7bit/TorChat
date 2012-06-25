@@ -68,32 +68,14 @@ type
 {$include purple_inc_all.pas}
 {$undef interface_type}
 
-
 (********************************************
  *                                          *
  *   function imports from libpurple        *
  *                                          *
  ********************************************)
 
-function  purple_account_option_string_new(text, pref_name, default_value: PChar): PPurpleAccountOption; cdecl; external LIBPURPLE;
-procedure purple_buddy_icons_set_for_user(account: PPurpleAccount;
-  username: PChar; icon_data: Pointer; icon_len: csize_t; checksum: PChar); cdecl; external LIBPURPLE;
-procedure purple_debug_misc(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
-procedure purple_debug_info(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
-procedure purple_debug_warning(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
-procedure purple_debug_error(category: PChar; format: PChar; args: array of const); cdecl; external LIBPURPLE;
-function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; cdecl; external LIBPURPLE;
-function  purple_imgstore_get_data(img: PPurpleStoredImage): Pointer; cdecl; external LIBPURPLE;
-function  purple_imgstore_get_size(img: PPurpleStoredImage): csize_t; cdecl; external LIBPURPLE;
-function  purple_notify_message(Plugin: PPurplePlugin;
- typ: TPurpleNotifyMsgType; title: PChar; primary: PChar; secondary: PChar;
- cb: PPurpleNotifyCloseCb; UserData: Pointer): GBoolean; cdecl; external LIBPURPLE;
-procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
-  label_, value: PChar); cdecl; external LIBPURPLE;
 function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
 function  purple_plugin_register(Plugin: PPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
-procedure purple_prpl_got_user_status(account: PPurpleAccount;
-  aname, status_id: PChar); cdecl; external LIBPURPLE;
 function  purple_request_fields_new: PPurpleRequestFields; cdecl; external LIBPURPLE;
 procedure purple_request_fields_add_group(fields: PPurpleRequestFields;
   group: PPurpleRequestFieldGroup); cdecl; external LIBPURPLE;
@@ -137,9 +119,17 @@ var
   plugin_info: TPurplePluginInfo;
   plugin_protocol_info: TPurplePluginProtocolInfo;
 
+{$define import_func_public}
+{$include purple_inc_all.pas}
+{$undef import_func_public}
+
 implementation
 uses
   sysutils;
+
+{$define import_func}
+{$include purple_inc_all.pas}
+{$undef import_func}
 
 function _PChar(S: String): PChar; inline;
 begin
@@ -149,11 +139,9 @@ begin
     Result := PChar(S);
 end;
 
-
 {$define implementation}
 {$include purple_inc_all.pas}
 {$undef implementation}
-
 
 { This re-implements the stuff that is behind the PURPLE_INIT_PLUGIN macro.
   In C the macro would define the function and export it, here we only

@@ -105,5 +105,9 @@
     add_buddy_with_invite   : procedure(pc: PPurpleConnection; buddy: PPurpleBuddy; group: PPurpleGroup; message: PChar); cdecl;
     add_buddies_with_invite : procedure(pc: PPurpleConnection; buddies, groups: PGList; message: PChar); cdecl;
   end;
+{$endif}
 
+{$ifdef import_func}
+procedure purple_prpl_got_user_status(account: PPurpleAccount;
+  aname, status_id: PChar); cdecl; external LIBPURPLE;
 {$endif}

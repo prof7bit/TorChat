@@ -8,13 +8,14 @@
     function GetActiveStatus: PPurpleStatus;
     procedure SwitchStatus(StatusID: String);
   end;
-
 {$endif}
-{$ifdef implementation}
 
+{$ifdef import_func}
 function  purple_presence_get_active_status(presence: PPurplePresence): PPurpleStatus; cdecl; external LIBPURPLE;
 procedure purple_presence_switch_status(presence: PPurplePresence; status_id: PChar); cdecl; external LIBPURPLE;
+{$endif}
 
+{$ifdef implementation}
 { TPurplePresence }
 
 function TPurplePresence.GetActiveStatus: PPurpleStatus;

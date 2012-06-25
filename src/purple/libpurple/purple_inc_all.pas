@@ -1,5 +1,6 @@
 {$include purple_inc_version.pas}
 {$include purple_inc_plugin.pas}
+{$include purple_inc_debug.pas}
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
 {$include purple_inc_accountopt.pas}
