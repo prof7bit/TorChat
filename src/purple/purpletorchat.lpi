@@ -29,7 +29,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5;libpurple"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -73,7 +73,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5;libpurple"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -123,7 +123,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5;libpurple"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -167,7 +167,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
+            <OtherUnitFiles Value="../core;../core/lnet-0.6.5;libpurple"/>
             <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -221,7 +221,7 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <Units Count="36">
+    <Units Count="35">
       <Unit0>
         <Filename Value="../core/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
@@ -383,12 +383,12 @@
         <UnitName Value="tc_buddy"/>
       </Unit31>
       <Unit32>
-        <Filename Value="purplehelper.pas"/>
+        <Filename Value="libpurple/purplehelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="purplehelper"/>
       </Unit32>
       <Unit33>
-        <Filename Value="purple.pas"/>
+        <Filename Value="libpurple/purple.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="purple"/>
       </Unit33>
@@ -397,11 +397,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="purpletorchat"/>
       </Unit34>
-      <Unit35>
-        <Filename Value="purple_ft.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="purple_ft"/>
-      </Unit35>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -411,7 +406,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../core;../core/lnet-0.6.5"/>
+      <OtherUnitFiles Value="../core;../core/lnet-0.6.5;libpurple"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

@@ -1,4 +1,10 @@
 {$ifdef interface_type}
+  PPurpleAccountUnregistrationCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleSetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleSetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleGetPublicAliasSuccessCallback = procedure(); cdecl; // fixme: signature?
+  PPurpleGetPublicAliasFailureCallback = procedure(); cdecl; // fixme: signature?
+
   { TPurpleAccount }
 
   // PPurpleAccount is already declared forward in purple.pas

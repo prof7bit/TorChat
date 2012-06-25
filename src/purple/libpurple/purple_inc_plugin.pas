@@ -1,3 +1,7 @@
+{$ifdef interface_const}
+  PURPLE_PLUGIN_MAGIC = 5;
+{$endif}
+
 {$ifdef interface_type}
   TPurplePluginType = (
     PURPLE_PLUGIN_UNKNOWN  := -1,  // Unknown type.

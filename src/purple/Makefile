@@ -5,6 +5,7 @@ COMPILEDIR=../../bin
 FPCOPT = \
 	-Fu../core \
 	-Fu../core/lnet-0.6.5 \
+	-Fu./libpurple \
 	-FU./lib \
 	-FE../../bin \
 	-g- \

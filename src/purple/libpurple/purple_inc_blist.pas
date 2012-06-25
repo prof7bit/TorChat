@@ -1,6 +1,7 @@
 {$ifdef interface_type}
   PPurpleContact            = Pointer;
   PPurpleBlistNode          = Pointer;
+  PPurpleChat               = Pointer;
 
   PPurpleGroup = ^TPurpleGroup;
   PPurpleBuddy = ^TPurpleBuddy;
