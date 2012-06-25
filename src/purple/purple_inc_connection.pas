@@ -1,5 +1,5 @@
 {$ifdef purple_interface}
-type
+//type
   TPurplePresence = class;
 
   TPurpleConnectionState = (
@@ -8,12 +8,10 @@ type
   	PURPLE_CONNECTING        // Connecting.
   );
 
-  TPurpleAccount = class; // forward will be solved in inc_account
-
   { TPurpleConnection }
 
   TPurpleConnection = class(TWrapper)
-    function GetAccount: TPurpleAccount;
+    function GetAccount: PPurpleAccount;
     procedure SetState(State: TPurpleConnectionState);
   end;
 
@@ -21,11 +19,11 @@ type
 {$endif}
 {$ifdef purple_implementation}
 
-function purple_connection_get_account(gc: TPurpleConnection): TPurpleAccount; cdecl; external LIBPURPLE;
+function purple_connection_get_account(gc: TPurpleConnection): PPurpleAccount; cdecl; external LIBPURPLE;
 procedure purple_connection_set_state(gc: TPurpleConnection; state: TPurpleConnectionState); cdecl; external LIBPURPLE;
 
 { TPurpleConnection }
-function TPurpleConnection.GetAccount: TPurpleAccount;
+function TPurpleConnection.GetAccount: PPurpleAccount;
 begin
   Result := purple_connection_get_account(Self);
 end;

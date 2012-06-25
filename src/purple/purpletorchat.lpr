@@ -23,7 +23,7 @@ library purpletorchat;
   {$fatal *** You need Free Pascal Compiler version 2.6.0 or higher *** }
 {$endif}
 {$mode objfpc}{$H+}
-{$modeswitch nestedprocvars}
+{$modeswitch autoderef}
 
 uses
   {$ifdef UseHeapTrc} // do it with -dUseHeapTrc, not with -gh
@@ -61,10 +61,10 @@ type
     methods know how to speak with libpurple }
   TTorChat = class(TTorChatClient)
   public
-    PurpleAccount: TPurpleAccount;
+    PurpleAccount: PPurpleAccount;
     purple_timer: Integer;
     constructor Create(AOwner: TComponent; AProfileName: String;
-      Account: TPurpleAccount); reintroduce;
+      Account: PPurpleAccount); reintroduce;
     procedure OnNeedPump; override;
     procedure OnGotOwnID; override;
     procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
@@ -79,7 +79,7 @@ type
     methods know how to speak with libpuple }
   TTransfer = class(TFileTransfer)
   public
-    Xfer: TPurpleXfer;
+    Xfer: PPurpleXfer;
     procedure OnStartSending; override;
     procedure OnProgressSending; override;
     procedure OnCancelSending; override;
@@ -93,7 +93,7 @@ type
   { TClients holds a list of clients since we can have
     multiple "accounts" in pidgin at the same time }
   TClients = class(TFPHashObjectList)
-    function Find(Account: TPurpleAccount): TTorChat;
+    function Find(Account: PPurpleAccount): TTorChat;
   end;
 
 var
@@ -190,7 +190,7 @@ var
   ProfileName: String;
   ProfileText: String;
 begin
-  TorChat := Clients.Find(TPurpleAccount(user_data)); // user_data = Account
+  TorChat := Clients.Find(PPurpleAccount(user_data)); // user_data = Account
   if Assigned(TorChat) then begin
     ProfileName := purple_request_fields_get_string(fields, 'name');
     ProfileText := purple_request_fields_get_string(fields, 'text');
@@ -207,7 +207,7 @@ var
   fields: PPurpleRequestFields;
   group: PPurpleRequestFieldGroup;
   gc : TPurpleConnection;
-  Account: TPurpleAccount;
+  Account: PPurpleAccount;
   TorChat: IClient;
 begin
   gc := TPurpleConnection(act^.context);
@@ -269,7 +269,7 @@ begin
   Result := m;
 end;
 
-function torchat_status_types(acc: TPurpleAccount): PGList; cdecl;
+function torchat_status_types(acc: PPurpleAccount): PGList; cdecl;
 begin
   // Pidgin has some strange policy regarding usable status types:
   // As soon as there are more than one protocols active it will
@@ -285,7 +285,7 @@ begin
   Result := g_list_append(Result, purple_status_type_new_full(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, nil, True, True, False));
 end;
 
-procedure torchat_set_status(acc: TPurpleAccount; status: PPurpleStatus); cdecl;
+procedure torchat_set_status(acc: PPurpleAccount; status: PPurpleStatus); cdecl;
 var
   status_prim   : TPurpleStatusPrimitive;
   TorchatStatus : TTorchatStatus;
@@ -492,13 +492,13 @@ begin
   end;
 end;
 
-function torchat_get_text_table(acc: TPurpleAccount): PGHashTable; cdecl;
+function torchat_get_text_table(acc: PPurpleAccount): PGHashTable; cdecl;
 begin
   Result := g_hash_table_new(@g_str_hash, @g_str_equal);
   g_hash_table_insert(Result, PChar('login_label'), PChar('profile name'));
 end;
 
-function torchat_list_icon(acc: TPurpleAccount; buddy: TPurpleBuddy): PChar; cdecl;
+function torchat_list_icon(acc: PPurpleAccount; buddy: TPurpleBuddy): PChar; cdecl;
 begin
   Result := 'torchat';
   // now it will look for torchat.png in several resolutions
@@ -509,7 +509,7 @@ begin
   // to return nil, this would break logging beyond all repair!
 end;
 
-procedure torchat_login(acc: TPurpleAccount); cdecl;
+procedure torchat_login(acc: PPurpleAccount); cdecl;
 var
   TorChat: TTorChat;
   purple_status: PPurpleStatus;
@@ -559,7 +559,7 @@ end;
   object in TorChat which will automtically start sending
   the file and fire its OnXxxxSending() event methods as
   soon as it is created }
-procedure torchat_xfer_send_init(Xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_send_init(Xfer: PPurpleXfer); cdecl;
 var
   FileName: String;
   TorChat: IClient;
@@ -580,7 +580,7 @@ begin
 end;
 
 { The local user has canceled the transfer }
-procedure torchat_xfer_send_cancel(Xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_send_cancel(Xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
@@ -596,7 +596,7 @@ begin
 end;
 
 { the local user has denied receiving this file }
-procedure torchat_xfer_receive_denied(Xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_receive_denied(Xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
@@ -613,7 +613,7 @@ begin
 end;
 
 { the local user has accepted the receiving file and choosen a file name}
-procedure torchat_xfer_receive_init(Xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_receive_init(Xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
@@ -638,7 +638,7 @@ begin
 end;
 
 { the local user has canceled the transfer }
-procedure torchat_xfer_receive_cancel(Xfer: TPurpleXfer); cdecl;
+procedure torchat_xfer_receive_cancel(Xfer: PPurpleXfer); cdecl;
 var
   TorChat: IClient;
   Transfer: IFileTransfer;
@@ -656,7 +656,7 @@ end;
   to initiate it a little bit differently. }
 procedure torchat_send_file(gc: TPurpleConnection; who, filename: PChar); cdecl;
 var
-  Xfer: TPurpleXfer;
+  Xfer: PPurpleXfer;
 begin
   Writeln(_F('send_file(%s, %s)', [who, filename]));
   Xfer := TPurpleXfer.Create(gc.GetAccount, PURPLE_XFER_SEND, who);
@@ -758,7 +758,7 @@ end;
 
 { TClients }
 
-function TClients.Find(Account: TPurpleAccount): TTorChat;
+function TClients.Find(Account: PPurpleAccount): TTorChat;
 begin
   Result := inherited Find(Account.GetUsername) as TTorChat;
 end;
@@ -767,7 +767,7 @@ end;
 { TTorchatPurpleClient }
 
 constructor TTorChat.Create(AOwner: TComponent; AProfileName: String;
-  Account: TPurpleAccount);
+  Account: PPurpleAccount);
 begin
   PurpleAccount := Account;
   inherited Create(AOwner, AProfileName);
@@ -992,8 +992,8 @@ procedure TTorChat.OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName
 var
   TorChat: TTorChat;
   Transfer: TTransfer;
-  Account: TPurpleAccount;
-  Xfer: TPurpleXfer;
+  Account: PPurpleAccount;
+  Xfer: PPurpleXfer;
 begin
   TorChat := ABuddy.Client as TTorChat;
   Account := TorChat.PurpleAccount;

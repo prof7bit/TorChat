@@ -1,5 +1,5 @@
 {$ifdef purple_interface}
-type
+//type
   TPurplePluginType = (
     PURPLE_PLUGIN_UNKNOWN  := -1,  // Unknown type.
     PURPLE_PLUGIN_STANDARD := 0,   // Standard plugin.
