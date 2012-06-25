@@ -1,6 +1,4 @@
 {$ifdef interface_type}
-  TPurplePresence = class;
-
   TPurpleConnectionState = (
   	PURPLE_DISCONNECTED = 0, // Disconnected.
   	PURPLE_CONNECTED,        // Connected.
@@ -9,7 +7,8 @@
 
   { TPurpleConnection }
 
-  TPurpleConnection = class(TWrapper)
+  PPurpleConnection = ^TPurpleConnection;
+  TPurpleConnection = object
     function GetAccount: PPurpleAccount;
     procedure SetState(State: TPurpleConnectionState);
   end;

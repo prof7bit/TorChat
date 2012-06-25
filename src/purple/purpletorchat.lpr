@@ -206,11 +206,11 @@ procedure torchat_set_user_info(act: PPurplePluginAction); cdecl;
 var
   fields: PPurpleRequestFields;
   group: PPurpleRequestFieldGroup;
-  gc : TPurpleConnection;
+  gc : PPurpleConnection;
   Account: PPurpleAccount;
   TorChat: IClient;
 begin
-  gc := TPurpleConnection(act^.context);
+  gc := PPurpleConnection(act^.context);
   Account := gc.GetAccount;
   TorChat := Clients.Find(Account);
   if Assigned(TorChat) then begin
@@ -301,7 +301,7 @@ begin
   Clients.Find(acc).SetStatus(TorchatStatus);
 end;
 
-procedure torchat_set_buddy_icon(gc: TPurpleConnection; img: PPurpleStoredImage); cdecl;
+procedure torchat_set_buddy_icon(gc: PPurpleConnection; img: PPurpleStoredImage); cdecl;
 var
   HaveImage: Boolean;
   len: PtrUInt;
@@ -384,7 +384,7 @@ begin
   end;
 end;
 
-procedure torchat_add_buddy(gc: TPurpleConnection; PurpleBuddy: TPurpleBuddy; group: TPurpleGroup); cdecl;
+procedure torchat_add_buddy(gc: PPurpleConnection; PurpleBuddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
 var
   TorChat : TTorChat;
   AName: String;
@@ -406,7 +406,7 @@ begin
   end;
 end;
 
-function torchat_send_im(gc: TPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
+function torchat_send_im(gc: PPurpleConnection; who, message: PChar; flags: TPurpleMessageFlags): cint; cdecl;
 var
   TorChat: TTorChat;
   Buddy: IBuddy;
@@ -426,7 +426,7 @@ begin
   end;
 end;
 
-procedure torchat_remove_buddy(gc: TPurpleConnection; purple_buddy: TPurpleBuddy; group: TPurpleGroup); cdecl;
+procedure torchat_remove_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
 var
   TorChat: IClient;
   Buddy: IBuddy;
@@ -439,7 +439,7 @@ begin
     Buddy.RemoveYourself;
 end;
 
-procedure torchat_alias_buddy(gc: TPurpleConnection; who, aalias: PChar); cdecl;
+procedure torchat_alias_buddy(gc: PPurpleConnection; who, aalias: PChar); cdecl;
 var
   TorChat: TTorChat;
   Buddy: IBuddy;
@@ -452,7 +452,7 @@ begin
   end;
 end;
 
-procedure torchat_tooltip_text(purple_buddy: TPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean); cdecl;
+procedure torchat_tooltip_text(purple_buddy: PPurpleBuddy; user_info: PPurpleNotifyUserInfo; full: gboolean); cdecl;
 var
   ID : String;
   TorChat: TTorChat;
@@ -498,7 +498,7 @@ begin
   g_hash_table_insert(Result, PChar('login_label'), PChar('profile name'));
 end;
 
-function torchat_list_icon(acc: PPurpleAccount; buddy: TPurpleBuddy): PChar; cdecl;
+function torchat_list_icon(acc: PPurpleAccount; buddy: PPurpleBuddy): PChar; cdecl;
 begin
   Result := 'torchat';
   // now it will look for torchat.png in several resolutions
@@ -523,7 +523,7 @@ begin
   torchat_set_status(acc, purple_status);
 end;
 
-procedure torchat_close(gc: TPurpleConnection); cdecl;
+procedure torchat_close(gc: PPurpleConnection); cdecl;
 var
   TorChat: TTorChat;
 begin
@@ -537,7 +537,7 @@ end;
 
 { This will be called to decide whether it should enable the menu
   item "send file" in the buddy list and in the conversation window}
-function torchat_can_receive_file(gc: TPurpleConnection; who: PChar): gboolean; cdecl;
+function torchat_can_receive_file(gc: PPurpleConnection; who: PChar): gboolean; cdecl;
 var
   TorChat: IClient;
   Buddy: IBuddy;
@@ -654,7 +654,7 @@ end;
   the file and filename will be nil. When the user drops a file to the
   chat window then it WILL be called with filename. In that case we need
   to initiate it a little bit differently. }
-procedure torchat_send_file(gc: TPurpleConnection; who, filename: PChar); cdecl;
+procedure torchat_send_file(gc: PPurpleConnection; who, filename: PChar); cdecl;
 var
   Xfer: PPurpleXfer;
 begin
