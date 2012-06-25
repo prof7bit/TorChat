@@ -65,6 +65,7 @@ type
   end;
 
 {$define purple_interface}
+{$include purple_inc_plugin.pas}
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
 {$include purple_inc_ft.pas}
@@ -90,76 +91,6 @@ const
   PURPLE_PRIORITY_DEFAULT = 0;
 
 type
-  TPurplePluginType = (
-    PURPLE_PLUGIN_UNKNOWN  := -1,  // Unknown type.
-    PURPLE_PLUGIN_STANDARD := 0,   // Standard plugin.
-    PURPLE_PLUGIN_LOADER,          // Loader plugin.
-    PURPLE_PLUGIN_PROTOCOL         // Protocol plugin.
-  );
-
-  TPurplePluginPriority = cint;
-  PPurplePluginUiInfo = Pointer;
-
-  PPurplePluginInfo = ^TPurplePluginInfo;
-
-  PPurplePlugin = ^TPurplePlugin;
-  TPurplePlugin = record
-    native_plugin     : GBoolean;           // Native C plugin.
-    loaded            : GBoolean;           // The loaded state.
-    handle            : Pointer;            // The module handle.
-    path              : PChar;              // The path to the plugin.
-    info              : PPurplePluginInfo;  // The plugin information.
-    error             : PChar;
-    ipc_data          : Pointer;            // IPC data.
-    extra             : Pointer;            // Plugin-specific data.
-    unloadable        : GBoolean;           // Unloadable
-    dependent_plugins : PGList;             // Plugins depending on this
-
-    _purple_reserved1 : Pointer;
-    _purple_reserved2 : Pointer;
-    _purple_reserved3 : Pointer;
-    _purple_reserved4 : Pointer;
-  end;
-
-  PPurplePluginAction = ^TPurplePluginAction;
-  PPurplePluginActionCb = procedure(act: PPurplePluginAction); cdecl;
-  TPurplePluginAction = record
-    label_    : PChar;
-    callback  : PPurplePluginActionCb;
-    plugin    : PPurplePlugin;
-    context   : gpointer;
-    user_data : gpointer;
-  end;
-
-  TPurplePluginInfo = record
-    magic           : cint;
-    major_version   : cint;
-    minor_version   : cint;
-    plugintype      : TPurplePluginType;
-    ui_requirement  : PChar;
-    flags           : culong;
-    dependencies    : PGList;
-    priority        : TPurplePluginPriority;
-    id              : PChar;
-    name            : PChar;
-    version         : PChar;
-    summary         : PChar;
-    description     : PChar;
-    author          : PChar;
-    homepage        : PChar;
-    load            : function(plugin: PPurplePlugin): GBoolean; cdecl;
-    unload          : function(plugin: PPurplePlugin): GBoolean; cdecl;
-    destroy         : procedure(plugin: PPurplePlugin); cdecl;
-    ui_info         : Pointer;
-    extra_info      : Pointer;
-    prefs_info      : PPurplePluginUiInfo;
-    actions         : function(plugin: PPurplePlugin; context: Pointer): PGList; cdecl;
-
-    _purple_reserved1: procedure(); cdecl;
-    _purple_reserved2: procedure(); cdecl;
-    _purple_reserved3: procedure(); cdecl;
-    _purple_reserved4: procedure(); cdecl;
-  end;
 
 
   TPurpleProtocolOptions = DWord; // bitfield of OPT_PROTO_ constants
@@ -368,7 +299,7 @@ function  purple_notify_message(Plugin: PPurplePlugin;
 procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
   label_, value: PChar); cdecl; external LIBPURPLE;
 function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionCb): PPurplePluginAction; cdecl; external LIBPURPLE;
-function  purple_plugin_register(var Plugin: TPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
+function  purple_plugin_register(var Plugin: PPurplePlugin): GBoolean; cdecl; external LIBPURPLE;
 procedure purple_prpl_got_user_status(account: TPurpleAccount;
   aname, status_id: PChar); cdecl; external LIBPURPLE;
 function  purple_request_fields_new: PPurpleRequestFields; cdecl; external LIBPURPLE;
@@ -408,7 +339,7 @@ procedure serv_got_im(gc: TPurpleConnection; who, msg: PChar;
   PURPLE_INIT_PLUGIN but here we don't have macros to hide
   such things and the plugin library that is using this unit
   must explicitly export it. }
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
+function purple_init_plugin(Plugin: PPurplePlugin): GBoolean; cdecl;
 
 var
   plugin_info: TPurplePluginInfo;
@@ -440,6 +371,7 @@ end;
 
 
 {$define purple_implementation}
+{$include purple_inc_plugin.pas}
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
 {$include purple_inc_ft.pas}
@@ -452,9 +384,9 @@ end;
   In C the macro would define the function and export it, here we only
   define it and the library must export it (because we can't export it
   from within a unit directly). }
-function purple_init_plugin(var Plugin: TPurplePlugin): GBoolean; cdecl;
+function purple_init_plugin(Plugin: PPurplePlugin): GBoolean; cdecl;
 begin
-  Plugin.info := @plugin_info;
+  Plugin^.info := @plugin_info;
   Result := purple_plugin_register(Plugin);
 end;
 
