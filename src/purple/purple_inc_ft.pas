@@ -1,5 +1,4 @@
-{$ifdef purple_interface}
-type
+{$ifdef interface_type}
   PPurpleXfer = ^TPurpleXfer;
 
   TPurpleXferType = (
@@ -48,7 +47,7 @@ type
   end;
 
 {$endif}
-{$ifdef purple_implementation}
+{$ifdef implementation}
 
 function  purple_xfer_new(account: PPurpleAccount; type_: TPurpleXferType; who: PChar): PPurpleXfer; cdecl; external LIBPURPLE;
 procedure purple_xfer_end(xfer: PPurpleXfer); cdecl; external LIBPURPLE;

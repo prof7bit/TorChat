@@ -64,19 +64,16 @@ type
     procedure Free;
   end;
 
-// some forward declarations that will be resolved
-// in the following include files
-
   PPurpleAccount = ^TPurpleAccount;
 
-{$define purple_interface}
+{$define interface_type}
 {$include purple_inc_plugin.pas}
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
 {$include purple_inc_ft.pas}
 {$include purple_inc_presence.pas}
 {$include purple_inc_blist.pas}
-{$undef purple_interface}
+{$undef interface_type}
 
 
 (****************************************
@@ -375,14 +372,14 @@ begin
 end;
 
 
-{$define purple_implementation}
+{$define implementation}
 {$include purple_inc_plugin.pas}
 {$include purple_inc_connection.pas}
 {$include purple_inc_account.pas}
 {$include purple_inc_ft.pas}
 {$include purple_inc_presence.pas}
 {$include purple_inc_blist.pas}
-{$undef purple_implementation}
+{$undef implementation}
 
 
 { This re-implements the stuff that is behind the PURPLE_INIT_PLUGIN macro.

@@ -1,5 +1,4 @@
-{$ifdef purple_interface}
-type
+{$ifdef interface_type}
   PPurpleStatus = Pointer;
 
   { TPurplePresence }
@@ -10,7 +9,7 @@ type
   end;
 
 {$endif}
-{$ifdef purple_implementation}
+{$ifdef implementation}
 
 function  purple_presence_get_active_status(presence: TPurplePresence): PPurpleStatus; cdecl; external LIBPURPLE;
 procedure purple_presence_switch_status(presence: TPurplePresence; status_id: PChar); cdecl; external LIBPURPLE;

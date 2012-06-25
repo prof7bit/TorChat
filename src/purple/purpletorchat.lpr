@@ -795,10 +795,10 @@ end;
 procedure TTorChat.OnGotOwnID;
 var
   Buddy: IBuddy;
-  PurpleBuddy: TPurpleBuddy;
+  PurpleBuddy: PPurpleBuddy;
   ID: String;
   group_name: PChar;
-  PurpleGroup: TPurpleGroup;
+  PurpleGroup: PPurpleGroup;
   purple_list: PGSList;
 begin
   WriteLn('Switching accout to "connected", synchronizing buddy lists');
@@ -810,9 +810,9 @@ begin
   // remove buddies from purple's list that not in TorChat's list
   purple_list := purple_find_buddies(PurpleAccount, nil);
   while Assigned(purple_list) do begin
-    ID := TPurpleBuddy(purple_list^.data).GetName;
+    ID := PPurpleBuddy(purple_list^.data).GetName;
     if not Assigned(Roster.ByID(ID)) then begin
-      TPurpleBuddy(purple_list^.data).Remove;
+      PPurpleBuddy(purple_list^.data).Remove;
     end;
     purple_list := g_slist_delete_link(purple_list, purple_list);
   end;
@@ -945,8 +945,8 @@ var
   group_name: PChar;
   buddy_name: PChar;
   buddy_alias: PChar;
-  PurpleGroup: TPurpleGroup;
-  PurpleBuddy: TPurpleBuddy;
+  PurpleGroup: PPurpleGroup;
+  PurpleBuddy: PPurpleBuddy;
 begin
   if not HSNameOk then exit; // because we don't have a group name yet
   buddy_name := GetMemAndCopy(ABuddy.ID);
@@ -968,7 +968,7 @@ end;
 
 procedure TTorChat.OnBuddyRemoved(ABuddy: IBuddy);
 var
-  PurpleBuddy: TPurpleBuddy;
+  PurpleBuddy: PPurpleBuddy;
 begin
   PurpleBuddy := TPurpleBuddy.Find(PurpleAccount, PChar(ABuddy.ID));
   if Assigned(PurpleBuddy) then begin

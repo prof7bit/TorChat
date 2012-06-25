@@ -1,5 +1,4 @@
-{$ifdef purple_interface}
-//type
+{$ifdef interface_type}
   TPurplePresence = class;
 
   TPurpleConnectionState = (
@@ -17,7 +16,7 @@
 
 
 {$endif}
-{$ifdef purple_implementation}
+{$ifdef implementation}
 
 function purple_connection_get_account(gc: TPurpleConnection): PPurpleAccount; cdecl; external LIBPURPLE;
 procedure purple_connection_set_state(gc: TPurpleConnection; state: TPurpleConnectionState); cdecl; external LIBPURPLE;

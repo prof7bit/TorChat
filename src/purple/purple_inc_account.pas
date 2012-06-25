@@ -1,5 +1,4 @@
-{$ifdef purple_interface}
-//type
+{$ifdef interface_type}
   { TPurpleAccount }
   TPurpleAccount = object
     function GetString(Name, DefaultValue: String): String;
@@ -9,7 +8,7 @@
   end;
 
 {$endif}
-{$ifdef purple_implementation}
+{$ifdef implementation}
 
 function purple_account_get_string(account: TPurpleAccount; aname, default_value: PChar): PChar; cdecl; external LIBPURPLE;
 function purple_account_get_connection(account: TPurpleAccount): TPurpleConnection; cdecl; external LIBPURPLE;
