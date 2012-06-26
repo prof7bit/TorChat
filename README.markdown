@@ -1,16 +1,17 @@
-Don't use the Ubuntu/Mint Repositories
-======================================
-...until further notice.  Please use only the original .deb 
-from github. Ubuntu version is broadcasting private information
-in the version field. They tried to fix something (that was
-not broken in the first place) regarding the version number
-and broke the innermost workings of the client and the protocol 
-because they confused two similar sounding variable names.
+If you use the Ubuntu Repositories then please update
+=====================================================
+There has been an ugly bug in the Debian and Ubuntu versions of
+TorChat (the ones from their repositories, not the original .deb
+file from here). This bug has finally been fixed on Fri, 22 Jun 2012.
+Please update & upgrade (using synptic or apt-get) to get these
+updated packages. The fixed packages are
 
-Update: After contacting the Debian maintainer it has been
-fixed in the Debian repository very fast but Ubuntu is still
-not reacting to anything, there does not seem to be anybody 
-home during summer...
+  Oneiric: 0.9.9.534-1ubuntu0.1
+  Precise: 0.9.9.550-2~build0.12.04.1
+
+If you have one of the versions above you are safe. If you have 
+installed the .deb file from github you are also safe. If you have
+and older version (especially 550-1 or 534-1) then you should update.
 
 
 TorChat2
