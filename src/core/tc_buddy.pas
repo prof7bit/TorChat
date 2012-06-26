@@ -640,6 +640,10 @@ end;
 procedure TBuddy.SetProfileName(AName: String);
 begin
   FProfileName := AName;
+  if FLocalAlias = '' then begin
+    FLocalAlias := FProfileName;
+    Client.Roster.Save;
+  end;
 end;
 
 procedure TBuddy.SetProfileText(AText: String);
