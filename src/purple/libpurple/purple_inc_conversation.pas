@@ -16,9 +16,11 @@
   PURPLE_MESSAGE_INVISIBLE    = $8000;
 {$endif}
 
-{$ifdef _type}
+{$ifdef _type_forward}
   TPurpleMessageFlags = cint; // PURPLE_MESSAGE_XXX flags
+{$endif}
 
+{$ifdef _type}
   TPurpleTypingState = cint;
 
   TPurpleConversationType = (

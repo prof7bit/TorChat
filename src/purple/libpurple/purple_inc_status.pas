@@ -24,7 +24,7 @@
   { TPurpleStatusType }
 
   TPurpleStatusType = object
-    class function NewFull(APrimitive: TPurpleStatusPrimitive; ID: String;
+    class function Create(APrimitive: TPurpleStatusPrimitive; ID: String;
       AName: String; Saveable: Boolean; UserSettable: Boolean;
       Independent: Boolean): PPurpleStatusType;
     function GetPrimitive: TPurpleStatusPrimitive;
@@ -48,7 +48,7 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
 {$ifdef _impl}
 { TPurpleStatusType }
 
-class function TPurpleStatusType.NewFull(APrimitive: TPurpleStatusPrimitive;
+class function TPurpleStatusType.Create(APrimitive: TPurpleStatusPrimitive;
   ID: String; AName: String; Saveable: Boolean; UserSettable: Boolean; Independent: Boolean): PPurpleStatusType;
 begin
   Result := purple_status_type_new_full(APrimitive, C(ID),

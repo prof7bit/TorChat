@@ -1,7 +1,7 @@
 {$ifdef _type}
   PPurpleAccountOption = ^TPurpleAccountOption;
   TPurpleAccountOption = Object
-    class function StringNew(Text, Name, DefaultValue: String): PPurpleAccountOption;
+    class function CreateString(Text, Name, DefaultValue: String): PPurpleAccountOption;
   end;
 {$endif}
 
@@ -10,7 +10,7 @@ function  purple_account_option_string_new(text, pref_name, default_value: PChar
 {$endif}
 
 {$ifdef _impl}
-class function TPurpleAccountOption.StringNew(Text, Name, DefaultValue: String): PPurpleAccountOption;
+class function TPurpleAccountOption.CreateString(Text, Name, DefaultValue: String): PPurpleAccountOption;
 begin
   Result := purple_account_option_string_new(C(Text), C(Name), C(DefaultValue));
 end;

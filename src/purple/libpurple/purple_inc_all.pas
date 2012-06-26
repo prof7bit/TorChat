@@ -7,6 +7,7 @@
 {$include purple_inc_ft.pas}
 {$include purple_inc_status.pas}
 {$include purple_inc_presence.pas}
+{$include purple_inc_buddyicon.pas}
 {$include purple_inc_blist.pas}
 {$include purple_inc_notify.pas}
 {$include purple_inc_conversation.pas}

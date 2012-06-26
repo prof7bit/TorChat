@@ -30,9 +30,6 @@ function purple_account_get_string(account: PPurpleAccount; aname, default_value
 function purple_account_get_connection(account: PPurpleAccount): PPurpleConnection; cdecl; external LIBPURPLE;
 function purple_account_get_presence(account: PPurpleAccount): PPurplePresence; cdecl; external LIBPURPLE;
 function purple_account_get_username(account: PPurpleAccount): PChar; cdecl; external LIBPURPLE;
-{This function is actually declared in buddyicon.h }
-procedure purple_buddy_icons_set_for_user(account: PPurpleAccount;
-  username: PChar; icon_data: Pointer; icon_len: csize_t; checksum: PChar); cdecl; external LIBPURPLE;
 {$endif}
 
 

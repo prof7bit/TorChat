@@ -8,7 +8,7 @@
   { TPurpleRequestFields }
 
   TPurpleRequestFields = object
-    class function New: PPurpleRequestFields;
+    class function Create: PPurpleRequestFields;
     procedure AddGroup(Group: PPurpleRequestFieldGroup);
     function GetString(ID: String): String;
     function Request(Handle: Pointer; Title, Primary, Secondary: String;
@@ -20,12 +20,12 @@
   { TPurpleRequestFieldGroup }
 
   TPurpleRequestFieldGroup = object
-    class function New(Title: String): PPurpleRequestFieldGroup;
+    class function Create(Title: String): PPurpleRequestFieldGroup;
     procedure AddField(Field: PPurpleRequestField);
   end;
 
   TPurpleRequestField = object
-    class function StringNew(Id, Text, DefaultValue: String; Multiline: Boolean): PPurpleRequestField;
+    class function CreateString(Id, Text, DefaultValue: String; Multiline: Boolean): PPurpleRequestField;
   end;
 {$endif}
 
@@ -56,7 +56,7 @@ function  purple_request_field_string_new(id, text, default_value: PChar;
 {$ifdef _impl}
 { TPurpleRequestFields }
 
-class function TPurpleRequestFields.New: PPurpleRequestFields;
+class function TPurpleRequestFields.Create: PPurpleRequestFields;
 begin
   Result := purple_request_fields_new;
 end;
@@ -80,7 +80,7 @@ end;
 
 { TPurpleRequestFieldGroup }
 
-class function TPurpleRequestFieldGroup.New(Title: String): PPurpleRequestFieldGroup;
+class function TPurpleRequestFieldGroup.Create(Title: String): PPurpleRequestFieldGroup;
 begin
   Result := purple_request_field_group_new(C(Title));
 end;
@@ -92,7 +92,7 @@ end;
 
 { TPurpleRequestField }
 
-class function TPurpleRequestField.StringNew(Id, Text, DefaultValue: String; Multiline: Boolean): PPurpleRequestField;
+class function TPurpleRequestField.CreateString(Id, Text, DefaultValue: String; Multiline: Boolean): PPurpleRequestField;
 begin
   Result := purple_request_field_string_new(C(Id),
     C(Text), C(DefaultValue), Multiline);

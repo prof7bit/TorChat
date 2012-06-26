@@ -215,11 +215,11 @@ begin
   Account := gc.GetAccount;
   TorChat := Clients.Find(Account);
   if Assigned(TorChat) then begin
-    Fields := TPurpleRequestFields.new;
-    Group := TPurpleRequestFieldGroup.New('User info for ' + TorChat.Roster.OwnID);
+    Fields := TPurpleRequestFields.Create;
+    Group := TPurpleRequestFieldGroup.Create('User info for ' + TorChat.Roster.OwnID);
     Fields.AddGroup(Group);
     Group.AddField(
-      TPurpleRequestField.StringNew(
+      TPurpleRequestField.CreateString(
         'name',
         'Name',
         TorChat.Config.GetString('ProfileName'),
@@ -227,7 +227,7 @@ begin
       )
     );
     Group.AddField(
-      TPurpleRequestField.StringNew(
+      TPurpleRequestField.CreateString(
         'text',
         'About me',
         TorChat.Config.GetString('ProfileText'),
@@ -260,11 +260,11 @@ begin
   // so we are forced to register them all and then map them to
   // TorChat statuses in our torchat_set_status() callback.
   Result := nil;
-  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_UNAVAILABLE, PRPL_ID_XA, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_INVISIBLE, PRPL_ID_INVISIBLE, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.NewFull(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_UNAVAILABLE, PRPL_ID_XA, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_INVISIBLE, PRPL_ID_INVISIBLE, '', True, True, False));
+  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, '', True, True, False));
 end;
 
 procedure torchat_set_status(Account: PPurpleAccount; Status: PPurpleStatus); cdecl;
@@ -431,7 +431,7 @@ begin
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     Buddy.SetLocalAlias(aalias);
-    serv_got_alias(gc, who, aalias);
+    gc.GotAlias(who, aalias);
   end;
 end;
 
@@ -813,7 +813,7 @@ begin
       PurpleBuddy.BlistAdd(nil, PurpleGroup, nil);
     end
     else begin
-      serv_got_alias(PurpleAccount.GetConnection, PChar(ID), PChar(Buddy.LocalAlias));
+      PurpleAccount.GetConnection.GotAlias(ID, Buddy.LocalAlias);
       PurpleBuddy.SetAlias(Buddy.LocalAlias);
     end;
   end;
@@ -822,25 +822,21 @@ end;
 
 procedure TTorChat.OnBuddyStatusChange(ABuddy: IBuddy);
 var
-  buddy_name: PChar;
-  status_id: PChar;
+  StatusID: String;
 begin
-  buddy_name := GetMemAndCopy(ABuddy.ID);
   case ABuddy.Status of
-    TORCHAT_AVAILABLE: status_id := GetMemAndCopy(PRPL_ID_AVAILABLE);
-    TORCHAT_AWAY: status_id := GetMemAndCopy(PRPL_ID_AWAY);
-    TORCHAT_XA: status_id := GetMemAndCopy(PRPL_ID_XA);
-    TORCHAT_OFFLINE: status_id := GetMemAndCopy(PRPL_ID_OFFLINE);
+    TORCHAT_AVAILABLE: StatusID := PRPL_ID_AVAILABLE;
+    TORCHAT_AWAY: StatusID := PRPL_ID_AWAY;
+    TORCHAT_XA: StatusID := PRPL_ID_XA;
+    TORCHAT_OFFLINE: StatusID := PRPL_ID_OFFLINE;
   end;
-  PurpleAccount.GotUserStatus(buddy_name, status_id);
-  FreeMem(status_id);
-  FreeMem(buddy_name);
+  PurpleAccount.GotUserStatus(ABuddy.ID, StatusID);
 end;
 
 procedure TTorChat.OnBuddyAvatarChange(ABuddy: IBuddy);
 var
-  icon_data: Pointer;
-  icon_len: PtrUInt;
+  IconAddr: Pointer;
+  IconLen: PtrUInt;
   Image: TFPMemoryImage;
   ImageWriter: TFPWriterPNG;
   ImageStream: TMemoryStream;
@@ -884,9 +880,9 @@ begin
     ImageStream := TMemoryStream.Create;
     Image.SaveToStream(ImageStream, ImageWriter);
 
-    icon_len := ImageStream.Size;
-    icon_data := PurpleGetMem(icon_len);
-    Move(ImageStream.Memory^, icon_data^, icon_len);
+    IconLen := ImageStream.Size;
+    IconAddr := PurpleGetMem(IconLen);
+    Move(ImageStream.Memory^, IconAddr^, IconLen);
 
     // libpurple accepts data in PNG format (and possibly many
     // other formats too (its actually handled by the GUI and not
@@ -896,8 +892,8 @@ begin
     WriteLn(_F('%s setting avatar in libpurple', [ABuddy.ID]));
     PurpleAccount.SetIconForBuddy(
       ABuddy.ID,
-      icon_data,
-      icon_len,
+      IconAddr,
+      IconLen,
       ''
     );
 
@@ -919,10 +915,12 @@ end;
 procedure TTorChat.OnBuddyAliasChange(ABuddy: IBuddy);
 var
   PurpleBuddy: PPurpleBuddy;
+  Conn: PPurpleConnection;
 begin
   PurpleBuddy := PurpleAccount.FindBuddy(ABuddy.ID);
   if Assigned(PurpleBuddy) then begin
-    serv_got_alias(PurpleAccount.GetConnection, PChar(ABuddy.ID), PChar(ABuddy.LocalAlias));
+    Conn := PurpleAccount.GetConnection;
+    Conn.GotAlias(ABuddy.ID, ABuddy.LocalAlias);
     PurpleBuddy.SetAlias(ABuddy.LocalAlias);
   end;
 end;
@@ -957,10 +955,9 @@ end;
 
 procedure TTorChat.OnInstantMessage(ABuddy: IBuddy; AText: String);
 begin
-  serv_got_im(
-    PurpleAccount.GetConnection,
-    PChar(ABuddy.ID),
-    Pchar(Plain2Html(AText)),
+  PurpleAccount.GetConnection.GotIM(
+    ABuddy.ID,
+    Plain2Html(AText),
     PURPLE_MESSAGE_RECV,
     NowUTCUnix
   );
