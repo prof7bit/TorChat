@@ -8,8 +8,8 @@ finally been fixed on 22 Jun 2012. Please update & upgrade (using
 synaptic or apt-get) to get these updated packages. The fixed 
 packages are
 
-  Oneiric: 0.9.9.534-1ubuntu0.1
-  Precise: 0.9.9.550-2~build0.12.04.1
+* Oneiric: 0.9.9.534-1ubuntu0.1
+* Precise: 0.9.9.550-2~build0.12.04.1
 
 If you have one of the versions above you are safe. If you have 
 installed the .deb file from github you are also safe. If you have
