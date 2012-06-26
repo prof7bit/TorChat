@@ -613,6 +613,7 @@ procedure TBuddy.SetLocalAlias(AName: String);
 begin
   FLocalAlias := AName;
   Client.Roster.Save;
+  Client.OnBuddyAliasChange(Self);
 end;
 
 procedure TBuddy.SetSoftware(ASoftware: String);
@@ -640,9 +641,8 @@ end;
 procedure TBuddy.SetProfileName(AName: String);
 begin
   FProfileName := AName;
-  if FLocalAlias = '' then begin
-    FLocalAlias := FProfileName;
-    Client.Roster.Save;
+  if (LocalAlias = '') and (ProfileName <> '') then begin
+    SetLocalAlias(FProfileName);
   end;
 end;
 

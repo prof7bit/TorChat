@@ -18,21 +18,21 @@ procedure purple_debug_error(category: PChar; format: PChar; args: array of cons
 {$ifdef _impl}
 class procedure TPurpleDebug.Misc(Category, Text: String);
 begin
-  purple_debug_misc(_PChar(Category), _PChar(Text), []);
+  purple_debug_misc(C(Category), C(Text), []);
 end;
 
 class procedure TPurpleDebug.Info(Category, Text: String);
 begin
-  purple_debug_info(_PChar(Category), _PChar(Text), []);
+  purple_debug_info(C(Category), C(Text), []);
 end;
 
 class procedure TPurpleDebug.Warning(Category, Text: String);
 begin
-  purple_debug_warning(_PChar(Category), _PChar(Text), []);
+  purple_debug_warning(C(Category), C(Text), []);
 end;
 
 class procedure TPurpleDebug.Error(Category, Text: String);
 begin
-  purple_debug_error(_PChar(Category), _PChar(Text), []);
+  purple_debug_error(C(Category), C(Text), []);
 end;
 {$endif}

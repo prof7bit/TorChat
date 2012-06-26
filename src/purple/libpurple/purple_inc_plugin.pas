@@ -90,7 +90,7 @@ function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionC
 {$ifdef _impl}
 class function TPurplePluginAction.New(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
 begin
-  Result := purple_plugin_action_new(_PChar(ALabel), ACallBack);
+  Result := purple_plugin_action_new(C(ALabel), ACallBack);
 end;
 {$endif}
 

@@ -98,7 +98,7 @@ implementation
 uses
   sysutils;
 
-function _PChar(S: String): PChar; inline;
+function C(S: String): PChar; inline;
 begin
   if Length(S) = 0 then
     Result := nil

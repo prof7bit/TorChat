@@ -78,7 +78,7 @@ function purple_xfer_get_status(xfer: PPurpleXfer): TPurpleXferStatusType; cdecl
 {$ifdef _impl}
 class function TPurpleXfer.Create(Account: PPurpleAccount; Typ: TPurpleXferType; Who: String): PPurpleXfer;
 begin
-  Result := purple_xfer_new(Account, Typ, _PChar(Who));
+  Result := purple_xfer_new(Account, Typ, C(Who));
 end;
 
 procedure TPurpleXfer.Free;
@@ -98,7 +98,7 @@ end;
 
 procedure TPurpleXfer.RequestAccepted(FileName: String);
 begin
-  purple_xfer_request_accepted(@Self, _PChar(FileName));
+  purple_xfer_request_accepted(@Self, C(FileName));
 end;
 
 procedure TPurpleXfer.SetAckFnc(Fnc: PXferAckCb);
@@ -128,7 +128,7 @@ end;
 
 procedure TPurpleXfer.SetFileName(FileName: String);
 begin
-  purple_xfer_set_filename(@Self, _PChar(FileName));
+  purple_xfer_set_filename(@Self, C(FileName));
 end;
 
 procedure TPurpleXfer.SetInitFnc(Fnc: PXferCb);
@@ -138,7 +138,7 @@ end;
 
 procedure TPurpleXfer.Start(fd: cint; ip: String; port: cuint);
 begin
-  purple_xfer_start(@Self, fd, _PChar(ip), port);
+  purple_xfer_start(@Self, fd, C(ip), port);
 end;
 
 procedure TPurpleXfer.SetRequestDeniedFnc(Fnc: PXferCb);

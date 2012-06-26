@@ -27,6 +27,6 @@ procedure purple_notify_user_info_add_pair(user_info: PPurpleNotifyUserInfo;
 {$ifdef _impl}
 procedure TPurpleNotifyUserInfo.AddPair(Label_, Value: String);
 begin
-  purple_notify_user_info_add_pair(@Self, _PChar(Label_), _PChar(Value));
+  purple_notify_user_info_add_pair(@Self, C(Label_), C(Value));
 end;
 {$endif}

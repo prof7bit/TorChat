@@ -68,21 +68,21 @@ end;
 
 function TPurpleRequestFields.GetString(ID: String): String;
 begin
-  Result := purple_request_fields_get_string(@Self, _PChar(ID));
+  Result := purple_request_fields_get_string(@Self, C(ID));
 end;
 
 function TPurpleRequestFields.Request(Handle: Pointer; Title, Primary, Secondary: String; OkText: String; OkFunc: PPurpleRequestDlgBtnCb; CancelText: String; CancelFunc: PPurpleRequestDlgBtnCb; Account: PPurpleAccount; Who: String; Conv: PPurpleConversation; UserData: Pointer): Pointer;
 begin
-  Result := purple_request_fields(Handle, _PChar(Title), _PChar(Primary),
-    _PChar(Secondary), @Self, _PChar(OkText), OkFunc, _PChar(CancelText),
-    CancelFunc, Account, _PChar(Who), Conv, UserData);
+  Result := purple_request_fields(Handle, C(Title), C(Primary),
+    C(Secondary), @Self, C(OkText), OkFunc, C(CancelText),
+    CancelFunc, Account, C(Who), Conv, UserData);
 end;
 
 { TPurpleRequestFieldGroup }
 
 class function TPurpleRequestFieldGroup.New(Title: String): PPurpleRequestFieldGroup;
 begin
-  Result := purple_request_field_group_new(_PChar(Title));
+  Result := purple_request_field_group_new(C(Title));
 end;
 
 procedure TPurpleRequestFieldGroup.AddField(Field: PPurpleRequestField);
@@ -94,8 +94,8 @@ end;
 
 class function TPurpleRequestField.StringNew(Id, Text, DefaultValue: String; Multiline: Boolean): PPurpleRequestField;
 begin
-  Result := purple_request_field_string_new(_PChar(Id),
-    _PChar(Text), _PChar(DefaultValue), Multiline);
+  Result := purple_request_field_string_new(C(Id),
+    C(Text), C(DefaultValue), Multiline);
 end;
 
 {$endif}

@@ -3,12 +3,16 @@
 {$endif}
 
 {$ifdef _type}
+
+  { TPurpleAccount }
+
   TPurpleAccount = object
     function GetString(Name, DefaultValue: String): String;
     function GetUsername: String;
     function GetConnection: PPurpleConnection;
     function GetPresence: PPurplePresence;
     procedure SetIconForBuddy(Who: String; IconData: Pointer; IconLen: PtrUInt; CheckSum: String);
+    function FindBuddy(AName: String): PPurpleBuddy;
     function FindBuddies(AName: String): PGSList;
     procedure GotUserStatus(AName, AStatusID: String);
   end;
@@ -35,7 +39,7 @@ procedure purple_buddy_icons_set_for_user(account: PPurpleAccount;
 {$ifdef _impl}
 function TPurpleAccount.GetString(Name, DefaultValue: String): String;
 begin
-  Result := purple_account_get_string(@Self, _PChar(Name), _PChar(DefaultValue));
+  Result := purple_account_get_string(@Self, C(Name), C(DefaultValue));
 end;
 
 function TPurpleAccount.GetUsername: String;
@@ -55,17 +59,22 @@ end;
 
 procedure TPurpleAccount.SetIconForBuddy(Who: String; IconData: Pointer; IconLen: PtrUInt; CheckSum: String);
 begin
-  purple_buddy_icons_set_for_user(@Self, _PChar(Who), IconData, IconLen, _PChar(CheckSum));
+  purple_buddy_icons_set_for_user(@Self, C(Who), IconData, IconLen, C(CheckSum));
+end;
+
+function TPurpleAccount.FindBuddy(AName: String): PPurpleBuddy;
+begin
+  Result := purple_find_buddy(@Self, C(AName));
 end;
 
 function TPurpleAccount.FindBuddies(AName: String): PGSList;
 begin
-  Result := purple_find_buddies(@Self, _PChar(AName));
+  Result := purple_find_buddies(@Self, C(AName));
 end;
 
 procedure TPurpleAccount.GotUserStatus(AName, AStatusID: String);
 begin
-  purple_prpl_got_user_status(@self, _PChar(AName), _PChar(AStatusID));
+  purple_prpl_got_user_status(@self, C(AName), C(AStatusID));
 end;
 {$endif}
 

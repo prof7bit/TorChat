@@ -86,6 +86,7 @@ type
     procedure OnGotOwnID;
     procedure OnBuddyStatusChange(ABuddy: IBuddy);
     procedure OnBuddyAvatarChange(ABuddy: IBuddy);
+    procedure OnBuddyAliasChange(ABuddy: IBuddy);
     procedure OnBuddyAdded(ABuddy: IBuddy);
     procedure OnBuddyRemoved(ABuddy: IBuddy);
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String);
