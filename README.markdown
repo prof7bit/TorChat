@@ -13,7 +13,7 @@ packages are
 
 If you have one of the versions above you are safe. If you have 
 installed the .deb file from github you are also safe. If you have
-and older version (especially 550-1 or 534-1) then you should update.
+an older version (especially 550-1 or 534-1) then you should update.
 
 
 TorChat2
