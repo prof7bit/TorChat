@@ -922,6 +922,7 @@ var
 begin
   PurpleBuddy := PurpleAccount.FindBuddy(ABuddy.ID);
   if Assigned(PurpleBuddy) then begin
+    serv_got_alias(PurpleAccount.GetConnection, PChar(ABuddy.ID), PChar(ABuddy.LocalAlias));
     PurpleBuddy.SetAlias(ABuddy.LocalAlias);
   end;
 end;
