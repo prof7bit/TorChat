@@ -56,9 +56,7 @@ end;
 
 procedure TPurpleAccount.SetIconForBuddy(Who: String; IconData: Pointer; IconLen: PtrUInt; CheckSum: String);
 begin
-  writeln('calling purple_buddy_icons_set_for_user()');
   purple_buddy_icons_set_for_user(@Self, Pointer(Who), IconData, IconLen, Pointer(CheckSum));
-  writeln('returned from call to purple_buddy_icons_set_for_user()');
 end;
 
 function TPurpleAccount.FindBuddy(AName: String): PPurpleBuddy;
@@ -72,10 +70,16 @@ begin
 end;
 
 procedure TPurpleAccount.GotUserStatus(AName, AStatusID: String);
+var
+  name, status: PChar;
 begin
-  WriteLn('TPurpleAccount.GotUserStatus() ', AStatusID);
-  purple_prpl_got_user_status(@self, Pointer(AName), Pointer(AStatusID));
-  WriteLn('TPurpleAccount.GotUserStatus() finished');
+  // this method is causing strange
+  // crashes if I use the strings directly
+  name := g_strdup(PChar(AName));
+  status := g_strdup(PChar(AStatusID));
+  purple_prpl_got_user_status(@self, name, status);
+  g_free(name);
+  g_free(status);
 end;
 {$endif}
 

@@ -862,7 +862,6 @@ begin
     TORCHAT_XA: StatusID := PRPL_ID_XA;
     TORCHAT_OFFLINE: StatusID := PRPL_ID_OFFLINE;
   end;
-  WriteLn('TTorChat.OnBuddyStatusChange() calling PurpleAccount.GotUserStatus()');
   PurpleAccount.GotUserStatus(ABuddy.ID, StatusID);
   WriteLn('TTorChat.OnBuddyStatusChange() finished');
 end;
@@ -882,7 +881,6 @@ var
   PtrPixel24: P24Pixel;
   PtrAlpha8: PByte;
 begin
-  {$ifndef NoAvatar}
   Raw24Bitmap := ABuddy.AvatarData;
   if Length(Raw24Bitmap) = 12288 then begin;
     Raw8Alpha := ABuddy.AvatarAlphaData;
@@ -945,8 +943,6 @@ begin
       ''
     );
   end;
-  {$endif}
-  WriteLn('OnBuddyAvatarChange() finished');
 end;
 
 procedure TTorChat.OnBuddyAliasChange(ABuddy: IBuddy);
