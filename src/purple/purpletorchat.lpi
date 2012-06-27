@@ -56,11 +56,11 @@
               <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-fPIC
--dDebugToConsole 
+            <CustomOptions Value="-dDebugToConsole 
 -dDebugToFile
 -dUseHeapTrc
--dWithFileTransfer"/>
+-dWithFileTransfer
+-Cg"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -110,7 +110,7 @@
               <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-fPIC"/>
+            <CustomOptions Value="-Cg"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -151,10 +151,10 @@
               <IgnoredMessages idx5024="True"/>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-fPIC
--dDebugToConsole 
+            <CustomOptions Value="-dDebugToConsole 
 -dDebugToFile
--dUseHeapTrc"/>
+-dUseHeapTrc
+-Cg"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -197,7 +197,7 @@
             </CompilerMessages>
             <CustomOptions Value="-dDebugToConsole 
 -dUseHeapTrc 
--fPIC"/>
+-Cg"/>
             <CompilerPath Value="/usr/local/bin/ppcrossx64"/>
           </Other>
         </CompilerOptions>
@@ -441,7 +441,7 @@
         <IgnoredMessages idx5024="True"/>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-fPIC"/>
+      <CustomOptions Value="-Cg"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

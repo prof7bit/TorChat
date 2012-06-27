@@ -10,10 +10,10 @@ FPCOPT = \
 	-FE../../bin \
 	-g- \
 	-CX \
+	-Cg \
 	-XX \
 	-Xs \
 	-O3 \
-	-fPIC \
 	-k--reduce-memory-overheads \
 	-k--no-keep-memory \
 	$(OPT) \
@@ -36,3 +36,4 @@ demo:
 	mkdir -p lib
 	fpc $(FPCOPT) -dDebugToConsole -dDebugToFile purpletorchat.lpr
 	fpc -Twin32 $(FPCOPT) -dDebugToConsole -dDebugToFile purpletorchat.lpr
+	fpc -Px86_64 $(FPCOPT) -olibpurpletorchat64.so -dDebugToConsole -dDebugToFile purpletorchat.lpr

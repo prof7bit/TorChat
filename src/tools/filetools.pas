@@ -7,12 +7,11 @@ interface
 uses
   Classes, SysUtils;
 
-function FCopy(A,B: String): Boolean;
-function FMkDir(D: String): Boolean;
-function FDelete(D: String): Boolean;
-function FRename(A, B: String): Boolean;
-function FTar(A: String; F: array of AnsiString): String; // returns the archive name
-function FZip(A: String; F: array of AnsiString): String; // returns the archive name
+procedure FCopy(A,B: String);
+procedure FMkDir(D: String);
+procedure FDelete(D: String);
+procedure FRename(A, B: String);
+procedure FZip(A: String; F: array of AnsiString);
 
 
 implementation
@@ -21,14 +20,14 @@ const
   TAR_EXE = '/bin/tar';
   ZIP_EXE = '/usr/bin/zip';
 
-function FCopy(A, B: String): Boolean;
+procedure FCopy(A, B: String);
 var
   Fa: TFileStream = nil;
   Fb: TFileStream = nil;
   Buf: array[0..1023] of Byte;
   N: Integer;
+  E: String;
 begin
-  Result := True;
   Buf[0] := 0; // make compiler happy ('not initialized')
   if DirectoryExists(B) then
     B := ConcatPaths([B, ExtractFileName(A)]);
@@ -41,84 +40,79 @@ begin
       Fb.Write(Buf, N);
     until N < 1024;
   except
-    Result := False;
     if not Assigned(Fa) then
-      WriteLn('!!! FCopy: could not open ', A, ' for reading')
+      E := '!!! FCopy: could not open ' + A + ' for reading'
     else
       if not Assigned(Fb) then
-        WriteLn('!!! FCopy: could not open ', B, ' for writing')
+        E := '!!! FCopy: could not open ' + B + ' for writing'
       else
-        Writeln('!!! FCopy: error while copying', LineEnding,
-          '  file ', A, LineEnding, '    to ', B);
+        E := '!!! FCopy: error while copying' + LineEnding +
+          '  file ' + A + LineEnding + '    to ' + B;
   end;
   if Assigned(Fa) then Fa.Free;
   if Assigned(Fb) then Fb.Free;
+  if E <> '' then
+    raise Exception.Create(E);
 end;
 
-function FMkDir(D: String): Boolean;
+procedure FMkDir(D: String);
 begin
   WriteLn('create ', D);
-  Result := ForceDirectories(D);
+  if not ForceDirectories(D) then
+    raise Exception.Create('!!! could not create directory ' + D);
 end;
 
-function FDelete(D: String): Boolean;
+procedure FDelete(D: String);
 var
   FileInfo: TSearchRec;
 begin
   writeln('delete ', D);
-  Result := True;
   if DirectoryExists(D) then begin
     if FindFirst(ConcatPaths([D, '*']), faAnyFile, FileInfo) = 0 then begin
       repeat
         if (FileInfo.Name='.') or (FileInfo.Name='..') or (FileInfo.Name='') then
           continue;
-        if not FDelete(ConcatPaths([D, FileInfo.Name])) then
-          Result := False;
+        FDelete(ConcatPaths([D, FileInfo.Name]));
       until FindNext(FileInfo) <> 0;
     end;
     try
       RmDir(D);
     except
-      Result := False;
-      WriteLn('!!! FDelete: could not delete directory: ', D);
+      raise Exception.Create('!!! FDelete: could not delete directory: ' + D);
     end;
   end
   else begin
     if FileExists(D) then begin
       if not DeleteFile(D) then begin
-        Result := False;
-        WriteLn('!!! FDelete: could not delete file: ', D);
+        raise Exception.Create('!!! FDelete: could not delete file: ' + D);
       end;
     end;
+    // ignore if it does not exist.
   end;
 end;
 
-function FTar(A: String; F: array of AnsiString): String;
+function _FTar(A: String; F: array of AnsiString): String;
 var
   Args: Array of AnsiString;
   I: Integer;
 begin
-  A := A + '.tar.bz2';
   WriteLn('create ', A);
   SetLength(Args, Length(F) + 2);
-  Args[0] := '-cjf';
+  Args[0] := '-caf';
   Args[1] := A;
   for I := 0 to Length(F) - 1 do begin
     writeln('   add ', F[i]);
     Args[i+2] := F[i];
   end;
-  if ExecuteProcess(TAR_EXE, Args) = 0 then
-    Result := A
-  else
-    Result := '';
+  if ExecuteProcess(TAR_EXE, Args) <> 0 then
+    raise Exception.Create('!!! could not create archive: ' + A);
 end;
 
-function FZip(A: String; F: array of AnsiString): String;
+procedure _FZip(A: String; F: array of AnsiString);
 var
   Args: Array of AnsiString;
   I: Integer;
 begin
-  A := A + '.zip';
   WriteLn('create ', A);
   SetLength(Args, Length(F) + 2);
   Args[0] := '-r';
@@ -127,16 +121,26 @@ begin
     writeln('   add ', F[i]);
     Args[i+2] := F[i];
   end;
-  if ExecuteProcess(ZIP_EXE, Args) = 0 then
-    Result := A
-  else
-    Result := '';
+  if ExecuteProcess(ZIP_EXE, Args) <> 0 then
+    raise Exception.Create('!!! could not create archive: ' + A);
 end;
 
-function FRename(A, B: String): Boolean;
+procedure FRename(A, B: String);
 begin
   writeln('rename ', A, LineEnding, '    to ', B);
-  Result := RenameFile(A, B);
+  if not RenameFile(A, B) then
+    raise Exception.Create('!!! could not rename ' + A + ' to ' + B);
+end;
+
+procedure FZip(A: String; F: array of AnsiString);
+var
+  Ext: String;
+begin
+  Ext := ExtractFileExt(A);
+  if Ext = '.bz2' then
+    _FTar(A, F);
+  if Ext = '.zip' then
+    _FZip(A, F);
 end;
 
 end.
