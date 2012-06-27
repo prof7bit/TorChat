@@ -39,7 +39,6 @@ type
     procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
-    class function ReceiveOnOutgoing: Boolean; override;
     constructor Create(ABuddy: IBuddy; TransferID: String); reintroduce;
     procedure Parse; override;
   end;
@@ -51,11 +50,6 @@ implementation
 class function TMsgFileStopSending.GetCommand: String;
 begin
   Result := 'file_stop_sending';
-end;
-
-class function TMsgFileStopSending.ReceiveOnOutgoing: Boolean;
-begin
-  Result := True;
 end;
 
 constructor TMsgFileStopSending.Create(ABuddy: IBuddy; TransferID: String);

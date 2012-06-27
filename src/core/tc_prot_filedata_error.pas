@@ -40,7 +40,6 @@ type
     procedure ExecuteWithBuddy; override;
   public
     class function GetCommand: String; override;
-    class function ReceiveOnOutgoing: Boolean; override;
     constructor Create(ABuddy: IBuddy; TransferID: String; StartByte: Int64); reintroduce;
     procedure Parse; override;
   end;
@@ -55,11 +54,6 @@ uses
 class function TMsgFileDataError.GetCommand: String;
 begin
   Result := 'filedata_error';
-end;
-
-class function TMsgFileDataError.ReceiveOnOutgoing: Boolean;
-begin
-  Result := True;
 end;
 
 constructor TMsgFileDataError.Create(ABuddy: IBuddy; TransferID: String; StartByte: Int64);
