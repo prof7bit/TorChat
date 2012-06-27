@@ -274,6 +274,7 @@ end;
 function Plain2Html(APlain: String): String;
 begin
   Result := StringReplace(APlain, '&', '&amp;', [rfReplaceAll]);
+  Result := StringReplace(Result, '"', '&quot;', [rfReplaceAll]);
   Result := StringReplace(Result, '<', '&lt;', [rfReplaceAll]);
   Result := StringReplace(Result, '>', '&gt;', [rfReplaceAll]);
   Result := StringReplace(Result, LineEnding, '<br>', [rfReplaceAll]);
@@ -284,6 +285,7 @@ begin
   Result := StringReplace(AHtml, '<br>', LineEnding, [rfReplaceAll]);
   Result := StringReplace(Result, '&lt;', '<', [rfReplaceAll]);
   Result := StringReplace(Result, '&gt;', '>', [rfReplaceAll]);
+  Result := StringReplace(Result, '&quot;', '"', [rfReplaceAll]);
   Result := StringReplace(Result, '&amp;', '&', [rfReplaceAll]);
 end;
 
