@@ -286,6 +286,7 @@ end;
 
 procedure TMsg.Execute;
 begin
+  WriteLn('TMsg.Execute ', ToString);
   FBuddy := FConnection.Buddy;
   if Assigned(FBuddy) then
     ExecuteWithBuddy

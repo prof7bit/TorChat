@@ -54,9 +54,12 @@ var
 begin
   if not FClient.IsDestroying then begin;
     if Count > 0 then begin
+      WriteLn('TMsgQueue.PumpNext() there is a message');
       Msg := IMessage(Last);
       Msg.Execute;
+      WriteLn('TMsgQueue.PumpNext() removing message');
       Remove(Msg);
+      WriteLn('TMsgQueue.PumpNext() finished');
     end;
   end;
 end;
@@ -76,6 +79,7 @@ end;
 
 procedure TMsgCallMethod.Execute;
 begin
+  WriteLn('TMsgCallMethod.Execute');
   FMethod();
 end;
 
