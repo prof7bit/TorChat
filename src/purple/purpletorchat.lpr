@@ -879,7 +879,7 @@ var
   PtrPixel24: P24Pixel;
   PtrAlpha8: PByte;
 begin
-  {$indef NoAvatar}
+  {$ifndef NoAvatar}
   Raw24Bitmap := ABuddy.AvatarData;
   if Length(Raw24Bitmap) = 12288 then begin;
     Raw8Alpha := ABuddy.AvatarAlphaData;
