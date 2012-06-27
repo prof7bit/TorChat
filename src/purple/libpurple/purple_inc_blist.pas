@@ -12,24 +12,24 @@
   { TPurpleBuddy }
 
   TPurpleBuddy = object
-    class function Create(Acc: PPurpleAccount; AName, AAlias: String): PPurpleBuddy; inline;
-    class function Find(Acc: PPurpleAccount; AName: String): PPurpleBuddy; inline;
-    class function FindMany(Acc: PPurpleAccount; AName: String): PGSList; inline;
-    function GetAccount: PPurpleAccount; inline;
-    function GetAliasOnly: String; inline;
-    function GetName: String; inline;
-    function GetPresence: TPurplePresence; inline;
-    procedure SetAlias(AAlias: String); inline;
-    procedure Remove; inline;
-    procedure BlistAdd(Contact: PPurpleContact; Group: PPurpleGroup; Node: PPurpleBlistNode); inline;
+    class function Create(Acc: PPurpleAccount; AName, AAlias: String): PPurpleBuddy;
+    class function Find(Acc: PPurpleAccount; AName: String): PPurpleBuddy;
+    class function FindMany(Acc: PPurpleAccount; AName: String): PGSList;
+    function GetAccount: PPurpleAccount;
+    function GetAliasOnly: String;
+    function GetName: String;
+    function GetPresence: TPurplePresence;
+    procedure SetAlias(AAlias: String);
+    procedure Remove;
+    procedure BlistAdd(Contact: PPurpleContact; Group: PPurpleGroup; Node: PPurpleBlistNode);
   end;
 
   { TPurpleGroup }
 
   TPurpleGroup = object
-    class function Create(AName: String): PPurpleGroup; inline;
-    class function Find(AName: String): PPurpleGroup; inline;
-    procedure Add(Node: PPurpleBlistNode); inline;
+    class function Create(AName: String): PPurpleGroup;
+    class function Find(AName: String): PPurpleGroup;
+    procedure Add(Node: PPurpleBlistNode);
   end;
 {$endif}
 

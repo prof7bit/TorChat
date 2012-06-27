@@ -8,24 +8,24 @@
   { TPurpleRequestFields }
 
   TPurpleRequestFields = object
-    class function Create: PPurpleRequestFields; inline;
-    procedure AddGroup(Group: PPurpleRequestFieldGroup); inline;
-    function GetString(ID: String): String; inline;
+    class function Create: PPurpleRequestFields;
+    procedure AddGroup(Group: PPurpleRequestFieldGroup);
+    function GetString(ID: String): String;
     function Request(Handle: Pointer; Title, Primary, Secondary: String;
       OkText: String; OkFunc: PPurpleRequestDlgBtnCb; CancelText: String;
       CancelFunc: PPurpleRequestDlgBtnCb; Account: PPurpleAccount;
-      Who: String; Conv: PPurpleConversation; UserData: Pointer): Pointer; inline;
+      Who: String; Conv: PPurpleConversation; UserData: Pointer): Pointer;
   end;
 
   { TPurpleRequestFieldGroup }
 
   TPurpleRequestFieldGroup = object
-    class function Create(Title: String): PPurpleRequestFieldGroup; inline;
-    procedure AddField(Field: PPurpleRequestField); inline;
+    class function Create(Title: String): PPurpleRequestFieldGroup;
+    procedure AddField(Field: PPurpleRequestField);
   end;
 
   TPurpleRequestField = object
-    class function CreateString(Id, Text, DefaultValue: String; Multiline: Boolean): PPurpleRequestField; inline;
+    class function CreateString(Id, Text, DefaultValue: String; Multiline: Boolean): PPurpleRequestField;
   end;
 {$endif}
 

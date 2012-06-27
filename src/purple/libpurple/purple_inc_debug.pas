@@ -3,10 +3,10 @@
     function, there actually never exists any instace of it
     and therefore also no corresponding pointer type}
   TPurpleDebug = object
-    class procedure Misc(Category, Text: String); inline;
-    class procedure Info(Category, Text: String); inline;
-    class procedure Warning(Category, Text: String); inline;
-    class procedure Error(Category, Text: String); inline;
+    class procedure Misc(Category, Text: String);
+    class procedure Info(Category, Text: String);
+    class procedure Warning(Category, Text: String);
+    class procedure Error(Category, Text: String);
   end;
 {$endif}
 

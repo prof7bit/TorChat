@@ -26,8 +26,8 @@
   TPurpleStatusType = object
     class function Create(APrimitive: TPurpleStatusPrimitive; ID: String;
       AName: String; Saveable: Boolean; UserSettable: Boolean;
-      Independent: Boolean): PPurpleStatusType; inline;
-    function GetPrimitive: TPurpleStatusPrimitive; inline;
+      Independent: Boolean): PPurpleStatusType;
+    function GetPrimitive: TPurpleStatusPrimitive;
   end;
 
   { TPurpleStatus }

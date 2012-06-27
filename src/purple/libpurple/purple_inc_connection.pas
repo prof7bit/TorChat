@@ -12,10 +12,10 @@
   { TPurpleConnection }
 
   TPurpleConnection = object
-    function GetAccount: PPurpleAccount; inline;
-    procedure SetState(State: TPurpleConnectionState); inline;
-    procedure GotAlias(Who, Alias_: String); inline;
-    procedure GotIM(Who, Msg: String; Flags: TPurpleMessageFlags; MsgTime: time_t); inline;
+    function GetAccount: PPurpleAccount;
+    procedure SetState(State: TPurpleConnectionState);
+    procedure GotAlias(Who, Alias_: String);
+    procedure GotIM(Who, Msg: String; Flags: TPurpleMessageFlags; MsgTime: time_t);
   end;
 {$endif}
 

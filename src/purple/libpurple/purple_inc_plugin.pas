@@ -45,7 +45,7 @@
     plugin    : PPurplePlugin;
     context   : gpointer;
     user_data : gpointer;
-    class function Create(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction; inline;
+    class function Create(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
   end;
 
   TPurplePluginInfo = record

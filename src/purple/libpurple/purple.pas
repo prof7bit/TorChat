@@ -36,6 +36,7 @@
 unit purple;
 {$mode objfpc}{$H+}
 {$packrecords c}
+{$inline on}
 
 interface
 uses

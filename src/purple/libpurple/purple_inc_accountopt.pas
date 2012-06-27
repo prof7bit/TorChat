@@ -1,7 +1,7 @@
 {$ifdef _type}
   PPurpleAccountOption = ^TPurpleAccountOption;
   TPurpleAccountOption = Object
-    class function CreateString(Text, Name, DefaultValue: String): PPurpleAccountOption; inline;
+    class function CreateString(Text, Name, DefaultValue: String): PPurpleAccountOption;
   end;
 {$endif}
 
