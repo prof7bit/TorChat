@@ -4,8 +4,8 @@
 
 {$ifdef _type}
   TPurplePresence = object
-    function GetActiveStatus: PPurpleStatus;
-    procedure SwitchStatus(StatusID: String);
+    function GetActiveStatus: PPurpleStatus; inline;
+    procedure SwitchStatus(StatusID: String); inline;
   end;
 {$endif}
 

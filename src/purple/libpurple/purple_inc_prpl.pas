@@ -113,3 +113,5 @@ procedure purple_prpl_got_user_status(account: PPurpleAccount;
   aname, status_id: PChar); cdecl; external LIBPURPLE;
 {$endif}
 
+// purple_prpl_got_user_status() is used as a method of TPurpleAccount
+

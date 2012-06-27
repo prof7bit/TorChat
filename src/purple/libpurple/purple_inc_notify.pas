@@ -1,7 +1,7 @@
 {$ifdef _type}
   PPurpleNotifyUserInfo = ^TPurpleNotifyUserInfo;
   TPurpleNotifyUserInfo = object
-    procedure AddPair(Label_, Value: String);
+    procedure AddPair(Label_, Value: String); inline;
   end;
 
   TPurpleNotifyMsgType = (

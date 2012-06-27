@@ -4,8 +4,8 @@
   { TPurpleStoredImage }
 
   TPurpleStoredImage = object
-    function GetData: Pointer;
-    function GetSize: PtrUInt;
+    function GetData: Pointer; inline;
+    function GetSize: PtrUInt; inline;
   end;
 {$endif}
 

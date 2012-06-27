@@ -247,7 +247,7 @@ function torchat_actions(Plugin: PPurplePlugin; Context: Pointer): PGList; cdecl
 var
   Action   : PPurplePluginAction;
 begin
-  Action := TPurplePluginAction.New('Set User Info...', @torchat_set_user_info);
+  Action := TPurplePluginAction.Create('Set User Info...', @torchat_set_user_info);
   Result := g_list_append(nil, Action);
 end;
 

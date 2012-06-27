@@ -7,14 +7,14 @@
   { TPurpleAccount }
 
   TPurpleAccount = object
-    function GetString(Name, DefaultValue: String): String;
-    function GetUsername: String;
-    function GetConnection: PPurpleConnection;
-    function GetPresence: PPurplePresence;
-    procedure SetIconForBuddy(Who: String; IconData: Pointer; IconLen: PtrUInt; CheckSum: String);
-    function FindBuddy(AName: String): PPurpleBuddy;
-    function FindBuddies(AName: String): PGSList;
-    procedure GotUserStatus(AName, AStatusID: String);
+    function GetString(Name, DefaultValue: String): String; inline;
+    function GetUsername: String; inline;
+    function GetConnection: PPurpleConnection; inline;
+    function GetPresence: PPurplePresence; inline;
+    procedure SetIconForBuddy(Who: String; IconData: Pointer; IconLen: PtrUInt; CheckSum: String); inline;
+    function FindBuddy(AName: String): PPurpleBuddy; inline;
+    function FindBuddies(AName: String): PGSList; inline;
+    procedure GotUserStatus(AName, AStatusID: String); inline;
   end;
 
   PPurpleAccountUnregistrationCallback = procedure(); cdecl; // fixme: signature?

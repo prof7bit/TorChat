@@ -23,27 +23,27 @@
   { TPurpleXfer }
 
   TPurpleXfer = Object
-    class function Create(Account: PPurpleAccount; Typ: TPurpleXferType; Who: String): PPurpleXfer;
-    procedure Free; // will call purple_xfer_end()
-    procedure CancelRemote;
-    procedure Request;
-    procedure RequestAccepted(FileName: String);
-    procedure SetAckFnc(Fnc: PXferAckCb);
-    procedure SetBytesSent(Bytes: csize_t);
-    procedure SetCancelSendFnc(Fnc: PXferCb);
-    procedure SetCancelRecvFnc(Fnc: PXferCb);
-    procedure SetCompleted(Completed: Boolean);
-    procedure SetFileName(FileName: String);
-    procedure SetInitFnc(Fnc: PXferCb);
-    procedure Start(fd: cint; ip: String; port: cuint);
-    procedure SetRequestDeniedFnc(Fnc: PXferCb);
-    procedure SetSize(Size: csize_t);
-    procedure UpdateProgress;
-    function GetAccount: PPurpleAccount;
-    function GetFileName: String;
-    function GetLocalFileName: String;
-    function GetRemoteUser: String;
-    function GetStatus: TPurpleXferStatusType;
+    class function Create(Account: PPurpleAccount; Typ: TPurpleXferType; Who: String): PPurpleXfer; inline;
+    procedure Free;  inline;// will call purple_xfer_end()
+    procedure CancelRemote; inline;
+    procedure Request; inline;
+    procedure RequestAccepted(FileName: String); inline;
+    procedure SetAckFnc(Fnc: PXferAckCb); inline;
+    procedure SetBytesSent(Bytes: csize_t); inline;
+    procedure SetCancelSendFnc(Fnc: PXferCb); inline;
+    procedure SetCancelRecvFnc(Fnc: PXferCb); inline;
+    procedure SetCompleted(Completed: Boolean); inline;
+    procedure SetFileName(FileName: String); inline;
+    procedure SetInitFnc(Fnc: PXferCb); inline;
+    procedure Start(fd: cint; ip: String; port: cuint); inline;
+    procedure SetRequestDeniedFnc(Fnc: PXferCb); inline;
+    procedure SetSize(Size: csize_t); inline;
+    procedure UpdateProgress; inline;
+    function GetAccount: PPurpleAccount; inline;
+    function GetFileName: String; inline;
+    function GetLocalFileName: String; inline;
+    function GetRemoteUser: String; inline;
+    function GetStatus: TPurpleXferStatusType; inline;
   end;
 {$endif}
 

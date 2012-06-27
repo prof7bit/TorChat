@@ -45,7 +45,7 @@
     plugin    : PPurplePlugin;
     context   : gpointer;
     user_data : gpointer;
-    class function New(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
+    class function Create(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction; inline;
   end;
 
   TPurplePluginInfo = record
@@ -88,7 +88,7 @@ function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionC
 {$endif}
 
 {$ifdef _impl}
-class function TPurplePluginAction.New(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
+class function TPurplePluginAction.Create(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
 begin
   Result := purple_plugin_action_new(C(ALabel), ACallBack);
 end;
