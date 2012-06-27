@@ -94,7 +94,7 @@ function  purple_plugin_action_new(label_: PChar; callback: PPurplePluginActionC
 {$ifdef _impl}
 class function TPurplePluginAction.Create(ALabel: String; ACallBack: PPurplePluginActionCb): PPurplePluginAction;
 begin
-  Result := purple_plugin_action_new(C(ALabel), ACallBack);
+  Result := purple_plugin_action_new(Pointer(ALabel), ACallBack);
 end;
 
 function TPurplePlugin.NotifyMessage(typ: TPurpleNotifyMsgType;

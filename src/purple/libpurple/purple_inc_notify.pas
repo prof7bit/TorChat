@@ -36,7 +36,7 @@ end;
 
 procedure TPurpleNotifyUserInfo.AddPair(ALabel, Value: String);
 begin
-  purple_notify_user_info_add_pair(@Self, C(ALabel), C(Value));
+  purple_notify_user_info_add_pair(@Self, Pointer(ALabel), Pointer(Value));
 end;
 
 procedure TPurpleNotifyUserInfo.AddSectionBreak;
@@ -46,6 +46,6 @@ end;
 
 procedure TPurpleNotifyUserInfo.AddSectionHeader(ALabel: String);
 begin
-  purple_notify_user_info_add_section_header(@Self, C(ALabel));
+  purple_notify_user_info_add_section_header(@Self, Pointer(ALabel));
 end;
 {$endif}

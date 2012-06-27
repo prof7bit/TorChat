@@ -99,14 +99,6 @@ implementation
 uses
   sysutils;
 
-function C(S: String): PChar; inline;
-begin
-  if Length(S) = 0 then
-    Result := nil
-  else
-    Result := PChar(S);
-end;
-
 {$define _func}
 {$include purple_inc_all.pas}
 {$undef _func}

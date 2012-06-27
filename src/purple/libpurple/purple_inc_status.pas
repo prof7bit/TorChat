@@ -51,8 +51,8 @@ function  purple_status_type_new_full(primitive: TPurpleStatusPrimitive;
 class function TPurpleStatusType.Create(APrimitive: TPurpleStatusPrimitive;
   ID: String; AName: String; Saveable: Boolean; UserSettable: Boolean; Independent: Boolean): PPurpleStatusType;
 begin
-  Result := purple_status_type_new_full(APrimitive, C(ID),
-    C(AName), Saveable, UserSettable, Independent);
+  Result := purple_status_type_new_full(APrimitive, Pointer(ID),
+    Pointer(AName), Saveable, UserSettable, Independent);
 end;
 
 function TPurpleStatusType.GetPrimitive: TPurpleStatusPrimitive;

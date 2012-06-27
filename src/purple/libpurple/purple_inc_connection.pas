@@ -39,17 +39,17 @@ end;
 
 procedure TPurpleConnection.GotAlias(Who, Alias_: String);
 begin
-  serv_got_alias(@Self, C(Who), C(Alias_));
+  serv_got_alias(@Self, Pointer(Who), Pointer(Alias_));
 end;
 
 procedure TPurpleConnection.GotIM(Who, Msg: String; Flags: TPurpleMessageFlags; MsgTime: time_t);
 begin
-  serv_got_im(@Self, C(Who), C(Msg), Flags, MsgTime);
+  serv_got_im(@Self, Pointer(Who), Pointer(Msg), Flags, MsgTime);
 end;
 
 function TPurpleConnection.NotifyUserInfo(Who: String; UserInfo: PPurpleNotifyUserInfo; CloseCb: PPurpleNotifyCloseCb; UserData: Pointer): Pointer;
 begin
-  Result := purple_notify_userinfo(@Self, C(Who), UserInfo, CloseCb, UserData);
+  Result := purple_notify_userinfo(@Self, Pointer(Who), UserInfo, CloseCb, UserData);
 end;
 
 {$endif}

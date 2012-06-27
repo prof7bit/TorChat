@@ -12,6 +12,6 @@ function  purple_account_option_string_new(text, pref_name, default_value: PChar
 {$ifdef _impl}
 class function TPurpleAccountOption.CreateString(Text, Name, DefaultValue: String): PPurpleAccountOption;
 begin
-  Result := purple_account_option_string_new(C(Text), C(Name), C(DefaultValue));
+  Result := purple_account_option_string_new(Pointer(Text), Pointer(Name), Pointer(DefaultValue));
 end;
 {$endif}
