@@ -943,6 +943,7 @@ begin
     );
   end;
   {$endif}
+  WriteLn('OnBuddyAvatarChange() finished');
 end;
 
 procedure TTorChat.OnBuddyAliasChange(ABuddy: IBuddy);

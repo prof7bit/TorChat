@@ -104,6 +104,7 @@ end;
 procedure TMsgProfileAvatar.ExecuteWithBuddy;
 begin
   FBuddy.SetAvatarData(FBitmap);
+  WriteLn('TMsgProfileAvatar.Execute() finished');
 end;
 
 begin
