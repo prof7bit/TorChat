@@ -16,6 +16,8 @@
     procedure SetState(State: TPurpleConnectionState);
     procedure GotAlias(Who, Alias_: String);
     procedure GotIM(Who, Msg: String; Flags: TPurpleMessageFlags; MsgTime: time_t);
+    function NotifyUserInfo(Who: String; UserInfo: PPurpleNotifyUserInfo;
+      CloseCb: PPurpleNotifyCloseCb; UserData: Pointer): Pointer;
   end;
 {$endif}
 
@@ -43,6 +45,11 @@ end;
 procedure TPurpleConnection.GotIM(Who, Msg: String; Flags: TPurpleMessageFlags; MsgTime: time_t);
 begin
   serv_got_im(@Self, C(Who), C(Msg), Flags, MsgTime);
+end;
+
+function TPurpleConnection.NotifyUserInfo(Who: String; UserInfo: PPurpleNotifyUserInfo; CloseCb: PPurpleNotifyCloseCb; UserData: Pointer): Pointer;
+begin
+  Result := purple_notify_userinfo(@Self, C(Who), UserInfo, CloseCb, UserData);
 end;
 
 {$endif}

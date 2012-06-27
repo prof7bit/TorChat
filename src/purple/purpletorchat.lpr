@@ -98,7 +98,7 @@ type
   end;
 
 var
-  purple_plugin: PPurplePlugin;
+  PurplePlugin: PPurplePlugin;
   Clients: TClients;
 
 
@@ -163,7 +163,7 @@ end;
 
 function torchat_load(plugin: PPurplePlugin): GBoolean; cdecl;
 begin
-  purple_plugin := plugin;
+  PurplePlugin := plugin;
   Clients := TClients.Create(False);
   {$ifdef DebugTimer}
   DEBUG_FUNC_ADDR := @__debug;
@@ -378,7 +378,8 @@ begin
     AName := PurpleBuddy.GetName;
     Aalias := PurpleBuddy.GetAliasOnly;
     if not TorChat.UserAddBuddy(AName, AAlias) then begin
-      purple_notify_message(purple_plugin, PURPLE_NOTIFY_MSG_ERROR,
+      PurplePlugin.NotifyMessage(
+        PURPLE_NOTIFY_MSG_ERROR,
         'Cannot add buddy',
         'A buddy with this ID cannot be added',
         'Either this ID contains invalid characters or it is incomplete or the ID is already on the list.',
@@ -513,6 +514,36 @@ begin
     Clients.Remove(TorChat);
     TorChat.Free;
   end;
+end;
+
+{ This is called when the user clicks the "Get Info..." menu item
+  in the buddy menu. It will retrive all info about this buddy from
+  TorChat and then call purple_notify_userinfo() to display it }
+procedure torchat_get_info(gc: PPurpleConnection; Who: PChar); cdecl;
+var
+  TorChat: IClient;
+  Buddy : IBuddy;
+  Info : PPurpleNotifyUserInfo;
+begin
+  TorChat := Clients.Find(gc.GetAccount);
+  Info := TPurpleNotifyUserInfo.Create;
+  if Assigned(TorChat) then begin
+    Buddy := TorChat.Roster.ByID(Who);
+    if Assigned(Buddy) then begin
+      Info.AddPair('TorChat ID', Buddy.ID);
+      Info.AddPair('Alias', Plain2Html(Buddy.LocalAlias));
+      if Length(Buddy.ProfileName) + Length(Buddy.ProfileText) > 0 then begin
+        Info.AddSectionBreak;
+        if Buddy.ProfileName <> '' then
+          Info.AddPair('Profile Name', Plain2Html(Buddy.ProfileName));
+        if Buddy.ProfileText <> '' then
+          Info.AddPair('Profile Text', Plain2Html(Buddy.ProfileText));
+      end;
+    end;
+  end
+  else
+    Info.AddPair('buddy not found', Who);
+  gc.NotifyUserInfo(Who, Info, nil, nil);
 end;
 
 { This will be called to decide whether it should enable the menu
@@ -1028,6 +1059,7 @@ begin
     alias_buddy := @torchat_alias_buddy;
     tooltip_text := @torchat_tooltip_text;
     send_im := @torchat_send_im;
+    get_info := @torchat_get_info;
     can_receive_file := @torchat_can_receive_file;
     send_file := @torchat_send_file;
     struct_size := SizeOf(TPurplePluginProtocolInfo);

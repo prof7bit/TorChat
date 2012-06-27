@@ -16,7 +16,7 @@
   PPurplePluginInfo = ^TPurplePluginInfo;
 
   PPurplePlugin = ^TPurplePlugin;
-  TPurplePlugin = record
+  TPurplePlugin = object
     native_plugin     : GBoolean;           // Native C plugin.
     loaded            : GBoolean;           // The loaded state.
     handle            : Pointer;            // The module handle.
@@ -32,6 +32,10 @@
     _purple_reserved2 : Pointer;
     _purple_reserved3 : Pointer;
     _purple_reserved4 : Pointer;
+
+    function NotifyMessage(typ: TPurpleNotifyMsgType;
+      title, primary, secondary: String; cb: PPurpleNotifyCloseCb;
+      UserData: Pointer): Boolean;
   end;
 
   PPurplePluginAction = ^TPurplePluginAction;
@@ -92,5 +96,13 @@ class function TPurplePluginAction.Create(ALabel: String; ACallBack: PPurplePlug
 begin
   Result := purple_plugin_action_new(C(ALabel), ACallBack);
 end;
+
+function TPurplePlugin.NotifyMessage(typ: TPurpleNotifyMsgType;
+  title, primary, secondary: String; cb: PPurpleNotifyCloseCb;
+  UserData: Pointer): Boolean;
+  begin
+
+  end;
+
 {$endif}
 
