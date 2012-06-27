@@ -73,7 +73,9 @@ end;
 
 procedure TPurpleAccount.GotUserStatus(AName, AStatusID: String);
 begin
+  WriteLn('TPurpleAccount.GotUserStatus() ', AStatusID);
   purple_prpl_got_user_status(@self, Pointer(AName), Pointer(AStatusID));
+  WriteLn('TPurpleAccount.GotUserStatus() finished');
 end;
 {$endif}
 
