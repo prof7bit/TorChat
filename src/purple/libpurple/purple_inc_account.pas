@@ -70,8 +70,6 @@ begin
 end;
 
 procedure TPurpleAccount.GotUserStatus(AName, AStatusID: String);
-var
-  name, status: PChar;
 begin
   purple_prpl_got_user_status(@self, Pointer(AName), Pointer(AStatusID), []);
 end;
