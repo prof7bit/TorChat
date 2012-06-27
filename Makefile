@@ -9,7 +9,7 @@ all: purple
 install: installpurple
 
 purple:
-	$(MPURPLE) all OPT="-O- -gl"
+	$(MPURPLE) all
 	
 gui:
 	$(MGUI) all
