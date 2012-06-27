@@ -73,13 +73,7 @@ procedure TPurpleAccount.GotUserStatus(AName, AStatusID: String);
 var
   name, status: PChar;
 begin
-  // this method is causing strange
-  // crashes if I use the strings directly
-  name := g_strdup(PChar(AName));
-  status := g_strdup(PChar(AStatusID));
-  purple_prpl_got_user_status(@self, name, status);
-  g_free(name);
-  g_free(status);
+  purple_prpl_got_user_status(@self, Pointer(AName), Pointer(AStatusID), []);
 end;
 {$endif}
 
