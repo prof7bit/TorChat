@@ -10,14 +10,21 @@ libpurpletorchat.so
 
       /usr/lib/purple-2/
 
-  You also must have tor installed in /usr/sbin/tor which should 
-normally be the default location of tor if are on a debian based system.
+  You also must have tor installed. TorChat will search these paths
+and use the one that is found first:
+
+      /usr/local/sbin/
+      /usr/local/bin/
+      /usr/sbin/
+      /usr/bin/
+      /sbin/
+      /bin/
 
   Now start pidgin from within a console window. You should see some
 debugging output. Additionally there will be a file ~/purpletorchat.log
 which contains the same debug output.
 
-  *** note that this is the debug version of the plugin, the
+  *** note that this is a debug version of the plugin, the
 final release version will not create a debug file. ***
 
   Create a new account, select "TorChat" for the protocol and when asked
@@ -26,6 +33,3 @@ TorChat ID, its just an account name to tell different TorChat profiles
 apart with a human readable name. It will create a config folder
 ~/.torchat2_accountname/ for each account (profile). You can create as
 many accounts (profiles) as you want and use them all simultanously.
-
-  This early alpha version of the plugin does only support instant
-messaging and no file transfer, this will be implemented in later versions.
