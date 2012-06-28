@@ -1,3 +1,4 @@
+{$include purple_inc_helpertypes.pas}
 {$include purple_inc_version.pas}
 {$include purple_inc_plugin.pas}
 {$include purple_inc_debug.pas}

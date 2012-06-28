@@ -36,7 +36,11 @@
 unit purple;
 {$mode objfpc}{$H+}
 {$packrecords c}
-{$inline on}
+{$modeswitch advancedrecords}
+
+{$if FPC_FULLVERSION < 20600}
+  {$fatal *** You need Free Pascal Compiler version 2.6.0 or higher *** }
+{$endif}
 
 interface
 uses

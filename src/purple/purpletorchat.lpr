@@ -24,6 +24,7 @@ library purpletorchat;
 {$endif}
 {$mode objfpc}{$H+}
 {$modeswitch autoderef}
+{$modeswitch advancedrecords}
 
 uses
   {$ifdef UseHeapTrc} // do it with -dUseHeapTrc, not with -gh
@@ -244,11 +245,10 @@ end;
   it when loading the plugin and here we set up the menu items and
   register the callbacks to handle these menu items. }
 function torchat_actions(Plugin: PPurplePlugin; Context: Pointer): PGList; cdecl;
-var
-  Action   : PPurplePluginAction;
 begin
-  Action := TPurplePluginAction.Create('Set User Info...', @torchat_set_user_info);
-  Result := g_list_append(nil, Action);
+  Result := TGList.Create(
+    TPurplePluginAction.Create('Set User Info...', @torchat_set_user_info)
+  );
 end;
 
 function torchat_status_types(Account: PPurpleAccount): PGList; cdecl;
@@ -259,12 +259,12 @@ begin
   // all the protocols support them or any of them requested them,
   // so we are forced to register them all and then map them to
   // TorChat statuses in our torchat_set_status() callback.
-  Result := nil;
-  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_UNAVAILABLE, PRPL_ID_XA, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_INVISIBLE, PRPL_ID_INVISIBLE, '', True, True, False));
-  Result := g_list_append(Result, TPurpleStatusType.Create(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, '', True, True, False));
+  Result :=
+  TGList.Create(TPurpleStatusType.Create(PURPLE_STATUS_AVAILABLE, PRPL_ID_AVAILABLE, '', True, True, False));
+  Result.Append(TPurpleStatusType.Create(PURPLE_STATUS_AWAY, PRPL_ID_AWAY, '', True, True, False));
+  Result.Append(TPurpleStatusType.Create(PURPLE_STATUS_UNAVAILABLE, PRPL_ID_XA, '', True, True, False));
+  Result.Append(TPurpleStatusType.Create(PURPLE_STATUS_INVISIBLE, PRPL_ID_INVISIBLE, '', True, True, False));
+  Result.Append(TPurpleStatusType.Create(PURPLE_STATUS_OFFLINE, PRPL_ID_OFFLINE, '', True, True, False));
 end;
 
 procedure torchat_set_status(Account: PPurpleAccount; Status: PPurpleStatus); cdecl;
@@ -340,9 +340,9 @@ begin
       for Y := 0 to 63 do begin
         for X := 0 to 63 do begin
           Pixel := ImageScaled.Colors[X, Y];
-          PtrRGB^.Red := hi(Pixel.red);
-          PtrRGB^.Green := hi(Pixel.green);
-          PtrRGB^.Blue := hi(Pixel.blue);
+          PtrRGB.Red := hi(Pixel.red);
+          PtrRGB.Green := hi(Pixel.green);
+          PtrRGB.Blue := hi(Pixel.blue);
           PtrAlpha^ := hi(Pixel.alpha);
           AllAlphaBits := AllAlphaBits and hi(Pixel.alpha);
           Inc(PtrRGB);
@@ -809,7 +809,7 @@ var
   ID: String;
   PurpleGroup: PPurpleGroup;
   PurpleBuddy: PPurpleBuddy;
-  purple_list: PGSList;
+  PurpleList: PGSList;
 begin
   WriteLn('Switching accout to "connected", synchronizing buddy lists');
   PurpleAccount.GetConnection.SetState(PURPLE_CONNECTED);
@@ -817,16 +817,16 @@ begin
   PurpleGroup := TPurpleGroup.Find(Roster.GroupName);
 
   // remove buddies from purple's list that not in TorChat's list
-  purple_list := PurpleAccount.FindBuddies('');
-  while Assigned(purple_list) do begin
-    PurpleBuddy := PPurpleBuddy(purple_list^.data);
+  PurpleList := PurpleAccount.FindBuddies('');
+  while Assigned(PurpleList) do begin
+    PurpleBuddy := PPurpleBuddy(PurpleList.data);
     ID := PurpleBuddy.GetName;
     if not Assigned(Roster.ByID(ID)) then begin
       WriteLn(_F('I removing %s from list, buddy is no longer in TorChat',
         [PurpleBuddy.GetName]));
       PurpleBuddy.Remove;
     end;
-    purple_list := g_slist_delete_link(purple_list, purple_list);
+    PurpleList := PurpleList.DeleteFirst;
   end;
 
   // add buddies to purple's buddy list that are not in purple's list
@@ -893,9 +893,9 @@ begin
     if HasAlpha then PtrAlpha8 := @Raw8Alpha[1];
     for Y := 0 to 63 do begin
       for X := 0 to 63 do begin
-        Pixel.red := PtrPixel24^.Red shl 8;
-        Pixel.green := PtrPixel24^.Green shl 8;
-        Pixel.blue := PtrPixel24^.Blue shl 8;
+        Pixel.red := PtrPixel24.Red shl 8;
+        Pixel.green := PtrPixel24.Green shl 8;
+        Pixel.blue := PtrPixel24.Blue shl 8;
         Inc(PtrPixel24);
         if HasAlpha then begin
           Pixel.alpha := PtrAlpha8^ shl 8;
@@ -1021,7 +1021,6 @@ end;
 procedure Init;
 begin
   SOFTWARE_NAME := 'libpurple/TorChat'; // for the 'client' message
-
   with plugin_info do begin
     magic := PURPLE_PLUGIN_MAGIC;
     major_version := PURPLE_MAJOR_VERSION;
@@ -1067,10 +1066,11 @@ begin
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
 
-  //// add additional fields to the settings dialog
-  //TorPath := PChar(DefaultPathTorExe);
-  //acc_opt := purple_account_option_string_new('Tor binary', 'tor', TorPath);
-  //plugin_protocol_info.protocol_options := g_list_append(nil, acc_opt);
+  // add additional fields to the settings dialog
+  //plugin_protocol_info.protocol_options :=
+  //TGList.Create(
+  //  TPurpleAccountOption.CreateString('Tor binary', 'tor', '')
+  //);
 
   {$ifdef UseHeapTrc}
     WriteLn('W plugin has been compiled with -dUseHeapTrc. Not recommended.');
