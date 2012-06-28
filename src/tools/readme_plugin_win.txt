@@ -20,6 +20,11 @@ these folders and use the one that is first found:
       %ProgramFiles%\Tor\
       %ProgramFiles%\Vidalia Bundle\Tor\
 
+  Tor only needs to be installed on your computer, it doesn not need to
+be running or configured in any special way to use TorChat. TorChat will
+take care of all that automatically and without interfering with your
+other usage of Tor.
+
   Now start pidgin from within a console window. You should see some
 debugging output. You may also start it from the start menu because it
 will also create a file %APPDATA%\purpletorchat.log which contains the 

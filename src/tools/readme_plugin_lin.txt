@@ -20,6 +20,11 @@ and use the one that is found first:
       /sbin/
       /bin/
 
+  Tor does not necessarily need to be running or configured in any
+special way to use ToChat, TorChat will care about all that automatically.
+It will start a separate process with its own configuation that will not
+and can not interfere with your existing tor configuration and usage.
+
   Now start pidgin from within a console window. You should see some
 debugging output. Additionally there will be a file ~/purpletorchat.log
 which contains the same debug output.
