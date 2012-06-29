@@ -935,7 +935,6 @@ procedure TTorChat.OnBuddyStatusChange(ABuddy: IBuddy);
 var
   StatusID: String;
 begin
-  WriteLn('TTorChat.OnBuddyStatusChange() status=', ABuddy.Status);
   case ABuddy.Status of
     TORCHAT_AVAILABLE: StatusID := PRPL_ID_AVAILABLE;
     TORCHAT_AWAY: StatusID := PRPL_ID_AWAY;
@@ -943,7 +942,6 @@ begin
     TORCHAT_OFFLINE: StatusID := PRPL_ID_OFFLINE;
   end;
   PurpleAccount.GotUserStatus(ABuddy.ID, StatusID);
-  WriteLn('TTorChat.OnBuddyStatusChange() finished');
 end;
 
 procedure TTorChat.OnBuddyAvatarChange(ABuddy: IBuddy);
