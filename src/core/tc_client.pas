@@ -101,7 +101,7 @@ type
     procedure OnBuddyRemoved(ABuddy: IBuddy); virtual; abstract;
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String); virtual; abstract;
     procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer); virtual; abstract;
-    function UserAddBuddy(AID, AAlias: String): Boolean;
+    function UserAddBuddy(AID, AAlias: String): IBuddy;
     function MainThread: TThreadID;
     procedure DummySocketEvent(AHandle: TLHandle);
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
@@ -248,7 +248,7 @@ begin
   CheckFileTransfers;
 end;
 
-function TTorChatClient.UserAddBuddy(AID, AAlias: String): Boolean;
+function TTorChatClient.UserAddBuddy(AID, AAlias: String): IBuddy;
 var
   Buddy: IBuddy;
 begin
@@ -260,7 +260,7 @@ begin
     TempList.RemoveBuddy(Buddy);
     Buddy.ResetAllTimes;
     Buddy.SendAddMe;
-    Result := True;
+    Result := Buddy;
   end
 
   // otherwise try to create a new one
@@ -269,10 +269,10 @@ begin
     if Buddy.InitID(AID) then begin
       Buddy.SetLocalAlias(AAlias);
       Roster.AddBuddyNoCallback(Buddy);
-      Result := True;
+      Result := Buddy;
     end
     else begin
-      Result := False;
+      Result := nil;
     end;
   end;
 end;

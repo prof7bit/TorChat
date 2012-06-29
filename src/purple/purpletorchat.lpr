@@ -241,6 +241,83 @@ begin
   end;
 end;
 
+procedure torchat_ask_support_ok(UserData: Pointer; Fields: PPurpleRequestFields); cdecl;
+var
+  TorChat: IClient;
+  Buddy: IBuddy;
+  PurpleBuddy: PPurpleBuddy;
+  Account: PPurpleAccount;
+begin
+  Account :=PPurpleAccount(UserData);
+  TorChat := Clients.Find(Account);
+  if Assigned(TorChat) then begin
+    Buddy := TorChat.UserAddBuddy(SUPPORT_ID, SUPPORT_NAME);
+    if not Assigned(Buddy) then
+    begin
+      WriteLn(_F('E %s (%s) could not be added to the list',
+        [SUPPORT_NAME, SUPPORT_ID]));
+    end
+    else begin
+      TorChat.OnBuddyAdded(Buddy);
+      PurplePlugin.NotifyMessage(
+        PURPLE_NOTIFY_MSG_INFO,
+        _F('%s has been added', [SUPPORT_ID]),
+        _F('%s (%s) has been added to your buddy list', [SUPPORT_NAME, SUPPORT_ID]),
+        _F('Now just wait until %s is online', [SUPPORT_ID]),
+        nil,
+        nil
+      );
+      PurpleBuddy := TPurpleBuddy.Find(Account, SUPPORT_ID);
+      if Assigned(PurpleBuddy) then begin
+        PurpleBuddy.SetBool('show_offline', True);
+        PurpleBuddy.UpdateIcon;
+      end;
+    end;
+  end;
+end;
+
+procedure torchat_ask_support(Action: PPurplePluginAction); cdecl;
+var
+  Fields: PPurpleRequestFields;
+  gc : PPurpleConnection;
+  Account: PPurpleAccount;
+  TorChat: IClient;
+  PurpleBuddy: PPurpleBuddy;
+begin
+  gc := PPurpleConnection(Action.context);
+  Account := gc.GetAccount;
+  TorChat := Clients.Find(Account);
+  if Assigned(TorChat) then begin
+    if Assigned(TorChat.Roster.ByID(SUPPORT_ID)) then begin
+      PurplePlugin.NotifyMessage(
+        PURPLE_NOTIFY_MSG_WARNING,
+        _F('%s is already on your buddy list', [SUPPORT_NAME]),
+        _F('%s (%s) is already on your buddy list.', [SUPPORT_NAME, SUPPORT_ID]),
+        '',
+        nil,
+        nil
+      );
+      PurpleBuddy := TPurpleBuddy.Find(Account, SUPPORT_ID);
+      if Assigned(PurpleBuddy) then begin
+        PurpleBuddy.SetBool('show_offline', True);
+        PurpleBuddy.UpdateIcon;
+      end;
+    end
+    else begin
+      Fields := TPurpleRequestFields.Create;
+      Fields.Request(
+        gc,
+        _F('Ask %s', [SUPPORT_NAME]),
+        '',
+        _F('This will put %s (%s) on your buddy list', [SUPPORT_NAME, SUPPORT_ID]),
+        _F('Add %s', [SUPPORT_NAME]), @torchat_ask_support_ok,
+        'Cancel', nil,
+        Account, '', nil, Account
+      );
+    end;
+  end;
+end;
+
 { this callback is registered in the plugin_info record, purple will call
   it when loading the plugin and here we set up the menu items and
   register the callbacks to handle these menu items. }
@@ -248,6 +325,9 @@ function torchat_actions(Plugin: PPurplePlugin; Context: Pointer): PGList; cdecl
 begin
   Result := TGList.Create(
     TPurplePluginAction.Create('Set User Info...', @torchat_set_user_info)
+  );
+  Result.Append(
+    TPurplePluginAction.Create(_F('Ask %s...', [SUPPORT_NAME]), @torchat_ask_support)
   );
 end;
 
@@ -377,7 +457,7 @@ begin
   if Assigned(TorChat) then begin
     AName := PurpleBuddy.GetName;
     Aalias := PurpleBuddy.GetAliasOnly;
-    if not TorChat.UserAddBuddy(AName, AAlias) then begin
+    if not Assigned(TorChat.UserAddBuddy(AName, AAlias)) then begin
       PurplePlugin.NotifyMessage(
         PURPLE_NOTIFY_MSG_ERROR,
         'Cannot add buddy',

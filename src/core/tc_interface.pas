@@ -91,7 +91,7 @@ type
     procedure OnBuddyRemoved(ABuddy: IBuddy);
     procedure OnInstantMessage(ABuddy: IBuddy; AText: String);
     procedure OnIncomingFileTransfer(ABuddy: IBuddy; AID: String; AFileName: String; AFileSize: UInt64; ABlockSize: Integer);
-    function UserAddBuddy(AID, AAlias: String): Boolean;
+    function UserAddBuddy(AID, AAlias: String): IBuddy;
     procedure SetStatus(AStatus: TTorchatStatus);
     procedure SetOwnAvatarData(RGB, Alpha: String);
     procedure SetOwnProfile(AName, AText: String);

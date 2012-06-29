@@ -21,6 +21,8 @@ const
   FILE_TRANSFER_BLOCKS_WAIT = 8;
   FILE_TRANSFER_SECONDS_WAIT = 120;
 
+  SUPPORT_NAME = 'Bernd';
+  SUPPORT_ID = 'utvrla6mjdypbyw6';
 
 implementation
 

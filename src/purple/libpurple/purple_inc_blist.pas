@@ -1,17 +1,22 @@
 {$ifdef _type_forward}
+  PPurpleBlistNode = ^TPurpleBlistNode;
   PPurpleBuddy = ^TPurpleBuddy;
+  PPurpleGroup = ^TPurpleGroup;
 {$endif}
 
 {$ifdef _type}
   PPurpleContact            = Pointer;
-  PPurpleBlistNode          = Pointer;
   PPurpleChat               = Pointer;
 
-  PPurpleGroup = ^TPurpleGroup;
+  { TPurpleBlistNode }
+  TPurpleBlistNode = object
+    procedure SetBool(Key: String; Value: Boolean);
+    function GetBool(Key: String): Boolean;
+    procedure UpdateIcon;
+  end;
 
   { TPurpleBuddy }
-
-  TPurpleBuddy = object
+  TPurpleBuddy = object(TPurpleBlistNode)
     class function Create(Acc: PPurpleAccount; AName, AAlias: String): PPurpleBuddy;
     class function Find(Acc: PPurpleAccount; AName: String): PPurpleBuddy;
     class function FindMany(Acc: PPurpleAccount; AName: String): PGSList;
@@ -26,7 +31,7 @@
 
   { TPurpleGroup }
 
-  TPurpleGroup = object
+  TPurpleGroup = object(TPurpleBlistNode)
     class function Create(AName: String): PPurpleGroup;
     class function Find(AName: String): PPurpleGroup;
     procedure Add(Node: PPurpleBlistNode);
@@ -49,10 +54,33 @@ procedure purple_blist_add_group(group: PPurpleGroup; node: PPurpleBlistNode); c
 
 function  purple_find_buddy(account: PPurpleAccount; aname: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
 function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; cdecl; external LIBPURPLE;
+
+function  purple_blist_node_get_bool(node: PPurpleBlistNode; key: PChar): gboolean; cdecl; external LIBPURPLE;
+procedure purple_blist_node_set_bool(node: PPurpleBlistNode; key: PChar; value: gboolean); cdecl; external LIBPURPLE;
+procedure purple_blist_update_node_icon(node: PPurpleBlistNode); cdecl; external LIBPURPLE;
 {$endif}
 
 
 {$ifdef _impl}
+{ TPurpleBlistNode }
+
+procedure TPurpleBlistNode.SetBool(Key: String; Value: Boolean);
+begin
+  purple_blist_node_set_bool(@Self, Pointer(Key), Value);
+end;
+
+function TPurpleBlistNode.GetBool(Key: String): Boolean;
+begin
+  Result := purple_blist_node_get_bool(@Self, Pointer(Key));
+end;
+
+procedure TPurpleBlistNode.UpdateIcon;
+begin
+  purple_blist_update_node_icon(@self);
+end;
+
+{ TPurpleBuddy }
+
 class function TPurpleBuddy.Create(Acc: PPurpleAccount; AName, AAlias: String): PPurpleBuddy;
 begin
   Result := purple_buddy_new(Acc, Pointer(AName), Pointer(AAlias));
@@ -103,6 +131,7 @@ begin
   purple_blist_add_buddy(@Self, Contact, Group, Node);
 end;
 
+{ TPurpleGroup }
 
 class function TPurpleGroup.Create(AName: String): PPurpleGroup;
 begin
@@ -118,5 +147,7 @@ procedure TPurpleGroup.Add(Node: PPurpleBlistNode);
 begin
   purple_blist_add_group(@Self, Node);
 end;
+
+
 
 {$endif}

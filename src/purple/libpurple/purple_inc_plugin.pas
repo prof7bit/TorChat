@@ -100,9 +100,10 @@ end;
 function TPurplePlugin.NotifyMessage(typ: TPurpleNotifyMsgType;
   title, primary, secondary: String; cb: PPurpleNotifyCloseCb;
   UserData: Pointer): Boolean;
-  begin
-
-  end;
+begin
+  Result := purple_notify_message(@Self, typ, Pointer(title),
+  Pointer(primary), Pointer(secondary), cb, UserData);
+end;
 
 {$endif}
 
