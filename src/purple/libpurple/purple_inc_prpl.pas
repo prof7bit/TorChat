@@ -111,7 +111,7 @@
 
 {$ifdef _func}
 procedure purple_prpl_got_user_status(account: PPurpleAccount;
-  name_, status_id: PChar; par3: array of const); cdecl; external LIBPURPLE;
+  name, status_id: PChar; attrs: array of const); cdecl; external LIBPURPLE;
 {$endif}
 
 // purple_prpl_got_user_status() is used as a method of TPurpleAccount
