@@ -18,7 +18,9 @@
   MA 02111-1307, USA.
 }
 program torchat;
-
+{$if FPC_FULLVERSION < 20600}
+  {$fatal *** You need Free Pascal Compiler version 2.6.0 or higher *** }
+{$endif}
 {$mode objfpc}{$H+}
 
 uses

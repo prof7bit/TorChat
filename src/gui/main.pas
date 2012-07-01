@@ -28,29 +28,19 @@ uses
   Forms,
   Controls,
   ExtCtrls,
-  tc_interface,
-  tc_client;
+  ComCtrls,
+  roster_manager;
 
 type
-  { TGuiClient }
-  TGuiClient = class(TTorChatClient)
-    procedure OnBuddyAdded(ABuddy: IBuddy); override;
-    procedure OnBuddyRemoved(ABuddy: IBuddy); override;
-    procedure OnBuddyStatusChange(ABuddy: IBuddy); override;
-    procedure OnBuddyAvatarChange(ABuddy: IBuddy); override;
-    procedure OnInstantMessage(ABuddy: IBuddy; AText: String); override;
-    procedure OnGotOwnID; override;
-    procedure OnNeedPump; override;
-  end;
-
   { TFMain }
   TFMain = class(TForm)
+    ImageList: TImageList;
     PumpTimer: TIdleTimer;
+    RosterView: TTreeView;
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure PumpTimerTimer(Sender: TObject);
   strict private
-    FClient : TGuiClient;
+    FRosterManager: TGuiRosterManager;
   end;
 
 var
@@ -60,42 +50,6 @@ implementation
 uses
   language;
 
-{ TGuiClient }
-
-procedure TGuiClient.OnBuddyAdded(ABuddy: IBuddy);
-begin
-
-end;
-
-procedure TGuiClient.OnBuddyRemoved(ABuddy: IBuddy);
-begin
-
-end;
-
-procedure TGuiClient.OnBuddyStatusChange(ABuddy: IBuddy);
-begin
-
-end;
-
-procedure TGuiClient.OnBuddyAvatarChange(ABuddy: IBuddy);
-begin
-
-end;
-
-procedure TGuiClient.OnInstantMessage(ABuddy: IBuddy; AText: String);
-begin
-
-end;
-
-procedure TGuiClient.OnGotOwnID;
-begin
-
-end;
-
-procedure TGuiClient.OnNeedPump;
-begin
-
-end;
 
 {$R *.lfm}
 
@@ -103,17 +57,12 @@ end;
 
 procedure TFMain.FormCreate(Sender: TObject);
 begin
-  FClient := TGuiClient.Create(Self, 'guiclient');
-end;
-
-procedure TFMain.FormDestroy(Sender: TObject);
-begin
-  FClient.Free;
+  FRosterManager := TGuiRosterManager.Create(RosterView);
 end;
 
 procedure TFMain.PumpTimerTimer(Sender: TObject);
 begin
-  FClient.Pump;
+  FRosterManager.Pump;
 end;
 
 

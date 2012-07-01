@@ -15,7 +15,11 @@
       <OutDir Value="../../bin/translations"/>
     </i18n>
     <VersionInfo>
-      <StringTable ProductVersion=""/>
+      <UseVersionInfo Value="True"/>
+      <AutoIncrementBuild Value="True"/>
+      <MajorVersionNr Value="2"/>
+      <BuildNr Value="2"/>
+      <StringTable Comments="p2p Instant messenger for the Tor network" CompanyName="https://github.com/prof7bit/TorChat" FileDescription="TorChat instant messenger" InternalName="TorChat" LegalCopyright="(c) 2012 Bernd Kreuss" OriginalFilename="torchat" ProductName="TorChat" ProductVersion="2"/>
     </VersionInfo>
     <BuildModes Count="3">
       <Item1 Name="Debug" Default="True"/>
@@ -131,7 +135,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="6">
       <Unit0>
         <Filename Value="torchat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -150,6 +154,21 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="language"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="roster_manager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="roster_manager"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="client_object.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="client_object"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="gui_interface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gui_interface"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -163,13 +182,11 @@
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
-      <SmartLinkUnit Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="0"/>
+      </Optimizations>
     </CodeGeneration>
     <Linking>
-      <Debugging>
-        <UseLineInfoUnit Value="False"/>
-        <StripSymbols Value="True"/>
-      </Debugging>
       <Options>
         <PassLinkerOptions Value="True"/>
         <LinkerOptions Value="--stats --no-keep-memory --reduce-memory-overheads"/>
