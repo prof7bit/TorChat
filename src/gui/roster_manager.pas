@@ -7,6 +7,8 @@ interface
 uses
   Classes,
   SysUtils,
+  LCLType,
+  LCLIntf,
   Controls,
   ComCtrls,
   tc_interface,
@@ -51,9 +53,10 @@ type
   TGuiRosterManager = class(TComponent, IGuiRosterManager)
   strict private
     TV: TTreeView;
+    FMainHandle: HWND;
     FClient: TGuiClient;
   public
-    constructor Create(ATreeView: TTreeView); reintroduce;
+    constructor Create(ATreeView: TTreeView; AMainHandle: HWND); reintroduce;
     function FindOrAddGroup(AGroupName: String): TTreeNode;
     function FindOrAddBuddy(AGroupName, ABuddyID, ABuddyAlias: String): TTreeNode;
     function Find(AType: TNodeType; AName: String): TTreeNode;
@@ -62,6 +65,7 @@ type
     procedure OnAddNode(Sender: TObject; Node: TTreeNode);
     procedure OnDeleteNode(Sender: TObject; Node: TTreeNode);
     procedure Pump;
+    procedure OnNeedPump;
   end;
 
 implementation
@@ -89,10 +93,11 @@ end;
 
 { TGuiRosterManager }
 
-constructor TGuiRosterManager.Create(ATreeView: TTreeView);
+constructor TGuiRosterManager.Create(ATreeView: TTreeView; AMainHandle: HWND);
 begin
   Inherited Create(ATreeView);
   TV := ATreeView;
+  FMainHandle := AMainHandle;
   FClient := TGuiClient.Create(Self, Self, 'zzzzz');
   TV.OnAddition := @OnAddNode;
   TV.OnDeletion := @OnDeleteNode;
@@ -182,6 +187,11 @@ end;
 procedure TGuiRosterManager.Pump;
 begin
   FClient.Pump;
+end;
+
+procedure TGuiRosterManager.OnNeedPump;
+begin
+  PostMessage(FMainHandle, WM_NEEDPUMP, 0, 0);
 end;
 
 end.

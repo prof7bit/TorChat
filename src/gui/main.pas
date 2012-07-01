@@ -29,6 +29,8 @@ uses
   Controls,
   ExtCtrls,
   ComCtrls,
+  LMessages,
+  gui_interface,
   roster_manager;
 
 type
@@ -39,6 +41,7 @@ type
     RosterView: TTreeView;
     procedure FormCreate(Sender: TObject);
     procedure PumpTimerTimer(Sender: TObject);
+    procedure OnNeedPump(var Msg: TLMessage); message WM_NEEDPUMP;
   strict private
     FRosterManager: TGuiRosterManager;
   end;
@@ -57,7 +60,7 @@ uses
 
 procedure TFMain.FormCreate(Sender: TObject);
 begin
-  FRosterManager := TGuiRosterManager.Create(RosterView);
+  FRosterManager := TGuiRosterManager.Create(RosterView, FMain.Handle);
 end;
 
 procedure TFMain.PumpTimerTimer(Sender: TObject);
@@ -65,6 +68,10 @@ begin
   FRosterManager.Pump;
 end;
 
+procedure TFMain.OnNeedPump(var Msg: TLMessage);
+begin
+  FRosterManager.Pump;
+end;
 
 end.
 

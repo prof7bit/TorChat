@@ -86,7 +86,7 @@ end;
 
 procedure TGuiClient.OnNeedPump;
 begin
-
+  FRosterManager.OnNeedPump;
 end;
 
 end.
