@@ -8,7 +8,8 @@ uses
   Classes,
   SysUtils,
   Controls,
-  ComCtrls;
+  ComCtrls,
+  tc_interface;
 
 type
   { IGuiRosterManager }
@@ -16,6 +17,7 @@ type
     procedure Pump;
     function FindOrAddGroup(AGroupName: String): TTreeNode;
     function FindOrAddBuddy(AGroupName, ABuddyID, ABuddyAlias: String): TTreeNode;
+    procedure SetBuddyStatus(ID: String; Status: TTorchatStatus);
   end;
 
 implementation

@@ -18,7 +18,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="2"/>
-      <BuildNr Value="8"/>
+      <BuildNr Value="14"/>
       <StringTable Comments="p2p Instant messenger for the Tor network" CompanyName="https://github.com/prof7bit/TorChat" FileDescription="TorChat instant messenger" InternalName="TorChat" LegalCopyright="(c) 2012 Bernd Kreuss" OriginalFilename="torchat" ProductName="TorChat" ProductVersion="2"/>
     </VersionInfo>
     <BuildModes Count="3">

@@ -50,7 +50,7 @@ end;
 
 procedure TGuiClient.OnBuddyStatusChange(ABuddy: IBuddy);
 begin
-
+  FRosterManager.SetBuddyStatus(ABuddy.ID, ABuddy.Status);
 end;
 
 procedure TGuiClient.OnBuddyAvatarChange(ABuddy: IBuddy);

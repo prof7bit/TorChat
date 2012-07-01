@@ -9,6 +9,7 @@ uses
   SysUtils,
   Controls,
   ComCtrls,
+  tc_interface,
   gui_interface,
   client_object;
 
@@ -27,16 +28,22 @@ type
     NODE_BUDDY
   );
 
+  { TNodeExtraData }
+
   TNodeExtraData = class
     NodeType: TNodeType;
     NodeName: String;
-    GroupName: String; // only for buddies
+    GroupName: String;    // only for buddies
+    HasMessage: Boolean;  // blink because of new message
+    TorChatStatus: TTorchatStatus;
+    constructor Create;
   end;
 
   { TNodeHelper }
 
   TNodeHelper = class helper for TTreeNode
     function ExtraData: TNodeExtraData;
+    procedure SetIcon(I: Integer);
   end;
 
   { TGuiRosterManager }
@@ -50,6 +57,7 @@ type
     function FindOrAddGroup(AGroupName: String): TTreeNode;
     function FindOrAddBuddy(AGroupName, ABuddyID, ABuddyAlias: String): TTreeNode;
     function Find(AType: TNodeType; AName: String): TTreeNode;
+    procedure SetBuddyStatus(ID: String; Status: TTorchatStatus);
     procedure OnDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
     procedure OnAddNode(Sender: TObject; Node: TTreeNode);
     procedure OnDeleteNode(Sender: TObject; Node: TTreeNode);
@@ -58,11 +66,25 @@ type
 
 implementation
 
+{ TNodeExtraData }
+
+constructor TNodeExtraData.Create;
+begin
+  TorChatStatus := TORCHAT_OFFLINE;
+  HasMessage := False;
+end;
+
 { TNodeHelper }
 
 function TNodeHelper.ExtraData: TNodeExtraData;
 begin
   Result := TNodeExtraData(Self.Data);
+end;
+
+procedure TNodeHelper.SetIcon(I: Integer);
+begin
+  ImageIndex := I;
+  SelectedIndex := I;
 end;
 
 { TGuiRosterManager }
@@ -98,10 +120,8 @@ begin
   if not Assigned(Result) then begin
     Result := TV.Items.AddChild(Group, ABuddyID);
     with Result do begin
-      ImageIndex := IMG_OFFLINE;
-      SelectedIndex := IMG_OFFLINE;
+      SetIcon(IMG_OFFLINE);
       with ExtraData do begin
-        NodeType := NODE_BUDDY;
         NodeType := NODE_BUDDY;
         NodeName := ABuddyID;
         GroupName := AGroupName;
@@ -123,6 +143,25 @@ begin
         exit;
   end;
   Result := nil;
+end;
+
+procedure TGuiRosterManager.SetBuddyStatus(ID: String; Status: TTorchatStatus);
+var
+  N: TTreeNode;
+begin
+  if csDestroying in ComponentState then
+    exit;
+  N := Find(NODE_BUDDY, ID);
+  if Assigned(N) then begin
+    N.ExtraData.TorChatStatus := Status;
+    case Status of
+      TORCHAT_OFFLINE     : N.SetIcon(IMG_OFFLINE);
+      TORCHAT_AVAILABLE   : N.SetIcon(IMG_AVAILBLE);
+      TORCHAT_AWAY        : N.SetIcon(IMG_AWAY);
+      TORCHAT_XA          : N.SetIcon(IMG_XA);
+      TORCHAT_CONNECTING  : N.SetIcon(IMG_CONNECTING);
+    end;
+  end;
 end;
 
 procedure TGuiRosterManager.OnDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
