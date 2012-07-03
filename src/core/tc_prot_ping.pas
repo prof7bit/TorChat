@@ -89,6 +89,8 @@ type
 
 implementation
 uses
+  Classes,
+  tc_misc,
   tc_buddy;
 
 { TMsgPing }
@@ -117,8 +119,21 @@ begin
 end;
 
 procedure TMsgPing.Execute;
+var
+  ID: String;
+  BlackList: TStringArray;
 begin
+  WriteLn('TMsgPing.Execute() ', FID);
   FConnection.SetPingBuddyID(FID);
+
+  {$note maybe move this into TMsg somehow?}
+  BlackList := FClient.Config.GetStringArray('BlackList');
+  for ID in BlackList do begin
+    if FID = ID then begin
+      LogWarningAndIgnore(_F('%s is on the blacklist', [FID]));
+      exit;
+    end;
+  end;
 
   FBuddy := FClient.Roster.ByID(FID);
   if not Assigned(FBuddy) then

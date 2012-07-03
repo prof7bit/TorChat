@@ -50,6 +50,7 @@ type
   end;
 
   TMethodOfObject = procedure of object;
+  TStringArray = array of String;
   TFindFunc = function(O: TObject): Boolean is nested;
 
   IBuddy = interface;
@@ -73,6 +74,7 @@ type
     procedure Save;
     procedure SetString(AKey: String; AValue: String; Encoded: Boolean=False);
     function GetString(AKey: String; Encoded: Boolean=False): String;
+    function GetStringArray(AKey: String): TStringArray;
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;

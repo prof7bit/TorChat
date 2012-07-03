@@ -216,7 +216,10 @@ begin
       if Assigned(FConnection.Buddy) then
         Result := FConnection.Buddy.ID
       else
-        Result := '(anonymous connection)';
+        if FConnection.PingBuddyID <> '' then
+          Result := 'allegedly ' + FConnection.PingBuddyID
+        else
+          Result := '(anonymous connection)';
     end;
   end;
 end;

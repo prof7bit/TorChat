@@ -48,6 +48,7 @@ type
     procedure Save;
     procedure SetString(AKey: String; AValue: String; Encoded: Boolean = False);
     function GetString(AKey: String; Encoded: Boolean = False): String;
+    function GetStringArray(AKey: String): TStringArray;
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
@@ -160,6 +161,23 @@ begin
   except
     WriteLn('is empty');
     Result := '';
+  end;
+end;
+
+function TClientConfig.GetStringArray(AKey: String): TStringArray;
+var
+  Arr: TJSONArray;
+  I: Integer;
+begin
+  WriteLn(_F('TClientConfig.GetStringList(''%s'')', [AKey]));
+  try
+    Arr := FConfigData.Arrays[AKey];
+    SetLength(Result, Arr.Count);
+    for I := 0 to Arr.Count-1 do begin
+      Result[i] := Arr.Strings[I];
+    end;
+  except
+    WriteLn('is empty');
   end;
 end;
 
