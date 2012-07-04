@@ -293,7 +293,7 @@ begin
   // check max time on templist and remove from there
   if TimeSince(FTimeCreated) > SECONDS_KEEP_ON_TEMPLIST then begin
     if Self in Client.TempList then begin
-      WriteLn(_F('I TBuddy.CheckState() %s timeout, removing temporary buddy',
+      WriteLn(_F('TBuddy.CheckState() %s timeout, removing temporary buddy',
         [FID]));
       DoDisconnect;
       Client.TempList.RemoveBuddy(Self); // should now free on _Release;
