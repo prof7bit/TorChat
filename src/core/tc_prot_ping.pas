@@ -124,7 +124,7 @@ var
   BlackList: TStringArray;
 begin
   WriteLn('TMsgPing.Execute() ', FID);
-  FConnection.SetPingBuddyID(FID);
+  FConnection.SetPingData(FID, FCookie);
 
   {$note maybe move this into TMsg somehow?}
   BlackList := FClient.Config.GetStringArray('BlackList');

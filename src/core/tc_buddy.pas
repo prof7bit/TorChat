@@ -56,7 +56,6 @@ type
     FMustSendPong: Boolean;
     FPongAlreadySent: Boolean;
     FReceivedCookie: String;
-    FReceivedMultipleCookies: array of String;
     FMustSendMultipleConnWarning: Boolean;
     FConnecting: Boolean;
     FReconnectInterval: Double;
@@ -76,9 +75,6 @@ type
     procedure CallFromMainThread(AMethod: TMethodOfObject);
     procedure CalcConnectInterval;
     procedure CalcConnectIntervalAfterPing;
-    procedure AddReceivedCookie(ACookie: String);
-    function GetNumReceivedCookies: Integer;
-    procedure ResetReceivedCookies;
   public
     constructor Create(AClient: IClient); reintroduce;
     destructor Destroy; override;
@@ -155,8 +151,6 @@ begin
   FConnecting := False;
   FClient := AClient;
   FMustSendPong := False;
-  ResetReceivedCookies;
-  SetLength(FReceivedMultipleCookies, 0);
   FStatus := TORCHAT_OFFLINE;
   CreateGUID(GUID);
   FOwnCookie := GUIDToString(GUID);
@@ -391,38 +385,6 @@ begin
     WriteLnF('%s is already trying to connect', [ID]);
 end;
 
-procedure TBuddy.AddReceivedCookie(ACookie: String);
-var
-  I, L: Integer;
-begin
-  FReceivedCookie := ACookie;
-  FMustSendPong := True;
-  L := Length(FReceivedMultipleCookies);
-  for I := L - 1 downto 0 do begin
-    if FReceivedMultipleCookies[I] = ACookie then
-      exit;
-  end;
-  SetLength(FReceivedMultipleCookies, L + 1);
-  FReceivedMultipleCookies[L] := ACookie;
-  if L > 0 then begin
-    FMustSendMultipleConnWarning := True;
-    WriteLnF('W %s we have received %d different cookies', [ID, L+1]);
-  end;
-end;
-
-function TBuddy.GetNumReceivedCookies: Integer;
-begin
-  Result := Length(FReceivedMultipleCookies);
-end;
-
-procedure TBuddy.ResetReceivedCookies;
-begin
-  FReceivedCookie := '';
-  FMustSendPong := False;
-  FMustSendMultipleConnWarning := False;
-  SetLength(FReceivedMultipleCookies, 0);
-end;
-
 procedure TBuddy.OnOutgoingConnection;
 var
   Msg: IProtocolMessage;
@@ -443,7 +405,6 @@ begin
     ConnIncoming.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
   CalcConnectInterval;
-  ResetReceivedCookies;
 end;
 
 procedure TBuddy.OnIncomingConnection;
@@ -462,7 +423,12 @@ end;
 
 procedure TBuddy.MustSendPong(ACookie: String);
 begin
-  AddReceivedCookie(ACookie);
+  // the client maintains a global list of incoming ping cookies
+  // so we can detect if there are more then one for the same buddy.
+  // this function will only warn once for every newly added cookie.
+  // Connection will remove its cookie from list in its Destructor.
+  FMustSendMultipleConnWarning := Client.AddReceivedCookie(ID, ACookie);
+  FReceivedCookie := ACookie;
 
   // if we are connected already we can send it
   // immediately, otherwise it will happen on connect
@@ -688,13 +654,16 @@ function TBuddy.SendIM(AText: String): Boolean;
 var
   Msg: IProtocolMessage;
 begin
-  if IsFullyConnected then begin
+  if MaySendText then begin
     Msg := TMsgMessage.Create(Self, AText);
     Msg.Send;
     Result := True;
   end
-  else
+  else begin
+    WriteLnF('W could not send IM because %s is not fully connected',
+      [ID]);
     Result := False;
+  end;
 end;
 
 procedure TBuddy.SendPong;
@@ -706,7 +675,7 @@ begin
   // side has multiple clients running with the same ID, in
   // this case we need to send pong for each different ping
   // each time (not applying the pong-already-sent logic)
-  NumCookies := GetNumReceivedCookies;
+  NumCookies := Client.GetNumCookies(ID);
   if FPongAlreadySent  and (NumCookies = 1) then begin
     WriteLnF('TBuddy.SendPong() %s NOT sending another pong over same connection',
       [ID]);
@@ -741,9 +710,13 @@ begin
       SendAddMe;
       if FMustSendMultipleConnWarning then begin
         WriteLnF('W sending warning to %s (multiple connections)', [ID]);
-        SendIM(SF('[warning] received %d different ping cookies from' +
-          ' your ID. Do you have more than one process running with the' +
-          ' same TorChat ID?', [NumCookies]));
+        Msg := TMsgMessage.Create(Self, SF(
+          '[warning] received %d different ping cookies from your ID.' +
+          ' Do you have more than one process running with the same' +
+          ' TorChat ID?',
+          [NumCookies]
+        ));
+        Msg.Send;
       end;
     end
     else

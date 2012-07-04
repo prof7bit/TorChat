@@ -104,6 +104,9 @@ type
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
+    function AddReceivedCookie(ABuddyID: String; ACookie: String): Boolean;
+    procedure RemoveReceivedCookie(ACookie: String);
+    function GetNumCookies(ABuddyID: String): Integer;
     function FindFileTransferSend(Id: String): IFileTransfer;
     function FindFileTransferRecv(Id: String): IFileTransfer;
     function FindFileTransfer(GuiID: Pointer): IFileTransfer;
@@ -191,7 +194,7 @@ type
 
   IHiddenConnection = interface
     procedure SetBuddy(ABuddy: IBuddy);
-    procedure SetPingBuddyID(AID: String);
+    procedure SetPingData(AID: String; ACookie: String);
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
     function IsOutgoing: Boolean;
@@ -200,6 +203,7 @@ type
     function Client: IClient;
     function TimeCreated: TDateTime;
     function PingBuddyID: String;
+    function PingCookie: String;
     procedure Disconnect;
   end;
 

@@ -230,7 +230,7 @@ begin
     AInfo := '(empty line)';
   if AInfo = '' then
     AInfo := '(data: ' + IntToStr(Length(FBinaryContent)) + ' bytes)';
-  WriteLnF('W received "%s" %s from %s, ignoring.',
+  WriteLnF('received "%s" %s from %s, ignoring.',
     [FCommand, AInfo, DebugInfo]);
 end;
 
@@ -307,7 +307,7 @@ begin
     C.SendLine(GetCommand + ' ' + BinaryEncode(FBinaryContent));
   end
   else
-    WriteLnF('W cannot send "%s" to %s without open connection',
+    WriteLnF('cannot send "%s" to %s without open connection',
       [GetCommand, FBuddy.ID]);
 end;
 

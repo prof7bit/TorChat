@@ -39,6 +39,7 @@ type
   THiddenConnection = class(TInterfacedObject, IHiddenConnection)
   strict private
     FPingBuddyID: String;
+    FPingCookie: String;
     FKnownBuddyID: String; // used for debug output
     FTimeCreated: TDateTime;
     FSocket: TLSocket;
@@ -57,7 +58,7 @@ type
     procedure Disconnect;
     procedure Send(AData: String);
     procedure SendLine(AEncodedLine: String);
-    procedure SetPingBuddyID(AID: String);
+    procedure SetPingData(AID: String; ACookie: String);
     procedure SetBuddy(ABuddy: IBuddy);
     function IsOutgoing: Boolean;
     function DebugInfo: String;
@@ -65,6 +66,7 @@ type
     function Client: IClient;
     function TimeCreated: TDateTime;
     function PingBuddyID: String;
+    function PingCookie: String;
   end;
 
 implementation
@@ -106,6 +108,7 @@ var
 begin
   Info := DebugInfo;
   FDisconnectLock.Free;
+  Client.RemoveReceivedCookie(FPingCookie);
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished ' + Info);
 end;
@@ -233,9 +236,10 @@ begin
   Send(AEncodedLine + #10);
 end;
 
-procedure THiddenConnection.SetPingBuddyID(AID: String);
+procedure THiddenConnection.SetPingData(AID: String; ACookie: String);
 begin
   FPingBuddyID := AID;
+  FPingCookie := ACookie;
 end;
 
 procedure THiddenConnection.SetBuddy(ABuddy: IBuddy);
@@ -290,6 +294,11 @@ end;
 function THiddenConnection.PingBuddyID: String;
 begin
   Result := FPingBuddyID;
+end;
+
+function THiddenConnection.PingCookie: String;
+begin
+  Result := FPingCookie;
 end;
 
 end.
