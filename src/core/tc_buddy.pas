@@ -670,6 +670,7 @@ procedure TBuddy.SendPong;
 var
   Msg: IProtocolMessage;
   NumCookies: Integer;
+  InRoster: Boolean;
 begin
   // NumCookies should be 1. If it is more then the other
   // side has multiple clients running with the same ID, in
@@ -706,8 +707,13 @@ begin
       SendProfile;
     end;
 
-    if Self in Client.Roster then begin
+    InRoster := (Self in Client.Roster);
+    if InRoster then
       SendAddMe;
+
+    SendStatus;
+
+    if InRoster then begin
       if FMustSendMultipleConnWarning then begin
         WriteLnF('W sending warning to %s (multiple connections)', [ID]);
         Msg := TMsgMessage.Create(Self, SF(
@@ -722,7 +728,7 @@ begin
     else
       if FMustSendMultipleConnWarning then
         WriteLnF('I could not send warning bcause %s is not on roster', [ID]);
-    SendStatus;
+
     FMustSendPong := False;
     FReceivedCookie := '';
     FPongAlreadySent := True;
