@@ -56,6 +56,8 @@ type
     FMustSendPong: Boolean;
     FPongAlreadySent: Boolean;
     FReceivedCookie: String;
+    FReceivedMultipleCookies: array of String;
+    FMustSendMultipleConnWarning: Boolean;
     FConnecting: Boolean;
     FReconnectInterval: Double;
     FTimeCreated: TDateTime;
@@ -74,6 +76,9 @@ type
     procedure CallFromMainThread(AMethod: TMethodOfObject);
     procedure CalcConnectInterval;
     procedure CalcConnectIntervalAfterPing;
+    procedure AddReceivedCookie(ACookie: String);
+    function GetNumReceivedCookies: Integer;
+    procedure ResetReceivedCookies;
   public
     constructor Create(AClient: IClient); reintroduce;
     destructor Destroy; override;
@@ -150,7 +155,8 @@ begin
   FConnecting := False;
   FClient := AClient;
   FMustSendPong := False;
-  FReceivedCookie := '';
+  ResetReceivedCookies;
+  SetLength(FReceivedMultipleCookies, 0);
   FStatus := TORCHAT_OFFLINE;
   CreateGUID(GUID);
   FOwnCookie := GUIDToString(GUID);
@@ -279,7 +285,7 @@ begin
   // check keep-alive timeout and disconect
   if Assigned(ConnOutgoing)
   and (TimeSince(FTimeLastStatusReceived) > SECONDS_WAIT_KEEPALIVE) then begin
-    WriteLn(_F('I TBuddy.CheckState() %s timeout, disconnecting',
+    WriteLn(_F('TBuddy.CheckState() %s timeout, disconnecting',
       [FID]));
     DoDisconnect;
   end;
@@ -390,6 +396,38 @@ begin
   FTimeLastPingReceived := Now;
 end;
 
+procedure TBuddy.AddReceivedCookie(ACookie: String);
+var
+  I, L: Integer;
+begin
+  FReceivedCookie := ACookie;
+  FMustSendPong := True;
+  L := Length(FReceivedMultipleCookies);
+  for I := L - 1 downto 0 do begin
+    if FReceivedMultipleCookies[I] = ACookie then
+      exit;
+  end;
+  SetLength(FReceivedMultipleCookies, L + 1);
+  FReceivedMultipleCookies[L] := ACookie;
+  if L > 0 then begin
+    FMustSendMultipleConnWarning := True;
+    WriteLn(_F('W %s we have received %d different cookies', [ID, L+1]));
+  end;
+end;
+
+function TBuddy.GetNumReceivedCookies: Integer;
+begin
+  Result := Length(FReceivedMultipleCookies);
+end;
+
+procedure TBuddy.ResetReceivedCookies;
+begin
+  FReceivedCookie := '';
+  FMustSendPong := False;
+  FMustSendMultipleConnWarning := False;
+  SetLength(FReceivedMultipleCookies, 0);
+end;
+
 procedure TBuddy.OnOutgoingConnection;
 var
   Msg: IProtocolMessage;
@@ -410,6 +448,7 @@ begin
     ConnIncoming.Disconnect;
   SetStatus(TORCHAT_OFFLINE);
   CalcConnectInterval;
+  ResetReceivedCookies;
 end;
 
 procedure TBuddy.OnIncomingConnection;
@@ -428,8 +467,7 @@ end;
 
 procedure TBuddy.MustSendPong(ACookie: String);
 begin
-  FReceivedCookie := ACookie;
-  FMustSendPong := True;
+  AddReceivedCookie(ACookie);
 
   // if we are connected already we can send it
   // immediately, otherwise it will happen on connect
@@ -667,8 +705,9 @@ end;
 procedure TBuddy.SendPong;
 var
   Msg: IProtocolMessage;
+  N: Integer;
 begin
-  if FPongAlreadySent then begin
+  if FPongAlreadySent  and not FMustSendMultipleConnWarning then begin
     WriteLn('TBuddy.SendPong() ', ID, ' NOT sending another pong over same connection');
   end
   else begin
@@ -686,12 +725,24 @@ begin
     Msg.Send;
     SendAvatar;
     SendProfile;
-    if Self in Client.Roster then
+    if Self in Client.Roster then begin
       SendAddMe;
+      if FMustSendMultipleConnWarning then begin
+        N := GetNumReceivedCookies;
+        WriteLn(_F('W sending warning to %s (multiple connections)', [ID]));
+        SendIM(_F('[warning] received %d different ping cookies from' +
+          ' your ID. Do you have more than one process running with the' +
+          ' same TorChat ID?', [N]));
+      end;
+    end
+    else
+      if FMustSendMultipleConnWarning then
+        WriteLn(_F('I could not send warning bcause %s is not on roster', [ID]));
     SendStatus;
     FMustSendPong := False;
     FReceivedCookie := '';
     FPongAlreadySent := True;
+    FMustSendMultipleConnWarning := False;
   end;
 end;
 

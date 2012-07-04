@@ -183,7 +183,6 @@ type
     procedure SetProfileName(AName: String);
     procedure SetProfileText(AText: String);
     function SendIM(AText: String): Boolean;
-    procedure SendPong;
     procedure SendAddMe;
     procedure SendStatus;
     procedure SendAvatar;

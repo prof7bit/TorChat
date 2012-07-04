@@ -143,7 +143,7 @@ begin
     FBuddy.MustSendPong(FCookie)
   end
   else begin
-    Writeln('I got Ping from unknown Buddy, creating temporary buddy: ' + FID);
+    Writeln('got Ping from unknown Buddy, creating temporary buddy: ' + FID);
     FBuddy := TBuddy.Create(FClient);
     if FBuddy.InitID(FID) then begin // this will check if ID is valid and allowed
       FBuddy.MustSendPong(FCookie);

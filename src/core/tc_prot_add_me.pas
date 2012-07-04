@@ -25,7 +25,8 @@ interface
 
 uses
   tc_interface,
-  tc_protocol;
+  tc_protocol,
+  tc_misc;
 
 type
   { TMsgAddMe
@@ -71,6 +72,7 @@ end;
 procedure TMsgAddMe.ExecuteWithBuddy;
 begin
   if FBuddy in FClient.TempList then begin
+    WriteLn(_F('I ading new buddy %s to roster', [FBuddy.ID]));
     FClient.TempList.RemoveBuddy(FBuddy);
     FClient.Roster.AddBuddy(FBuddy);
     FBuddy.SendStatus; // one cannot send too many status messages ;-)
