@@ -383,17 +383,12 @@ end;
 
 procedure TBuddy.CalcConnectIntervalAfterPing;
 begin
-  if TimeSince(FTimeLastPingReceived) > 15 * SecsPerMin then begin
-    WriteLnF('%s got ping, resetting connect timers', [ID]);
-    ResetAllTimes;
-    if not FConnecting then
-      CalcConnectInterval
-    else
-      WriteLnF('%s is already trying to connect', [ID]);
-  end
+  WriteLnF('%s got ping, resetting connect timers', [ID]);
+  ResetAllTimes;
+  if not FConnecting then
+    CalcConnectInterval
   else
-    WriteLnF('%s got another ping, will not reset timers again', [ID]);
-  FTimeLastPingReceived := Now;
+    WriteLnF('%s is already trying to connect', [ID]);
 end;
 
 procedure TBuddy.AddReceivedCookie(ACookie: String);
@@ -705,34 +700,50 @@ end;
 procedure TBuddy.SendPong;
 var
   Msg: IProtocolMessage;
-  N: Integer;
+  NumCookies: Integer;
 begin
-  if FPongAlreadySent  and not FMustSendMultipleConnWarning then begin
-    WriteLn('TBuddy.SendPong() ', ID, ' NOT sending another pong over same connection');
+  // NumCookies should be 1. If it is more then the other
+  // side has multiple clients running with the same ID, in
+  // this case we need to send pong for each different ping
+  // each time (not applying the pong-already-sent logic)
+  NumCookies := GetNumReceivedCookies;
+  if FPongAlreadySent  and (NumCookies = 1) then begin
+    WriteLnF('TBuddy.SendPong() %s NOT sending another pong over same connection',
+      [ID]);
   end
   else begin
-    WriteLn('TBuddy.SendPong() ', ID, ' sending pong and status');
+    WriteLnF('TBuddy.SendPong() %s sending pong and status %s',
+      [ID, FReceivedCookie]);
     Msg := TMsgPong.Create(Self, FReceivedCookie);
     Msg.Send;
 
-    // send another ping. No infinite loop because all this only once per connection.
-    Msg := TMsgPing.Create(Self, FOwnCookie);
-    Msg.Send;
+    // send another ping. No infinite loop because we
+    // do this only for the very first pong, even if
+    // we are in the received-multiple-cookies mode
+    if not FPongAlreadySent then begin
+      Msg := TMsgPing.Create(Self, FOwnCookie);
+      Msg.Send;
+    end;
 
     Msg := TMsgClient.Create(Self, SOFTWARE_NAME);
     Msg.Send;
     Msg := TMsgVersion.Create(Self, SOFTWARE_VERSION);
     Msg.Send;
-    SendAvatar;
-    SendProfile;
+
+    // send the huge stuff only if curretly no multiple cookie
+    // problem because we want to avoid unnecessary traffic
+    if NumCookies = 1 then begin
+      SendAvatar;
+      SendProfile;
+    end;
+
     if Self in Client.Roster then begin
       SendAddMe;
       if FMustSendMultipleConnWarning then begin
-        N := GetNumReceivedCookies;
         WriteLnF('W sending warning to %s (multiple connections)', [ID]);
         SendIM(SF('[warning] received %d different ping cookies from' +
           ' your ID. Do you have more than one process running with the' +
-          ' same TorChat ID?', [N]));
+          ' same TorChat ID?', [NumCookies]));
       end;
     end
     else
