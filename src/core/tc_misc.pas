@@ -45,7 +45,7 @@ function TimeSince(Start: TDateTime): Double;
 function Split(var Line: String; Sep: Char): String;
 
 { works like Format() but will catch exceptions at runtime }
-function _F(S: String; Args: array of const): String;
+function SF(FormatString: String; Args: array of const): String;
 
 { Delete a file by overwriting it }
 procedure SafeDelete(AFileName: String);
@@ -75,6 +75,8 @@ function Plain2Html(APlain: String): String;
 function Html2Plain(AHtml: String): String;
 
 function SanitizeFileName(AFileName: String): String;
+
+procedure WriteLnF(FormatStr: String; Args: array of const);
 
 implementation
 
@@ -109,12 +111,15 @@ begin
     raise EEndOfString.Create('no more separator found');
 end;
 
-function _F(S: String; Args: array of const): String;
+function SF(FormatString: String; Args: array of const): String;
 begin
   try
-    Result := Format(S, Args);
+    Result := Format(FormatString, Args);
   except
-    Result := 'E Eror while formatting: "' + S + '"';
+    // replace all % to avoid unwanted surprise in following printf()
+    FormatString := StringReplace(FormatString, '%', '$', [rfReplaceAll]);
+    Result := FormatString;
+    WriteLnF('E Eror while formatting: "%s"', [FormatString]);
   end;
 end;
 
@@ -177,7 +182,7 @@ var
   SockAddr  : TInetSockAddr;
 begin
   if IsPortInList(APort) then begin
-    WriteLn(_F('I Port %d is already used by TorChat', [APort]));
+    WriteLn(SF('I Port %d is already used by TorChat', [APort]));
     exit(False);
   end;
 
@@ -188,13 +193,13 @@ begin
     SockAddr.sin_port := ShortHostToNet(APort);
     SockAddr.sin_addr.s_addr := 0;
     if fpbind(HSocket, @SockAddr, SizeOf(SockAddr)) = 0 then begin
-      WriteLn(_F('Port %d is available', [APort]));
+      WriteLn(SF('Port %d is available', [APort]));
       Result := True;
     end;
     Sockets.CloseSocket(HSocket);
   end;
   if Result = False then
-    WriteLn(_F('I Port %d is NOT available', [APort]));
+    WriteLn(SF('I Port %d is NOT available', [APort]));
 end;
 
 function IsValidOnionName(AName: String): Boolean;
@@ -298,6 +303,11 @@ begin
     Result := RightStr(Result, Length(Result) - 1);
   if Length(Result) = 0 then
     Result := 'unknown';
+end;
+
+procedure WriteLnF(FormatStr: String; Args: array of const);
+begin
+  WriteLn(SF(FormatStr, Args));
 end;
 
 { TSafeDeleteThread }

@@ -130,7 +130,7 @@ begin
   BlackList := FClient.Config.GetStringArray('BlackList');
   for ID in BlackList do begin
     if FID = ID then begin
-      LogWarningAndIgnore(_F('%s is on the blacklist', [FID]));
+      LogWarningAndIgnore(SF('%s is on the blacklist', [FID]));
       exit;
     end;
   end;

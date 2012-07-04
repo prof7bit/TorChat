@@ -182,8 +182,8 @@ begin
   if not Assigned(Buddy) then
     LogWarningAndIgnore
   else begin
-    WriteLn(_F('TMsgDefault.Execute() received unknown %s (%d bytes) from %s',
-      [FCommand, Length(FBinaryContent), Buddy.ID]));
+    WriteLnF('TMsgDefault.Execute() received unknown %s (%d bytes) from %s',
+      [FCommand, Length(FBinaryContent), Buddy.ID]);
     Msg := TMsgNotImplemented.Create(Buddy, FCommand);
     Msg.Send;
   end;
@@ -230,28 +230,28 @@ begin
     AInfo := '(empty line)';
   if AInfo = '' then
     AInfo := '(data: ' + IntToStr(Length(FBinaryContent)) + ' bytes)';
-  WriteLn(_F('W received "%s" %s from %s, ignoring.',
-    [FCommand, AInfo, DebugInfo]));
+  WriteLnF('W received "%s" %s from %s, ignoring.',
+    [FCommand, AInfo, DebugInfo]);
 end;
 
 procedure TMsg.LogReceive;
 begin
   if Length(FBinaryContent) > 0 then
-    WriteLn(_F('----> "%s" from %s data: %s',
-      [FCommand, DebugInfo, DebugFormatBinary(FBinaryContent)]))
+    WriteLnF('----> "%s" from %s data: %s',
+      [FCommand, DebugInfo, DebugFormatBinary(FBinaryContent)])
   else
-    WriteLn(_F('----> "%s" from %s',
-      [FCommand, DebugInfo]))
+    WriteLnF('----> "%s" from %s',
+      [FCommand, DebugInfo])
 end;
 
 procedure TMsg.LogSend;
 begin
   if Length(FBinaryContent) > 0 then
-    WriteLn(_F('<---- "%s" to %s data: %s',
-      [GetCommand, DebugInfo, DebugFormatBinary(FBinaryContent)]))
+    WriteLnF('<---- "%s" to %s data: %s',
+      [GetCommand, DebugInfo, DebugFormatBinary(FBinaryContent)])
   else
-    WriteLn(_F('<---- "%s" to %s',
-      [GetCommand, DebugInfo]));
+    WriteLnF('<---- "%s" to %s',
+      [GetCommand, DebugInfo]);
 end;
 
 procedure TMsg.ExecuteWithBuddy;
@@ -307,8 +307,8 @@ begin
     C.SendLine(GetCommand + ' ' + BinaryEncode(FBinaryContent));
   end
   else
-    WriteLn(_F('W cannot send "%s" to %s without open connection',
-      [GetCommand, FBuddy.ID]));
+    WriteLnF('W cannot send "%s" to %s without open connection',
+      [GetCommand, FBuddy.ID]);
 end;
 
 

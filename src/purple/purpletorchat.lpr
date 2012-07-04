@@ -254,16 +254,16 @@ begin
     Buddy := TorChat.UserAddBuddy(SUPPORT_ID, SUPPORT_NAME);
     if not Assigned(Buddy) then
     begin
-      WriteLn(_F('E %s (%s) could not be added to the list',
-        [SUPPORT_NAME, SUPPORT_ID]));
+      WriteLnF('E %s (%s) could not be added to the list',
+        [SUPPORT_NAME, SUPPORT_ID]);
     end
     else begin
       TorChat.OnBuddyAdded(Buddy);
       PurplePlugin.NotifyMessage(
         PURPLE_NOTIFY_MSG_INFO,
-        _F('%s has been added', [SUPPORT_ID]),
-        _F('%s (%s) has been added to your buddy list', [SUPPORT_NAME, SUPPORT_ID]),
-        _F('Now just wait until %s is online', [SUPPORT_ID]),
+        SF('%s has been added', [SUPPORT_ID]),
+        SF('%s (%s) has been added to your buddy list', [SUPPORT_NAME, SUPPORT_ID]),
+        SF('Now just wait until %s is online', [SUPPORT_ID]),
         nil,
         nil
       );
@@ -291,8 +291,8 @@ begin
     if Assigned(TorChat.Roster.ByID(SUPPORT_ID)) then begin
       PurplePlugin.NotifyMessage(
         PURPLE_NOTIFY_MSG_WARNING,
-        _F('%s is already on your buddy list', [SUPPORT_NAME]),
-        _F('%s (%s) is already on your buddy list.', [SUPPORT_NAME, SUPPORT_ID]),
+        SF('%s is already on your buddy list', [SUPPORT_NAME]),
+        SF('%s (%s) is already on your buddy list.', [SUPPORT_NAME, SUPPORT_ID]),
         '',
         nil,
         nil
@@ -307,10 +307,10 @@ begin
       Fields := TPurpleRequestFields.Create;
       Fields.Request(
         gc,
-        _F('Ask %s', [SUPPORT_NAME]),
+        SF('Ask %s', [SUPPORT_NAME]),
         '',
-        _F('This will put %s (%s) on your buddy list', [SUPPORT_NAME, SUPPORT_ID]),
-        _F('Add %s', [SUPPORT_NAME]), @torchat_ask_support_ok,
+        SF('This will put %s (%s) on your buddy list', [SUPPORT_NAME, SUPPORT_ID]),
+        SF('Add %s', [SUPPORT_NAME]), @torchat_ask_support_ok,
         'Cancel', nil,
         Account, '', nil, Account
       );
@@ -327,7 +327,7 @@ begin
     TPurplePluginAction.Create('Set User Info...', @torchat_set_user_info)
   );
   Result.Append(
-    TPurplePluginAction.Create(_F('Ask %s...', [SUPPORT_NAME]), @torchat_ask_support)
+    TPurplePluginAction.Create(SF('Ask %s...', [SUPPORT_NAME]), @torchat_ask_support)
   );
 end;
 
@@ -749,7 +749,7 @@ procedure torchat_send_file(gc: PPurpleConnection; who, filename: PChar); cdecl;
 var
   Xfer: PPurpleXfer;
 begin
-  Writeln(_F('send_file(%s, %s)', [who, filename]));
+  WritelnF('send_file(%s, %s)', [who, filename]);
   Xfer := TPurpleXfer.Create(gc.GetAccount, PURPLE_XFER_SEND, who);
   Xfer.SetInitFnc(@torchat_xfer_send_init);
   Xfer.SetCancelSendFnc(@torchat_xfer_send_cancel);
@@ -902,8 +902,8 @@ begin
     PurpleBuddy := PPurpleBuddy(PurpleList.data);
     ID := PurpleBuddy.GetName;
     if not Assigned(Roster.ByID(ID)) then begin
-      WriteLn(_F('I removing %s from list, buddy is no longer in TorChat',
-        [PurpleBuddy.GetName]));
+      WriteLnF('I removing %s from list, buddy is no longer in TorChat',
+        [PurpleBuddy.GetName]);
       PurpleBuddy.Remove;
     end;
     PurpleList := PurpleList.DeleteFirst;
@@ -915,7 +915,7 @@ begin
     ID := Buddy.ID;
     PurpleBuddy := TPurpleBuddy.Find(PurpleAccount, ID);
     if not Assigned(PurpleBuddy) then begin
-      WriteLn(_F('I adding new buddy %s to purple list', [ID]));
+      WriteLnF('I adding new buddy %s to purple list', [ID]);
       if not Assigned(PurpleGroup) then begin
         PurpleGroup := TPurpleGroup.Create(Roster.GroupName);
         PurpleGroup.Add(nil);
@@ -1000,7 +1000,7 @@ begin
     // by libpurple, libpurple only stores and manages the data
     // without caring what it is). PNG is fine for our purposes
     // because it is well supported and can handle transparency.
-    WriteLn(_F('%s setting avatar in libpurple', [ABuddy.ID]));
+    WriteLnF('%s setting avatar in libpurple', [ABuddy.ID]);
     PurpleAccount.SetIconForBuddy(
       ABuddy.ID,
       IconAddr,
@@ -1013,7 +1013,7 @@ begin
     Image.Free;
   end
   else begin // empty avatar
-    WriteLn(_F('%s removing avatar in libpurple', [ABuddy.ID]));
+    WriteLnF('%s removing avatar in libpurple', [ABuddy.ID]);
     PurpleAccount.SetIconForBuddy(
       ABuddy.ID,
       nil,

@@ -91,10 +91,10 @@ begin
   else begin
     FBitmap := '';
     if Length(FBinaryContent) <> 0 then begin // 0 is also allowed
-      WriteLn(_F(
+      WriteLnF(
         'invalid avatar alpha data (%d bytes) from %s',
         [Length(FBinaryContent), DebugInfo]
-      ));
+      );
     end;
   end;
 end;

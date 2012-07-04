@@ -190,8 +190,8 @@ end;
 
 procedure TBuddy.InitiateConnect;
 begin
-  WriteLn(_F('TBuddy.InitiateConnect() (%s) connecting to Tor: %s:%d',
-    [ID, Client.TorHost, Client.TorPort]));
+  WriteLnF('TBuddy.InitiateConnect() (%s) connecting to Tor: %s:%d',
+    [ID, Client.TorHost, Client.TorPort]);
   with FLnetClient do begin
     OnConnect := @Self.OnProxyConnect;
     OnReceive := @Self.OnProxyReceive;
@@ -285,16 +285,16 @@ begin
   // check keep-alive timeout and disconect
   if Assigned(ConnOutgoing)
   and (TimeSince(FTimeLastStatusReceived) > SECONDS_WAIT_KEEPALIVE) then begin
-    WriteLn(_F('TBuddy.CheckState() %s timeout, disconnecting',
-      [FID]));
+    WriteLnF('TBuddy.CheckState() %s timeout, disconnecting',
+      [FID]);
     DoDisconnect;
   end;
 
   // check max time on templist and remove from there
   if TimeSince(FTimeCreated) > SECONDS_KEEP_ON_TEMPLIST then begin
     if Self in Client.TempList then begin
-      WriteLn(_F('TBuddy.CheckState() %s timeout, removing temporary buddy',
-        [FID]));
+      WriteLnF('TBuddy.CheckState() %s timeout, removing temporary buddy',
+        [FID]);
       DoDisconnect;
       Client.TempList.RemoveBuddy(Self); // should now free on _Release;
     end;
@@ -377,22 +377,22 @@ begin
   FTimeLastDisconnect := Now;
   Minutes := TimeSince(FTimeLastStatusReceived) / SecsPerMin;
   FReconnectInterval := GetInterval(Minutes);
-  WriteLn(_F('%s next connect attempt in %g seconds',
-    [ID, FReconnectInterval]));
+  WriteLnF('%s next connect attempt in %g seconds',
+    [ID, FReconnectInterval]);
 end;
 
 procedure TBuddy.CalcConnectIntervalAfterPing;
 begin
   if TimeSince(FTimeLastPingReceived) > 15 * SecsPerMin then begin
-    WriteLn(_F('%s got ping, resetting connect timers', [ID]));
+    WriteLnF('%s got ping, resetting connect timers', [ID]);
     ResetAllTimes;
     if not FConnecting then
       CalcConnectInterval
     else
-      WriteLn(_F('%s is already trying to connect', [ID]));
+      WriteLnF('%s is already trying to connect', [ID]);
   end
   else
-    WriteLn(_F('%s got another ping, will not reset timers again', [ID]));
+    WriteLnF('%s got another ping, will not reset timers again', [ID]);
   FTimeLastPingReceived := Now;
 end;
 
@@ -411,7 +411,7 @@ begin
   FReceivedMultipleCookies[L] := ACookie;
   if L > 0 then begin
     FMustSendMultipleConnWarning := True;
-    WriteLn(_F('W %s we have received %d different cookies', [ID, L+1]));
+    WriteLnF('W %s we have received %d different cookies', [ID, L+1]);
   end;
 end;
 
@@ -729,15 +729,15 @@ begin
       SendAddMe;
       if FMustSendMultipleConnWarning then begin
         N := GetNumReceivedCookies;
-        WriteLn(_F('W sending warning to %s (multiple connections)', [ID]));
-        SendIM(_F('[warning] received %d different ping cookies from' +
+        WriteLnF('W sending warning to %s (multiple connections)', [ID]);
+        SendIM(SF('[warning] received %d different ping cookies from' +
           ' your ID. Do you have more than one process running with the' +
           ' same TorChat ID?', [N]));
       end;
     end
     else
       if FMustSendMultipleConnWarning then
-        WriteLn(_F('I could not send warning bcause %s is not on roster', [ID]));
+        WriteLnF('I could not send warning bcause %s is not on roster', [ID]);
     SendStatus;
     FMustSendPong := False;
     FReceivedCookie := '';

@@ -162,15 +162,15 @@ begin
   // it will automatically cd before starting the process if we set
   // the property 'CurrentDirectory' to a path:
   CurrentDirectory := ConcatPaths([FClient.Config.DataDir, 'tor']);
-  WriteLn(_F('I profile "%s": Tor will be started in folder: %s',
-    [FClient.ProfileName, CurrentDirectory]));
+  WriteLnF('I profile "%s": Tor will be started in folder: %s',
+    [FClient.ProfileName, CurrentDirectory]);
   KillIfAlreadyRunning;
 
   FSocksPort := FClient.Config.TorPort;
   while not IsPortAvailable(FSocksPort) do
     Dec(FSocksPort);
-  WriteLn(_F('I profile "%s": Tor will open port %d for socks proxy',
-    [FClient.ProfileName, FSocksPort]));
+  WriteLnF('I profile "%s": Tor will open port %d for socks proxy',
+    [FClient.ProfileName, FSocksPort]);
   AddPortToList(FSocksPort);
 
   {$ifdef DebugToConsole}

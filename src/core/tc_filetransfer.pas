@@ -154,7 +154,7 @@ begin
     FPosConfirmed := -FBlockSize;
     FFileSize := FFileStream.Size;
   except
-    WriteLn(_F('E could not open %s for reading', [FFileName]));
+    WriteLn(SF('E could not open %s for reading', [FFileName]));
   end;
 end;
 
@@ -254,8 +254,8 @@ begin
     if not Assigned(FFileStream) then
       exit;
     if TimeSince(FTimeLastReceive) > FILE_TRANSFER_SECONDS_WAIT then begin
-      WriteLn(_F('W transfer to %s: long time without ack, resetting to last confirmed position',
-        [FBuddy.ID]));
+      WriteLnF('W transfer to %s: long time without ack, resetting to last confirmed position',
+        [FBuddy.ID]);
       FPosSendNext := FPosConfirmed + FBlockSize;
       FTimeLastReceive := Now;
     end;
@@ -325,8 +325,8 @@ begin
       FPosLastError := NO_ERROR;
 
   if (StartByte >= FFileSize) then begin
-    WriteLn(_f('W received chunk with startbyte %d but total size is only %d',
-      [StartByte, FileSize]));
+    WriteLnF('W received chunk with startbyte %d but total size is only %d',
+      [StartByte, FileSize]);
     Msg := TMsgFileStopSending.Create(Buddy, ID);
     Msg.Send;
     exit;

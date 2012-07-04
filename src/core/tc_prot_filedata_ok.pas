@@ -71,7 +71,7 @@ end;
 
 procedure TMsgFileDataOk.Serialize;
 begin
-  FBinaryContent := _F('%s %d', [FTransferID, FStartByte]);
+  FBinaryContent := SF('%s %d', [FTransferID, FStartByte]);
 end;
 
 procedure TMsgFileDataOk.ExecuteWithBuddy;

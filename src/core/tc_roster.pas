@@ -103,7 +103,7 @@ end;
 
 procedure TRoster.RemoveBuddyNoCallback(ABuddy: IBuddy);
 begin
-  WriteLn(_F('I removing %s from roster', [ABuddy.ID]));
+  WriteLnF('I removing %s from roster', [ABuddy.ID]);
   inherited RemoveBuddy(ABuddy);
   Save;
 end;

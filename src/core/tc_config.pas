@@ -141,19 +141,19 @@ end;
 
 procedure TClientConfig.SetString(AKey: String; AValue: String; Encoded: Boolean);
 begin
-  WriteLn(_F('TClientConfig.SetString(''%s'')', [AKey]));
+  WriteLnF('TClientConfig.SetString(''%s'')', [AKey]);
   if Encoded then
     AValue := EncodeStringBase64(AValue);
   try
     FConfigData.Strings[AKey] := AValue;
   except
-    WriteLn(_F('TClientConfig.SetString(%s, %s) could not set value', [AKey, DebugFormatBinary(AValue)]));
+    WriteLnF('TClientConfig.SetString(%s, %s) could not set value', [AKey, DebugFormatBinary(AValue)]);
   end;
 end;
 
 function TClientConfig.GetString(AKey: String; Encoded: Boolean): String;
 begin
-  WriteLn(_F('TClientConfig.GetString(''%s'')', [AKey]));
+  WriteLnF('TClientConfig.GetString(''%s'')', [AKey]);
   try
     Result := FConfigData.Strings[AKey];
     if Encoded then
@@ -169,7 +169,7 @@ var
   Arr: TJSONArray;
   I: Integer;
 begin
-  WriteLn(_F('TClientConfig.GetStringList(''%s'')', [AKey]));
+  WriteLnF('TClientConfig.GetStringList(''%s'')', [AKey]);
   try
     Arr := FConfigData.Arrays[AKey];
     SetLength(Result, Arr.Count);

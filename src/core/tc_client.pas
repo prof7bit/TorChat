@@ -182,8 +182,8 @@ begin
   FListenPort := Config.ListenPort;
   while not IsPortAvailable(FListenPort) do
     Dec(FListenPort);
-  WriteLn(_F('I profile "%s": TorChat will open port %d for incoming connections',
-    [AProfileName, FListenPort]));
+  WriteLnF('I profile "%s": TorChat will open port %d for incoming connections',
+    [AProfileName, FListenPort]);
   AddPortToList(FListenPort);
 
   FLnetListener := TLTcp.Create(self);
@@ -438,9 +438,9 @@ end;
 procedure TTorChatClient.RegisterAnonConnection(AConn: IHiddenConnection);
 begin
   FConnInList.Add(AConn);
-  WriteLn(_F(
+  WriteLnF(
     'TTorChatClient.RegisterConnection() have now %d anonymous connections',
-    [FConnInList.Count]));
+    [FConnInList.Count]);
 end;
 
 procedure TTorChatClient.UnregisterAnonConnection(AConn: IHiddenConnection);
@@ -448,9 +448,9 @@ begin
   // only incoming connections are in this list
   if FConnInList.IndexOf(AConn) <> -1 then begin
     FConnInList.Remove(AConn);
-    WriteLn(_F(
+    WriteLnF(
       'TTorChatClient.UnregisterConnection() removed %s, %d anonymous connections left',
-      [AConn.DebugInfo, FConnInList.Count]));
+      [AConn.DebugInfo, FConnInList.Count]);
   end;
 end;
 
@@ -475,8 +475,8 @@ begin
     if TimeSince(FTimeStarted) < SECONDS_WAIT_FOR_HOSTNAME_FILE then begin
       HSName := FTor.HiddenServiceName;
       if HSName <> '' then begin
-        writeln(_F('I profile "%s": HiddenService name is %s',
-          [ProfileName, HSName]));
+        writelnF('I profile "%s": HiddenService name is %s',
+          [ProfileName, HSName]);
         Roster.SetOwnID(HSName);
         FHSNameOK := True;
         OnGotOwnID;
@@ -502,8 +502,8 @@ begin
           Buddy := TempList.ByID(Conn.PingBuddyID);
         if Assigned(Buddy) then
           Buddy.ForgetLastPing;
-        WriteLn(_F('I anonymous connection (allegedly %s) timed out, closing',
-          [Conn.PingBuddyID]));
+        WriteLnF('I anonymous connection (allegedly %s) timed out, closing',
+          [Conn.PingBuddyID]);
       end
       else
         WriteLn('I anonymous connection timed out, closing');

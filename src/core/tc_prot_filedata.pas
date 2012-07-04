@@ -94,7 +94,7 @@ end;
 
 procedure TMsgFileData.Serialize;
 begin
-  FBinaryContent := _F('%s %d %s %s',
+  FBinaryContent := SF('%s %d %s %s',
     [FTransferID, FStartByte, FCheckSum, FFileChunk]);
 end;
 

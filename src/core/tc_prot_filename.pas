@@ -83,7 +83,7 @@ end;
 
 procedure TMsgFileName.Serialize;
 begin
-  FBinaryContent := _F('%s %d %d %s',
+  FBinaryContent := SF('%s %d %d %s',
     [FTransferID, FFileSize, FBlockSize, FFileName]);
 end;
 

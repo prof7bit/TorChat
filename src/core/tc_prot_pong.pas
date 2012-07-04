@@ -93,8 +93,8 @@ end;
 
 procedure TMsgPong.ExecuteWithBuddy;
 begin
-  WriteLn(_F('ignoring pong on already authenticated connection %s %s',
-    [FBuddy.ID, FCookie]));
+  WriteLnF('ignoring pong on already authenticated connection %s %s',
+    [FBuddy.ID, FCookie]);
 end;
 
 procedure TMsgPong.ExecuteWithoutBuddy;

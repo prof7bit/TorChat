@@ -72,7 +72,7 @@ end;
 procedure TMsgAddMe.ExecuteWithBuddy;
 begin
   if FBuddy in FClient.TempList then begin
-    WriteLn(_F('I ading new buddy %s to roster', [FBuddy.ID]));
+    WriteLnF('I ading new buddy %s to roster', [FBuddy.ID]);
     FClient.TempList.RemoveBuddy(FBuddy);
     FClient.Roster.AddBuddy(FBuddy);
     FBuddy.SendStatus; // one cannot send too many status messages ;-)

@@ -89,15 +89,15 @@ begin
   else begin
     FBitmap := '';
     if length(FBinaryContent) = 0 then
-      WriteLn(_F(
+      WriteLnF(
         'no avatar (empty) from %s',
         [DebugInfo]
-      ))
+      )
     else
-      WriteLn(_F(
+      WriteLnF(
         'invalid avatar data (%d bytes) from %s',
         [Length(FBinaryContent), DebugInfo]
-      ));
+      );
   end;
 end;
 

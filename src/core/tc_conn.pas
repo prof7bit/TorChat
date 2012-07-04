@@ -211,14 +211,14 @@ begin
       Client.Queue.Put(Msg);
     except
       on Ex: Exception do begin
-        WriteLn(_F('E error while parsing protocol command ''%s'': %s %s',
-          [Command, Ex.ToString, Ex.Message]));
+        WriteLnF('E error while parsing protocol command ''%s'': %s %s',
+          [Command, Ex.ToString, Ex.Message]);
       end;
     end;
   end
   else begin
-    WriteLn(_F('W received %s on wrong connection %s, ignoring.',
-      [Command, DebugInfo]));
+    WriteLnF('W received %s on wrong connection %s, ignoring.',
+      [Command, DebugInfo]);
   end;
 
 end;
