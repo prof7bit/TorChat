@@ -108,7 +108,7 @@ var
 begin
   Info := DebugInfo;
   FDisconnectLock.Free;
-  Client.RemoveReceivedCookie(FPingCookie);
+  Client.CookieList.Remove(FPingCookie);
   inherited Destroy;
   WriteLn('THiddenConnection.Destroy() finished ' + Info);
 end;

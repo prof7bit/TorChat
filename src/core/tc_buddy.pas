@@ -427,7 +427,7 @@ begin
   // so we can detect if there are more then one for the same buddy.
   // this function will only warn once for every newly added cookie.
   // Connection will remove its cookie from list in its Destructor.
-  FMustSendMultipleConnWarning := Client.AddReceivedCookie(ID, ACookie);
+  FMustSendMultipleConnWarning := Client.CookieList.Add(ID, ACookie);
   FReceivedCookie := ACookie;
 
   // if we are connected already we can send it
@@ -676,7 +676,7 @@ begin
   // side has multiple clients running with the same ID, in
   // this case we need to send pong for each different ping
   // each time (not applying the pong-already-sent logic)
-  NumCookies := Client.GetNumCookies(ID);
+  NumCookies := Client.CookieList.CountByID(ID);
   if FPongAlreadySent  and (NumCookies = 1) then begin
     WriteLnF('TBuddy.SendPong() %s NOT sending another pong over same connection',
       [ID]);

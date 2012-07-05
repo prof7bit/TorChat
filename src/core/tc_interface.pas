@@ -25,13 +25,15 @@ unit tc_interface;
 
 {$mode objfpc}{$H+}
 {$modeswitch nestedprocvars}
+{$modeswitch advancedrecords}
 
 interface
 
 uses
   Classes,
   fpjson,
-  lEvents;
+  lEvents,
+  tc_cookie_list;
 
 type
   TTorchatStatus = (
@@ -104,15 +106,13 @@ type
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
-    function AddReceivedCookie(ABuddyID: String; ACookie: String): Boolean;
-    procedure RemoveReceivedCookie(ACookie: String);
-    function GetNumCookies(ABuddyID: String): Integer;
     function FindFileTransferSend(Id: String): IFileTransfer;
     function FindFileTransferRecv(Id: String): IFileTransfer;
     function FindFileTransfer(GuiID: Pointer): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
+    function CookieList: TCookieList;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
     function ProfileName: String;
@@ -259,6 +259,7 @@ operator in(ABuddy: IBuddy; AList: ITempList): Boolean;
 begin
   Result := (AList.IndexOf(ABuddy) > -1);
 end;
+
 
 end.
 

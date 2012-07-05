@@ -32,7 +32,8 @@ uses
   tc_msgqueue,
   lnet,
   lEvents,
-  tc_tor;
+  tc_tor,
+  tc_cookie_list;
 
 type
   { TEventThread is the thread that is polling the sockets
@@ -44,12 +45,6 @@ type
     procedure Execute; override;
   end;
 
-  TCookieEntry = record
-    ID: String;
-    Cookie: String;
-  end;
-
-  TCookieList = array of TCookieEntry;
 
   { TTorChatClient implements the interface IClient.
     Together with all its contained objects this represents
@@ -115,15 +110,13 @@ type
     procedure DummySocketError(AHandle: TLHandle; const Error: String);
     procedure AddFileTransfer(ATransfer: IFileTransfer);
     procedure RemoveFileTransfer(ATransfer: IFileTransfer);
-    function AddReceivedCookie(ABuddyID: String; ACookie: String): Boolean;
-    procedure RemoveReceivedCookie(ACookie: String);
-    function GetNumCookies(ABuddyID: String): Integer;
     function FindFileTransferSend(Id: String): IFileTransfer;
     function FindFileTransferRecv(Id: String): IFileTransfer;
     function FindFileTransfer(GuiID: Pointer): IFileTransfer;
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
+    function CookieList: TCookieList;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
     function ProfileName: String;
@@ -188,6 +181,7 @@ begin
   FQueue := TMsgQueue.Create(Self);
   FTempList := TTempList.Create(Self);
   FRoster := TRoster.Create(Self);
+  FCookieList := TCookieList.Create;
   FRoster.Load;
 
   FListenPort := Config.ListenPort;
@@ -241,6 +235,7 @@ begin
   RemovePortFromList(FListenPort);
 
   FLnetEventer.Free;
+  FCookieList.Free;
 
   WriteLn('start destroying child components');
   inherited Destroy;
@@ -315,56 +310,6 @@ begin
   FFileTransfers.Remove(ATransfer);
 end;
 
-function TTorChatClient.AddReceivedCookie(ABuddyID: String; ACookie: String): Boolean;
-var
-  I,L,C: Integer;
-begin
-  Result := False;
-  C := 0;
-  L := Length(FCookieList);
-  for I := l-1 downto 0 do begin
-    if FCookieList[I].ID = ABuddyID then begin
-      Inc(C);
-      if FCookieList[I].Cookie = ACookie then
-        exit; // is already in the list, no action needed
-    end;
-  end;
-
-  SetLength(FCookieList, L+1);
-  FCookieList[L].ID := ABuddyID;
-  FCookieList[L].Cookie := ACookie;
-  if C > 0 then begin
-    WriteLnF('W %d different cookies from the same ID %s', [C+1, ABuddyID]);
-    Result := True;
-  end;
-end;
-
-procedure TTorChatClient.RemoveReceivedCookie(ACookie: String);
-var
-  I, L: Integer;
-begin
-  L := Length(FCookieList) - 1;
-  for I := L downto 0 do begin
-    if FCookieList[I].Cookie = ACookie then begin
-      FCookieList[I] := FCookieList[L];
-      SetLength(FCookieList, L);
-      exit;
-    end;
-  end;
-end;
-
-function TTorChatClient.GetNumCookies(ABuddyID: String): Integer;
-var
-  I, L: Integer;
-begin
-  Result := 0;
-  L := Length(FCookieList) - 1;
-  for I := L downto 0 do begin
-    if FCookieList[I].ID = ABuddyID then
-      Inc(Result);
-  end;
-end;
-
 function TTorChatClient.FindFileTransferSend(Id: String): IFileTransfer;
 var
   I: Integer;
@@ -417,6 +362,11 @@ end;
 function TTorChatClient.Queue: IMsgQueue;
 begin
   Result := FQueue;
+end;
+
+function TTorChatClient.CookieList: TCookieList;
+begin
+  Result := FCookieList;
 end;
 
 function TTorChatClient.Config: IClientConfig;
