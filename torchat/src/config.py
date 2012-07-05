@@ -97,6 +97,7 @@ MAX_UNANSWERED_PINGS = 4
 SCRIPT_DIR = os.path.abspath(os.path.dirname(toUnicode(sys.argv[0])))
 ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
 log_writer = None
+cached_data_dir = None
 
 def isWindows98():
     if isWindows():
@@ -145,18 +146,23 @@ def getHomeDir():
         return toUnicode(os.path.expanduser("~"))
 
 def getDataDir():
+    global cached_data_dir
+
     if isPortable():
         return SCRIPT_DIR
+
+    if cached_data_dir:
+        return cached_data_dir
+
+    if isWindows():
+        CSIDL_APPDATA = 0x001a
+        buf = ctypes.create_unicode_buffer(256)
+        ctypes.windll.shell32.SHGetSpecialFolderPathW(None, buf, CSIDL_APPDATA, 0)
+        appdata = buf.value
+        data_dir = os.path.join(appdata, "torchat")
     else:
-        if isWindows():
-            CSIDL_APPDATA = 0x001a
-            buf = ctypes.create_unicode_buffer(256)
-            ctypes.windll.shell32.SHGetSpecialFolderPathW(None, buf, CSIDL_APPDATA, 0)
-            appdata = buf.value
-            data_dir = os.path.join(appdata, "torchat")
-        else:
-            home = toUnicode(os.path.expanduser("~"))
-            data_dir = os.path.join(home, ".torchat")
+        home = toUnicode(os.path.expanduser("~"))
+        data_dir = os.path.join(home, ".torchat")
 
     #test for optional profile name in command line
     try:
@@ -170,25 +176,26 @@ def getDataDir():
 
     #and create the folder 'Tor' with tor.exe and torrc.txt in it if necessary
     data_dir_tor = os.path.join(data_dir, "Tor")
-    if not os.path.exists(data_dir_tor):
-        os.mkdir(data_dir_tor)
-        
     if isWindows():
         tor_exe =  "tor.exe"
     else:
         tor_exe = "tor.sh"
-    shutil.copy(os.path.join("Tor", tor_exe), data_dir_tor)
-    shutil.copy(os.path.join("Tor", "torrc.txt"), data_dir_tor)
+    if not os.path.exists(data_dir_tor):
+        os.mkdir(data_dir_tor)
+        shutil.copy(os.path.join("Tor", tor_exe), data_dir_tor)
+        shutil.copy(os.path.join("Tor", "torrc.txt"), data_dir_tor)
 
     #fix permissions
     for filename in os.listdir(data_dir):
-        # old log files still lying around in the data folder
-        os.chmod(os.path.join(data_dir, filename), 0600)
+        if os.path.isfile(filename):
+            # old log files still lying around in the data folder
+            os.chmod(os.path.join(data_dir, filename), 0600)
     os.chmod(data_dir, 0700)
     os.chmod(data_dir_tor, 0700)
     os.chmod(os.path.join(data_dir_tor, tor_exe), 0700)
     os.chmod(os.path.join(data_dir_tor, "torrc.txt"), 0600)
-    
+
+    cached_data_dir = data_dir
     return data_dir
 
 def getProfileLongName():

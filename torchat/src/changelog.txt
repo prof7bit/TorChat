@@ -4,6 +4,8 @@ version 0.9.9.552 (master branch, not yet released)
 - add ability to copy TorChat ID to clipboard
 - fix foreground colour of hint windows and notification windows 
   to always match current desktop theme
+- fix problems with permissions in the profile folder
+- fix regression: don't create a new tor.sh file every time
 
 version 0.9.9.551
 - Added Swedish translation (thanks to Åke Engelbrektson)
