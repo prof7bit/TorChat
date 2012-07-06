@@ -221,7 +221,7 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <Units Count="37">
+    <Units Count="38">
       <Unit0>
         <Filename Value="../core/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
@@ -407,6 +407,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_cookie_list"/>
       </Unit36>
+      <Unit37>
+        <Filename Value="../core/tc_generic.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tc_generic"/>
+      </Unit37>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

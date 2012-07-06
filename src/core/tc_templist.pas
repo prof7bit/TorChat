@@ -24,42 +24,10 @@ type
     function ByID(ABuddyID: String): IBuddy;
     function ByCookie(ACookie: String): IBuddy;
     procedure DoDisconnectAll;
-    function GetEnumerator: TABuddyEnumerator;
+    function GetEnumerator: TBuddyEnumerator;
   end;
 
 implementation
-
-type
-  { TBuddyEnumerator }
-  TBuddyEnumerator = class(TABuddyEnumerator)
-  strict private
-    FPosition: Integer;
-    FList: IInterfaceList;
-  public
-    constructor Create(AList: IInterfaceList);
-    function GetCurrent: IBuddy; override;
-    function MoveNext: Boolean; override;
-    property Current: IBuddy read GetCurrent;
-  end;
-
-{ TBuddyEnumerator }
-
-constructor TBuddyEnumerator.Create(AList: IInterfaceList);
-begin
-  FList := AList;
-  FPosition := -1;
-end;
-
-function TBuddyEnumerator.GetCurrent: IBuddy;
-begin
-  Result := IBuddy(FList[FPosition]);
-end;
-
-function TBuddyEnumerator.MoveNext: Boolean;
-begin
-  Inc(FPosition);
-  Result := FPosition < FList.Count;
-end;
 
 { TTempList }
 
@@ -122,7 +90,7 @@ begin
     Buddy.DoDisconnect;
 end;
 
-function TTempList.GetEnumerator: TABuddyEnumerator;
+function TTempList.GetEnumerator: TBuddyEnumerator;
 begin
   Result := TBuddyEnumerator.Create(Self);
 end;

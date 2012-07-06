@@ -33,6 +33,7 @@ uses
   Classes,
   fpjson,
   lEvents,
+  tc_generic,
   tc_cookie_list;
 
 type
@@ -65,11 +66,7 @@ type
   IFileTransfer = interface;
   TAReceiver = class;
 
-  TABuddyEnumerator = class
-    function GetCurrent: IBuddy; virtual; abstract;
-    function MoveNext: Boolean; virtual; abstract;
-    property Current: IBuddy read GetCurrent;
-  end;
+  TBuddyEnumerator = specialize TGenericInterfaceEnumerator<iBuddy>;
 
   IClientConfig = interface
     procedure Load;
@@ -131,7 +128,7 @@ type
     function ByID(ABuddyID: String): IBuddy;
     function ByCookie(ACookie: String): IBuddy;
     procedure DoDisconnectAll;
-    function GetEnumerator: TABuddyEnumerator;
+    function GetEnumerator: TBuddyEnumerator;
   end;
 
   { the buddy list }
