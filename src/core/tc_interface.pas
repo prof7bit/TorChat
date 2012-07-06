@@ -64,22 +64,29 @@ type
   IProtocolMessage = interface;
   IMsgQueue = interface;
   IFileTransfer = interface;
-  TAReceiver = class;
 
   TBuddyEnumerator = specialize TGenericInterfaceEnumerator<IBuddy>;
   TCookieEnumerator = specialize TGenericInterfaceEnumerator<ICookieEntry>;
 
+  { Owned by ICookieList, implemented in tc_cookie_list }
   ICookieEntry = interface
     function ID: String;
     function Cookie: String;
   end;
 
+  { The client maintains a list of incoming ping cookies from
+    all incoming connections, so it can detect when one ID is
+    trying to send multiple different cookies.
+    Owned by the client, implemented in tc_cookie_list }
   ICookieList = interface(IInterfaceList)
     function Add(ABuddyID, ACookie: String): Boolean; overload;
     procedure Remove(ACookie: String); overload;
     function CountByID(ABuddyID: String): Integer;
+    function GetEnumerator: TCookieEnumerator;
   end;
 
+  { Configuration settings.
+    Owned by the client, implemented in tc_config }
   IClientConfig = interface
     procedure Load;
     procedure Save;
@@ -93,6 +100,9 @@ type
     function TorPort: DWord;
   end;
 
+  { The client, ultimately owning all other objects. The GUI will
+    derive from this and implement all the OnXxxx() event methods.
+    Implemented in tc_client. }
   IClient = interface
     procedure Pump;       // must be called from the GUI thread.
     procedure OnNeedPump; // ask the GUI to schedule a Pump() asap.
@@ -132,7 +142,8 @@ type
     function LNetEventer: TLEventer;
   end;
 
-  { a temporary list of buddies}
+  { A temporary list of buddies, also used as base class for the roster.
+    Owned by the client, implemented in tc_templist }
   ITempList = interface(IInterfaceList)
     procedure CheckState;
     procedure AddBuddy(ABuddy: IBuddy);
@@ -143,7 +154,8 @@ type
     function GetEnumerator: TBuddyEnumerator;
   end;
 
-  { the buddy list }
+  { the buddy list.
+    Owned by the client, implemented in tc_roster }
   IRoster = interface(ITempList)
     procedure Load;
     procedure Save;
@@ -154,6 +166,7 @@ type
     procedure SetOwnID(AID: String);
   end;
 
+  { Owned by templist or roster, implemented in tc_buddy }
   IBuddy = interface
     procedure CheckState;
     function AsJsonObject: TJSONObject;
@@ -201,6 +214,9 @@ type
     procedure SendProfile;
   end;
 
+  { Each buddy owns two of them, incoming anonymous connections
+    are owned by the client until authenticated and then assigned
+    to the buddy. Implemented in tc_conn }
   IHiddenConnection = interface
     procedure SetBuddy(ABuddy: IBuddy);
     procedure SetPingData(AID: String; ACookie: String);
@@ -216,23 +232,39 @@ type
     procedure Disconnect;
   end;
 
+  { A message that can be enqueued for execution on the main thread.
+    This interface is also implemented in all protocol messages.
+    Classes that implement only IMessage are for internal messaging,
+    they are implemented in tc_msgqueue }
   IMessage = interface
     procedure Execute;
   end;
 
+  { A protocol message. All protocol messages implement this interface
+    because they are derived from TMsg, implemented in tc_potocol.
+    Incoming messages are created and parsed by the connection object
+    from within the network thread, then enqueued and later executed
+    in the main thread duing Pump().
+    Implementations are in tc_protocol and all the tc_prot_xxx units }
   IProtocolMessage = interface(IMessage)
     procedure Parse;
     procedure Send;
   end;
 
+  { The queue for all incoming protocol messages and internal messages,
+    owned by the client, implemented in tc_msgqueue }
   IMsgQueue = interface
     procedure Put(Msg: IMessage);
     procedure PumpNext;
     procedure Clear;
   end;
 
-  { IFileTransfer }
-
+  { Represents an incoming or outgoing file transfer. The OnXxxx()
+    methods must be implemnted by the GUI to hook into the events
+    that each file transfer will generate.
+    Created and owned by the GUI, created upon request from the user
+    or when the client fires the event for incoming transfer.
+    Implemented in tc_filetransfer }
   IFileTransfer = interface
     function ID: String;
     function Client: IClient;
@@ -244,20 +276,20 @@ type
     function GuiID: Pointer; // optional, can be some related GUI object
     procedure SetGuiID(AGuiID: Pointer);
     procedure CheckState;
+    procedure OnStartSending;
+    procedure OnProgressSending;
+    procedure OnCancelSending;
+    procedure OnCompleteSending;
+    procedure OnStartReceiving;
+    procedure OnProgressReceiving;
+    procedure OnCancelReceiving;
+    procedure OnCompleteReceiving;
     procedure MoveReceivedFile(DestName: String);
     procedure ReceivedFileChunk(StartByte: Int64; FileChunk: String);
     procedure ReceivedBrokenChunk(StartByte: Int64);
     procedure ReceivedOk(StartByte: Int64);
     procedure ReceivedError(StartByte: Int64);
     procedure ReceivedCancel;
-  end;
-
-  TAReceiver = class(TThread)
-  strict protected
-    FClient: IClient;
-    FConnection: IHiddenConnection;
-  public
-    property Client: IClient read FClient;
   end;
 
   operator in(ABuddy: IBuddy; AList: ITempList): Boolean;
