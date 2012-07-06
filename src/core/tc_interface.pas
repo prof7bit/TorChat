@@ -33,8 +33,7 @@ uses
   Classes,
   fpjson,
   lEvents,
-  tc_generic,
-  tc_cookie_list;
+  tc_generic;
 
 type
   TTorchatStatus = (
@@ -56,6 +55,7 @@ type
   TStringArray = array of String;
   TFindFunc = function(O: TObject): Boolean is nested;
 
+  ICookieEntry = interface;
   IBuddy = interface;
   IRoster = interface;
   ITempList = interface;
@@ -66,7 +66,19 @@ type
   IFileTransfer = interface;
   TAReceiver = class;
 
-  TBuddyEnumerator = specialize TGenericInterfaceEnumerator<iBuddy>;
+  TBuddyEnumerator = specialize TGenericInterfaceEnumerator<IBuddy>;
+  TCookieEnumerator = specialize TGenericInterfaceEnumerator<ICookieEntry>;
+
+  ICookieEntry = interface
+    function ID: String;
+    function Cookie: String;
+  end;
+
+  ICookieList = interface(IInterfaceList)
+    function Add(ABuddyID, ACookie: String): Boolean; overload;
+    procedure Remove(ACookie: String); overload;
+    function CountByID(ABuddyID: String): Integer;
+  end;
 
   IClientConfig = interface
     procedure Load;
@@ -109,7 +121,7 @@ type
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
-    function CookieList: TCookieList;
+    function CookieList: ICookieList;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
     function ProfileName: String;

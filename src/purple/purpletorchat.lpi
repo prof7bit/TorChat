@@ -221,7 +221,7 @@
         </UserOverrides>
       </environment>
     </RunParams>
-    <Units Count="38">
+    <Units Count="37">
       <Unit0>
         <Filename Value="../core/tc_tor.pas"/>
         <IsPartOfProject Value="True"/>
@@ -398,20 +398,15 @@
         <UnitName Value="purpletorchat"/>
       </Unit34>
       <Unit35>
-        <Filename Value="../core/tc_gen_list.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="tc_gen_list"/>
-      </Unit35>
-      <Unit36>
         <Filename Value="../core/tc_cookie_list.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_cookie_list"/>
-      </Unit36>
-      <Unit37>
+      </Unit35>
+      <Unit36>
         <Filename Value="../core/tc_generic.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tc_generic"/>
-      </Unit37>
+      </Unit36>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

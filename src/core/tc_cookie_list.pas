@@ -5,23 +5,27 @@ unit tc_cookie_list;
 
 interface
 uses
-  tc_gen_list;
+  Classes,
+  tc_interface;
 
 type
   { TCookieEntry }
 
-  TCookieEntry = record
-    ID: String;
-    Cookie: String;
-    class operator = (A,B: TCookieEntry): Boolean;
+  TCookieEntry = class(TInterfacedObject, ICookieEntry)
+    FID: String;
+    FCookie: String;
+    constructor Create(ABuddy, ACookie: String); reintroduce;
+    function ID: String;
+    function Cookie: String;
   end;
 
   { TCookieList }
 
-  TCookieList = class(specialize GList<TCookieEntry>)
+  TCookieList = class(TInterfaceList, ICookieList)
     function Add(ABuddyID, ACookie: String): Boolean;
     procedure Remove(ACookie: String);
     function CountByID(ABuddyID: String): Integer;
+    function GetEnumerator: TCookieEnumerator;
   end;
 
 implementation
@@ -30,16 +34,28 @@ uses
 
 { TCookieEntry }
 
-class operator TCookieEntry.= (A, B: TCookieEntry): Boolean;
+constructor TCookieEntry.Create(ABuddy, ACookie: String);
 begin
-  Result := (A.ID = B.ID) and (A.Cookie = B.Cookie);
+  FID := ABuddy;
+  FCookie := ACookie;
 end;
+
+function TCookieEntry.ID: String;
+begin
+  Result := FID;
+end;
+
+function TCookieEntry.Cookie: String;
+begin
+  Result := FCookie;
+end;
+
 
 { TCookieList }
 
 function TCookieList.Add(ABuddyID, ACookie: String): Boolean;
 var
-  CE: TCookieEntry;
+  CE: ICookieEntry;
   C: Integer;
 begin
   Result := False;
@@ -51,8 +67,7 @@ begin
         exit;
     end;
   end;
-  CE.Cookie := ACookie;
-  CE.ID := ABuddyID;
+  CE := TCookieEntry.Create(ABuddyID, ACookie);
   inherited Add(CE);
   if C > 0 then begin
     WriteLnF('W %d different cookies from the same ID %s', [C+1, ABuddyID]);
@@ -62,7 +77,7 @@ end;
 
 procedure TCookieList.Remove(ACookie: String);
 var
-  C: TCookieEntry;
+  C: ICookieEntry;
 begin
   for C in Self do begin
     if C.Cookie = ACookie then begin
@@ -74,12 +89,17 @@ end;
 
 function TCookieList.CountByID(ABuddyID: String): Integer;
 var
-  Item: TCookieEntry;
+  Item: ICookieEntry;
 begin
   Result := 0;
   for Item in self do
     if Item.ID = ABuddyID then
       inc(Result);
+end;
+
+function TCookieList.GetEnumerator: TCookieEnumerator;
+begin
+  Result := TCookieEnumerator.Create(Self);
 end;
 
 

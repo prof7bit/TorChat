@@ -83,7 +83,7 @@ type
     FHSNameOK: Boolean;
     FStatus: TTorchatStatus;
     FConnInList: IInterfaceList;
-    FCookieList: TCookieList;
+    FCookieList: ICookieList;
     FFileTransfers: IInterfaceList;
     FLnetEventer: TLEventer;
     FLnetListener: TLTcp;
@@ -116,7 +116,7 @@ type
     function Roster: IRoster;
     function TempList: ITempList;
     function Queue: IMsgQueue;
-    function CookieList: TCookieList;
+    function CookieList: ICookieList;
     function Config: IClientConfig;
     function IsDestroying: Boolean;
     function ProfileName: String;
@@ -235,7 +235,6 @@ begin
   RemovePortFromList(FListenPort);
 
   FLnetEventer.Free;
-  FCookieList.Free;
 
   WriteLn('start destroying child components');
   inherited Destroy;
@@ -364,7 +363,7 @@ begin
   Result := FQueue;
 end;
 
-function TTorChatClient.CookieList: TCookieList;
+function TTorChatClient.CookieList: ICookieList;
 begin
   Result := FCookieList;
 end;
