@@ -103,6 +103,18 @@ var
   Clients: TClients;
 
 
+function GetIconCacheFileName(Account: PPurpleAccount; ID: String): String;
+var
+  Buddy: PPurpleBuddy;
+begin
+  Buddy := Account.FindBuddy(ID);
+  if Assigned(Buddy) then begin
+    Result := Buddy.GetString('buddy_icon');
+    if Result <> '' then
+      Result := ConcatPaths([purple_buddy_icons_get_cache_dir(), Result]);
+  end;
+end;
+
 (********************************************************************
  *                                                                  *
  *  The timer functions are called  by libpurple timers, they are   *
@@ -364,6 +376,8 @@ begin
   Clients.Find(Account).SetStatus(TorchatStatus);
 end;
 
+{ set the own buddy icon. We need to transform it into
+  native TorChat format and then set it in TorChat}
 procedure torchat_set_buddy_icon(gc: PPurpleConnection; PurpleImage: PPurpleStoredImage); cdecl;
 var
   HaveImage: Boolean;
@@ -490,13 +504,14 @@ begin
   end;
 end;
 
-procedure torchat_remove_buddy(gc: PPurpleConnection; purple_buddy: PPurpleBuddy; group: PPurpleGroup); cdecl;
+procedure torchat_remove_buddy(gc: PPurpleConnection; PurpleBuddy: PPurpleBuddy; PurpleGroup: PPurpleGroup); cdecl;
 var
   TorChat: IClient;
   Buddy: IBuddy;
   ID: String;
 begin
-  ID := purple_buddy.GetName;
+  ID := PurpleBuddy.GetName;
+  SafeDelete(GetIconCacheFileName(gc.GetAccount, ID));
   TorChat := Clients.Find(gc.GetAccount);
   Buddy := TorChat.Roster.ByID(ID);
   if Assigned(Buddy) then
@@ -512,7 +527,6 @@ begin
   if Assigned(TorChat) then begin
     Buddy := TorChat.Roster.ByID(who);
     Buddy.SetLocalAlias(aalias);
-    gc.GotAlias(who, aalias);
   end;
 end;
 
@@ -904,6 +918,7 @@ begin
     if not Assigned(Roster.ByID(ID)) then begin
       WriteLnF('I removing %s from list, buddy is no longer in TorChat',
         [PurpleBuddy.GetName]);
+      SafeDelete(GetIconCacheFileName(PurpleAccount, ID));
       PurpleBuddy.Remove;
     end;
     PurpleList := PurpleList.DeleteFirst;
@@ -913,7 +928,7 @@ begin
   Roster.Lock;
   for Buddy in Roster do begin
     ID := Buddy.ID;
-    PurpleBuddy := TPurpleBuddy.Find(PurpleAccount, ID);
+    PurpleBuddy := PurpleAccount.FindBuddy(ID);
     if not Assigned(PurpleBuddy) then begin
       WriteLnF('I adding new buddy %s to purple list', [ID]);
       if not Assigned(PurpleGroup) then begin
@@ -924,7 +939,6 @@ begin
       PurpleBuddy.BlistAdd(nil, PurpleGroup, nil);
     end
     else begin
-      PurpleAccount.GetConnection.GotAlias(ID, Buddy.LocalAlias);
       PurpleBuddy.SetAlias(Buddy.LocalAlias);
     end;
   end;
@@ -946,6 +960,7 @@ end;
 
 procedure TTorChat.OnBuddyAvatarChange(ABuddy: IBuddy);
 var
+  OldCacheFileName: String;
   IconAddr: Pointer;
   IconLen: PtrUInt;
   Image: TFPMemoryImage;
@@ -959,6 +974,14 @@ var
   PtrPixel24: P24Pixel;
   PtrAlpha8: PByte;
 begin
+  // First comes a dirty hack: Normally we are not supposed to poke
+  // around in purple's icon cache but we have no other choice here:
+  // We want to prevent purple from simply unlinking old cached icons,
+  // we want to securely wipe them. Move old cache file out of the way
+  OldCacheFileName := GetIconCacheFileName(PurpleAccount, ABuddy.ID);
+  if FileExists(OldCacheFileName) then
+    RenameFile(OldCacheFileName, OldCacheFileName + '.old');
+
   Raw24Bitmap := ABuddy.AvatarData;
   if Length(Raw24Bitmap) = 12288 then begin;
     Raw8Alpha := ABuddy.AvatarAlphaData;
@@ -1021,17 +1044,29 @@ begin
       ''
     );
   end;
+
+  // now lets care about the old cache file.
+  if FileExists(OldCacheFileName + '.old') then begin
+    // the cache file name is a hash of the content, so we can
+    // just compare the file name to determine whether it changed,
+    if GetIconCacheFileName(PurpleAccount, ABuddy.ID) <> OldCacheFileName then
+      SafeDelete(OldCacheFileName + '.old')
+    else begin
+      // stayed the same, put the old file back into its place.
+      if FileExists(OldCacheFileName) then
+        SafeDelete(OldCacheFileName + '.old')
+      else
+        RenameFile(OldCacheFileName + '.old', OldCacheFileName);
+    end;
+  end;
 end;
 
 procedure TTorChat.OnBuddyAliasChange(ABuddy: IBuddy);
 var
   PurpleBuddy: PPurpleBuddy;
-  Conn: PPurpleConnection;
 begin
   PurpleBuddy := PurpleAccount.FindBuddy(ABuddy.ID);
   if Assigned(PurpleBuddy) then begin
-    Conn := PurpleAccount.GetConnection;
-    Conn.GotAlias(ABuddy.ID, ABuddy.LocalAlias);
     PurpleBuddy.SetAlias(ABuddy.LocalAlias);
   end;
 end;
@@ -1059,6 +1094,7 @@ var
 begin
   PurpleBuddy := PurpleAccount.FindBuddy(ABuddy.ID);
   if Assigned(PurpleBuddy) then begin
+    SafeDelete(GetIconCacheFileName(PurpleAccount, ABuddy.ID));
     PurpleBuddy.Remove;
   end;
   {$note must do something when an IM window is currently open}

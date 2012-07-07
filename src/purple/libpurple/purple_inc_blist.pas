@@ -12,6 +12,8 @@
   TPurpleBlistNode = object
     procedure SetBool(Key: String; Value: Boolean);
     function GetBool(Key: String): Boolean;
+    procedure SetString(Key, Value: String);
+    function GetString(Key: String): String;
     procedure UpdateIcon;
   end;
 
@@ -22,6 +24,7 @@
     class function FindMany(Acc: PPurpleAccount; AName: String): PGSList;
     function GetAccount: PPurpleAccount;
     function GetAliasOnly: String;
+    function GetIcon: PPurpleBuddyIcon;
     function GetName: String;
     function GetPresence: TPurplePresence;
     procedure SetAlias(AAlias: String);
@@ -43,6 +46,7 @@ procedure purple_blist_alias_buddy(buddy: PPurpleBuddy; aalias: PChar); cdecl; e
 procedure purple_blist_remove_buddy(buddy: PPurpleBuddy); cdecl; external LIBPURPLE;
 function  purple_buddy_get_account(buddy: PPurpleBuddy): PPurpleAccount; cdecl; external LIBPURPLE;
 function  purple_buddy_get_alias_only(buddy: PPurpleBuddy): PChar; cdecl; external LIBPURPLE;
+function  purple_buddy_get_icon(buddy: PPurpleBuddy): PPurpleBuddyIcon; cdecl; external LIBPURPLE;
 function  purple_buddy_get_name(buddy: PPurpleBuddy): PChar; cdecl; external LIBPURPLE;
 function  purple_buddy_get_presence(buddy: PPurpleBuddy): TPurplePresence; cdecl; external LIBPURPLE;
 function  purple_buddy_new(account: PPurpleAccount; aname, aalias: PChar): PPurpleBuddy; cdecl; external LIBPURPLE;
@@ -57,6 +61,9 @@ function  purple_find_buddies(account: PPurpleAccount; aname: PChar): PGSList; c
 
 function  purple_blist_node_get_bool(node: PPurpleBlistNode; key: PChar): gboolean; cdecl; external LIBPURPLE;
 procedure purple_blist_node_set_bool(node: PPurpleBlistNode; key: PChar; value: gboolean); cdecl; external LIBPURPLE;
+function  purple_blist_node_get_string(node: PPurpleBlistNode; key: PChar): PChar; cdecl; external LIBPURPLE;
+procedure purple_blist_node_set_string(node: PPurpleBlistNode; key, value: PChar); cdecl; external LIBPURPLE;
+
 procedure purple_blist_update_node_icon(node: PPurpleBlistNode); cdecl; external LIBPURPLE;
 {$endif}
 
@@ -72,6 +79,16 @@ end;
 function TPurpleBlistNode.GetBool(Key: String): Boolean;
 begin
   Result := purple_blist_node_get_bool(@Self, Pointer(Key));
+end;
+
+procedure TPurpleBlistNode.SetString(Key, Value: String);
+begin
+  purple_blist_node_set_string(@Self, Pointer(Key), Pointer(Value));
+end;
+
+function TPurpleBlistNode.GetString(Key: String): String;
+begin
+  Result := purple_blist_node_get_string(@Self, Pointer(Key));
 end;
 
 procedure TPurpleBlistNode.UpdateIcon;
@@ -104,6 +121,11 @@ end;
 function TPurpleBuddy.GetAliasOnly: String;
 begin
   Result := purple_buddy_get_alias_only(@Self);
+end;
+
+function TPurpleBuddy.GetIcon: PPurpleBuddyIcon;
+begin
+  Result := purple_buddy_get_icon(@Self);
 end;
 
 function TPurpleBuddy.GetName: String;

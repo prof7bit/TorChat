@@ -85,6 +85,7 @@ type
   { TSafeDeleteThread }
 
   TSafeDeleteThread = class(TThread)
+    FOutput: Text;
     FFileStream: TFileStream;
     constructor Create(AFileStream: TFileStream);
     procedure Execute; override;
@@ -128,6 +129,7 @@ var
   Path, TempName: String;
   FS: TFileStream;
 begin
+  WriteLnF('wipe file "%s"', [AFileName]);
   if FileExists(AFileName) then begin
     Path := ExtractFileDir(AFileName);
     TempName := GetTempFileName(Path, 'delete_');
@@ -140,7 +142,9 @@ begin
         WriteLn('E ', E.ToString, ': ', E.Message);
       end;
     end;
-  end;
+  end
+  else
+    WriteLnF('file "%s" does not exist', [AFileName]);
 end;
 
 function IsPortInList(APort: DWord): Boolean;
@@ -314,6 +318,7 @@ end;
 
 constructor TSafeDeleteThread.Create(AFileStream: TFileStream);
 begin
+  FOutput := Output;
   FFileStream := AFileStream;
   FreeOnTerminate := True;
   Inherited Create(False);
@@ -327,6 +332,7 @@ var
   B : PByte;
   TempName: String;
 begin
+  Output := FOutput;
   TempName := FFileStream.FileName;
   B := GetMem(BLOCK);
   FillByte(B[0], BLOCK, 0);
@@ -341,6 +347,7 @@ begin
   FFileStream.Free;
   FreeMem(B);
   DeleteFile(TempName);
+  WriteLnF('wiping temp file %s completed', [TempName]);
 end;
 
 end.

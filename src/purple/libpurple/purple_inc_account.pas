@@ -14,6 +14,7 @@
     procedure SetIconForBuddy(Who: String; IconData: Pointer; IconLen: PtrUInt; CheckSum: String);
     function FindBuddy(AName: String): PPurpleBuddy;
     function FindBuddies(AName: String): PGSList;
+    function FindIcon(AName: String): PPurpleBuddyIcon;
     procedure GotUserStatus(AName, AStatusID: String);
   end;
 
@@ -67,6 +68,11 @@ end;
 function TPurpleAccount.FindBuddies(AName: String): PGSList;
 begin
   Result := purple_find_buddies(@Self, Pointer(AName));
+end;
+
+function TPurpleAccount.FindIcon(AName: String): PPurpleBuddyIcon;
+begin
+  purple_buddy_icons_find(@Self, Pointer(AName));
 end;
 
 procedure TPurpleAccount.GotUserStatus(AName, AStatusID: String);
