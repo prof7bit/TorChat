@@ -58,13 +58,16 @@ var
   CE: ICookieEntry;
   C: Integer;
 begin
+  Lock;
   Result := False;
   C := 0;
   for CE in Self do begin
     if CE.ID = ABuddyID then begin
       Inc(C);
-      if CE.Cookie = ACookie then
+      if CE.Cookie = ACookie then begin
+        Unlock;
         exit;
+      end;
     end;
   end;
   CE := TCookieEntry.Create(ABuddyID, ACookie);
@@ -73,28 +76,34 @@ begin
     WriteLnF('W %d different cookies from the same ID %s', [C+1, ABuddyID]);
     Result := True;
   end;
+  Unlock;
 end;
 
 procedure TCookieList.Remove(ACookie: String);
 var
   C: ICookieEntry;
 begin
+  Lock;
   for C in Self do begin
     if C.Cookie = ACookie then begin
       inherited Remove(C);
+      Unlock;
       exit;
     end;;
   end;
+  Unlock;
 end;
 
 function TCookieList.CountByID(ABuddyID: String): Integer;
 var
   Item: ICookieEntry;
 begin
+  Lock;
   Result := 0;
   for Item in self do
     if Item.ID = ABuddyID then
       inc(Result);
+  Unlock;
 end;
 
 function TCookieList.GetEnumerator: TCookieEnumerator;

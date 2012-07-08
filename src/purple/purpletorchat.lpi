@@ -59,7 +59,6 @@
             <CustomOptions Value="-dDebugToConsole 
 -dDebugToFile
 -dUseHeapTrc
--dWithFileTransfer
 -Cg"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
