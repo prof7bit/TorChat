@@ -89,7 +89,7 @@ begin
       inherited Remove(C);
       Unlock;
       exit;
-    end;;
+    end;
   end;
   Unlock;
 end;

@@ -20,6 +20,7 @@
 unit tc_buddy;
 
 {$mode objfpc}{$H+}
+{$modeswitch autoderef}
 
 interface
 
@@ -197,15 +198,26 @@ begin
 end;
 
 procedure TBuddy.OnProxyConnect(ASocket: TLSocket);
+type
+  TSocksReqestHeader = packed record
+    Typ   : Byte;
+    Cmd   : Byte;
+    Port  : Word;
+    Addr4 : DWord;
+  end;
 var
+  ReqHeader: TSocksReqestHeader;
   Req: String;
 begin
   WriteLn('<~~~~ ', ID, ' connected to Tor, sending Socks4a request');
-  SetLength(Req, 8);
-  Req[1] := #4; // Socks 4
-  Req[2] := #1; // CONNECT command
-  PWord(@Req[3])^ := ShortHostToNet(11009); // TorChat port
-  PDWord(@Req[5])^ := HostToNet(1); // address '0.0.0.1' means: Socks 4a
+  with ReqHeader do begin
+    Typ := 4; // Socks 4
+    Cmd := 1; // CONNECT
+    Port := ShortHostToNet(11009); // TorChat port
+    Addr4 := HostToNet(1); // address '0.0.0.1' means: Socks 4a
+  end;
+  SetLength(Req, SizeOf(TSocksReqestHeader));
+  Move(ReqHeader, Req[1], SizeOf(TSocksReqestHeader));
   Req := Req + 'TorChat' + #0;
   Req := Req + ID + '.onion' + #0;
   ASocket.Send(Req[1], Length(Req));
@@ -218,14 +230,26 @@ begin
 end;
 
 procedure TBuddy.OnProxyReceive(ASocket: TLSocket);
+type
+  PSocks4Response = ^TSocks4Response;
+  TSocks4Response = packed record
+    NullByte : Byte;
+    Status   : Byte;
+    Port     : Word;
+    Addr     : DWord;
+  end;
 var
-  Ans: String;
+  Buf: String;
+  Response: PSocks4Response;
+  RightSize: Boolean;
   Num: Integer;
   Err: String;
   C  : IHiddenConnection;
 begin
-  Num := ASocket.GetMessage(Ans);
-  if (Num = 8) and (Ans[2] = #90) then begin
+  Num := ASocket.GetMessage(Buf);
+  Response := Pointer(Buf);
+  RightSize := (Num = SizeOf(TSocks4Response));
+  if RightSize and (Response.Status = 90) then begin
     //WriteLn('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
 
     // remove the event methods, THiddenConnection will install its own
@@ -237,10 +261,10 @@ begin
     FConnecting := False;
   end
   else begin
-    if Num = 8 then
-      Err := IntToStr(Ord((Ans[2])))
+    if RightSize then
+      Err := SF('%d', [Response.Status])
     else
-      Err := 'wrong answer from proxy (' + IntToStr(Num) + ' bytes)';
+      Err := SF('wrong answer from proxy (%d bytes)', [Num]);
     WriteLn('<~/~~ ', ID, ' Socks4a connection failed: ', Err);
     ASocket.Disconnect();
   end;
