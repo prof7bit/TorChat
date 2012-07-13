@@ -512,11 +512,11 @@ begin
           Buddy := TempList.ByID(Conn.PingBuddyID);
         if Assigned(Buddy) then
           Buddy.ForgetLastPing;
-        WriteLnF('I anonymous connection (allegedly %s) timed out, closing',
+        WriteLnF('anonymous connection (allegedly %s) timed out, closing',
           [Conn.PingBuddyID]);
       end
       else
-        WriteLn('I anonymous connection timed out, closing');
+        WriteLn('anonymous connection timed out, closing');
       Conn.Disconnect;
     end;
   end;
