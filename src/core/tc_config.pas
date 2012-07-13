@@ -141,25 +141,23 @@ end;
 
 procedure TClientConfig.SetString(AKey: String; AValue: String; Encoded: Boolean);
 begin
-  WriteLnF('TClientConfig.SetString(''%s'')', [AKey]);
   if Encoded then
     AValue := EncodeStringBase64(AValue);
   try
     FConfigData.Strings[AKey] := AValue;
   except
-    WriteLnF('TClientConfig.SetString(%s, %s) could not set value', [AKey, DebugFormatBinary(AValue)]);
+    WriteLnF('E TClientConfig.SetString(%s, %s) could not set value', [AKey, DebugFormatBinary(AValue)]);
   end;
 end;
 
 function TClientConfig.GetString(AKey: String; Encoded: Boolean): String;
 begin
-  WriteLnF('TClientConfig.GetString(''%s'')', [AKey]);
   try
     Result := FConfigData.Strings[AKey];
     if Encoded then
       Result := DecodeStringBase64(Result);
   except
-    WriteLn('is empty');
+    // Does not yet exist. No problem.
     Result := '';
   end;
 end;
@@ -169,7 +167,6 @@ var
   Arr: TJSONArray;
   I: Integer;
 begin
-  WriteLnF('TClientConfig.GetStringList(''%s'')', [AKey]);
   try
     Arr := FConfigData.Arrays[AKey];
     SetLength(Result, Arr.Count);
@@ -177,7 +174,7 @@ begin
       Result[i] := Arr.Strings[I];
     end;
   except
-    WriteLn('is empty');
+    // Does not yet exist. No problem.
   end;
 end;
 
