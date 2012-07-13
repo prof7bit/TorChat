@@ -250,8 +250,6 @@ begin
   Response := Pointer(Buf);
   RightSize := (Num = SizeOf(TSocks4Response));
   if RightSize and (Response.Status = 90) then begin
-    //WriteLn('TBuddy.OnProxyReceive() ', ID, ' socks4a connection established');
-
     // remove the event methods, THiddenConnection will install its own
     FLnetClient.OnReceive := nil;
     FLnetClient.OnDisconnect := nil;
@@ -416,11 +414,11 @@ begin
   ResetKeepaliveTimeout;
   Msg := TMsgPing.Create(Self, FOwnCookie);
   Msg.Send;
-
-  // the other end has connected aleady and already
+  // the other end has connected already and already
   // sent us a ping, so we can answer with pong
   if FMustSendPong then
     SendPong;
+  SetStatus(TORCHAT_CONNECTING); // "connecting" means handshake started
 end;
 
 procedure TBuddy.OnOutgoingConnectionFail;
@@ -628,7 +626,8 @@ begin
   FStatus := AStatus;
   ResetKeepaliveTimeout;
   if Self in Client.Roster then
-    if (AStatus = TORCHAT_OFFLINE) or MaySendText then
+    if (AStatus in [TORCHAT_OFFLINE, TORCHAT_CONNECTING])
+    or MaySendText then
       Client.OnBuddyStatusChange(Self); // only notify the GUI if we can send
 end;
 

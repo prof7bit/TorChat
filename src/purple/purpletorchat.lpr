@@ -954,6 +954,7 @@ begin
     TORCHAT_AWAY: StatusID := PRPL_ID_AWAY;
     TORCHAT_XA: StatusID := PRPL_ID_XA;
     TORCHAT_OFFLINE: StatusID := PRPL_ID_OFFLINE;
+    TORCHAT_CONNECTING: StatusID := PRPL_ID_OFFLINE;
   end;
   PurpleAccount.GotUserStatus(ABuddy.ID, StatusID);
 end;
