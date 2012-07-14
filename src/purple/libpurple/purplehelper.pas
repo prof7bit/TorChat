@@ -249,6 +249,7 @@ begin
   else
     M := '[M] ' + Msg;
   end;
+  {$note dont localize the date}
   Result := FormatDateTime('mmm dd hh:nn:ss.zzz ', Now) + M;
 end;
 

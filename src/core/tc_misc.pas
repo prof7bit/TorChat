@@ -55,7 +55,7 @@ procedure AddPortToList(APort: DWord);
 procedure RemovePortFromList(APort: DWord);
 
 { Test if we can open this port for listening }
-function IsPortAvailable(APort: DWord): Boolean;
+function IsPortAvailable(AInterface: String; APort: DWord): Boolean;
 
 function IsValidOnionName(AName: String): Boolean;
 
@@ -180,7 +180,7 @@ begin
   end;
 end;
 
-function IsPortAvailable(APort: DWord): Boolean;
+function IsPortAvailable(AInterface: String; APort: DWord): Boolean;
 var
   HSocket: Integer;
   SockAddr  : TInetSockAddr;
@@ -195,7 +195,7 @@ begin
   if HSocket >= 0 then begin
     SockAddr.sin_family := AF_INET;
     SockAddr.sin_port := ShortHostToNet(APort);
-    SockAddr.sin_addr.s_addr := 0;
+    SockAddr.sin_addr := StrToNetAddr(AInterface);
     if fpbind(HSocket, @SockAddr, SizeOf(SockAddr)) = 0 then begin
       WriteLn(SF('Port %d is available', [APort]));
       Result := True;

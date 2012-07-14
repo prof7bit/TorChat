@@ -185,7 +185,7 @@ begin
   FRoster.Load;
 
   FListenPort := Config.ListenPort;
-  while not IsPortAvailable(FListenPort) do
+  while not IsPortAvailable(Config.ListenInterface, FListenPort) do
     Dec(FListenPort);
   WriteLnF('I profile "%s": TorChat will open port %d for incoming connections',
     [AProfileName, FListenPort]);
@@ -195,7 +195,9 @@ begin
   with FLnetListener do begin
     Eventer := FLnetEventer;
     OnAccept := @OnListenerAccept;
-    FLnetListener.Listen(FListenPort);
+    if not FLnetListener.Listen(FListenPort, Config.ListenInterface) then
+      WriteLnF('E could not bind %s:%d for listening, this will not work!',
+      [Config.ListenInterface, FListenPort]);
   end;
 
   FTor := TTor.Create(Self, Self, FListenPort);

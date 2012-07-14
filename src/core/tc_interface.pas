@@ -96,6 +96,7 @@ type
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
+    function ListenInterface: String;
     function TorHostName: String;
     function TorPort: DWord;
   end;

@@ -52,6 +52,7 @@ type
     function DataDir: String;
     function PathTorExe: String;
     function ListenPort: DWord;
+    function ListenInterface: String;
     function TorHostName: String;
     function TorPort: DWord;
   end;
@@ -217,6 +218,11 @@ end;
 function TClientConfig.ListenPort: DWord;
 begin
   Result := 11009;
+end;
+
+function TClientConfig.ListenInterface: String;
+begin
+  Result := '127.0.0.1';
 end;
 
 function TClientConfig.TorHostName: String;

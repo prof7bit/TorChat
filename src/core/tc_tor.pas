@@ -167,7 +167,7 @@ begin
   KillIfAlreadyRunning;
 
   FSocksPort := FClient.Config.TorPort;
-  while not IsPortAvailable(FSocksPort) do
+  while not IsPortAvailable('127.0.0.1', FSocksPort) do
     Dec(FSocksPort);
   WriteLnF('I profile "%s": Tor will open port %d for socks proxy',
     [FClient.ProfileName, FSocksPort]);
