@@ -38,7 +38,6 @@ type
   TClientConfig = class(TInterfacedObject, IClientConfig)
   strict private
     FProfileName: String;
-    FPathTorExe: String;
     FConfigData: TJSONObject;
     procedure CreateDefaultConfig;
   public
@@ -50,14 +49,21 @@ type
     function GetString(AKey: String; Encoded: Boolean = False): String;
     function GetStringArray(AKey: String): TStringArray;
     function DataDir: String;
-    function PathTorExe: String;
     function ListenPort: DWord;
     function ListenInterface: String;
     function TorHostName: String;
     function TorPort: DWord;
   end;
 
-function DefaultPathTorExe: String;
+function GetDefaultPathTorExe: String;
+function GetDefaultPathAppdata: String;
+function GetEnvPathExpanded(AName: String): String;
+
+procedure SetForcedPathTorExe(APath: String);
+procedure SetForcedPathAppdata(APath: String);
+
+function GetPathTorExe: String;   // this path will be used
+function GetPathAppData: String;  // this path will be used
 
 implementation
 uses
@@ -65,12 +71,15 @@ uses
   base64,
   jsonparser;
 
+var
+  ForcedPathTorExe: String;
+  ForcedPathAppdata: String;
+
 { TClientConfig }
 
 constructor TClientConfig.Create(AProfileName: String);
 begin
   FProfileName := AProfileName;
-  FPathTorExe := DefaultPathTorExe;
   Load;
 end;
 
@@ -182,20 +191,19 @@ end;
 function TClientConfig.DataDir: String;
 var
   Success: Boolean;
-  {$ifdef windows}
-  AppDataPath: Array[0..MaxPathLen] of Char;
-  {$endif}
+  AppDataPath: String;
+  FolderName: String;
 begin
   {$ifdef windows}
-    SHGetSpecialFolderPath(0, AppDataPath, CSIDL_APPDATA, false);
-    Result := ConcatPaths([AppDataPath, 'torchat2']);
-    //{$fatal Windows is not yet supported}
+  FolderName := 'torchat2';
   {$else}
-    Result := ExpandFileName('~/.torchat2');
+  FolderName := '.torchat2';
   {$endif}
 
   if FProfileName <> '' then
-    Result := Result + '_' + FProfileName;
+    FolderName := FolderName + '_' + FProfileName;
+
+  Result := ConcatPaths([GetPathAppData, FolderName]);
 
   if not DirectoryExists(Result) then begin
     Success := False;
@@ -208,11 +216,6 @@ begin
     if not Success then
       writeln('E could not create config directory ' + Result);
   end;
-end;
-
-function TClientConfig.PathTorExe: String;
-begin
-  Result := FPathTorExe;
 end;
 
 function TClientConfig.ListenPort: DWord;
@@ -248,19 +251,47 @@ begin
   Result := '';
 end;
 
+function GetEnvPathExpanded(AName: String): String;
+begin
+  Result := GetEnvironmentVariable(AName);
+  if Result <> '' then
+    Result := ExpandFileName(Result);
+end;
 
-function DefaultPathTorExe: String;
+function GetDefaultPathAppdata: String;
 {$ifdef windows}
 var
-  ProgramsPath: Array[0..MaxPathLen] of Char;
+  AppdataPath: Array[0..MaxPathLen] of Char;
 {$endif}
 begin
   {$ifdef windows}
-  SHGetSpecialFolderPath(0, ProgramsPath, CSIDL_PROGRAM_FILES, false);
+  Result := GetEnvPathExpanded('APPDATA');
+  if Result = '' then begin
+    SHGetSpecialFolderPath(0, AppdataPath, CSIDL_APPDATA, false);
+    Result := AppdataPath;
+  end;
+  {$else}
+  Result := ExpandFileName('~');
+  {$endif}
+end;
+
+function GetDefaultPathTorExe: String;
+{$ifdef windows}
+var
+  ProgramFilesPath: Array[0..MaxPathLen] of Char;
+  ProgramFilesPathS: String;
+{$endif}
+begin
+  {$ifdef windows}
+  ProgramFilesPathS := GetEnvPathExpanded('PROGRAMFILES');
+  if ProgramFilesPathS = '' then begin
+    SHGetSpecialFolderPath(0, ProgramFilesPath, CSIDL_PROGRAM_FILES, false);
+    ProgramFilesPathS := ProgramFilesPath;
+  end;
   Result := TryThesePaths([
-    ConcatPaths([ProgramsPath, 'Tor', 'tor.exe']),
-    ConcatPaths([ProgramsPath, 'Vidalia Bundle', 'Tor', 'tor.exe']),
-    ConcatPaths([ProgramsPath, 'Vidalia Relay Bundle', 'Tor', 'tor.exe'])
+    ConcatPaths([ProgramFilesPathS, 'Tor', 'tor.exe']),
+    ConcatPaths([ProgramFilesPathS, 'Vidalia Bundle', 'Tor', 'tor.exe']),
+    ConcatPaths([ProgramFilesPathS, 'Vidalia Relay Bundle', 'Tor', 'tor.exe'])
   ]);
   {$else}
   Result := TryThesePaths([
@@ -272,6 +303,33 @@ begin
     '/bin/tor'
   ]);
   {$endif}
+end;
+
+procedure SetForcedPathTorExe(APath: String);
+begin
+  ForcedPathTorExe := ExpandFileName(APath);
+end;
+
+procedure SetForcedPathAppdata(APath: String);
+begin
+  ForcedPathAppdata := ExpandFileName(APath);
+end;
+
+function GetPathTorExe: String;
+begin
+  Result := ForcedPathTorExe;
+  if Result = '' then begin
+    Result := GetEnvPathExpanded('TOR_EXE');
+    if Result = '' then
+      Result := GetDefaultPathTorExe;
+  end;
+end;
+
+function GetPathAppData: String;
+begin
+  Result := ForcedPathAppdata;
+  if Result = '' then
+    Result := GetDefaultPathAppdata;
 end;
 
 procedure TClientConfig.CreateDefaultConfig;

@@ -26,7 +26,8 @@ interface
 uses
   Classes,
   process,
-  tc_interface;
+  tc_interface,
+  tc_config;
 
 type
 
@@ -178,7 +179,8 @@ begin
   {$else}
     Options := [poNoConsole];
   {$endif}
-  Executable := FClient.Config.PathTorExe;
+  Executable := GetPathTorExe;
+  WriteLnF('I will start %s', [Executable]);
   GenerateTorrc;
   Parameters.Add('-f');
   Parameters.Add('torrc.generated.txt');

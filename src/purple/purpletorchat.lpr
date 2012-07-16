@@ -40,6 +40,7 @@ uses
   glib2,
   purple,
   purplehelper,
+  tc_config,
   tc_interface,
   tc_client,
   tc_const,
@@ -1134,6 +1135,9 @@ begin
 end;
 
 procedure Init;
+var
+  PurpleHome: String;
+
 begin
   SOFTWARE_NAME := 'libpurple/TorChat'; // for the 'client' message
   with plugin_info do begin
@@ -1180,6 +1184,10 @@ begin
     send_file := @torchat_send_file;
     struct_size := SizeOf(TPurplePluginProtocolInfo);
   end;
+
+  PurpleHome := GetEnvPathExpanded('PURPLEHOME');
+  if PurpleHome <> '' then
+    SetForcedPathAppdata(PurpleHome);
 
   // add additional fields to the settings dialog
   //plugin_protocol_info.protocol_options :=
