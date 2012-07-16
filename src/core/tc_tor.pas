@@ -130,6 +130,9 @@ begin
     if GetLogDir <> '' then begin
       LogFileName := 'tor_' + FClient.ProfileName + '.log';
       LogFileName := ConcatPaths([GetLogDir, LogFileName]);
+      Line('##');
+      Line('## LOGGING IS ENABLED, SEE TORCHAT USER MANUAL!');
+      Line('SafeLogging 0');
       Line(Format('Log notice file %s', [LogFileName]));
     end;
 
