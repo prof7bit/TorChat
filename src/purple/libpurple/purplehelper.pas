@@ -69,6 +69,8 @@ function NowUTC: TDateTime;
   simple way around it is to escape all < and > }
 function EscapeAngleBrackets(AText: String): String;
 
+procedure SetLogDir(APath: String);
+
 implementation
 uses
   {$ifdef windows}
@@ -104,6 +106,7 @@ var
   OutputRedirect: TOutputRedirect;
   OutputLock: TCriticalSection;
   PurpleThread: TThreadID;
+  LogDir: String;
 
 {$ifdef win32}
 function AttachConsole(dwProcessId: Longint): LongBool; stdcall; external 'kernel32.dll';
@@ -205,6 +208,16 @@ begin
   Result := StringReplace(Result, '>', '&gt;', [rfReplaceAll]);
 end;
 
+procedure SetLogDir(APath: String);
+begin
+  LogDir := APath;
+  if LogDir <> '' then begin;
+    Filemode := fmShareDenyNone;
+    Assign(DebugFile, ConcatPaths([LogDir, 'plugin.log']));
+    Rewrite(DebugFile);
+  end;
+end;
+
 procedure _purple_debug(Level: TDebugLevel; Msg: String);
 begin
   case Level of
@@ -289,12 +302,12 @@ begin
   except
   end;
   {$endif}
-  {$ifdef DebugToFile}
-  try
-    DebugToFile(Msg);
-  except
+  if LogDir <> '' then begin;
+    try
+      DebugToFile(Msg);
+    except
+    end;
   end;
-  {$endif}
   OutputLock.Release;
 end;
 
@@ -318,11 +331,6 @@ begin
     {$endif}
     WriteLn('W plugin has been compiled with -dDebugToConsole. Not recommended.');
   {$endif}
-  {$ifdef DebugToFile}
-    Filemode := fmShareDenyNone;
-    Assign(DebugFile, ConcatPaths([GetHomeDir, 'purpletorchat.log']));
-    Rewrite(DebugFile);
-  {$endif}
 end;
 
 procedure UninstallOutputRedirect;
@@ -333,9 +341,8 @@ begin
   OutputRedirect.Free;
   OutputLock.Release;
   OutputLock.Free;
-  {$ifdef DebugToFile}
+  if LogDir <> '' then
     CloseFile(DebugFile);
-  {$endif}
 end;
 
 initialization

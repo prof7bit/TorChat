@@ -61,9 +61,11 @@ function GetEnvPathExpanded(AName: String): String;
 
 procedure SetForcedPathTorExe(APath: String);
 procedure SetForcedPathAppdata(APath: String);
+procedure SetLogDir(APath: String);
 
 function GetPathTorExe: String;   // this path will be used
 function GetPathAppData: String;  // this path will be used
+function GetLogDir: String;
 
 implementation
 uses
@@ -74,6 +76,7 @@ uses
 var
   ForcedPathTorExe: String;
   ForcedPathAppdata: String;
+  LogDir: String;
 
 { TClientConfig }
 
@@ -315,6 +318,11 @@ begin
   ForcedPathAppdata := ExpandFileName(APath);
 end;
 
+procedure SetLogDir(APath: String);
+begin
+  LogDir := APath;
+end;
+
 function GetPathTorExe: String;
 begin
   Result := ForcedPathTorExe;
@@ -330,6 +338,11 @@ begin
   Result := ForcedPathAppdata;
   if Result = '' then
     Result := GetDefaultPathAppdata;
+end;
+
+function GetLogDir: String;
+begin
+  Result := LogDir;
 end;
 
 procedure TClientConfig.CreateDefaultConfig;

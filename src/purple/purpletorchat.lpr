@@ -1137,6 +1137,7 @@ end;
 procedure Init;
 var
   PurpleHome: String;
+  LogDir: String;
 
 begin
   SOFTWARE_NAME := 'libpurple/TorChat'; // for the 'client' message
@@ -1188,6 +1189,13 @@ begin
   PurpleHome := GetEnvPathExpanded('PURPLEHOME');
   if PurpleHome <> '' then
     SetForcedPathAppdata(PurpleHome);
+
+  LogDir := ConcatPaths([GetPathAppData, 'torchatlogs']);
+  if DirectoryExists(LogDir) then begin
+    tc_config.SetLogDir(LogDir);
+    purplehelper.SetLogDir(LogDir);
+    WriteLnF('W writing debug logs in "%s"', [LogDir]);
+  end;
 
   // add additional fields to the settings dialog
   //plugin_protocol_info.protocol_options :=

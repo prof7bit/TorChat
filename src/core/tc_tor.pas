@@ -95,6 +95,7 @@ var
   FIn: TFileStream = nil;
   CustomSize : UInt64;
   Buffer: PChar = nil;
+  LogFileName: String;
 
   procedure Line(L: String);
   begin
@@ -125,6 +126,12 @@ begin
     Line('LongLivedPorts 11009');
     Line('AvoidDiskWrites 1');
     Line('SocksTimeout 240');
+
+    if GetLogDir <> '' then begin
+      LogFileName := 'tor_' + FClient.ProfileName + '.log';
+      LogFileName := ConcatPaths([GetLogDir, LogFileName]);
+      Line(Format('Log notice file %s', [LogFileName]));
+    end;
 
     FileName := ConcatPaths([CurrentDirectory, 'torrc.in.txt']);
     try
