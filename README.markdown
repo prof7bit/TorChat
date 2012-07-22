@@ -1,21 +1,3 @@
-If you use the Ubuntu Repositories then please update
-=====================================================
-There has been an ugly bug in the Debian and Ubuntu versions of
-TorChat (the ones from their repositories, not the original .deb
-file from here) that would have broadcasted the local alias you
-gave to a buddy to that buddy in the version message. This bug has 
-finally been fixed on 22 Jun 2012. Please update & upgrade (using 
-synaptic or apt-get) to get these updated packages. The fixed 
-packages are
-
-* Oneiric: 0.9.9.534-1ubuntu0.1
-* Precise: 0.9.9.550-2~build0.12.04.1
-
-If you have one of the versions above you are safe. If you have 
-installed the .deb file from github you are also safe. If you have
-an older version (especially 550-1 or 534-1) then you should update.
-
-
 TorChat2
 ========
 If you are looking for **TorChat 0.9.9.xxx** (the original Python
