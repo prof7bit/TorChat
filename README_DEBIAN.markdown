@@ -1,6 +1,5 @@
 To the Debian packager
 ======================
-
 There are not yet any special arrangements that make it easy to
 package it for Debian but I like to add them and help making this
 process as uncomplicated as possible. This also applies to other
@@ -12,14 +11,42 @@ this before but not for me unless someone helps me to do it.
 You will probably make patches to the makefile or rearrange things,
 please tell me what is needed to make this easier.
 
-
 Build requirements
 ------------------
-
+### Pidgn Plugin
 * libpurple-dev
-* fp-compiler 2.6 (Free Pascal 2.6 is the current stable release of FPC)
-* lazarus 1.0 (this is only needed for the standalone version of TorChat)
+* fp-compiler 2.6 (Free Pascal 2.6 is the current stable release of fpc)
 
+### Standalone version (2.0)
+* gtk2
+* fp-compiler 2.6
+* lazarus 1.0
+
+or alternatively
+
+* qt4
+* libqt4pas-dev
+* fp-compiler 2.6
+* lazarus 1.0
+
+Runtime requirements
+--------------------
+### Pidgn Plugin
+* tor
+* libpurple (only the Pidgin plugin)
+
+### Standalone version (2.0)
+* tor
+* GTK2 (only the standalone version)
+
+or alternatively
+
+* tor
+* qt4
+* libqt4pas
+
+Build system
+-------------
 This project does not use autotools or any other configuration tools,
 it is built by a very simple handwritten makefile. The compilation
 process is started with only one call of the compiler which will then
@@ -41,16 +68,12 @@ the Debian (and also others like rpm) Package build process, tell me
 what is needed and I could commit appropriate changes and needed
 precautions so we can all make our lifes easier.
 
-
 Building the plugin
 -------------------
-
 make purple
-
 
 Installing the plugin
 ---------------------
-
 Copy the file libpurpletorchat.so into the libpurple plugin directory
 and also the torchat icons (the blue globe in several different
 sizes) into libpurples appropriate pixmap folders (this is optional,
