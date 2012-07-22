@@ -26,11 +26,7 @@ It will start a separate process with its own configuation that will not
 and can not interfere with your existing tor configuration and usage.
 
   Now start pidgin from within a console window. You should see some
-debugging output. Additionally there will be a file ~/purpletorchat.log
-which contains the same debug output.
-
-  *** note that this is a debug version of the plugin, the
-final release version will not create a debug file. ***
+debugging output if you started it from the console.
 
   Create a new account, select "TorChat" for the protocol and when asked
 for a username just enter your name (or anything else), this is NOT the
@@ -38,3 +34,13 @@ TorChat ID, its just an account name to tell different TorChat profiles
 apart with a human readable name. It will create a config folder
 ~/.torchat2_accountname/ for each account (profile). You can create as
 many accounts (profiles) as you want and use them all simultanously.
+
+If you need a log file for debugging purposes create the folder
+~/torchatlogs before you start it, TorChat will detect this and enable
+logging for the plugin and for tor, if you want to disable logging smply
+remove this folder.
+
+The TorChat plugin will recognize the following environment variables
+on all platforms: PURPLEHOME, APPDATA, TOR_EXE to override the defaults
+for the data directory (if you want to include it with portable Pidgn),
+TOR_EXE is the path and name of the tor binary (not just the folder).
