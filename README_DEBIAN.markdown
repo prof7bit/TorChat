@@ -16,9 +16,9 @@ please tell me what is needed to make this easier.
 Build requirements
 ------------------
 
-libpurple-dev
-fp-compiler 2.6 (Free Pascal 2.6 is the current stable release of FPC)
-lazarus 1.0 (this is only needed for the standalone version of TorChat)
+* libpurple-dev
+* fp-compiler 2.6 (Free Pascal 2.6 is the current stable release of FPC)
+* lazarus 1.0 (this is only needed for the standalone version of TorChat)
 
 This project does not use autotools or any other configuration tools,
 it is built by a very simple handwritten makefile. The compilation
