@@ -55,16 +55,16 @@ figure out on its own what needs to be built and how to link it.
 There are some make targets in the top level makefile, the built
 process should be started from the top level makefile. make purple
 would build the plugin and put the .so file into the bin folder, make
-gui would build the standalone version of TotChat and also put it
+gui would build the standalone version of TorChat and also put it
 into bin. There is not yet a working install target. Also there are
-still some cons missing for the plugin, libpurple wants icons of
+still some icons missing for the plugin, libpurple wants icons of
 several different resolutions in its pixmaps folder, the installer
 would need to install them there.
 
 There are also a few other targets in the makefile that are only for
 experimental use and should not be relied upon. Packagers please send
 me patches and/or suggestions so can better prepare it for automating
-the Debian (and also others like rpm) Package build process, tell me
+the Debian (and also others like rpm) package build process, tell me
 what is needed and I could commit appropriate changes and needed
 precautions so we can all make our lifes easier.
 
