@@ -13,7 +13,7 @@ please tell me what is needed to make this easier.
 
 Build requirements
 ------------------
-### Pidgn Plugin
+### Pidgin Plugin
 * libpurple-dev
 * fp-compiler 2.6 (Free Pascal 2.6 is the current stable release of fpc)
 
@@ -31,13 +31,13 @@ or alternatively
 
 Runtime requirements
 --------------------
-### Pidgn Plugin
+### Pidgin Plugin
 * tor
-* libpurple (only the Pidgin plugin)
+* libpurple
 
 ### Standalone version (2.0)
 * tor
-* GTK2 (only the standalone version)
+* gtk2
 
 or alternatively
 
