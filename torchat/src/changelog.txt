@@ -1,3 +1,6 @@
+version 0.9.9.553
+- fix (regression) buddy context menu not working
+
 version 0.9.9.552
 - added Italian translation (thanks to HostFat) 
 - improve/update polish translation (thanks to Szary Czlowiek)

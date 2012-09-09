@@ -233,7 +233,7 @@ class PopupMenu(wx.Menu):
 
             item = wx.MenuItem(self, wx.NewId(), lang.MPOP_COPY_ID_TO_CLIPBOARD)
             self.AppendItem(item)
-            self.Bind(wx.EVT_MENU, self.onCopyIdToClipboard)
+            self.Bind(wx.EVT_MENU, self.onCopyIdToClipboard, item)
 
             self.AppendSeparator()
 
