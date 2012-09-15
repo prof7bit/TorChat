@@ -1,5 +1,6 @@
-version 0.9.9.553
+﻿version 0.9.9.553
 - fix (regression) buddy context menu not working
+- windows: update the bundled tor.exe to current stable version 0.2.2.39
 
 version 0.9.9.552
 - added Italian translation (thanks to HostFat) 
