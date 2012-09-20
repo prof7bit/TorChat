@@ -24,3 +24,10 @@ worry, the python version will stay here in the torchat_py
 branch, it is the reference implementation of the protocol, 
 I'm still using it myself as protocol documentation and to 
 test other implementations against it, it will not go away)
+
+Beer
+====
+If you want to buy me a beer (very much appreciated) you can do so via
+
+* PayPal: 7bit@arcor.de
+* BitCoin: 18hmynLnHC44XiGiiPqfuTL3M4xPeJ5KqW
