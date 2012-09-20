@@ -29,5 +29,5 @@ Beer
 ====
 If you want to buy me a beer (very much appreciated) you can do so via
 
-* PayPal: 7bit@arcor.de
 * BitCoin: 18hmynLnHC44XiGiiPqfuTL3M4xPeJ5KqW
+* PayPal: 7bit@arcor.de
