@@ -1,33 +1,23 @@
 To the Debian packager
 ======================
-There are not yet any special arrangements that make it easy to
-package it for Debian but I like to add them and help making this
-process as uncomplicated as possible. This also applies to other
-package systems. I have not yet made a Debian source package myself,
-I have read parts of the instructions, it seems there are a lot of
-things to do to get it right, probably easy for someone who has done
-this before but not for me unless someone helps me to do it.
-
-You will probably make patches to the makefile or rearrange things,
-please tell me what is needed to make this easier.
 
 Build requirements
 ------------------
 ### Pidgin Plugin
 * libpurple-dev
-* fp-compiler 2.6 (Free Pascal 2.6 is the current stable release of fpc)
+* fpc (>= 2.6.0) (Free Pascal 2.6 is the current stable release of fpc)
 
-### Standalone version (2.0)
+### Standalone version (2.0) (does not exist yet)
 * gtk2
-* fp-compiler 2.6
-* lazarus 1.0
+* fpc (>= 2.6.0)
+* lazarus (>= 1.0.0), lcl (>= 1.0.0), lcl-utils (>= 1.0.0)
 
 or alternatively
 
 * qt4
 * libqt4pas-dev
-* fp-compiler 2.6
-* lazarus 1.0
+* fpc (>= 2.6.0)
+* lazarus (>= 1.0.0), lcl (>= 1.0.0), lcl-utils (>= 1.0.0)
 
 Runtime requirements
 --------------------
@@ -35,7 +25,7 @@ Runtime requirements
 * tor
 * libpurple
 
-### Standalone version (2.0)
+### Standalone version (2.0) (does not exist yet)
 * tor
 * gtk2
 
@@ -79,8 +69,3 @@ and also the torchat icons (the blue globe in several different
 sizes) into libpurples appropriate pixmap folders (this is optional,
 it will also run without the icons but a full install should include
 them).
-
-Please submit patches of how the makefile should do this in order to
-make it properly work for creating a deban installer (do we need a
-special make target for Debian or does the debian installer use the
-install target?)
