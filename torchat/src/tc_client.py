@@ -519,7 +519,7 @@ class Buddy(object):
             print "(2) not connected, not sending version to %s" % self.address
 
     def getDisplayName(self):
-        if self.name != "":
+        if self.name != "" and self.name != self.address:
             line = "%s (%s)" % (self.name, self.address)
         else:
             line = self.address
