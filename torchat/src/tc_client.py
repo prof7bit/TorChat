@@ -520,7 +520,7 @@ class Buddy(object):
 
     def getDisplayName(self):
         if self.name != "":
-            line = "%s (%s)" % (self.address, self.name)
+            line = "%s (%s)" % (self.name, self.address)
         else:
             line = self.address
         return line
