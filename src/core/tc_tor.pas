@@ -52,6 +52,7 @@ type
     FClient: IClient;
     FClientListenPort: DWord;
     FSocksPort: DWord;
+    FStandaloneTor: Boolean;
     procedure GenerateTorrc;
     procedure StartTorProcess;
     procedure KillIfAlreadyRunning;
@@ -77,7 +78,10 @@ begin
   FClient := AClient;
   FClientListenPort := AClientPort;
   FSocksPort := FClient.Config.TorPort;
-  StartTorProcess;
+  FStandaloneTor := (FClient.Config.GetString('StandaloneTor') = '1') or
+    (FClient.Config.GetString('StandaloneTor') = '"true"');
+  if not FStandaloneTor then
+    StartTorProcess;
 end;
 
 destructor TTor.Destroy;
@@ -259,35 +263,41 @@ var
 const
   OnionLength = 16;
 begin
-  FileName := ConcatPaths([CurrentDirectory, 'hidden_service', 'hostname']);
-  SetLength(Result, OnionLength);
-  try
-    HostnameFile := TFileStream.Create(FileName, fmOpenRead);
-    if HostnameFile.Read(Result[1], OnionLength) < OnionLength then
+  if FStandaloneTor then
+    Result := FClient.Config.GetString('HiddenServiceName')
+  else begin
+    FileName := ConcatPaths([CurrentDirectory, 'hidden_service', 'hostname']);
+    SetLength(Result, OnionLength);
+    try
+      HostnameFile := TFileStream.Create(FileName, fmOpenRead);
+      if HostnameFile.Read(Result[1], OnionLength) < OnionLength then
+        Result := '';
+    except
       Result := '';
-  except
-    Result := '';
+    end;
+    if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
   end;
-  if Assigned(HostnameFile) then FreeAndNil(HostnameFile);
 end;
 
 procedure TTor.CleanShutdown;
 begin
-  {$ifdef unix}
-    FpKill(Handle, SIGINT); // Tor will exit cleanly on SIGINT
-  {$else}
-    {$ifdef windows}
-      // there are no signals in windows, they also forgot to
-      // implement any other mechanism for sending Ctrl-C to
-      // another process. We have to kill it.
-      TerminateProcess(Handle, 0);
-      DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
+  if not FStandaloneTor then begin
+    {$ifdef unix}
+      FpKill(Handle, SIGINT); // Tor will exit cleanly on SIGINT
     {$else}
-      Terminate(0);
-      DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
+      {$ifdef windows}
+        // there are no signals in windows, they also forgot to
+        // implement any other mechanism for sending Ctrl-C to
+        // another process. We have to kill it.
+        TerminateProcess(Handle, 0);
+        DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
+      {$else}
+        Terminate(0);
+        DeleteFile(ConcatPaths([CurrentDirectory, 'tor.pid']));
+      {$endif}
     {$endif}
-  {$endif}
-  RemovePortFromList(FSocksPort);
+    RemovePortFromList(FSocksPort);
+  end;
 end;
 
 end.
