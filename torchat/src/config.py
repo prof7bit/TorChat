@@ -48,6 +48,7 @@ config_defaults = {
     ("gui", "notification_flash_window") : 1,
     ("gui", "open_main_window_hidden") : 0,
     ("gui", "open_chat_window_hidden") : 0,
+    ("gui", "buddies_display_format") : 0,
     ("gui", "time_stamp_format") : "(%H:%M:%S)",
     ("gui", "color_time_stamp") : "#808080",
     ("gui", "color_nick_myself") : "#0000c0",
