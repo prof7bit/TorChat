@@ -520,7 +520,8 @@ class Buddy(object):
 
     def getDisplayName(self):
         if self.name != "" and self.name != self.address:
-            line = "%s (%s)" % (self.name, self.address)
+            display_format = ((self.address, self.name), (self.name, self.address))[config.getint("gui", "buddies_display_format")]
+            line = "%s (%s)" % display_format
         else:
             line = self.address
         return line
