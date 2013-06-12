@@ -80,8 +80,11 @@ class TaskbarIcon(wx.TaskBarIcon):
 
             #bring it to the front
             self.mw.SetFocus()
-            self.mw.SetWindowStyle(self.mw.GetWindowStyle() | wx.STAY_ON_TOP)
-            self.mw.SetWindowStyle(self.mw.GetWindowStyle() & ~wx.STAY_ON_TOP)
+
+            # below is some ugly hack, unfortunately it does not work anymore?
+            # why did I add it in the frst place? I can't remember, remove it for now.
+            #self.mw.SetWindowStyle(self.mw.GetWindowStyle() | wx.STAY_ON_TOP)
+            #self.mw.SetWindowStyle(self.mw.GetWindowStyle() & ~wx.STAY_ON_TOP)
 
     def CreatePopupMenu(self):
         return TaskbarMenu(self.mw)
@@ -535,11 +538,11 @@ class DlgEditProfile(wx.Dialog):
         box_sizer = wx.BoxSizer()
         box_sizer.Add(avatar_sizer, 0, wx.EXPAND | wx.ALL, 5)
         box_sizer.Add(sizer, 1, wx.EXPAND | wx.ALL, 5)
-        
+
         #avatar
         self.avatar = wx.StaticBitmap(self.panel, -1, self.getAvatarBitmap())
         avatar_sizer.Add(self.avatar, 0, wx.EXPAND | wx.ALL, 2)
-        
+
         #avatar buttons
         self.btn_set_avatar = wx.Button(self.panel, -1, lang.DEP_SET_AVATAR)
         avatar_sizer.Add(self.btn_set_avatar, 0, wx.EXPAND | wx.ALL, 2)
@@ -548,7 +551,7 @@ class DlgEditProfile(wx.Dialog):
 
         if not self.mw.buddy_list.own_avatar_data:
             self.btn_remove_avatar.Disable()
-            
+
         #name
         row = 0
         lbl = wx.StaticText(self.panel, -1, lang.DEP_NAME)
@@ -649,7 +652,7 @@ class DlgEditProfile(wx.Dialog):
         self.panel.Refresh()
         self.remove_avatar_on_ok = True
         self.btn_remove_avatar.Disable()
-        
+
     def onAvatar(self, evt):
         title = lang.DEP_AVATAR_SELECT_PNG
         dialog = wx.FileDialog(self, title, style=wx.OPEN)
@@ -677,7 +680,7 @@ class DlgEditProfile(wx.Dialog):
         # or remove it and send an empty avatar if it has been removed
         avatar_old = os.path.join(config.getDataDir(), "avatar.png")
         avatar_new = os.path.join(config.getDataDir(), "avatar_new.png")
-        
+
         if self.remove_avatar_on_ok:
             tc_client.wipeFile(avatar_old)
             tc_client.wipeFile(avatar_new)
@@ -1333,7 +1336,7 @@ class ChatWindow(wx.Frame):
         self.unread = 0
         self.updateTitle()
         evt.Skip()
-        
+
     def onChildFocus(self, evt):
         # no matter which child just got focus, we give
         # it back to the lower text panel since this is the
@@ -1363,12 +1366,12 @@ class ChatWindow(wx.Frame):
 
     def onSend(self, evt):
         text = self.txt_out.GetValue().rstrip().lstrip().replace("\x0b", os.linesep)
-        
+
         if text == "":
             return
-            
+
         self.txt_out.SetValue("")
-        
+
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
             self.buddy.sendChatMessage(text)
             self.writeColored(config.get("gui", "color_nick_myself"),
@@ -1645,11 +1648,11 @@ class FileTransferWindow(wx.Frame):
 
         if self.is_receiver:
             # the first button that is created will have the focus, so
-            # we create the save button first. 
+            # we create the save button first.
             # SetDefault() does not seem to work in a wx.Frame.
             self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, lang.BTN_SAVE_AS)
             self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
-            
+
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
 
@@ -1658,7 +1661,7 @@ class FileTransferWindow(wx.Frame):
             grid_sizer.Add(self.btn_save, (2, 3))
         else:
             grid_sizer.Add(self.btn_cancel, (2, 3))
-                
+
         self.panel.SetSizer(self.outer_sizer)
         self.updateOutput()
         self.outer_sizer.Fit(self)
@@ -1822,7 +1825,7 @@ class MainWindow(wx.Frame):
 
         if not config.getint("gui", "open_main_window_hidden"):
             self.Show()
-            
+
     def setStatus(self, status):
         self.buddy_list.setStatus(status)
         self.taskbar_icon.showStatus(status)
