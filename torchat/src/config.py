@@ -74,27 +74,13 @@ try:
 except:
     CONSOLE_ENC = None
 
-def toUnicode(unknownstr):
-    # some things like sys.argv[] and also functions from os.path
-    # return bytestrings. Since I don't know if this might change
-    # eventually in some future Python version I need something to
-    # decode them only if needed. (I try to decode everything as
-    # soon as possible and only work with unicode everywhere)
-    # Note: it seems none of these strings I have come across so far
-    # was ever encoded in the console encoding, they all seem to use
-    # the locale encoding.
-    if isinstance(unknownstr, str):
-        return unknownstr.decode(LOCALE_ENC)
-    else:
-        return unknownstr
-
 COPYRIGHT = u"Copyright (c) 2007-2011 Bernd Kreuß <prof7bit@googlemail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 240
 KEEPALIVE_INTERVAL = 120
 MAX_UNANSWERED_PINGS = 4
 
-SCRIPT_DIR = os.path.abspath(os.path.dirname(toUnicode(sys.argv[0])))
+SCRIPT_DIR = os.path.abspath(os.path.dirname(unicode(sys.argv[0])))
 ICON_DIR = os.path.join(SCRIPT_DIR, "icons")
 log_writer = None
 cached_data_dir = None
@@ -143,7 +129,7 @@ def getHomeDir():
         ctypes.windll.shell32.SHGetSpecialFolderPathW(None, buf, CSIDL_PERSONAL, 0)
         return buf.value
     else:
-        return toUnicode(os.path.expanduser("~"))
+        return unicode(os.path.expanduser("~"))
 
 def getDataDir():
     global cached_data_dir
@@ -161,12 +147,12 @@ def getDataDir():
         appdata = buf.value
         data_dir = os.path.join(appdata, "torchat")
     else:
-        home = toUnicode(os.path.expanduser("~"))
+        home = unicode(os.path.expanduser("~"))
         data_dir = os.path.join(home, ".torchat")
 
     #test for optional profile name in command line
     try:
-        data_dir += "_" + toUnicode(sys.argv[1])
+        data_dir += "_" + unicode(sys.argv[1])
     except:
         pass
 
@@ -200,7 +186,7 @@ def getDataDir():
 
 def getProfileLongName():
     try:
-        return "%s - %s" % (toUnicode(sys.argv[1]), get("client", "own_hostname"))
+        return "%s - %s" % (unicode(sys.argv[1]), get("client", "own_hostname"))
     except:
         return get("client", "own_hostname")
 
@@ -479,7 +465,7 @@ def main():
     if isPortable():
         print "(0) running in portable mode, all data is kept inside the bin folder."
         if (len(sys.argv) > 1):
-            print "(0) ignoring requested profile '%s' because profiles do not exist in portable mode" % toUnicode(sys.argv[1])
+            print "(0) ignoring requested profile '%s' because profiles do not exist in portable mode" % unicode(sys.argv[1])
 
     print "(0) script directory is %s" % SCRIPT_DIR
     print "(0) data directory is %s" % getDataDir()
