@@ -2,7 +2,7 @@
 
 ##############################################################################
 #                                                                            #
-# Copyright (c) 2007-2010 Bernd Kreuss <prof7bit@gmail.com>                  #
+# Copyright (c) 2007-2013 Bernd Kreuss <prof7bit@gmail.com>                  #
 #                                                                            #
 # This program is licensed under the GNU General Public License V3,          #
 # the full source code is included in the binary distribution.               #
@@ -74,7 +74,7 @@ try:
 except:
     CONSOLE_ENC = None
 
-COPYRIGHT = u"Copyright (c) 2007-2011 Bernd Kreuß <prof7bit@googlemail.com>"
+COPYRIGHT = u"Copyright (c) 2007-2013 Bernd Kreuß <prof7bit@googlemail.com>"
 
 DEAD_CONNECTION_TIMEOUT = 240
 KEEPALIVE_INTERVAL = 120
