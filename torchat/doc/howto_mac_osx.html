@@ -1,0 +1,58 @@
+<h1 id="installation-usage-instructions-for-torchat-on-mac-os-x">Installation / Usage Instructions for TorChat on Mac OS X</h1>
+<p><strong><em>WARNING: THESE INSTRUCTIONS CURRENTLY HAVE BEEN TESTED ONLY ON MAC OS X VERSION 10.8. ALL OTHER VERSIONS USE CAUTION.</em></strong></p>
+<h2 id="download-and-install-tor">Download and Install Tor</h2>
+<p>Unfortunately, TorChat currently requires a <code>tor</code> executable in order to function. This severely complicates the install, as the Tor project tries to helpfully package Tor into a one-stop bundle for browsing the web.</p>
+<p>There are three ways in which to install Tor on Mac OS X: downloading a pre-built image from upstream TorProject, installing through <a href="https://www.macports.org/">MacPorts</a>, or building from upstream TorProject source.</p>
+<h3 id="web-package-download">Web Package Download</h3>
+<p>If you're not running MacPorts (if you don't know what that is, you're not running it), go <a href="https://www.torproject.org/download/download.html.en#apple">here</a> and download either the i686 version (32-bit) or x86_64 (64-bit) version. If you're not sure which one you need, go with the i686 (32-bit) version.</p>
+<p>This will create a file in your downloads folder with a name like <strong>TorBrowser-2.3.25-10-osx-x86_64-en-US.zip</strong>. If it doesn't create an application with a name like <strong>TorBrowser_en-US</strong> as well, double-click on the aforementioned file. An application named <strong>TorBrowser_en-US</strong> should now appear. Move the <strong>TorBrowser_en-US</strong> file into your Applications folder.</p>
+<p>The key to installing this way is that there is a <code>tor</code> executable within the <strong>TorBrowser_en-US</strong> application.</p>
+<h3 id="macports">MacPorts</h3>
+<p>If you already have MacPorts installed, you can simply use the command:</p>
+<pre><code>$ sudo port install tor torsocks</code></pre>
+<p>and Tor will be installed, regardless of platform.</p>
+<p>This method creates a <code>tor</code> executable wherever your MacPorts is set to install to (typically <em>/opt/local/tor</em>).</p>
+<h3 id="building-from-upstream-source">Building from Upstream Source</h3>
+<p>Source can be found <a href="https://www.torproject.org/download/download.html.en#source">here</a>. I recommend using the stable version. Build instructions can also be found in that location.</p>
+<h2 id="download-and-install-python-2.x">Download and Install Python 2.x</h2>
+<p>If you're using Mac OS X 10.8, you're in luck! Python 2.7 comes by default.</p>
+<p>TODO: other versions of Mac OS X. Need at least Python 2.6 for wxPython (unless MacPorts deals with earlier versions).</p>
+<h2 id="download-and-install-wxpython-2.x">Download and Install wxPython 2.x</h2>
+<p>Which wxPython you use will depend on which Python you are using. If you installed Python from MacPorts, you should also install wxPython from MacPorts; if you downloaded a binary of Python or used the built-in Mac OS Python, you should download a binary of wxPython; and if you want to build things from source, follow the instructions below.</p>
+<h3 id="download-a-pre-built-binary">Download a Pre-Built Binary</h3>
+<p>Pre-built binaries can be found <a href="http://wxpython.org/download.php#stable">here</a>. I cannot think of a reason to use the binaries with &quot;ansi&quot; in their names. You should use the version of wxPython appropriate to your Python installation (so, for example, if you're using Python 2.7, you will want the link <strong>wxPython2.8-osx-unicode-py2.7</strong>, or for Python 2.6, you would want <strong>wxPython2.8-osx-unicode-py2.6</strong>).</p>
+<p>When you download the appropriate wxPython, a disk image should be mounted (with a name like <strong>wxPython2.8-osx-unicode-2.8.12.1-universal-py27</strong>). If it is not, check your Downloads folder for a file with name like <strong>wxPython2.8-osx-unicode-2.8.12.1-universal-py2.7.dmg</strong> and double-click it.</p>
+<p>In the disk image, there will be an installer named something like <strong>wxPython2.8-osx-unicode-universal-py2.7.pkg</strong>. Double-click it, and the installer will begin.</p>
+<p>Click &quot;Continue&quot; to begin the installation, read the Software License Agreement (click &quot;Continue&quot;, then &quot;Agree&quot; when done if and only if you agree to abide by it), then click &quot;Install&quot;. (You may be prompted for a password at this point.) When the installation finishes, click &quot;close&quot; on the installer.</p>
+<h3 id="macports-1">MacPorts</h3>
+<p>(TODO: once bug is resolved, write up how to do this)</p>
+<h3 id="building-from-source">Building from Source</h3>
+<p>It's important to note that the benefit here is not from building Python binaries (because Python binaries aren't a thing), but from building wxWidgets from source. Anyway, take a deep breath, reconsider your life choices, and follow the instructions <a href="http://wxpython.org/builddoc.php">here</a>.</p>
+<h2 id="torchat">TorChat</h2>
+<p>For purposes of this guide, we will install torchat-source, which is a source release of TorChat. It is also totally workable to substitute another version from git instead; however, it is assumed that if you do this, you know what you are doing.</p>
+<p>Releases can be downloaded <a href="https://github.com/prof7bit/TorChat/downloads">here</a>. You probably want to download the highest entry whose name resembles <strong>torchat-source-0.9.9.553.zip</strong>.</p>
+<p>This will create a file in your Downloads folder with name something like <strong>torchat-source-0.9.9.553.zip</strong>. If it does not also create a folder with name like <strong>torchat-source-0.9.9.553</strong>, double click on the aforementioned file and it should appear.</p>
+<p>Okay, so now we're going to launch TorChat. Take a deep breath, and let's make a launcher. Open TextEdit (or the text editor of your choice). Ensure the document is plain text by going to the &quot;Format&quot; menu. If you see an option &quot;Make Plain Text&quot;, choose it; otherwise, your document is already plain text so don't select anything. Type the following:</p>
+<pre><code>#!/bin/bash
+PATH=/Applications/TorBrowser_en-US.app/Contents/MacOS:$PATH
+arch -i386 python ~/Downloads/torchat-source-*/src/torchat.py &amp;
+exit</code></pre>
+<p>Be sure to leave a blank line at the end of the file, then save it on the Desktop (or Applications folder or anywhere you like) with a clever name (I like <strong>TorChat Launcher</strong>, myself). When saving, be sure to uncheck the box that says &quot;If no extension is provided, use '.txt'.&quot;, and also ensure that there are no periods ('.') in the name that you save it as.</p>
+<p>Select the file you just made in the finder. Then open <strong>Terminal.app</strong> (it can be found in the <strong>Utilities</strong> folder in your <strong>Applications</strong> folder). Type <code>chmod +x</code> (with a space at the end) and then, <em>before hitting enter</em>, drag your TorChat launcher into the Terminal.app window. Then press the Return key. You should see the icon of your launcher change in the Finder.</p>
+<p>Simply double-click on the launcher to launch TorChat. After a moment, another window will open: your TorChat contact list!</p>
+<h2 id="upgrading-components">Upgrading components</h2>
+<p>All components of the setup we just made are upgradable. Here's how:</p>
+<h3 id="tor">Tor</h3>
+<p>If you installed Tor through the TorBrowser pre-built binary, update as instructed by TorProject. Your TorChat launcher will continue to work.</p>
+<p>If you installed Tor through MacPorts, <code>sudo port upgrade tor torsocks</code> will automatically update you, and your TorChat launcher will continue to work.</p>
+<p>If you built Tor from source, you will need to rebuild and re-install to the same location you did initially in order for the TorChat launcher to continue to work.</p>
+<h3 id="python">Python</h3>
+<p>If you used built-in Python, Python will update through Software Update/App Store. The launcher script will continue to function.</p>
+<p>If you installed Python from MacPorts, <code>sudo port upgrade outdated</code> will automatically update you, and your TorChat launcher will continue to work.</p>
+<p>If you downloaded a pre-built binary of Python, just download and run the appropriate newer installer. As long as it installs to the same location as it did the first time, your TorChat launcher will continue to work.</p>
+<h3 id="wxpython">wxPython</h3>
+<p>If you downloaded a pre-built binary of wxPython, just download and run the appropriate newer installer. As long as it installs to the same location as it did the first time, your TorChat launcher will continue to work.</p>
+<p>If you installed wxPython from MacPorts, <code>sudo port upgrade outdated</code> will automatically update you, and your TorChat launcher will continue to work.</p>
+<p>If you built wxPython from source, you will need to build the new version and install it to the same location you did initially. If you do so, your TorChat launcher will continue to work.</p>
+<h3 id="torchat-1">TorChat</h3>
+<p>When a new TorChat is released, a new torchat-source entry will appear on <a href="https://github.com/prof7bit/TorChat/downloads">the Downloads page</a>. Before downloading, remove the old torchat-source files from your Downloads folder, then follow instructions as if you were installing TorChat above. You do not need to recreate the launcher; it will continue to work.</p>
