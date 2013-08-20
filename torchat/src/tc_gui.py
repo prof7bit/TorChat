@@ -25,10 +25,13 @@ import shutil
 import time
 import subprocess
 import textwrap
+import random
 import version
 import dlg_settings
 import translations
 import tc_notification
+import string
+import array
 lang = translations.lang_en
 tb = config.tb
 tb1 = config.tb1
@@ -1098,6 +1101,12 @@ class StatusSwitch(wx.Button):
 
 
 class ChatWindow(wx.Frame):
+    pings = {}
+	
+    def pid(self, sizestr=6, charstouse=string.ascii_uppercase + string.digits):
+        return ''.join(random.choice(charstouse) for x in range(sizestr))
+
+	
     def __init__(self, main_window, buddy, message="",
                                     hidden=False,
                                     notify_offline_sent=False):
@@ -1329,8 +1338,30 @@ class ChatWindow(wx.Frame):
             name = self.buddy.name
         else:
             name = self.buddy.address
-        self.writeColored(config.get("gui", "color_nick_buddy"), name, message)
-        self.notify(name, message)
+			
+        if message.startswith("/ping ") and len(message) == 12:
+			#This was a triumph
+			#I'm making a note here, huge success
+			#It's hard to overstate my satisfaction
+			randchars = message.split(" ")
+			self.buddy.sendChatMessage("/PONG " + randchars[1])
+			self.writeColored(config.get("gui", "color_actions"), "", "[PING]")
+        elif message.startswith("/PONG") and len(message) == 12:
+            timeg = time.time()
+            randchars = message.split(" ")
+            onetimepid = randchars[1]
+            gtimefdict = self.pings[onetimepid][0]
+            self.pings[onetimepid] = [gtimefdict, timeg]
+            timetotal = self.pings[onetimepid][1] - self.pings[onetimepid][0]
+            #print "Time sent[PING]: " + str(self.pings[onetimepid][0])
+            #print "Time received[PONG]: " + str(self.pings[onetimepid][1])
+            #print "Total Time: " + str(timetotal)
+            #print "Total Time / 2(One msg?)" + str(timetotal / 2)
+            self.buddy.sendChatMessage("[PONG] (" + str(round(timetotal / 2, 2)) + "s)")
+            self.writeColored(config.get("gui", "color_actions"), "", "[PONG] (" + str(round(timetotal / 2, 2)) + "s)")
+        else:
+			self.writeColored(config.get("gui", "color_nick_buddy"), name, message)
+			self.notify(name, message)
 
     def onActivate(self, evt):
         self.unread = 0
@@ -1373,8 +1404,16 @@ class ChatWindow(wx.Frame):
         self.txt_out.SetValue("")
 
         if self.buddy.status not in  [tc_client.STATUS_OFFLINE, tc_client.STATUS_HANDSHAKE]:
-            self.buddy.sendChatMessage(text)
-            self.writeColored(config.get("gui", "color_nick_myself"),
+			if text == "/ping":
+				onetimepid = self.pid()
+				self.buddy.sendChatMessage("/ping " + str(onetimepid))
+				self.pings[onetimepid] = [time.time()]
+				self.writeColored(config.get("gui", "color_actions"),
+                              ",
+                              "[PING]")
+			else:
+				self.buddy.sendChatMessage(text)
+				self.writeColored(config.get("gui", "color_nick_myself"),
                               "myself",
                               text)
         else:
