@@ -44,6 +44,7 @@ import tc_client
 import tc_gui
         
 def main():
+    global app
     print "(2) wxPython version %s" % wx.version()
     #create the mandatory wx application object
     if config.isMac():
@@ -77,4 +78,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        tc_client.stopPortableTor()
+        app.mw.buddy_list.stopPortableTor()

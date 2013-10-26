@@ -30,9 +30,10 @@ import tempfile
 import hashlib
 import config
 import version
+from functools import partial
 
 TORCHAT_PORT = 11009 #do NOT change this.
-TOR_CONFIG = "tor" #the name of the active section in the .ini file
+
 STATUS_OFFLINE = 0
 STATUS_HANDSHAKE = 1
 STATUS_ONLINE = 2
@@ -50,9 +51,6 @@ CB_TYPE_REMOVE = 8
 
 tb = config.tb # the traceback function has moved to config
 tb1 = config.tb1
-tor_pid = None
-tor_proc = None
-tor_timer = None
 
 
 def splitLine(text):
@@ -541,8 +539,12 @@ class BuddyList(object):
     def __init__(self, callback, socket=None):
         print "(1) initializing buddy list"
         self.gui = callback
+        self.tor_pid = None
+        self.tor_proc = None
+        self.tor_timer = None
+        self.tor_config = 'tor'
 
-        startPortableTor()
+        self.startPortableTor()
 
         self.file_sender = {}
         self.file_receiver = {}
@@ -739,11 +741,115 @@ class BuddyList(object):
         connection.buddy.onOutConnectionSuccess()
 
     def stopClient(self):
-        stopPortableTor()
+        self.stopPortableTor()
         for buddy in self.list + self.incoming_buddies:
             buddy.disconnect()
         self.listener.close() #FIXME: does this really work?
 
+    def startPortableTor(self):
+        print "(1) entering function startPortableTor()"
+        old_dir = os.getcwd()
+        print "(1) current working directory is %s" % os.getcwd()
+        try:
+            print "(1) changing working directory"
+            os.chdir(config.getDataDir())
+            os.chdir("Tor")
+            print "(1) current working directory is %s" % os.getcwd()
+            # completely remove all cache files from the previous run
+            #for root, dirs, files in os.walk("tor_data", topdown=False):
+            #    for name in files:
+            #        os.remove(os.path.join(root, name))
+            #    for name in dirs:
+            #        os.rmdir(os.path.join(root, name))
+
+            # now start tor with the supplied config file
+            print "(1) trying to start Tor"
+
+            if config.isWindows():
+                if os.path.exists("tor.exe"):
+                    #start the process without opening a console window
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= 1 #STARTF_USESHOWWINDOW
+                    self.tor_proc = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
+                    self.tor_pid = self.tor_proc.pid
+                else:
+                    print "(1) there is no portable tor.exe"
+                    self.tor_pid = False
+            else:
+                if os.path.exists("tor.sh"):
+                    #let our shell script start a tor instance
+                    os.system("chmod 0700 tor.sh")
+                    self.tor_proc = subprocess.Popen("./tor.sh".split())
+                    self.tor_pid = self.tor_proc.pid
+                    print "(1) tor pid is %i" % self.tor_pid
+                else:
+                    print "(1) there is no Tor starter script (tor.sh)"
+                    self.tor_pid = False
+
+            if self.tor_pid:
+                #tor = subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
+                print "(1) successfully started Tor (pid=%i)" % self.tor_pid
+
+                # we now assume the existence of our hostname file
+                # it WILL be created after the first start
+                # if not, something must be totally wrong.
+                cnt = 0
+                found = False
+                while cnt <= 20:
+                    try:
+                        print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
+                        f = open(os.path.join("hidden_service", "hostname"), "r")
+                        hostname = f.read().rstrip()[:-6]
+                        print "(1) found hostname: %s" % hostname
+                        print "(1) writing own_hostname to torchat.ini"
+                        config.set("client", "own_hostname", hostname)
+                        found = True
+                        f.close()
+                        break
+                    except:
+                        # we wait 20 seconds for the file to appear
+                        time.sleep(1)
+                        cnt += 1
+
+                if not found:
+                    print "(0) very strange: portable tor started but hostname could not be read"
+                    print "(0) will use section [tor] and not [tor_portable]"
+                else:
+                    #in portable mode we run Tor on some non-standard ports:
+                    #so we switch to the other set of config-options
+                    print "(1) switching active config section from [tor] to [tor_portable]"
+                    self.tor_config = "tor_portable"
+                    #start the timer that will periodically check that tor is still running
+                    self.startPortableTorTimer()
+            else:
+                print "(1) no own Tor instance. Settings in [tor] will be used"
+
+        except:
+            print "(1) an error occured while starting tor, see traceback:"
+            tb(1)
+
+        print "(1) changing working directory back to %s" % old_dir
+        os.chdir(old_dir)
+        print "(1) current working directory is %s" % os.getcwd()
+
+    def stopPortableTor(self):
+        if not self.tor_pid:
+            return
+        else:
+            print "(1) tor has pid %i, terminating." % self.tor_pid
+            config.killProcess(self.tor_pid)
+
+    def startPortableTorTimer(self):
+        self.tor_timer = threading.Timer(10,
+                partial(BuddyList.onPortableTorTimer, self))
+        self.tor_timer.start()
+
+    def onPortableTorTimer(self):
+        if self.tor_proc.poll() != None:
+            print "(1) Tor stopped running. Will restart it now"
+            self.startPortableTor()
+        else:
+            self.startPortableTorTimer()
 
 class FileSender(threading.Thread):
     def __init__(self, buddy, file_name, callback):
@@ -1897,8 +2003,8 @@ class OutConnection(threading.Thread):
         try:
             self.socket = socks.socksocket()
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4,
-                                 config.get(TOR_CONFIG, "tor_server"),
-                                 config.getint(TOR_CONFIG, "tor_server_socks_port"))
+                                 config.get(self.bl.tor_config, "tor_server"),
+                                 config.getint(self.bl.tor_config, "tor_server_socks_port"))
             print "(2) trying to connect '%s'" % self.address
             self.socket.connect((str(self.address), TORCHAT_PORT))
             print "(2) connected to %s" % self.address
@@ -2019,111 +2125,3 @@ def tryBindPort(interface, port):
         tb()
         return False
 
-def startPortableTor():
-    print "(1) entering function startPortableTor()"
-    global tor_in, tor_out
-    global TOR_CONFIG
-    global tor_pid
-    global tor_proc
-    old_dir = os.getcwd()
-    print "(1) current working directory is %s" % os.getcwd()
-    try:
-        print "(1) changing working directory"
-        os.chdir(config.getDataDir())
-        os.chdir("Tor")
-        print "(1) current working directory is %s" % os.getcwd()
-        # completely remove all cache files from the previous run
-        #for root, dirs, files in os.walk("tor_data", topdown=False):
-        #    for name in files:
-        #        os.remove(os.path.join(root, name))
-        #    for name in dirs:
-        #        os.rmdir(os.path.join(root, name))
-
-        # now start tor with the supplied config file
-        print "(1) trying to start Tor"
-
-        if config.isWindows():
-            if os.path.exists("tor.exe"):
-                #start the process without opening a console window
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= 1 #STARTF_USESHOWWINDOW
-                tor_proc = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
-                tor_pid = tor_proc.pid
-            else:
-                print "(1) there is no portable tor.exe"
-                tor_pid = False
-        else:
-            if os.path.exists("tor.sh"):
-                #let our shell script start a tor instance
-                os.system("chmod 0700 tor.sh")
-                tor_proc = subprocess.Popen("./tor.sh".split())
-                tor_pid = tor_proc.pid
-                print "(1) tor pid is %i" % tor_pid
-            else:
-                print "(1) there is no Tor starter script (tor.sh)"
-                tor_pid = False
-
-        if tor_pid:
-            #tor = subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
-            print "(1) successfully started Tor (pid=%i)" % tor_pid
-
-            # we now assume the existence of our hostname file
-            # it WILL be created after the first start
-            # if not, something must be totally wrong.
-            cnt = 0
-            found = False
-            while cnt <= 20:
-                try:
-                    print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
-                    f = open(os.path.join("hidden_service", "hostname"), "r")
-                    hostname = f.read().rstrip()[:-6]
-                    print "(1) found hostname: %s" % hostname
-                    print "(1) writing own_hostname to torchat.ini"
-                    config.set("client", "own_hostname", hostname)
-                    found = True
-                    f.close()
-                    break
-                except:
-                    # we wait 20 seconds for the file to appear
-                    time.sleep(1)
-                    cnt += 1
-
-            if not found:
-                print "(0) very strange: portable tor started but hostname could not be read"
-                print "(0) will use section [tor] and not [tor_portable]"
-            else:
-                #in portable mode we run Tor on some non-standard ports:
-                #so we switch to the other set of config-options
-                print "(1) switching active config section from [tor] to [tor_portable]"
-                TOR_CONFIG = "tor_portable"
-                #start the timer that will periodically check that tor is still running
-                startPortableTorTimer()
-        else:
-            print "(1) no own Tor instance. Settings in [tor] will be used"
-
-    except:
-        print "(1) an error occured while starting tor, see traceback:"
-        tb(1)
-
-    print "(1) changing working directory back to %s" % old_dir
-    os.chdir(old_dir)
-    print "(1) current working directory is %s" % os.getcwd()
-
-def stopPortableTor():
-    if not tor_pid:
-        return
-    else:
-        print "(1) tor has pid %i, terminating." % tor_pid
-        config.killProcess(tor_pid)
-
-def startPortableTorTimer():
-    global tor_timer
-    tor_timer = threading.Timer(10, onPortableTorTimer)
-    tor_timer.start()
-
-def onPortableTorTimer():
-    if tor_proc.poll() != None:
-        print "(1) Tor stopped running. Will restart it now"
-        startPortableTor()
-    else:
-        startPortableTorTimer()

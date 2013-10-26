@@ -17,7 +17,6 @@
 import wx
 import dlg
 import config
-import tc_client
 import translations
 lang = translations.lang_en
 
@@ -71,7 +70,7 @@ class Dialog(wx.Dialog):
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_PORT, ("client", "listen_port"))
         self.p1.fit()
         
-        portable = (tc_client.TOR_CONFIG == "tor_portable")
+        portable = (self.mw.buddy_list.tor_config == "tor_portable")
         if portable:
             self.s_tor.setEnabled(False)
         else:
