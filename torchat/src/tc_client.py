@@ -1361,6 +1361,13 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
         if self.buddy:
             print "(2) %s says it can't handle '%s'" % (self.buddy.address, self.offending_command)
 
+def isValidAddress(address):
+    if len(address) <> 16:
+        return False
+    for c in address:
+        if not c in "234567abcdefghijklmnopqrstuvwxyz":  # base32
+            return False
+    return True
 
 class ProtocolMsg_ping(ProtocolMsg):
     """a ping message consists of sender address and a random string (cookie). 
@@ -1370,12 +1377,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         self.address, self.answer = splitLine(self.blob)
 
     def isValidAddress(self):
-        if len(self.address) <> 16:
-            return False
-        for c in self.address:
-            if not c in "234567abcdefghijklmnopqrstuvwxyz":  # base32
-                return False
-        return True
+        return isValidAddress(self.address)
 
     def execute(self):
         print "(2) <<< PING %s" % self.address
@@ -1713,7 +1715,8 @@ class ProtocolMsg_message(ProtocolMsg):
                 if config.get("conference", "enabled"):
                     nick = self.buddy.address
                     if int(config.get("conference", "prefer_nicks")) == 1 \
-                            and self.buddy.profile_name:
+                            and self.buddy.profile_name \
+                            and not isValidAddress(self.buddy.profile_name):
                         nick = self.buddy.profile_name
                     resent_message = '%s: %s' % (nick, self.text)
                     for buddy in self.bl.list:
