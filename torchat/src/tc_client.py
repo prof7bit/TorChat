@@ -30,6 +30,7 @@ import tempfile
 import hashlib
 import config
 import version
+import re
 from functools import partial
 
 TORCHAT_PORT = 11009 #do NOT change this.
@@ -542,9 +543,11 @@ class BuddyList(object):
         self.tor_pid = None
         self.tor_proc = None
         self.tor_timer = None
-        self.tor_config = 'tor'
-
-        self.startPortableTor()
+        self.tor_config = 'tor_portable'
+        self.tor_server_socks_port = config.getint(self.tor_config, "tor_server_socks_port")
+        if self.tor_server_socks_port == 0:
+            interface = config.get("client", "listen_interface")
+            self.tor_server_socks_port = getFreePort(interface)
 
         self.file_sender = {}
         self.file_receiver = {}
@@ -556,6 +559,8 @@ class BuddyList(object):
 
         self.listener = Listener(self, socket)
         self.own_status = STATUS_ONLINE
+
+        self.startPortableTor()
 
         filename = os.path.join(config.getDataDir(), "buddy-list.txt")
 
@@ -755,6 +760,16 @@ class BuddyList(object):
             os.chdir(config.getDataDir())
             os.chdir("Tor")
             print "(1) current working directory is %s" % os.getcwd()
+            torrc = open('torrc.txt').read()
+            torrc = re.sub(r'SocksPort \d+', 'SocksPort %i' %
+                    self.tor_server_socks_port, torrc)
+            print("(0) " +torrc)
+            torrc = re.sub(r'HiddenServicePort %i 127.0.0.1:\d+' % TORCHAT_PORT,
+                    'HiddenServicePort %i 127.0.0.1:%i' %
+                    (TORCHAT_PORT, self.listener.port), torrc)
+            temp_torrc = open('torrc.temp.txt', 'w')
+            temp_torrc.write(torrc)
+            temp_torrc.close()
             # completely remove all cache files from the previous run
             #for root, dirs, files in os.walk("tor_data", topdown=False):
             #    for name in files:
@@ -770,7 +785,7 @@ class BuddyList(object):
                     #start the process without opening a console window
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= 1 #STARTF_USESHOWWINDOW
-                    self.tor_proc = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
+                    self.tor_proc = subprocess.Popen("tor.exe -f torrc.temp.txt".split(), startupinfo=startupinfo)
                     self.tor_pid = self.tor_proc.pid
                 else:
                     print "(1) there is no portable tor.exe"
@@ -2004,7 +2019,7 @@ class OutConnection(threading.Thread):
             self.socket = socks.socksocket()
             self.socket.setproxy(socks.PROXY_TYPE_SOCKS4,
                                  config.get(self.bl.tor_config, "tor_server"),
-                                 config.getint(self.bl.tor_config, "tor_server_socks_port"))
+                                 self.bl.tor_server_socks_port)
             print "(2) trying to connect '%s'" % self.address
             self.socket.connect((str(self.address), TORCHAT_PORT))
             print "(2) connected to %s" % self.address
@@ -2061,16 +2076,17 @@ class Listener(threading.Thread):
         self.buddy_list = buddy_list
         self.conns = []
         self.socket = socket
+        self.port = config.getint("client", "listen_port")
+        if not self.socket:
+            interface = config.get("client", "listen_interface")
+            self.socket = tryBindPort(interface, self.port)
+        self.port = self.socket.getsockname()[1]
+        self.socket.listen(5)
         self.start()
         self.startTimer()
 
     def run(self):
         self.running = True
-        if not self.socket:
-            interface = config.get("client", "listen_interface")
-            port = config.getint("client", "listen_port")
-            self.socket = tryBindPort(interface, port)
-        self.socket.listen(5)
         while self.running:
             try:
                 conn, address = self.socket.accept()
@@ -2088,7 +2104,7 @@ class Listener(threading.Thread):
         try:
             print "(2) closing listening socket %s:%s" \
               % (config.get("client", "listen_interface"),
-                 config.get("client", "listen_port"))
+                 self.port)
             self.socket.close()
             print "(2) success"
         except:
@@ -2121,6 +2137,19 @@ def tryBindPort(interface, port):
         s.bind((interface, port))
         s.listen(5)
         return s
+    except:
+        tb()
+        return False
+
+def getFreePort(interface):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((interface, 0))
+        s.listen(5)
+        port = s.getsockname()[1]
+        s.close()
+        return port
     except:
         tb()
         return False
