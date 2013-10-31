@@ -95,12 +95,19 @@ class Dialog(wx.Dialog):
         self.dir_tmp = dlg.Dir(self.p3, lang.DSET_MISC_TEMP_CUSTOM_DIR, ("files", "temp_files_custom_dir"))
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
         self.chk_tmp.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onChkTmp)
+        self.conference_enabled = dlg.Check(self.p3, lang.DSET_MISC_CONFERENCE_ENABLED, ("conference", "enabled"))
+        self.conference_prefer_nicks = dlg.Check(self.p3, lang.DSET_MISC_CONFERENCE_PREFER_NICKS, ("conference", "prefer_nicks"))
+        self.onConferenceEnabled(None)
+        self.conference_enabled.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onConferenceEnabled)
         
         #4 fit the sizers
         outer_sizer.Fit(self)
         
     def onChkTmp(self, evt):
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
+
+    def onConferenceEnabled(self, evt):
+        self.conference_prefer_nicks.setEnabled(self.conference_enabled.getValue())
         
     def onCancel(self, evt):
         evt.Skip() #let the frame now process the Cancel event

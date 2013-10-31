@@ -66,6 +66,8 @@ config_defaults = {
     ("branding", "support_name") : "Bernd, author of TorChat",
     ("profile", "name") : "",
     ("profile", "text") : "",
+    ("conference", "enabled") : 0,
+    ("conference", "prefer_nicks") : 1,
 }
 
 LOCALE_ENC = locale.getpreferredencoding()
