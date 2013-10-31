@@ -92,7 +92,8 @@ class Control(object):
             return default
     
     def setEnabled(self, enabled):
-        self.wx_label.Enable(enabled)
+        if hasattr(self, 'wx_label'):
+            self.wx_label.Enable(enabled)
         if self.wx_ctrl:
             self.wx_ctrl.Enable(enabled)
             
