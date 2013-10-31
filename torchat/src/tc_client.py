@@ -763,7 +763,6 @@ class BuddyList(object):
             torrc = open('torrc.txt').read()
             torrc = re.sub(r'SocksPort \d+', 'SocksPort %i' %
                     self.tor_server_socks_port, torrc)
-            print("(0) " +torrc)
             torrc = re.sub(r'HiddenServicePort %i 127.0.0.1:\d+' % TORCHAT_PORT,
                     'HiddenServicePort %i 127.0.0.1:%i' %
                     (TORCHAT_PORT, self.listener.port), torrc)
