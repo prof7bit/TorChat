@@ -99,6 +99,8 @@ class Dialog(wx.Dialog):
         self.conference_prefer_nicks = dlg.Check(self.p3, lang.DSET_MISC_CONFERENCE_PREFER_NICKS, ("conference", "prefer_nicks"))
         self.onConferenceEnabled(None)
         self.conference_enabled.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onConferenceEnabled)
+        self.client = dlg.Text(self.p3, lang.DSET_MISC_REPORT_CLIENT, ("client", "reported_client"))
+        self.version = dlg.Text(self.p3, lang.DSET_MISC_REPORT_VERSION, ("client", "reported_version"))
         
         #4 fit the sizers
         outer_sizer.Fit(self)
@@ -113,10 +115,18 @@ class Dialog(wx.Dialog):
         evt.Skip() #let the frame now process the Cancel event
         
     def onOk(self, evt):
+        need_send_ua = False
+        if self.client.getValue() != config.get("client", "reported_client"):
+            need_send_ua = True
+        if self.version.getValue() != config.get("client", "reported_version"):
+            need_send_ua = True
         self.p1.saveAllData()
         self.p2.saveAllData()
         self.p3.saveAllData()
         if self.lang.getValue() != self.lang_old:
             config.importLanguage()
         evt.Skip() #let the frame now process the Ok event
+        if need_send_ua:
+            for buddy in self.mw.buddy_list.list:
+                buddy.sendVersion()
 

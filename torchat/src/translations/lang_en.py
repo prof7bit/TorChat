@@ -139,6 +139,8 @@ DSET_MISC_TEMP_IN_DATA = u"Store temporary files inside data directory"
 DSET_MISC_TEMP_CUSTOM_DIR = u"Temporary directory (leave empty for OS-default)"
 DSET_MISC_CONFERENCE_ENABLED = u"Turn this account into a conference"
 DSET_MISC_CONFERENCE_PREFER_NICKS = u"Show torchat nick if available instead of id to conference members"
+DSET_MISC_REPORT_CLIENT = u"Client reported"
+DSET_MISC_REPORT_VERSION = u"Version reported"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"delayed messages waiting to be sent"

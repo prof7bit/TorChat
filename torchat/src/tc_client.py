@@ -510,9 +510,11 @@ class Buddy(object):
 
     def sendVersion(self):
         if self.isAlreadyPonged():
-            msg = ProtocolMsg_client(self, version.NAME)
+            client = config.get("client", "reported_client").encode('UTF-8')
+            msg = ProtocolMsg_client(self, client)
             msg.send()
-            msg = ProtocolMsg_version(self, version.VERSION)
+            version = config.get("client", "reported_version").encode('UTF-8')
+            msg = ProtocolMsg_version(self, version)
             msg.send()
         else:
             print "(2) not connected, not sending version to %s" % self.address
@@ -1548,7 +1550,7 @@ class ProtocolMsg_pong(ProtocolMsg):
 class ProtocolMsg_client(ProtocolMsg):
     """transmits the name of the client software. Usually sent after the pong"""
     def parse(self):
-        self.client = self.blob
+        self.client = self.blob.decode('UTF-8')
 
     def execute(self):
         if self.buddy:
@@ -1559,7 +1561,7 @@ class ProtocolMsg_client(ProtocolMsg):
 class ProtocolMsg_version(ProtocolMsg):
     """transmits the version number of the client software. Usually sent after the 'client' message"""
     def parse(self):
-        self.version = self.blob
+        self.version = self.blob.decode('UTF-8')
 
     def execute(self):
         if self.buddy:
