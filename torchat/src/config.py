@@ -71,6 +71,7 @@ config_defaults = {
     ("profile", "text") : "",
     ("conference", "enabled") : 0,
     ("conference", "prefer_nicks") : 1,
+    ("plugin", "enabled_plugins") : '',
 }
 
 LOCALE_ENC = locale.getpreferredencoding()

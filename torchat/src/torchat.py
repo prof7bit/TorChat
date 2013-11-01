@@ -40,9 +40,54 @@ else:
 
 import wx
 import os
+import sys
+import imp
+
 import tc_client
 import tc_gui
-        
+import dlg
+import dlg_settings
+
+CORE_MODULES = ('config', 'dlg', 'dlg_settings', 'tc_client', 'tc_gui')
+# translations are not restored, plugins should not change old members
+ORIG_MEMBERS = {}
+for module in CORE_MODULES:
+    ORIG_MEMBERS[module] = dict(vars(__import__(module)))
+
+def restore_orig_members():
+    for module in CORE_MODULES:
+        vars(__import__(module)).update(ORIG_MEMBERS[module])
+
+plugins = {} # shortname to python modules
+# plugin module must have NAME member (string, long name)
+# plugin module must have load(torchat) member, torchat is this module
+# plugin module should have NAME_<LANG> with translation of name
+# plugins are searched in app's plugins/ dir and in getDataDir()/plugins
+# plugins with same name in getDataDir()/plugins win over app's plugins/ dir
+plugins_parent_dirs = []
+try:
+    plugins_parent_dirs.append(os.path.dirname(__file__))
+except:
+    pass
+plugins_parent_dirs.append(config.getDataDir())
+for plugins_parent_dir in plugins_parent_dirs:
+    plugins_dir = os.path.join(plugins_parent_dir, 'plugins')
+    if os.path.exists(plugins_dir):
+        for plugin_file in os.listdir(plugins_dir):
+            if plugin_file.endswith('.py'):
+                plugin_name = plugin_file[:-3]
+                plugin_path = os.path.join(plugins_dir, plugin_file)
+                plugins[plugin_name] = imp.load_source(plugin_name, plugin_path)
+
+def reload_plugins():
+    restore_orig_members()
+    enabled_plugins = config.get('plugin', 'enabled_plugins').split(',')
+    for plugin_name in enabled_plugins:
+        if plugin_name in plugins:
+            plugins[plugin_name].load(sys.modules[__name__])
+
+reload_plugins()
+
 def main():
     global app
     print "(2) wxPython version %s" % wx.version()
