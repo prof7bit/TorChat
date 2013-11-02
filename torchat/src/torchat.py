@@ -79,6 +79,7 @@ for plugins_parent_dir in plugins_parent_dirs:
                         dscr = getattr(PLUGINS[plugin_name], 'NAME_' + xx)
                         var_name = 'DSET_PLUGIN_' + plugin_name.upper()
                         setattr(TRANSLATIONS[xx], var_name, dscr)
+                config.importLanguage()
 
 def load_plugins():
     enabled_plugins = config.get('plugin', 'enabled_plugins').split(',')
