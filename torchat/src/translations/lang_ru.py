@@ -136,6 +136,7 @@ DSET_GUI_FLASH_WINDOW = u"Мигать заголовком окна при по
 DSET_MISC_TITLE = u"Разное"
 DSET_MISC_TEMP_IN_DATA = u"Хранить временные файлы внутри папки с программой"
 DSET_MISC_TEMP_CUSTOM_DIR = u"Папка для временных файлов (оставьте пустой для папки по-умолчанию)"
+DSET_PLUGINS_TITLE = u"Плагины"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"отложенные сообщения ждут отправки"
