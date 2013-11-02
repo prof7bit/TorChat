@@ -42,7 +42,6 @@ import wx
 import re
 import os
 import sys
-import imp
 
 import tc_client
 import tc_gui
@@ -66,15 +65,15 @@ PLUGINS = {} # shortname to python modules
 # plugin module should have NAME_<LANG> with translation of name
 # plugins are searched in app's plugins/ dir and in getDataDir()/plugins
 # plugins with same name in getDataDir()/plugins win over app's plugins/ dir
-plugins_parent_dirs = [os.path.dirname(__file__), config.getDataDir()]
+plugins_parent_dirs = [config.getDataDir(), os.path.dirname(__file__)]
 for plugins_parent_dir in plugins_parent_dirs:
     plugins_dir = os.path.join(plugins_parent_dir, 'plugins')
     if os.path.exists(plugins_dir):
+        sys.path.append(plugins_dir)
         for plugin_file in os.listdir(plugins_dir):
             if plugin_file.endswith('.py'):
                 plugin_name = plugin_file[:-3]
-                plugin_path = os.path.join(plugins_dir, plugin_file)
-                PLUGINS[plugin_name] = imp.load_source(plugin_name, plugin_path)
+                PLUGINS[plugin_name] = __import__(plugin_name)
                 for xx in TRANSLATIONS:
                     if hasattr(PLUGINS[plugin_name], 'NAME_' + xx):
                         dscr = getattr(PLUGINS[plugin_name], 'NAME_' + xx)
