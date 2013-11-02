@@ -1714,16 +1714,6 @@ class ProtocolMsg_message(ProtocolMsg):
         if self.buddy:
             if self.buddy in self.bl.list:
                 self.buddy.onChatMessage(self.text)
-                if config.get("conference", "enabled"):
-                    nick = self.buddy.address
-                    if int(config.get("conference", "prefer_nicks")) == 1 \
-                            and self.buddy.profile_name \
-                            and not isValidAddress(self.buddy.profile_name):
-                        nick = self.buddy.profile_name
-                    resent_message = '%s: %s' % (nick, self.text)
-                    for buddy in self.bl.list:
-                        if buddy != self.buddy and buddy != self.bl.own_buddy:
-                            buddy.sendChatMessage(resent_message)
             else:
                 print "(1) ***** protocol violation reply to %s" % self.buddy.address
                 msg = "This is an automatic reply."
