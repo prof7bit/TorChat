@@ -168,13 +168,13 @@ def load(torchat):
     def do_ignore(me, nick):
         buddy = buddy_from_nick(nick, me)
         if buddy:
-            ignore(buddy, me)
+            ignore(buddy.address, me.address)
         else:
             me.sendChatMessage('[room] Unknown nick')
     def do_unignore(me, nick):
         buddy = buddy_from_nick(nick, me)
         if buddy:
-            unignore(buddy, me)
+            unignore(buddy.address, me.address)
         else:
             me.sendChatMessage('[room] Unknown nick')
     def do_pm(me, argument):
@@ -186,7 +186,7 @@ def load(torchat):
         if not dest:
             me.sendChatMessage('[room] Unknown nick')
             return
-        if is_ignored(me, dest):
+        if is_ignored(me.address, dest.address):
             me.sendChatMessage('[room] Buddy ignores you')
             return
         my_nick = nick_repr(me, is_moder(dest.address))
@@ -321,6 +321,8 @@ def load(torchat):
                 continue
             if me == buddy_list().own_buddy \
                     and text.startswith('[room]'):
+                continue
+            if is_ignored(me.address, buddy.address):
                 continue
             sender_nick = nick_repr(me, is_moder(buddy.address))
             resent_message = '%s: %s' % (sender_nick, text)
