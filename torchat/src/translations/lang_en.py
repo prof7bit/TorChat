@@ -141,6 +141,7 @@ DSET_MISC_CONFERENCE_ENABLED = u"Turn this account into a conference"
 DSET_MISC_CONFERENCE_PREFER_NICKS = u"Show torchat nick if available instead of id to conference members"
 DSET_MISC_REPORT_CLIENT = u"Client reported"
 DSET_MISC_REPORT_VERSION = u"Version reported"
+DSET_PLUGINS_TITLE = u"Plugins"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"delayed messages waiting to be sent"

@@ -101,7 +101,18 @@ class Dialog(wx.Dialog):
         self.conference_enabled.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onConferenceEnabled)
         self.client = dlg.Text(self.p3, lang.DSET_MISC_REPORT_CLIENT, ("client", "reported_client"))
         self.version = dlg.Text(self.p3, lang.DSET_MISC_REPORT_VERSION, ("client", "reported_version"))
-        
+
+        #3.4 plugins
+        self.p4 = dlg.Panel(self.notebook)
+        self.notebook.AddPage(self.p4, lang.DSET_PLUGINS_TITLE)
+        self.plugins = {}
+        enabled_plugins = set(config.get('plugin', 'enabled_plugins').split(','))
+        import torchat
+        for plugin_name in torchat.PLUGINS:
+            plugin_dscr = getattr(lang, 'DSET_PLUGIN_' + plugin_name.upper())
+            enabled = int(bool(plugin_name in enabled_plugins))
+            self.plugins[plugin_name] = dlg.Check(self.p4, plugin_dscr, enabled)
+
         #4 fit the sizers
         outer_sizer.Fit(self)
         
@@ -123,6 +134,13 @@ class Dialog(wx.Dialog):
         self.p1.saveAllData()
         self.p2.saveAllData()
         self.p3.saveAllData()
+        #enabled_plugins = set(config.get('plugin', 'enabled_plugins').split(','))
+        import torchat
+        enabled_plugins = []
+        for plugin_name in torchat.PLUGINS:
+            if self.plugins[plugin_name].getValue():
+                enabled_plugins.append(plugin_name)
+        config.set('plugin', 'enabled_plugins', ','.join(enabled_plugins))
         if self.lang.getValue() != self.lang_old:
             config.importLanguage()
         evt.Skip() #let the frame now process the Ok event
