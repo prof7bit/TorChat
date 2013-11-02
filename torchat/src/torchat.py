@@ -81,12 +81,14 @@ for plugins_parent_dir in plugins_parent_dirs:
                         var_name = 'DSET_PLUGIN_' + plugin_name.upper()
                         setattr(TRANSLATIONS[xx], var_name, dscr)
 
-enabled_plugins = config.get('plugin', 'enabled_plugins').split(',')
-for plugin_name in enabled_plugins:
-    if plugin_name in PLUGINS:
-        PLUGINS[plugin_name].load(sys.modules[__name__])
+def load_plugins():
+    enabled_plugins = config.get('plugin', 'enabled_plugins').split(',')
+    for plugin_name in enabled_plugins:
+        if plugin_name in PLUGINS:
+            PLUGINS[plugin_name].load(sys.modules[__name__])
 
 def main():
+    load_plugins()
     global app
     print "(2) wxPython version %s" % wx.version()
     #create the mandatory wx application object
