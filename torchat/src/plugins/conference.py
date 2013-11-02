@@ -323,7 +323,7 @@ def load(torchat):
             if buddy == buddy_list().own_buddy:
                 continue
             if me == buddy_list().own_buddy \
-                    and text.startswith('[room]'):
+                    and text.startswith('['): # [room] [delayed] [private] etc
                 continue
             if is_ignored(me.address, buddy.address):
                 continue
