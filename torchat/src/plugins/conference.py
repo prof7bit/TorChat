@@ -111,12 +111,11 @@ def load(torchat):
     def unignore(who, bywho):
         ignored.pop(('%s-%s' % (who, bywho)), None)
         set_option("ignored", json.dumps(ignored))
-    def role_can(role, action):
-        return role in ROLES and action in ROLES[role]
     def is_moder(torchat_id):
         return role_of(torchat_id) in ('moder', 'admin', 'owner')
     def can(torchat_id, action):
-        return role_can(role_of(torchat_id), action)
+        role = role_of(torchat_id)
+        return role in ROLES and action in ROLES[role]
     def buddy_from_nick(nick, me):
         if nick == 'me':
             return me
@@ -140,8 +139,6 @@ def load(torchat):
         if get('list_status') and buddy.status != torchat.tc_client.STATUS_ONLINE:
             nick += ' [%s]' % sstatus(buddy.status)
         return nick
-    def send_help(buddy, buddy_role):
-        buddy.sendChatMessage(HELP[buddy_role])
     def announce(text, moder):
         text = '[room] %s' % text
         for buddy in buddy_list().list:
@@ -157,192 +154,202 @@ def load(torchat):
     def splitLine(line):
         return torchat.tc_client.splitLine(line)
 
+    def do_help(me, _):
+        me.sendChatMessage(HELP[role_of(me.address)])
+    def do_list(me, _):
+        list_for_moder = can(me.address, 'list_for_moder')
+        if int(get('allow_list')) != 1 and not list_for_moder:
+            me.sendChatMessage('[room] Action not allowed')
+            return
+        nicks = []
+        for buddy in buddy_list().list:
+            nicks.append(nick_repr(buddy, list_for_moder))
+        me.sendChatMessage('[room]\n' + '\n'.join(nicks))
+    def do_ignore(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if buddy:
+            ignore(buddy, me)
+        else:
+            me.sendChatMessage('[room] Unknown nick')
+    def do_unignore(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if buddy:
+            unignore(buddy, me)
+        else:
+            me.sendChatMessage('[room] Unknown nick')
+    def do_pm(me, argument):
+        if int(get('allow_pm')) != 1:
+            me.sendChatMessage('[room] Private messages disabled')
+            return
+        dest, message = splitLine(argument)
+        dest = buddy_from_nick(dest, me)
+        if not dest:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        if is_ignored(me, dest):
+            me.sendChatMessage('[room] Buddy ignores you')
+            return
+        my_nick = nick_repr(me, is_moder(dest.address))
+        dest.sendChatMessage('[private] %s: %s' % (my_nick, message))
+    def do_mute(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if not buddy:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        if role_of(buddy.address) != 'user':
+            me.sendChatMessage('[room] You can mute only users')
+            return
+        set_role(buddy.address, 'guest')
+        announce('%s muted %s' % (nick_repr(me), nick_repr(buddy)), True)
+    def do_unmute(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if not buddy:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        if role_of(buddy.address) not in ('nobody', 'guest'):
+            me.sendChatMessage('[room] You can unmute nobody,guest')
+            return
+        announce('%s unmuted %s' % (nick_repr(me), nick_repr(buddy)), True)
+        set_role(buddy.address, 'user')
+    def do_kick(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if not buddy:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        if role_of(buddy.address) not in ('nobody', 'guest', 'user'):
+            me.sendChatMessage('[room] You can kick nobody,guest,user')
+            return
+        buddy_list().removeBuddy(buddy, disconnect=False)
+        announce('%s kicked %s' % (nick_repr(me), nick_repr(buddy)), True)
+    def do_invite(me, address):
+        if not torchat.tc_client.isValidAddress(address):
+            me.sendChatMessage('[room] Bad address')
+            return
+        buddy = buddy_from_nick(address, me)
+        if buddy:
+            me.sendChatMessage('[room] Already in room')
+            return
+        buddy = torchat.tc_client.Buddy(address, buddy_list(), '')
+        buddy_list().addBuddy(buddy)
+        announce('%s invited %s' % (nick_repr(me), address), True)
+    def do_ban(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if not buddy:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        if role_of(buddy.address) not in ('nobody', 'guest', 'user'):
+            me.sendChatMessage('[room] You can ban nobody,guest,user')
+            return
+        ban_list = json.loads(torchat.config.get("ban", 'list'))
+        ban_list[buddy.address] = 1
+        torchat.config.set("ban", 'list', json.dumps(ban_list))
+        buddy_list().removeBuddy(buddy, disconnect=False)
+        announce('%s banned %s' % (nick_repr(me), nick_repr(buddy)), True)
+    def do_unban(me, address):
+        announce('%s unbanned %s' % (nick_repr(me), address), True)
+        ban_list = json.loads(torchat.config.get("ban", 'list'))
+        ban_list.pop(address, None)
+        torchat.config.set("ban", 'list', json.dumps(ban_list))
+    def do_topic(me, topic):
+        torchat.config.set("profile", "name", topic)
+        for buddy in buddy_list().list:
+            buddy.sendProfile()
+        announce('%s changed the topic to %s' % (nick_repr(me), topic), True)
+    def do_description(me, topic):
+        torchat.config.set("profile", "text", topic)
+        for buddy in buddy_list().list:
+            buddy.sendProfile()
+        announce('%s changed the description to %s' % (nick_repr(me), topic), True)
+    def do_set_avatar(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if not buddy:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        alpha = buddy.profile_avatar_data_alpha
+        avatar = buddy.profile_avatar_data
+        buddy_list().own_avatar_data_alpha = alpha
+        buddy_list().own_avatar_data = avatar
+        file_name = os.path.join(torchat.config.getDataDir(), "avatar.png")
+        if not avatar:
+            torchat.tc_client.wipeFile(file_name)
+        else:
+            image = wx.ImageFromData(64, 64, avatar)
+            if alpha:
+                image.SetAlphaData(alpha)
+            image.SaveFile(file_name, wx.BITMAP_TYPE_PNG)
+        for buddy in buddy_list().list:
+            buddy.sendAvatar(send_empty=True)
+        announce('%s changed image of the room' % nick_repr(me), True)
+    def do_role(me, argument):
+        arg1, arg2 = splitLine(argument)
+        if arg2:
+            # set
+            new_role, nick = arg1, arg2
+            buddy = buddy_from_nick(nick, me)
+            if not buddy:
+                me.sendChatMessage('[room] Unknown nick')
+                return
+            if role_of(buddy.address) in ('admin', 'owner'):
+                me.sendChatMessage('[room] Can not change role of admin,owner')
+                return
+            if new_role not in ('nobody', 'guest', 'user', 'moder'):
+                me.sendChatMessage('[room] Can change role to nobody,guest,user,moder')
+                return
+            set_role(buddy.address, new_role)
+            announce('%s set role of %s to %s' %
+                    (nick_repr(me), nick_repr(buddy), new_role), True)
+        else :
+            # get
+            nick = arg1
+            buddy = buddy_from_nick(nick, me)
+            if not buddy:
+                me.sendChatMessage('[room] Unknown nick')
+                return
+            me.sendChatMessage('[room] role(%s)=%s' %
+                    (nick, role_of(buddy.address)))
+    # TODO admin settings
+    def resend(me, text):
+        if not can(me.address, 'write'):
+            me.sendChatMessage('[room] You can not send messages')
+            return
+        for buddy in buddy_list().list:
+            if not can(buddy.address, 'read'):
+                continue
+            if buddy == me:
+                continue
+            if buddy == buddy_list().own_buddy:
+                continue
+            if me == buddy_list().own_buddy \
+                    and text.startswith('[room]'):
+                continue
+            sender_nick = nick_repr(me, is_moder(buddy.address))
+            resent_message = '%s: %s' % (sender_nick, text)
+            buddy.sendChatMessage(resent_message)
+
+    load_vars = vars()
+
     def execute(self):
         goood_message = self.buddy and self.buddy in self.bl.list
         if int(get("no_gui")) == 0 or not goood_message:
             _execute(self)
         if goood_message:
             me = self.buddy
-            my_address = me.address
-            my_role = role_of(my_address)
             if self.text.startswith('!'):
                 command, argument = splitLine(self.text)
                 command = command[1:] # pop "!"
-                if not role_can(my_role, command):
+                if not can(me.address, command):
                     me.sendChatMessage('[room] Action not allowed')
                     return
-                if command == 'help':
-                    send_help(me, my_role)
-                if command == 'list':
-                    list_for_moder = role_can(my_role, 'list_for_moder')
-                    if int(get('allow_list')) != 1 and not list_for_moder:
-                        me.sendChatMessage('[room] Action not allowed')
-                        return
-                    nicks = []
-                    for buddy in self.bl.list:
-                        nicks.append(nick_repr(buddy, list_for_moder))
-                    self.buddy.sendChatMessage('[room]\n' + '\n'.join(nicks))
-                if command == 'ignore':
-                    buddy = buddy_from_nick(argument, me)
-                    if buddy:
-                        ignore(buddy, me)
-                    else:
-                        me.sendChatMessage('[room] Unknown nick')
-                if command == 'unignore':
-                    buddy = buddy_from_nick(argument, me)
-                    if buddy:
-                        unignore(buddy, me)
-                    else:
-                        me.sendChatMessage('[room] Unknown nick')
-                if command == 'pm':
-                    if int(get('allow_pm')) != 1:
-                        me.sendChatMessage('[room] Private messages disabled')
-                        return
-                    dest, message = splitLine(argument)
-                    dest = buddy_from_nick(dest, me)
-                    if not dest:
-                        me.sendChatMessage('[room] Unknown nick')
-                        return
-                    if is_ignored(me, dest):
-                        me.sendChatMessage('[room] Buddy ignores you')
-                        return
-                    my_nick = nick_repr(me, is_moder(dest.address))
-                    dest.sendChatMessage('[private] %s: %s' % (my_nick, message))
-                if command == 'mute':
-                    buddy = buddy_from_nick(argument, me)
-                    if not buddy:
-                        me.sendChatMessage('[room] Unknown nick')
-                        return
-                    if role_of(argument) != 'user':
-                        me.sendChatMessage('[room] You can mute only users')
-                        return
-                    set_role(argument, 'guest')
-                    announce('%s muted %s' % (nick_repr(me), nick_repr(buddy)), True)
-                if command == 'unmute':
-                    buddy = buddy_from_nick(argument, me)
-                    if not buddy:
-                        me.sendChatMessage('[room] Unknown nick')
-                        return
-                    if role_of(argument) not in ('nobody', 'guest'):
-                        me.sendChatMessage('[room] You can unmute nobody,guest')
-                        return
-                    announce('%s unmuted %s' % (nick_repr(me), nick_repr(buddy)), True)
-                    set_role(argument, 'user')
-                if command == 'kick':
-                    buddy = buddy_from_nick(argument, me)
-                    if not buddy:
-                        me.sendChatMessage('[room] Unknown nick')
-                        return
-                    if role_of(argument) not in ('nobody', 'guest', 'user'):
-                        me.sendChatMessage('[room] You can kick nobody,guest,user')
-                        return
-                    buddy_list().removeBuddy(buddy, disconnect=False)
-                    announce('%s kicked %s' % (nick_repr(me), nick_repr(buddy)), True)
-                if command == 'invite':
-                    if not torchat.tc_client.isValidAddress(argument):
-                        me.sendChatMessage('[room] Bad address')
-                        return
-                    buddy = buddy_from_nick(argument, me)
-                    if buddy:
-                        me.sendChatMessage('[room] Already in room')
-                        return
-                    buddy = torchat.tc_client.Buddy(argument, buddy_list(), '')
-                    self.bl.addBuddy(buddy)
-                    announce('%s invited %s' % (nick_repr(me), argument), True)
-                if command == 'ban':
-                    buddy = buddy_from_nick(argument, me)
-                    if not buddy:
-                        me.sendChatMessage('[room] Unknown nick')
-                        return
-                    if role_of(argument) not in ('nobody', 'guest', 'user'):
-                        me.sendChatMessage('[room] You can ban nobody,guest,user')
-                        return
-                    ban_list = json.loads(torchat.config.get("ban", 'list'))
-                    ban_list[buddy.address] = 1
-                    torchat.config.set("ban", 'list', json.dumps(ban_list))
-                    buddy_list().removeBuddy(buddy, disconnect=False)
-                    announce('%s banned %s' % (nick_repr(me), nick_repr(buddy)), True)
-                if command == 'unban':
-                    announce('%s unbanned %s' % (nick_repr(me), argument), True)
-                    ban_list = json.loads(torchat.config.get("ban", 'list'))
-                    ban_list.pop(argument, None)
-                    torchat.config.set("ban", 'list', json.dumps(ban_list))
-                if command == 'topic':
-                    torchat.config.set("profile", "name", argument)
-                    for buddy in buddy_list().list:
-                        buddy.sendProfile()
-                    announce('%s changed the topic to %s' % (nick_repr(me), argument), True)
-                if command == 'description':
-                    torchat.config.set("profile", "text", argument)
-                    for buddy in buddy_list().list:
-                        buddy.sendProfile()
-                    announce('%s changed the description to %s' % (nick_repr(me), argument), True)
-                if command == 'set_avatar':
-                    buddy = buddy_from_nick(argument, me)
-                    if not buddy:
-                        me.sendChatMessage('[room] Unknown nick')
-                        return
-                    alpha = buddy.profile_avatar_data_alpha
-                    avatar = buddy.profile_avatar_data
-                    buddy_list().own_avatar_data_alpha = alpha
-                    buddy_list().own_avatar_data = avatar
-                    file_name = os.path.join(torchat.config.getDataDir(), "avatar.png")
-                    if not avatar:
-                        torchat.tc_client.wipeFile(file_name)
-                    else:
-                        image = wx.ImageFromData(64, 64, avatar)
-                        if alpha:
-                            image.SetAlphaData(alpha)
-                        image.SaveFile(file_name, wx.BITMAP_TYPE_PNG)
-                    for buddy in buddy_list().list:
-                        buddy.sendAvatar(send_empty=True)
-                    announce('%s changed image of the room' % nick_repr(me), True)
-                if command == 'role':
-                    arg1, arg2 = splitLine(argument)
-                    if arg2:
-                        # set
-                        new_role, nick = arg1, arg2
-                        buddy = buddy_from_nick(nick, me)
-                        if not buddy:
-                            me.sendChatMessage('[room] Unknown nick')
-                            return
-                        if role_of(buddy.address) in ('admin', 'owner'):
-                            me.sendChatMessage('[room] Can not change role of admin,owner')
-                            return
-                        if new_role not in ('nobody', 'guest', 'user', 'moder'):
-                            me.sendChatMessage('[room] Can change role to nobody,guest,user,moder')
-                            return
-                        set_role(buddy.address, new_role)
-                        announce('%s set role of %s to %s' %
-                                (nick_repr(me), nick_repr(buddy), new_role), True)
-                    else :
-                        # get
-                        nick = arg1
-                        buddy = buddy_from_nick(nick, me)
-                        if not buddy:
-                            me.sendChatMessage('[room] Unknown nick')
-                            return
-                        me.sendChatMessage('[room] role(%s)=%s' %
-                                (nick, role_of(buddy.address)))
-                # TODO admin settings
-            else:
-                if not role_can(my_role, 'write'):
-                    self.buddy.sendChatMessage('[room] You can not send messages')
+                func_name = "do_%s" % command
+                if func_name in load_vars:
+                    func = load_vars[func_name]
+                    func(me, argument)
+                else:
+                    me.sendChatMessage('[room] Not implemented')
                     return
+            else:
                 # resend message
-                for buddy in self.bl.list:
-                    if not can(buddy.address, 'read'):
-                        continue
-                    if buddy == self.buddy:
-                        continue
-                    if buddy == self.bl.own_buddy:
-                        continue
-                    if self.buddy == self.bl.own_buddy \
-                            and self.text.startswith('[room]'):
-                        continue
-                    sender_nick = nick_repr(self.buddy, is_moder(buddy.address))
-                    resent_message = '%s: %s' % (sender_nick, self.text)
-                    buddy.sendChatMessage(resent_message)
+                resend(me, self.text)
     torchat.tc_client.ProtocolMsg_message.execute = execute
 
     torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_PREFER_NICKS = \
