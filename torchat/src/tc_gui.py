@@ -913,12 +913,16 @@ class BuddyList(wx.ListCtrl):
     def onBuddyAvatarChanged(self, buddy):
         print "(2) converting %s avatar data into wx.Bitmap" % buddy.address
         try:
-            image = wx.ImageFromData(64, 64, buddy.profile_avatar_data)
-            if buddy.profile_avatar_data_alpha:
-                print "(2) %s avatar has alpha channel" % buddy.address
-                image.SetAlphaData(buddy.profile_avatar_data_alpha)
-            buddy.profile_avatar_object = wx.BitmapFromImage(image)
-
+            if buddy.profile_avatar_data:
+                image = wx.ImageFromData(64, 64, buddy.profile_avatar_data)
+                if buddy.profile_avatar_data_alpha:
+                    print "(2) %s avatar has alpha channel" % buddy.address
+                    image.SetAlphaData(buddy.profile_avatar_data_alpha)
+                buddy.profile_avatar_object = wx.BitmapFromImage(image)
+            else:
+                torchat_png = os.path.join(config.ICON_DIR, "torchat.png")
+                bitmap = wx.Bitmap(torchat_png, wx.BITMAP_TYPE_PNG)
+                buddy.profile_avatar_object = bitmap
         except:
             print "(2)  could not convert %s avatar data to wx.Bitmap" % buddy.address
             tb()
