@@ -168,7 +168,10 @@ def load(torchat):
     def do_ignore(me, nick):
         buddy = buddy_from_nick(nick, me)
         if buddy:
-            ignore(buddy.address, me.address)
+            if is_moder(buddy.address):
+                me.sendChatMessage('[room] Can not ignore moderator')
+            else:
+                ignore(buddy.address, me.address)
         else:
             me.sendChatMessage('[room] Unknown nick')
     def do_unignore(me, nick):
