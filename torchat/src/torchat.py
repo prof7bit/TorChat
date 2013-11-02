@@ -50,16 +50,6 @@ import dlg
 import dlg_settings
 import translations
 
-CORE_MODULES = ('config', 'dlg', 'dlg_settings', 'tc_client', 'tc_gui')
-# translations are not restored, plugins should not change old members
-ORIG_MEMBERS = {}
-for module in CORE_MODULES:
-    ORIG_MEMBERS[module] = dict(vars(__import__(module)))
-
-def restore_orig_members():
-    for module in CORE_MODULES:
-        vars(__import__(module)).update(ORIG_MEMBERS[module])
-
 # xx to module
 TRANSLATIONS = {}
 translations_dir = os.path.join(os.path.dirname(__file__), 'translations')
@@ -91,14 +81,10 @@ for plugins_parent_dir in plugins_parent_dirs:
                         var_name = 'DSET_PLUGIN_' + plugin_name.upper()
                         setattr(TRANSLATIONS[xx], var_name, dscr)
 
-def reload_plugins():
-    restore_orig_members()
-    enabled_plugins = config.get('plugin', 'enabled_plugins').split(',')
-    for plugin_name in enabled_plugins:
-        if plugin_name in PLUGINS:
-            PLUGINS[plugin_name].load(sys.modules[__name__])
-
-reload_plugins()
+enabled_plugins = config.get('plugin', 'enabled_plugins').split(',')
+for plugin_name in enabled_plugins:
+    if plugin_name in PLUGINS:
+        PLUGINS[plugin_name].load(sys.modules[__name__])
 
 def main():
     global app
