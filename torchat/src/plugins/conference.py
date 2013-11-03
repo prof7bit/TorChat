@@ -477,6 +477,14 @@ def load(torchat):
             self.buddy.sendChatMessage('[room] Enter password, please')
     torchat.tc_client.ProtocolMsg_add_me.execute = add_me_execute
 
+    _remove_me_execute = torchat.tc_client.ProtocolMsg_remove_me.execute
+    def remove_me_execute(self):
+        user_left = self.buddy and self.buddy in buddy_list().list
+        nick = nick_repr(self.buddy)
+        _remove_me_execute(self)
+        announce('%s left room' % nick, False)
+    torchat.tc_client.ProtocolMsg_remove_me.execute = remove_me_execute
+
     torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_PREFER_NICKS = \
             u'Show torchat nick if available instead of id to conference members'
     torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_PREFER_NICKS = \
