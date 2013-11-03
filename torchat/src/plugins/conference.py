@@ -185,13 +185,15 @@ def load(torchat):
         text = WELCOME % (HELP[role_of(me.address)], topic, description)
         me.sendChatMessage(text)
     def do_list(me, _):
-        list_for_moder = can(me.address, 'list_for_moder')
-        if int(get('allow_list')) != 1 and not list_for_moder:
+        if int(get('allow_list')) != 1 and not is_moder(me.address):
             me.sendChatMessage('[room] Action not allowed')
             return
         nicks = []
         for buddy in buddy_list().list:
-            nicks.append(nick_repr(buddy, list_for_moder))
+            nick = nick_repr(buddy, is_moder(me.address))
+            if int(get('list_role')) == 1 or is_moder(me.address):
+                nick += ' /%s/' % role_of(buddy.address)
+            nicks.append(nick)
         me.sendChatMessage('[room]\n' + '\n'.join(nicks))
     def do_ignore(me, nick):
         buddy = buddy_from_nick(nick, me)
