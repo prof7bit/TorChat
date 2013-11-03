@@ -48,6 +48,7 @@ import tc_gui
 import dlg
 import dlg_settings
 import translations
+import version
 
 # xx to module
 TRANSLATIONS = {}
