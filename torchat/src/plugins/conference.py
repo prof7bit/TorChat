@@ -488,6 +488,8 @@ def load(torchat):
     def set_tr(lang, option, translation):
         setattr(torchat.TRANSLATIONS[lang],
                 'DSET_CONFERENCE_' + option.upper(), translation)
+    set_tr('en', 'title', u'Conference')
+    set_tr('ru', 'title', u'Конференция')
     set_tr('en', 'no_gui', u'Do not reflect new messages in GUI')
     set_tr('ru', 'no_gui', u'Не отображать новые сообщения в графическом интерфейсе')
     set_tr('en', 'prefer_nicks', u'Show torchat nick if available instead of id to conference members')
@@ -510,9 +512,12 @@ def load(torchat):
     set_tr('ru', 'welcome_help', u'Приветствовать новых пользователей справкой')
     torchat.config.importLanguage()
 
-    _constructor = torchat.dlg_settings.Dialog.__init__
-    def constructor(self, main_window):
-        _constructor(self, main_window)
+    _dlg_settings_constructor = torchat.dlg_settings.Dialog.__init__
+    def dlg_settings_constructor(self, main_window):
+        _dlg_settings_constructor(self, main_window)
+        self.p_conference = torchat.dlg.Panel(self.notebook)
+        self.notebook.AddPage(self.p_conference,
+                torchat.dlg_settings.lang.DSET_CONFERENCE_TITLE)
         def tr(option):
             attr_name = 'DSET_CONFERENCE_' + option.upper()
             if hasattr(torchat.dlg_settings.lang, attr_name):
@@ -520,9 +525,9 @@ def load(torchat):
             else:
                 return option
         def check(self, option):
-            torchat.dlg.Check(self.p3, tr(option), ("conference", option))
+            torchat.dlg.Check(self.p_conference, tr(option), ("conference", option))
         def text(self, option):
-            torchat.dlg.Text(self.p3, tr(option), ("conference", option))
+            torchat.dlg.Text(self.p_conference, tr(option), ("conference", option))
         check(self, 'no_gui')
         check(self, 'prefer_nicks')
         check(self, 'allow_list')
@@ -533,7 +538,12 @@ def load(torchat):
         check(self, 'show_enter_leave')
         check(self, 'welcome_help')
         text(self, 'default_role')
-        self.p3.fit()
+        self.p_conference.fit()
         self.outer_sizer.Fit(self)
-    torchat.dlg_settings.Dialog.__init__ = constructor
+    torchat.dlg_settings.Dialog.__init__ = dlg_settings_constructor
 
+    _dlg_settings_onOk = torchat.dlg_settings.Dialog.onOk
+    def dlg_settings_onOk(self, evt):
+        _dlg_settings_onOk(self, evt)
+        self.p_conference.saveAllData()
+    torchat.dlg_settings.Dialog.onOk = dlg_settings_onOk
