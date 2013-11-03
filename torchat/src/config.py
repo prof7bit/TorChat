@@ -21,7 +21,6 @@ import traceback
 import inspect
 import translations
 import shutil
-import version
 
 def isWindows():
     return sys.platform.startswith("win")
@@ -39,8 +38,6 @@ config_defaults = {
     ("client", "own_hostname") : "0000000000000000",
     ("client", "listen_interface") : "127.0.0.1",
     ("client", "listen_port") : 0,
-    ("client", "reported_client") : version.NAME,
-    ("client", "reported_version") : version.VERSION,
     ("logging", "log_file") : "",
     ("logging", "log_level") : 0,
     ("files", "temp_files_in_data_dir") : 1,

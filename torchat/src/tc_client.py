@@ -510,11 +510,9 @@ class Buddy(object):
 
     def sendVersion(self):
         if self.isAlreadyPonged():
-            client = config.get("client", "reported_client").encode('UTF-8')
-            msg = ProtocolMsg_client(self, client)
+            msg = ProtocolMsg_client(self, version.NAME)
             msg.send()
-            version = config.get("client", "reported_version").encode('UTF-8')
-            msg = ProtocolMsg_version(self, version)
+            msg = ProtocolMsg_version(self, version.VERSION)
             msg.send()
         else:
             print "(2) not connected, not sending version to %s" % self.address
