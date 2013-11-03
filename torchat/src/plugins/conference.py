@@ -153,13 +153,14 @@ def load(torchat):
             nick = buddy.profile_name
             if moder:
                 nick += ' (%s)' % buddy.address
-        if moder or get('list_role'):
+        if moder or int(get('list_role')) == 1:
             buddy_role = role_of(buddy.address)
             if buddy_role in ('admin', 'owner'):
                 nick = '@' + nick
             if buddy_role == 'moder':
                 nick = '%' + nick
-        if get('list_status') and buddy.status != torchat.tc_client.STATUS_ONLINE:
+        if int(get('list_status')) == 1 and \
+                buddy.status != torchat.tc_client.STATUS_ONLINE:
             nick += ' [%s]' % sstatus(buddy.status)
         return nick
     def announce(text, moder):
