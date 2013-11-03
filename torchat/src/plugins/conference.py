@@ -415,6 +415,9 @@ def load(torchat):
             if self.text.startswith('!'):
                 command, argument = splitLine(self.text)
                 command = command[1:] # pop "!"
+                if command not in OWNER:
+                    me.sendChatMessage('[room] Unknown command')
+                    return
                 if not can(me.address, command):
                     me.sendChatMessage('[room] Action not allowed')
                     return
