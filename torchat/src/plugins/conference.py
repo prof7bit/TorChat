@@ -532,6 +532,8 @@ def load(torchat):
     set_tr('ru', 'welcome_help', u'Приветствовать новых пользователей справкой')
     set_tr('en', 'receiver_status', u'Statuses of receivers [offline,][handshake,][online,][away,][busy]')
     set_tr('ru', 'receiver_status', u'Статусы получателей [offline,][handshake,][online,][away,][busy]')
+    set_tr('en', 'password', u'Room enter password')
+    set_tr('ru', 'password', u'Пароль для входа в комнату')
     torchat.config.importLanguage()
 
     _dlg_settings_constructor = torchat.dlg_settings.Dialog.__init__
@@ -561,6 +563,7 @@ def load(torchat):
         check(self, 'welcome_help')
         text(self, 'default_role')
         text(self, 'receiver_status')
+        text(self, 'password')
         self.p_conference.fit()
         self.outer_sizer.Fit(self)
     torchat.dlg_settings.Dialog.__init__ = dlg_settings_constructor
