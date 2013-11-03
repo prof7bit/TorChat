@@ -325,7 +325,65 @@ def load(torchat):
                 return
             me.sendChatMessage('[room] role(%s)=%s' %
                     (nick, role_of(buddy.address)))
-    # TODO admin settings
+    def yes_no_command(me, option, yes_no):
+        if yes_no in ('yes', 'no'):
+            # set
+            set_option(option, int(yes_no == 'yes'))
+            announce('%s set %s to %s' %
+                    (nick_repr(me), option, yes_no), True)
+        elif not yes_no:
+            # get
+            value = 'yes' if int(get(option)) == 1 else 'no'
+            me.sendChatMessage('[room] %s=%s' % (option, value))
+        else:
+            me.sendChatMessage('[room] Bad argument')
+    def do_prefer_nicks(me, yes_no):
+        yes_no_command(me, 'prefer_nicks', yes_no)
+    def do_allow_list(me, yes_no):
+        yes_no_command(me, 'allow_list', yes_no)
+    def do_allow_pm(me, yes_no):
+        yes_no_command(me, 'allow_pm', yes_no)
+    def do_list_status(me, yes_no):
+        yes_no_command(me, 'list_status', yes_no)
+    def do_list_role(me, yes_no):
+        yes_no_command(me, 'list_role', yes_no)
+    def do_show_admin_actions(me, yes_no):
+        yes_no_command(me, 'show_admin_actions', yes_no)
+    def do_show_enter_leave(me, yes_no):
+        yes_no_command(me, 'show_enter_leave', yes_no)
+    def do_welcome_help(me, yes_no):
+        yes_no_command(me, 'welcome_help', yes_no)
+    def do_default_role(me, role):
+        if role in ('nobody', 'guest', 'user'):
+            # set
+            set_option('default_role', role)
+            announce('%s set default role to %s' %
+                    (nick_repr(me), role), True)
+        elif not role:
+            # get
+            me.sendChatMessage('[room] default_role=%s' % get('default_role'))
+    def do_add_admin(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if not buddy:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        if role_of(buddy.address) in ('admin', 'owner'):
+            me.sendChatMessage('[room] This user is already admin or owner')
+            return
+        set_role(buddy.address, 'admin')
+        announce("%s set %s's role to admin" %
+                (nick_repr(me), nick_repr(buddy)), True)
+    def do_remove_admin(me, nick):
+        buddy = buddy_from_nick(nick, me)
+        if not buddy:
+            me.sendChatMessage('[room] Unknown nick')
+            return
+        if role_of(buddy.address) != 'admin':
+            me.sendChatMessage('[room] This user is not admin')
+            return
+        set_role(buddy.address, 'user')
+        announce("%s set %s's role to user" %
+                (nick_repr(me), nick_repr(buddy)), True)
     def resend(me, text):
         if not can(me.address, 'write'):
             me.sendChatMessage('[room] You can not send messages')
