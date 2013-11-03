@@ -21,7 +21,7 @@ ROLES = {'nobody': NOBODY, 'guest': GUEST, 'user': USER,
     'moder': MODER, 'admin': ADMIN, 'owner': OWNER}
 
 HELP = {}
-HELP['nobody'] = '''
+HELP['nobody'] = '''[help]
 !help             get help
 '''
 HELP['guest'] = HELP['nobody'] + '''
