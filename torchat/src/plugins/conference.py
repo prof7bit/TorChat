@@ -122,6 +122,15 @@ def load(torchat):
         for buddy in buddy_list().list:
             if buddy.address == nick or buddy.profile_name == nick:
                 return buddy
+        if nick.startswith('@') or nick.startswith('%'):
+            nick = nick[1:]
+            for buddy in buddy_list().list:
+                if buddy.address == nick or buddy.profile_name == nick:
+                    return buddy
+        i_am_moder = is_moder(me.address)
+        for buddy in buddy_list().list:
+            if nick in nick_repr(buddy, i_am_moder):
+                return buddy
     def nick_repr(buddy, moder=False):
         nick = buddy.address
         if int(get("prefer_nicks")) == 1 \
