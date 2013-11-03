@@ -485,55 +485,53 @@ def load(torchat):
         announce('%s left room' % nick, False)
     torchat.tc_client.ProtocolMsg_remove_me.execute = remove_me_execute
 
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_PREFER_NICKS = \
-            u'Show torchat nick if available instead of id to conference members'
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_PREFER_NICKS = \
-            u'Показывать ник отправителя вместо id, если ник выставлен'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_NO_GUI = \
-            u'Do not reflect new messages in GUI'
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_NO_GUI = \
-            u'Не отображать новые сообщения в графическом интерфейсе'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_DEFAULT_ROLE = \
-            u'Default role for new members (nobody|guest|user)'
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_DEFAULT_ROLE = \
-            u'Роль по умолчанию для новых членов (nobody|guest|user)'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_ALLOW_LIST = \
-            u'Regular users can get list of users'
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_ALLOW_LIST = \
-            u'Обычные пользователи могут смотреть список пользователей'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_ALLOW_PM = \
-            u'Allow private messages'
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_ALLOW_PM = \
-            u'Разрешить личные сообщения'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_LIST_STATUS = \
-            u'Regular users view status of users'
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_LIST_STATUS = \
-            u'Обычные пользователи видят статус пользователей'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_LIST_ROLE = \
-            u'Regular users view role of users'
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_LIST_ROLE = \
-            u'Обычные пользователи видят роль пользователей'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_SHOW_ADMIN_ACTIONS = \
-            u"Regular users view administrators' actions"
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_SHOW_ADMIN_ACTIONS = \
-            u'Обычные пользователи видят действия администраторов'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_SHOW_ENTER_LEAVE = \
-            u"Regular users view somebody enter or leave room"
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_SHOW_ADMIN_ACTIONS = \
-            u'Обычные пользователи видят, когда кто-то входит или выходит'
-    torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_WELCOME_HELP = \
-            u"Welcome new users with help message"
-    torchat.TRANSLATIONS['ru'].DSET_MISC_CONFERENCE_WELCOME_HELP = \
-            u'Приветствовать новых пользователей справкой'
+    def set_tr(lang, option, translation):
+        setattr(torchat.TRANSLATIONS[lang],
+                'DSET_CONFERENCE_' + option.upper(), translation)
+    set_tr('en', 'no_gui', u'Do not reflect new messages in GUI')
+    set_tr('ru', 'no_gui', u'Не отображать новые сообщения в графическом интерфейсе')
+    set_tr('en', 'prefer_nicks', u'Show torchat nick if available instead of id to conference members')
+    set_tr('ru', 'prefer_nicks', u'Показывать ник отправителя вместо id, если ник выставлен')
+    set_tr('en', 'default_role', u'Default role for new members (banned|nobody|guest|user)')
+    set_tr('ru', 'default_role', u'Роль по умолчанию для новых членов (banned|nobody|guest|user)')
+    set_tr('en', 'allow_list', u'Regular users can get list of users')
+    set_tr('ru', 'allow_list', u'Обычные пользователи могут смотреть список пользователей')
+    set_tr('en', 'allow_pm', u'Allow private messages')
+    set_tr('ru', 'allow_pm', u'Разрешить личные сообщения')
+    set_tr('en', 'list_status', u'Regular users view status of users')
+    set_tr('ru', 'list_status', u'Обычные пользователи видят статус пользователей')
+    set_tr('en', 'list_role', u'Regular users view role of users')
+    set_tr('ru', 'list_role', u'Обычные пользователи видят роль пользователей')
+    set_tr('en', 'show_admin_actions', u"Regular users view administrators' actions")
+    set_tr('ru', 'show_admin_actions', u'Обычные пользователи видят действия администраторов')
+    set_tr('en', 'show_enter_leave', u'Regular users view somebody enter or leave room')
+    set_tr('ru', 'show_enter_leave', u'Обычные пользователи видят, когда кто-то входит или выходит')
+    set_tr('en', 'welcome_help', u'Welcome new users with help message')
+    set_tr('ru', 'welcome_help', u'Приветствовать новых пользователей справкой')
     torchat.config.importLanguage()
 
     _constructor = torchat.dlg_settings.Dialog.__init__
     def constructor(self, main_window):
         _constructor(self, main_window)
-        torchat.dlg.Check(self.p3, torchat.dlg_settings.lang.DSET_MISC_CONFERENCE_PREFER_NICKS,
-                ("conference", "prefer_nicks"))
-        torchat.dlg.Check(self.p3, torchat.dlg_settings.lang.DSET_MISC_CONFERENCE_NO_GUI,
-                ("conference", "no_gui"))
-        # TODO
+        def tr(option):
+            attr_name = 'DSET_CONFERENCE_' + option.upper()
+            if hasattr(torchat.dlg_settings.lang, attr_name):
+                return getattr(torchat.dlg_settings.lang, attr_name)
+            else:
+                return option
+        def check(self, option):
+            torchat.dlg.Check(self.p3, tr(option), ("conference", option))
+        def text(self, option):
+            torchat.dlg.Text(self.p3, tr(option), ("conference", option))
+        check(self, 'no_gui')
+        check(self, 'prefer_nicks')
+        check(self, 'allow_list')
+        check(self, 'allow_pm')
+        check(self, 'list_status')
+        check(self, 'list_role')
+        check(self, 'show_admin_actions')
+        check(self, 'show_enter_leave')
+        check(self, 'welcome_help')
+        text(self, 'default_role')
     torchat.dlg_settings.Dialog.__init__ = constructor
 
