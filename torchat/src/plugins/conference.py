@@ -434,8 +434,9 @@ def load(torchat):
 
     _add_me_execute = torchat.tc_client.ProtocolMsg_add_me.execute
     def add_me_execute(self):
+        welcome = self.buddy not in buddy_list().list
         _add_me_execute(self)
-        if int(get('welcome_help')) == 1:
+        if int(get('welcome_help')) == 1 and welcome:
             do_help(self.buddy, None)
     torchat.tc_client.ProtocolMsg_add_me.execute = add_me_execute
 
