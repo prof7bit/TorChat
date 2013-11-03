@@ -14,7 +14,8 @@ MODER = USER | set(['mute', 'unmute', 'kick', 'invite', 'ban', 'unban',
     'topic', 'description', 'set_avatar'])
 ADMIN = MODER | set(['role', 'prefer_nicks', 'receiver_status',
     'allow_list', 'allow_pm', 'list_status', 'list_role', 'default_role',
-    'show_admin_actions', 'show_enter_leave', 'welcome_help', 'password'])
+    'show_admin_actions', 'show_enter_leave', 'welcome_help',
+    'password', 'password_tip'])
 OWNER = ADMIN | set(['add_admin', 'remove_admin'])
 
 ROLES = {'banned': set(), 'nobody': NOBODY, 'guest': GUEST, 'user': USER,
@@ -64,6 +65,9 @@ HELP['admin'] = HELP['moder'] + '''
 !show_enter_leave [yes|no]               get or set show_enter_leave
 !welcome_help [yes|no]                   get or set welcome_help
 !password [password]                     get or set room password
+                                         (needs add_password plugin)
+!password_tip [password tip]             get or set room password tip
+                                         (needs add_password plugin)
 
 To make closed conference, set role of each user to 'user' explicitly
 and then set default_role=banned.
@@ -90,7 +94,6 @@ def load(torchat):
     torchat.config.config_defaults['conference', 'show_admin_actions'] = 1
     torchat.config.config_defaults['conference', 'show_enter_leave'] = 1
     torchat.config.config_defaults['conference', 'welcome_help'] = 1
-    torchat.config.config_defaults['conference', 'password'] = ''
     torchat.config.config_defaults['conference', 'ignored'] = '{"who-bywho":1}'
 
     def sstatus(status):
@@ -399,11 +402,22 @@ def load(torchat):
     def do_password(me, password):
         if password:
             # set
-            set_option('password', password)
+            torchat.config.set('password', 'password', password)
             announce('%s set password to %s' % (nick_repr(me), password), True)
         else:
             # get
-            me.sendChatMessage('[room] password=%s' % get('password'))
+            password = torchat.config.get('password', 'password')
+            me.sendChatMessage('[room] password=%s' % password)
+    def do_password_tip(me, password_tip):
+        if password_tip:
+            # set
+            torchat.config.set('password', 'password_tip', password_tip)
+            announce('%s set password tip to %s' %
+                    (nick_repr(me), password_tip), True)
+        else:
+            # get
+            password_tip = torchat.config.get('password', 'password_tip')
+            me.sendChatMessage('[room] password_tip=%s' % password_tip)
     def do_add_admin(me, nick):
         buddy = buddy_from_nick(nick, me)
         if not buddy:
@@ -457,13 +471,6 @@ def load(torchat):
             _message_execute(self)
         if goood_message:
             me = self.buddy
-            if get('password') and role_of(me.address) == 'nobody':
-                if self.text == get('password'):
-                    set_role(me.address, get('default_role'))
-                    announce('%s entered password' % nick_repr(me), False)
-                else:
-                    me.sendChatMessage('[room] Wrong password')
-                return
             if self.text.startswith('!'):
                 command, argument = splitLine(self.text)
                 command = command[1:] # pop "!"
@@ -494,9 +501,6 @@ def load(torchat):
         _add_me_execute(self)
         if int(get('welcome_help')) == 1 and welcome:
             do_help(self.buddy, None)
-        if get('password') and welcome:
-            set_role(self.buddy.address, 'nobody')
-            self.buddy.sendChatMessage('[room] Enter password, please')
     torchat.tc_client.ProtocolMsg_add_me.execute = add_me_execute
 
     _remove_me_execute = torchat.tc_client.ProtocolMsg_remove_me.execute
@@ -534,8 +538,6 @@ def load(torchat):
     set_tr('ru', 'welcome_help', u'Приветствовать новых пользователей справкой')
     set_tr('en', 'receiver_status', u'Statuses of receivers [offline,][handshake,][online,][away,][busy]')
     set_tr('ru', 'receiver_status', u'Статусы получателей [offline,][handshake,][online,][away,][busy]')
-    set_tr('en', 'password', u'Room enter password')
-    set_tr('ru', 'password', u'Пароль для входа в комнату')
     torchat.config.importLanguage()
 
     _dlg_settings_constructor = torchat.dlg_settings.Dialog.__init__
@@ -567,7 +569,6 @@ def load(torchat):
         check(self, 'welcome_help')
         text(self, 'default_role')
         text(self, 'receiver_status')
-        text(self, 'password')
         self.p_conference.fit()
         self.outer_sizer.Fit(self)
     torchat.dlg_settings.Dialog.__init__ = dlg_settings_constructor
