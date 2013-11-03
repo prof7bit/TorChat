@@ -12,7 +12,7 @@ GUEST = NOBODY | set(['read_actions', 'read', 'list', 'ignore', 'unignore'])
 USER = GUEST | set(['write', 'pm'])
 MODER = USER | set(['mute', 'unmute', 'kick', 'invite', 'ban', 'unban',
     'topic', 'description', 'set_avatar'])
-ADMIN = MODER | set(['role', 'prefer_nicks',
+ADMIN = MODER | set(['role', 'prefer_nicks', 'receiver_status',
     'allow_list', 'allow_pm', 'list_status', 'list_role', 'default_role',
     'show_admin_actions', 'show_enter_leave', 'welcome_help', 'password'])
 OWNER = ADMIN | set(['add_admin', 'remove_admin'])
@@ -53,6 +53,8 @@ HELP['moder'] = HELP['user'] + '''
 HELP['admin'] = HELP['moder'] + '''
 !role [nobody|guest|user|moder] nick     get or set role of nick
 !prefer_nicks [yes|no]                   get or set prefer_nicks
+!receiver_status [offline,][handshake,][online,][away,][busy]
+    get or set list of allowed receiver statuses
 !allow_list [yes|no]                     get or set allow_list
 !allow_pm [yes|no]                       get or set allow_pm
 !list_status [yes|no]                    get or set list_status
@@ -77,6 +79,7 @@ Description: %s'''
 
 def load(torchat):
     torchat.config.config_defaults['conference', 'prefer_nicks'] = 1
+    torchat.config.config_defaults['conference', 'receiver_status'] = 'online,away'
     torchat.config.config_defaults['conference', 'no_gui'] = 0
     torchat.config.config_defaults['conference', 'roles'] = '{}'
     torchat.config.config_defaults['conference', 'default_role'] = 'user'
@@ -101,6 +104,7 @@ def load(torchat):
             return 'away'
         if status == torchat.tc_client.STATUS_XA:
             return 'busy'
+    STATUSES = set(['offline', 'handshake', 'online', 'away', 'busy'])
     def buddy_list():
         return torchat.app.mw.buddy_list
     def get(option):
@@ -169,12 +173,13 @@ def load(torchat):
         for buddy in buddy_list().list:
             if not can(buddy.address, 'read'):
                 continue
-            if moder and not is_moder(buddy.address) \
-                    and int(get("show_admin_actions")) != 1:
-                continue
-            if not moder and not is_moder(buddy.address) \
-                    and int(get("show_enter_leave")) != 1:
-                continue
+            if not is_moder(buddy.address):
+                if moder and int(get("show_admin_actions")) != 1:
+                    continue
+                if not moder and int(get("show_enter_leave")) != 1:
+                    continue
+                if sstatus(buddy.status) not in get('receiver_status'):
+                    continue
             buddy.sendChatMessage(text)
     def splitLine(line):
         return torchat.tc_client.splitLine(line)
@@ -376,6 +381,19 @@ def load(torchat):
         elif not role:
             # get
             me.sendChatMessage('[room] default_role=%s' % get('default_role'))
+    def do_receiver_status(me, statuses):
+        if statuses:
+            # set
+            statuses = set(statuses.split(','))
+            if not all(status in STATUSES for status in statuses):
+                me.sendChatMessage('[room] Bad status')
+                return
+            set_option('receiver_status', ','.join(statuses))
+            announce('%s set receiver statuses to %s' %
+                    (nick_repr(me), ','.join(statuses)), True)
+        else:
+            # get
+            me.sendChatMessage('[room] receiver_status=%s' % get('receiver_status'))
     def do_password(me, password):
         if password:
             # set
@@ -421,6 +439,8 @@ def load(torchat):
                     and text.startswith('['): # [room] [delayed] [private] etc
                 continue
             if is_ignored(me.address, buddy.address):
+                continue
+            if sstatus(buddy.status) not in get('receiver_status'):
                 continue
             sender_nick = nick_repr(me, is_moder(buddy.address))
             resent_message = '%s: %s' % (sender_nick, text)
@@ -510,6 +530,8 @@ def load(torchat):
     set_tr('ru', 'show_enter_leave', u'Обычные пользователи видят, когда кто-то входит или выходит')
     set_tr('en', 'welcome_help', u'Welcome new users with help message')
     set_tr('ru', 'welcome_help', u'Приветствовать новых пользователей справкой')
+    set_tr('en', 'receiver_status', u'Statuses of receivers [offline,][handshake,][online,][away,][busy]')
+    set_tr('ru', 'receiver_status', u'Статусы получателей [offline,][handshake,][online,][away,][busy]')
     torchat.config.importLanguage()
 
     _dlg_settings_constructor = torchat.dlg_settings.Dialog.__init__
@@ -538,6 +560,7 @@ def load(torchat):
         check(self, 'show_enter_leave')
         check(self, 'welcome_help')
         text(self, 'default_role')
+        text(self, 'receiver_status')
         self.p_conference.fit()
         self.outer_sizer.Fit(self)
     torchat.dlg_settings.Dialog.__init__ = dlg_settings_constructor
