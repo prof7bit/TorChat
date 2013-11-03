@@ -158,17 +158,12 @@ def load(torchat):
                 and buddy.profile_name \
                 and not torchat.tc_client.isValidAddress(buddy.profile_name):
             nick = buddy.profile_name
-            if moder:
-                nick += ' (%s)' % buddy.address
         if moder or int(get('list_role')) == 1:
             buddy_role = role_of(buddy.address)
             if buddy_role in ('admin', 'owner'):
                 nick = '@' + nick
             if buddy_role == 'moder':
                 nick = '%' + nick
-        if int(get('list_status')) == 1 and \
-                buddy.status != torchat.tc_client.STATUS_ONLINE:
-            nick += ' [%s]' % sstatus(buddy.status)
         return nick
     def announce(text, moder):
         prefix = '[admin]' if moder else '[user]'
@@ -199,6 +194,11 @@ def load(torchat):
         nicks = []
         for buddy in buddy_list().list:
             nick = nick_repr(buddy, is_moder(me.address))
+            if buddy.address not in nick and is_moder(me.address):
+                nick += ' (%s)' % buddy.address
+            if buddy.status != torchat.tc_client.STATUS_ONLINE:
+                if int(get('list_status')) == 1 or is_moder(me.address):
+                    nick += ' [%s]' % sstatus(buddy.status)
             if int(get('list_role')) == 1 or is_moder(me.address):
                 nick += ' /%s/' % role_of(buddy.address)
             nicks.append(nick)
