@@ -549,9 +549,11 @@ def load(torchat):
             else:
                 return option
         def check(self, option):
-            torchat.dlg.Check(self.p_conference, tr(option), ("conference", option))
+            torchat.dlg.Check(self.p_conference, tr(option),
+                    ("conference", option))
         def text(self, option):
-            torchat.dlg.Text(self.p_conference, tr(option), ("conference", option))
+            torchat.dlg.Text(self.p_conference, tr(option),
+                    ("conference", option), expand=True)
         check(self, 'no_gui')
         check(self, 'prefer_nicks')
         check(self, 'allow_list')
