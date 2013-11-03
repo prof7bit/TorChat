@@ -5,9 +5,10 @@ import os
 NAME_en = u'Do not show self-echo messages'
 NAME_ru = u'Не отображать эхо-ответы от самого себя'
 
+text_last = None
+
 def load(torchat):
     _onSend = torchat.tc_gui.ChatWindow.onSend
-    text_last = None
     def onSend(self, evt):
         global text_last
         text_last = self.txt_out.GetValue().rstrip().lstrip().replace("\x0b", os.linesep)
