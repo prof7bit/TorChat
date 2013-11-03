@@ -17,10 +17,11 @@ ADMIN = MODER | set(['role', 'prefer_nicks',
     'show_admin_actions', 'show_enter_leave', 'welcome_help'])
 OWNER = ADMIN | set(['add_admin', 'remove_admin'])
 
-ROLES = {'nobody': NOBODY, 'guest': GUEST, 'user': USER,
+ROLES = {'banned': set(), 'nobody': NOBODY, 'guest': GUEST, 'user': USER,
     'moder': MODER, 'admin': ADMIN, 'owner': OWNER}
 
 HELP = {}
+HELP['banned'] = 'You are banned'
 HELP['nobody'] = '''[help]
 !help             get help
 '''
@@ -43,7 +44,7 @@ HELP['moder'] = HELP['user'] + '''
 !unmute nick      undo mute (role: guest,nobody->user)
 !kick nick        kick nick from room
 !invite nick      invite nick to room
-!ban nick         ban nick (needs Ban plugin)
+!ban nick         ban nick
 !unban nick       undo ban
 !topic text       change topic of room
 !description text change description of room
@@ -263,16 +264,15 @@ def load(torchat):
         if role_of(buddy.address) not in ('nobody', 'guest', 'user'):
             me.sendChatMessage('[room] You can ban nobody,guest,user')
             return
-        ban_list = json.loads(torchat.config.get("ban", 'list'))
-        ban_list[buddy.address] = 1
-        torchat.config.set("ban", 'list', json.dumps(ban_list))
+        set_role(buddy.address, 'banned')
         buddy_list().removeBuddy(buddy, disconnect=False)
         announce('%s banned %s' % (nick_repr(me), nick_repr(buddy)), True)
     def do_unban(me, address):
+        if role_of(address) != 'banned':
+            me.sendChatMessage('[room] The address is not banned')
+            return
+        set_role(address, 'user')
         announce('%s unbanned %s' % (nick_repr(me), address), True)
-        ban_list = json.loads(torchat.config.get("ban", 'list'))
-        ban_list.pop(address, None)
-        torchat.config.set("ban", 'list', json.dumps(ban_list))
     def do_topic(me, topic):
         torchat.config.set("profile", "name", topic)
         for buddy in buddy_list().list:
@@ -442,9 +442,12 @@ def load(torchat):
     _add_me_execute = torchat.tc_client.ProtocolMsg_add_me.execute
     def add_me_execute(self):
         welcome = self.buddy not in buddy_list().list
-        _add_me_execute(self)
-        if int(get('welcome_help')) == 1 and welcome:
-            do_help(self.buddy, None)
+        if role_of(self.buddy.address) != 'banned':
+            _add_me_execute(self)
+            if int(get('welcome_help')) == 1 and welcome:
+                do_help(self.buddy, None)
+        else:
+            self.buddy.sendChatMessage('[room] You are banned')
     torchat.tc_client.ProtocolMsg_add_me.execute = add_me_execute
 
     torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_PREFER_NICKS = \
