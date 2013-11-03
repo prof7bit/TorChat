@@ -25,11 +25,17 @@ HELP['nobody'] = '''
 !help             get help
 '''
 HELP['guest'] = HELP['nobody'] + '''
+You can refer nick or torchat id, with or without % and @.
+You can refer part of nick.
+
 !list             get list of room members
 !ignore nick      ignore messages from nick
 !unignore nick    undo ignore
 '''
 HELP['user'] = HELP['guest'] + '''
+You can send messages to chat. Just send regular messages!
+To prevent !smth from interpreting as a command, prepend it with "_ ".
+
 !pm nick message  private message to nick
 '''
 HELP['moder'] = HELP['user'] + '''
