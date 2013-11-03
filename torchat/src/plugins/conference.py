@@ -11,7 +11,7 @@ NOBODY = set(['help'])
 GUEST = NOBODY | set(['read_actions', 'read', 'list', 'ignore', 'unignore'])
 USER = GUEST | set(['write', 'pm'])
 MODER = USER | set(['mute', 'unmute', 'kick', 'invite', 'ban', 'unban',
-    'topic', 'description', 'set_avatar', 'list_for_moder'])
+    'topic', 'description', 'set_avatar'])
 ADMIN = MODER | set(['role', 'prefer_nicks',
     'allow_list', 'allow_pm', 'list_status', 'list_role', 'default_role',
     'show_admin_actions', 'show_enter_leave', 'welcome_help', 'password'])
