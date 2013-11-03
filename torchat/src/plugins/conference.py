@@ -51,16 +51,19 @@ HELP['moder'] = HELP['user'] + '''
 !set_avatar nick  set avatar of nick as room's avatar
 '''
 HELP['admin'] = HELP['moder'] + '''
-!role [nobody|guest|user|moder] nick get or set role of nick
-!prefer_nicks [yes|no]               get or set prefer_nicks
-!allow_list [yes|no]                 get or set allow_list
-!allow_pm [yes|no]                   get or set allow_pm
-!list_status [yes|no]                get or set list_status
-!list_role [yes|no]                  get or set list_role
-!default_role [nobody|guest|user]    get or set default_role
-!show_admin_actions [yes|no]         get or set show_admin_actions
-!show_enter_leave [yes|no]           get or set show_enter_leave
-!welcome_help [yes|no]               get or set welcome_help
+!role [nobody|guest|user|moder] nick     get or set role of nick
+!prefer_nicks [yes|no]                   get or set prefer_nicks
+!allow_list [yes|no]                     get or set allow_list
+!allow_pm [yes|no]                       get or set allow_pm
+!list_status [yes|no]                    get or set list_status
+!list_role [yes|no]                      get or set list_role
+!default_role [banned|nobody|guest|user] get or set default_role
+!show_admin_actions [yes|no]             get or set show_admin_actions
+!show_enter_leave [yes|no]               get or set show_enter_leave
+!welcome_help [yes|no]                   get or set welcome_help
+
+To make closed conference, set role of each user to 'user' explicitly
+and then set default_role=banned.
 '''
 HELP['owner'] = HELP['admin'] + '''
 !add_admin nick                      set nick's role to admin
@@ -359,7 +362,7 @@ def load(torchat):
     def do_welcome_help(me, yes_no):
         yes_no_command(me, 'welcome_help', yes_no)
     def do_default_role(me, role):
-        if role in ('nobody', 'guest', 'user'):
+        if role in ('banned', 'nobody', 'guest', 'user'):
             # set
             set_option('default_role', role)
             announce('%s set default role to %s' %
