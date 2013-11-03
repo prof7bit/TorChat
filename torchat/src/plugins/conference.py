@@ -163,7 +163,8 @@ def load(torchat):
             nick += ' [%s]' % sstatus(buddy.status)
         return nick
     def announce(text, moder):
-        text = '[room] %s' % text
+        prefix = '[admin]' if moder else '[user]'
+        text = '%s %s' % (prefix, text)
         for buddy in buddy_list().list:
             if not can(buddy.address, 'read'):
                 continue
