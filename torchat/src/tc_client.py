@@ -1479,16 +1479,15 @@ class ProtocolMsg_ping(ProtocolMsg):
                 self.buddy.count_unanswered_pings = 0
                 self.buddy.sendPing()
 
+        #now we can finally put our answer into the send queue
+        print "(2) PONG >>> %s" % self.address
+        answer = ProtocolMsg_pong(self.buddy, self.answer)
+        answer.send()
         if self.buddy.isAlreadyPonged():
             #but we don't need to send more than one pong on the same conn_out
             #only if this is also a new conn_out because the last one failed
             print "(2) not sending another pong over same connection"
             return
-
-        #now we can finally put our answer into the send queue
-        print "(2) PONG >>> %s" % self.address
-        answer = ProtocolMsg_pong(self.buddy, self.answer)
-        answer.send()
         self.buddy.conn_out.pong_sent = True
 
         self.buddy.sendVersion()
