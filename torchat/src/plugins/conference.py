@@ -65,6 +65,10 @@ HELP['owner'] = HELP['admin'] + '''
 !add_admin nick                      set nick's role to admin
 !remove_admin nick                   set nick's role to user
 '''
+WELCOME = '''%s
+Topic: %s
+
+Description: %s'''
 
 def load(torchat):
     torchat.config.config_defaults['conference', 'prefer_nicks'] = 1
@@ -168,7 +172,10 @@ def load(torchat):
         return torchat.tc_client.splitLine(line)
 
     def do_help(me, _):
-        me.sendChatMessage(HELP[role_of(me.address)])
+        topic = buddy_list().own_buddy.profile_name
+        description = buddy_list().own_buddy.profile_text
+        text = WELCOME % (HELP[role_of(me.address)], topic, description)
+        me.sendChatMessage(text)
     def do_list(me, _):
         list_for_moder = can(me.address, 'list_for_moder')
         if int(get('allow_list')) != 1 and not list_for_moder:
