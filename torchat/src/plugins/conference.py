@@ -269,6 +269,8 @@ def load(torchat):
             return
         buddy = torchat.tc_client.Buddy(address, buddy_list(), '')
         buddy_list().addBuddy(buddy)
+        if role_of(address) in ('banned', 'nobody', 'guest'):
+            set_role(address, 'user')
         announce('%s invited %s' % (nick_repr(me), address), True)
     def do_ban(me, nick):
         buddy = buddy_from_nick(nick, me)
