@@ -80,8 +80,6 @@ def load(torchat):
     torchat.config.config_defaults['conference', 'welcome_help'] = 1
     torchat.config.config_defaults['conference', 'ignored'] = '{"who-bywho":1}'
 
-    _execute = torchat.tc_client.ProtocolMsg_message.execute
-
     def sstatus(status):
         if status == torchat.tc_client.STATUS_OFFLINE:
             return 'offline'
@@ -406,10 +404,11 @@ def load(torchat):
 
     load_vars = vars()
 
-    def execute(self):
+    _message_execute = torchat.tc_client.ProtocolMsg_message.execute
+    def message_execute(self):
         goood_message = self.buddy and self.buddy in self.bl.list
         if int(get("no_gui")) == 0 or not goood_message:
-            _execute(self)
+            _message_execute(self)
         if goood_message:
             me = self.buddy
             if self.text.startswith('!'):
@@ -431,7 +430,14 @@ def load(torchat):
             else:
                 # resend message
                 resend(me, self.text)
-    torchat.tc_client.ProtocolMsg_message.execute = execute
+    torchat.tc_client.ProtocolMsg_message.execute = message_execute
+
+    _add_me_execute = torchat.tc_client.ProtocolMsg_add_me.execute
+    def add_me_execute(self):
+        _add_me_execute(self)
+        if int(get('welcome_help')) == 1:
+            do_help(self.buddy, None)
+    torchat.tc_client.ProtocolMsg_add_me.execute = add_me_execute
 
     torchat.TRANSLATIONS['en'].DSET_MISC_CONFERENCE_PREFER_NICKS = \
             u'Show torchat nick if available instead of id to conference members'
