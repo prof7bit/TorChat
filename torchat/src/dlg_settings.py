@@ -28,16 +28,16 @@ class Dialog(wx.Dialog):
         
         #1 outer panel and vertical sizer
         self.outer_panel = wx.Panel(self)
-        outer_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.outer_panel.SetSizer(outer_sizer)
+        self.outer_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.outer_panel.SetSizer(self.outer_sizer)
 
         #1.1 the notebook on the top
         self.notebook = wx.Notebook(self.outer_panel)
-        outer_sizer.Add(self.notebook, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.RIGHT, border=5)
+        self.outer_sizer.Add(self.notebook, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.RIGHT, border=5)
         
         #1.2 the button_sizer at the bottom
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        outer_sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, border=5)
+        self.outer_sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, border=5)
         
         #1.2.1 cancel button
         btn_cancel = wx.Button(self.outer_panel, wx.ID_CANCEL, lang.BTN_CANCEL)
@@ -87,6 +87,7 @@ class Dialog(wx.Dialog):
         dlg.Check(self.p2, lang.DSET_GUI_NOTIFICATION_POPUP, ("gui", "notification_popup"))
         dlg.Text(self.p2, lang.DSET_GUI_NOTIFICATION_METHOD, ("gui", "notification_method"))
         dlg.Check(self.p2, lang.DSET_GUI_FLASH_WINDOW, ("gui", "notification_flash_window"))
+        self.p2.fit()
         
         #3.3 misc options
         self.p3 = dlg.Panel(self.notebook)
@@ -97,6 +98,7 @@ class Dialog(wx.Dialog):
         self.chk_tmp.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onChkTmp)
         self.client = dlg.Text(self.p3, lang.DSET_MISC_REPORT_CLIENT, ("client", "reported_client"))
         self.version = dlg.Text(self.p3, lang.DSET_MISC_REPORT_VERSION, ("client", "reported_version"))
+        self.p3.fit()
 
         #3.4 plugins
         self.p4 = dlg.Panel(self.notebook)
@@ -108,9 +110,10 @@ class Dialog(wx.Dialog):
             plugin_dscr = getattr(lang, 'DSET_PLUGIN_' + plugin_name.upper(), plugin_name)
             enabled = int(bool(plugin_name in enabled_plugins))
             self.plugins[plugin_name] = dlg.Check(self.p4, plugin_dscr, enabled)
+        self.p4.fit()
 
         #4 fit the sizers
-        outer_sizer.Fit(self)
+        self.outer_sizer.Fit(self)
         
     def onChkTmp(self, evt):
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
