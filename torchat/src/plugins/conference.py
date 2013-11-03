@@ -533,5 +533,7 @@ def load(torchat):
         check(self, 'show_enter_leave')
         check(self, 'welcome_help')
         text(self, 'default_role')
+        self.p3.fit()
+        self.outer_sizer.Fit(self)
     torchat.dlg_settings.Dialog.__init__ = constructor
 
