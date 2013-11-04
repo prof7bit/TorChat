@@ -38,6 +38,7 @@ def load(torchat):
                 delay = datetime.now() - window.last_ping
                 del window.last_ping
                 ms = delay.seconds * 1000 + delay.microseconds // 1000
-                window.writeHintLine('time=%i ms' % ms)
+                wx.CallAfter(torchat.tc_gui.ChatWindow.writeHintLine,
+                        window, 'time=%i ms' % ms)
     torchat.tc_client.Buddy.onInConnectionFound = Buddy_onInConnectionFound
 
