@@ -2017,7 +2017,7 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            self.socket.setproxy(socks.PROXY_TYPE_SOCKS4,
+            self.socket.setproxy(socks.PROXY_TYPE_SOCKS5,
                                  config.get(self.bl.tor_config, "tor_server"),
                                  self.bl.tor_server_socks_port)
             print "(2) trying to connect '%s'" % self.address
