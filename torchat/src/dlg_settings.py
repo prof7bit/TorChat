@@ -104,7 +104,7 @@ class Dialog(wx.Dialog):
         self.plugins = {}
         enabled_plugins = set(config.get('plugin', 'enabled_plugins').split(','))
         import torchat
-        for plugin_name in torchat.PLUGINS:
+        for plugin_name in sorted(torchat.PLUGINS.keys()):
             plugin_dscr = getattr(lang, 'DSET_PLUGIN_' + plugin_name.upper(), plugin_name)
             enabled = int(bool(plugin_name in enabled_plugins))
             self.plugins[plugin_name] = dlg.Check(self.p4, plugin_dscr, enabled)
