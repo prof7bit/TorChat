@@ -5,8 +5,8 @@ from datetime import datetime
 
 import wx
 
-NAME_en = u'Add "Ping" button'
-NAME_ru = u'Добавляет кнопку "Ping"'
+NAME_en = u'Add "Ping" item to popup menu'
+NAME_ru = u'Добавляет пункт "Ping" в контекстное меню'
 
 def load(torchat):
     def set_tr(lang, option, translation):
