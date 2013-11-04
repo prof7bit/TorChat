@@ -8,8 +8,8 @@ from functools import partial
 
 import wx
 
-NAME_en = u'Rock-paper-scissors'
-NAME_ru = u'Камень-ножницы-бумага'
+NAME_en = u'Rock-paper-scissors (see popup menu)'
+NAME_ru = u'Камень-ножницы-бумага (см. контекстное меню)'
 
 FULL = {
     'r': 'rock',
