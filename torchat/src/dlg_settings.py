@@ -68,7 +68,6 @@ class Dialog(wx.Dialog):
         dlg.Separator(self.p1, "Client")
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_INTERFACE, ("client", "listen_interface"), True)
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_PORT, ("client", "listen_port"))
-        self.p1.fit()
         
         portable = (self.mw.buddy_list.tor_config == "tor_portable")
         if portable:
@@ -87,7 +86,6 @@ class Dialog(wx.Dialog):
         dlg.Check(self.p2, lang.DSET_GUI_NOTIFICATION_POPUP, ("gui", "notification_popup"))
         dlg.Text(self.p2, lang.DSET_GUI_NOTIFICATION_METHOD, ("gui", "notification_method"))
         dlg.Check(self.p2, lang.DSET_GUI_FLASH_WINDOW, ("gui", "notification_flash_window"))
-        self.p2.fit()
         
         #3.3 misc options
         self.p3 = dlg.Panel(self.notebook)
@@ -96,7 +94,6 @@ class Dialog(wx.Dialog):
         self.dir_tmp = dlg.Dir(self.p3, lang.DSET_MISC_TEMP_CUSTOM_DIR, ("files", "temp_files_custom_dir"))
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
         self.chk_tmp.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onChkTmp)
-        self.p3.fit()
 
         #3.4 plugins
         self.p4 = dlg.Panel(self.notebook)
@@ -108,11 +105,20 @@ class Dialog(wx.Dialog):
             plugin_dscr = getattr(lang, 'DSET_PLUGIN_' + plugin_name.upper(), plugin_name)
             enabled = int(bool(plugin_name in enabled_plugins))
             self.plugins[plugin_name] = dlg.Check(self.p4, plugin_dscr, enabled)
-        self.p4.fit()
+
+        # add plugins' settings
+        self.addPluginSettings(main_window)
 
         #4 fit the sizers
+        self.p1.fit()
+        self.p2.fit()
+        self.p3.fit()
+        self.p4.fit()
         self.outer_sizer.Fit(self)
-        
+
+    def addPluginSettings(self, main_window):
+        pass
+
     def onChkTmp(self, evt):
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
 

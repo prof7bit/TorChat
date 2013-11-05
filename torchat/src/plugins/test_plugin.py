@@ -16,10 +16,10 @@ def load(torchat):
     torchat.TRANSLATIONS['ru'].DSET_TEST_PLUGIN_TEXT = u'Заменять сообщения текстом'
     torchat.config.importLanguage()
 
-    _constructor = torchat.dlg_settings.Dialog.__init__
-    def constructor(self, main_window):
-        _constructor(self, main_window)
+    _addPluginSettings = torchat.dlg_settings.Dialog.addPluginSettings
+    def addPluginSettings(self, main_window):
+        _addPluginSettings(self, main_window)
         torchat.dlg.Text(self.p3, torchat.dlg_settings.lang.DSET_TEST_PLUGIN_TEXT,
                 ("test_plugin", "text"))
-    torchat.dlg_settings.Dialog.__init__ = constructor
+    torchat.dlg_settings.Dialog.addPluginSettings = addPluginSettings
 

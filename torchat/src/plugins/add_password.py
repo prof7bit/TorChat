@@ -43,9 +43,9 @@ def load(torchat):
     set_tr('ru', 'password_tip', u'Подсказка о пароле')
     torchat.config.importLanguage()
 
-    _dlg_settings_constructor = torchat.dlg_settings.Dialog.__init__
-    def dlg_settings_constructor(self, main_window):
-        _dlg_settings_constructor(self, main_window)
+    _addPluginSettings = torchat.dlg_settings.Dialog.addPluginSettings
+    def addPluginSettings(self, main_window):
+        _addPluginSettings(self, main_window)
         def tr(option):
             attr_name = 'DSET_PASSWORD_' + option.upper()
             if hasattr(torchat.dlg_settings.lang, attr_name):
@@ -57,6 +57,4 @@ def load(torchat):
                     ("password", option), expand=True)
         text(self, 'password')
         text(self, 'password_tip')
-        self.p3.fit()
-        self.outer_sizer.Fit(self)
-    torchat.dlg_settings.Dialog.__init__ = dlg_settings_constructor
+    torchat.dlg_settings.Dialog.addPluginSettings = addPluginSettings

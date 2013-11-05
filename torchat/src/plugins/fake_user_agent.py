@@ -32,9 +32,9 @@ def load(torchat):
     set_tr('ru', 'version', u'Отсылаемая версия клиента')
     torchat.config.importLanguage()
 
-    _dlg_settings_constructor = torchat.dlg_settings.Dialog.__init__
-    def dlg_settings_constructor(self, main_window):
-        _dlg_settings_constructor(self, main_window)
+    _addPluginSettings = torchat.dlg_settings.Dialog.addPluginSettings
+    def addPluginSettings(self, main_window):
+        _addPluginSettings(self, main_window)
         def tr(option):
             attr_name = 'DSET_FAKEUA_' + option.upper()
             if hasattr(torchat.dlg_settings.lang, attr_name):
@@ -46,9 +46,7 @@ def load(torchat):
                     ("fake_user_agent", option), expand=True)
         text(self, 'client')
         text(self, 'version')
-        self.p3.fit()
-        self.outer_sizer.Fit(self)
-    torchat.dlg_settings.Dialog.__init__ = dlg_settings_constructor
+    torchat.dlg_settings.Dialog.addPluginSettings = addPluginSettings
 
     _dlg_settings_onOk = torchat.dlg_settings.Dialog.onOk
     def dlg_settings_onOk(self, evt):

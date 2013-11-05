@@ -540,9 +540,9 @@ def load(torchat):
     set_tr('ru', 'receiver_status', u'Статусы получателей [offline,][handshake,][online,][away,][busy]')
     torchat.config.importLanguage()
 
-    _dlg_settings_constructor = torchat.dlg_settings.Dialog.__init__
-    def dlg_settings_constructor(self, main_window):
-        _dlg_settings_constructor(self, main_window)
+    _addPluginSettings = torchat.dlg_settings.Dialog.addPluginSettings
+    def addPluginSettings(self, main_window):
+        _addPluginSettings(self, main_window)
         self.p_conference = torchat.dlg.Panel(self.notebook)
         self.notebook.AddPage(self.p_conference,
                 torchat.dlg_settings.lang.DSET_CONFERENCE_TITLE)
@@ -570,8 +570,7 @@ def load(torchat):
         text(self, 'default_role')
         text(self, 'receiver_status')
         self.p_conference.fit()
-        self.outer_sizer.Fit(self)
-    torchat.dlg_settings.Dialog.__init__ = dlg_settings_constructor
+    torchat.dlg_settings.Dialog.addPluginSettings = addPluginSettings
 
     _dlg_settings_onOk = torchat.dlg_settings.Dialog.onOk
     def dlg_settings_onOk(self, evt):
