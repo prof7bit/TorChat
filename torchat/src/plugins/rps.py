@@ -143,7 +143,8 @@ def load(torchat):
             if cleartext_match:
                 cleartext = cleartext_match.group()
                 for window in torchat.app.mw.chat_windows:
-                    if window.buddy == self.buddy:
+                    if window.buddy == self.buddy \
+                            and hasattr(window, 'rps_opponent_hash'):
                         send_cleartext(window)
                         hash = window.rps_opponent_hash
                         if sha1(cleartext).hexdigest() != hash:
