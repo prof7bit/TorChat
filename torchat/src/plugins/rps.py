@@ -39,6 +39,8 @@ def load(torchat):
                 'RPS_' + option.upper(), translation)
     def tr(option):
         return getattr(get_lang(), 'RPS_' + option.upper(), option)
+    set_tr('en', 'rps', u'Rock-paper-scissors')
+    set_tr('ru', 'rps', u'Камень-ножницы-бумага')
     set_tr('en', 'rock', u'Rock')
     set_tr('ru', 'rock', u'Камень')
     set_tr('en', 'paper', u'Paper')
@@ -111,7 +113,7 @@ def load(torchat):
     def ChatWindow_PopupMenu(self, menu):
         # rps submenu
         self.rps_submenu = wx.Menu()
-        menu.AppendMenu(-1, get_lang().DSET_PLUGIN_RPS, self.rps_submenu)
+        menu.AppendMenu(-1, tr('rps'), self.rps_submenu)
         def add_item(what):
             id = wx.NewId()
             item = wx.MenuItem(self.rps_submenu, id, tr(what))
