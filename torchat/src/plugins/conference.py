@@ -501,6 +501,8 @@ def load(torchat):
         _add_me_execute(self)
         if int(get('welcome_help')) == 1 and welcome:
             do_help(self.buddy, None)
+            nick = nick_repr(self.buddy)
+            announce('%s entered room' % nick, False)
     torchat.tc_client.ProtocolMsg_add_me.execute = add_me_execute
 
     _remove_me_execute = torchat.tc_client.ProtocolMsg_remove_me.execute
