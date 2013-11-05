@@ -192,7 +192,9 @@ def load(torchat):
             me.sendChatMessage('[room] Action not allowed')
             return
         nicks = []
+        shown = set()
         for buddy in buddy_list().list:
+            shown.add(buddy.address)
             nick = nick_repr(buddy, is_moder(me.address))
             if buddy.address not in nick and is_moder(me.address):
                 nick += ' (%s)' % buddy.address
@@ -202,7 +204,15 @@ def load(torchat):
             if int(get('list_role')) == 1 or is_moder(me.address):
                 nick += ' /%s/' % role_of(buddy.address)
             nicks.append(nick)
-        me.sendChatMessage('[room]\n' + '\n'.join(nicks))
+        text = '[room]\n' + '\n'.join(nicks)
+        if is_moder(me.address):
+            not_in_room = []
+            for address, role in roles.items():
+                if address not in shown:
+                    not_in_room.append('%s /%s/' % (address, role))
+            if not_in_room:
+                text += '\n\nNot in room:\n' + '\n'.join(not_in_room)
+        me.sendChatMessage(text)
     def do_ignore(me, nick):
         buddy = buddy_from_nick(nick, me)
         if buddy:
