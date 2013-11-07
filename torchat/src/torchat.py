@@ -105,6 +105,9 @@ def main():
     print "(1) opening TorChat listener on %s:%s" % (interface, port)
     listen_socket = tc_client.tryBindPort(interface, port)
     if not listen_socket:
+        print "(1) opening TorChat listener on %s, any port" % interface
+        listen_socket = tc_client.tryBindPort(interface, 0)
+    if not listen_socket:
         print "(1) %s:%s is already in use" % (interface, port)
         wx.MessageBox(tc_gui.lang.D_WARN_USED_PORT_MESSAGE % (interface, port),
                       tc_gui.lang.D_WARN_USED_PORT_TITLE)

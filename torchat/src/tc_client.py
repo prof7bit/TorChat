@@ -542,9 +542,10 @@ class BuddyList(object):
         self.tor_timer = None
         self.tor_config = 'tor_portable'
         self.tor_server_socks_port = config.getint(self.tor_config, "tor_server_socks_port")
-        if self.tor_server_socks_port == 0:
-            interface = config.get("client", "listen_interface")
-            self.tor_server_socks_port = getFreePort(interface)
+        tor_interface = config.get("client", "listen_interface")
+        if self.tor_server_socks_port == 0 or \
+                not isPortFree(tor_interface, self.tor_server_socks_port):
+            self.tor_server_socks_port = getFreePort(tor_interface)
 
         self.file_sender = {}
         self.file_receiver = {}
@@ -2063,6 +2064,8 @@ class Listener(threading.Thread):
         if not self.socket:
             interface = config.get("client", "listen_interface")
             self.socket = tryBindPort(interface, self.port)
+            if not self.socket:
+                self.socket = tryBindPort(interface, 0)
         self.port = self.socket.getsockname()[1]
         self.socket.listen(5)
         self.start()
@@ -2122,6 +2125,17 @@ def tryBindPort(interface, port):
         return s
     except:
         tb()
+        return False
+
+def isPortFree(interface, port):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((interface, port))
+        s.listen(5)
+        s.close()
+        return True
+    except:
         return False
 
 def getFreePort(interface):
