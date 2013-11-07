@@ -280,10 +280,10 @@ class Buddy(object):
 
     def onProfileName(self, name):
         print "(2) %s.onProfile" % self.address
-        self.profile_name = name
-        if self.name == "" and name <> "":
+        if name and (not self.name or self.name == self.profile_name):
             self.name = name
             self.bl.save()
+        self.profile_name = name
         self.bl.gui(CB_TYPE_PROFILE, self)
 
     def onProfileText(self, text):
