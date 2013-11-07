@@ -1010,8 +1010,11 @@ class BuddyToolTip(wx.PopupWindow):
         self.avatar = wx.StaticBitmap(self.panel, -1, bitmap)
         sizer.Add(self.avatar, 0, wx.ALL, 5)
 
-        text =  "%s\n%s\n%s" % (self.buddy.address,
-                self.buddy.getSaneProfileName(), self.buddy.name)
+        text = self.buddy.address
+        if self.buddy.getSaneProfileName():
+            text += "\n" + self.buddy.getSaneProfileName()
+        if self.buddy.name:
+            text += "\n" + self.buddy.name
 
         if self.buddy.profile_text <> u"":
             text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 30))
