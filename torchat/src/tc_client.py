@@ -281,10 +281,8 @@ class Buddy(object):
 
     def onProfileName(self, name):
         print "(2) %s.onProfile" % self.address
-        if name and (not self.name or self.name == self.profile_name):
-            self.name = name
-            self.bl.save()
         self.profile_name = name
+        self.bl.save()
         self.bl.gui(CB_TYPE_PROFILE, self)
 
     def onProfileText(self, text):
@@ -352,18 +350,6 @@ class Buddy(object):
             else:
                 print "(2) could not send offline messages, not fully connected."
                 pass
-
-    def getDisplayNameOrAddress(self):
-        if self.name == "":
-            return self.address
-        else:
-            return self.name
-
-    def getAddressAndDisplayName(self):
-        if self.name == "":
-            return self.address
-        else:
-            return self.address + " (" + self.name + ")"
 
     def sendFile(self, filename, gui_callback):
         sender = FileSender(self, filename, gui_callback)
@@ -518,13 +504,20 @@ class Buddy(object):
         else:
             print "(2) not connected, not sending version to %s" % self.address
 
-    def getDisplayName(self):
-        if self.name != "":
-            line = "%s (%s)" % (self.address, self.name)
+    def getShortDisplayName(self):
+        if self.name:
+            return self.name
+        elif self.profile_name:
+            return self.profile_name
         else:
-            line = self.address
-        return line
+            return self.address
 
+    def getDisplayName(self):
+        short_name = self.getShortDisplayName()
+        if short_name != self.address:
+            return "%s (%s)" % (self.address, short_name)
+        else:
+            return self.address
 
 class BuddyList(object):
     """the BuddyList object is the central API of the client.
@@ -1663,7 +1656,6 @@ class ProtocolMsg_add_me(ProtocolMsg):
             print "(2) add me from %s" % self.buddy.address
             if not self.buddy in self.bl.list:
                 print "(2) received add_me from new buddy %s" % self.buddy.address
-                self.buddy.name = self.buddy.profile_name
                 self.bl.addBuddy(self.buddy)
                 msg = "<- has added you"
                 self.buddy.onChatMessage(msg)

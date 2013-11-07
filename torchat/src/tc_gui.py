@@ -308,7 +308,7 @@ class PopupMenu(wx.Menu):
         self.Bind(wx.EVT_MENU, self.onQuit, item)
 
     def onSendFile(self, evt):
-        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getDisplayName()
         dialog = wx.FileDialog(self.mw, title, style=wx.OPEN)
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
@@ -320,7 +320,8 @@ class PopupMenu(wx.Menu):
         dialog.ShowModal()
 
     def onDelete(self, evt):
-        answer = wx.MessageBox(lang.D_CONFIRM_DELETE_MESSAGE % (self.buddy.address, self.buddy.name),
+        answer = wx.MessageBox(lang.D_CONFIRM_DELETE_MESSAGE %
+                (self.buddy.getDisplayName(), ''),
                                lang.D_CONFIRM_DELETE_TITLE,
                                wx.YES_NO|wx.NO_DEFAULT)
         if answer == wx.YES:
@@ -1009,11 +1010,8 @@ class BuddyToolTip(wx.PopupWindow):
         self.avatar = wx.StaticBitmap(self.panel, -1, bitmap)
         sizer.Add(self.avatar, 0, wx.ALL, 5)
 
-        name = self.buddy.name
-        if self.buddy.profile_name <> u"":
-            name = self.buddy.profile_name
-
-        text =  "%s\n%s" % (self.buddy.address, name)
+        text =  "%s\n%s\n%s" % (self.buddy.address,
+                self.buddy.profile_name, self.buddy.name)
 
         if self.buddy.profile_text <> u"":
             text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 30))
@@ -1261,9 +1259,7 @@ class ChatWindow(wx.Frame):
         else:
             title = ""
 
-        title += self.buddy.address
-        if self.buddy.name != "":
-            title += " (%s)" % self.buddy.name
+        title += self.buddy.getDisplayName()
 
         self.SetTitle(title + " %s" % config.getProfileLongName())
 
@@ -1329,10 +1325,7 @@ class ChatWindow(wx.Frame):
 
     def process(self, message):
         #message must be unicode
-        if self.buddy.name != "":
-            name = self.buddy.name
-        else:
-            name = self.buddy.address
+        name = self.buddy.getShortDisplayName()
         self.writeColored(config.get("gui", "color_nick_buddy"), name, message)
         self.notify(name, message)
 
@@ -1457,7 +1450,7 @@ class ChatWindow(wx.Frame):
         wx.TheClipboard.Close()
 
     def onSendFile(self, evt):
-        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getDisplayName()
         dialog = wx.FileDialog(self, title, style=wx.OPEN)
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
@@ -1681,9 +1674,7 @@ class FileTransferWindow(wx.Frame):
             self.bytes_complete = 0
 
         percent = 100.0 * self.bytes_complete / self.bytes_total
-        peer_name = self.buddy.address
-        if self.buddy.name != "":
-            peer_name += " (%s)" % self.buddy.name
+        peer_name = self.buddy.getDisplayName()
         title = "%04.1f%% - %s" % (percent, os.path.basename(self.file_name))
         self.SetTitle(title)
         self.progress_bar.SetValue(percent)
@@ -1758,7 +1749,7 @@ class FileTransferWindow(wx.Frame):
         self.Close()
 
     def onSave(self, evt):
-        title = lang.DFT_FILE_SAVE_TITLE % self.buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_SAVE_TITLE % self.buddy.getDisplayName()
         dialog = wx.FileDialog(self, title, defaultFile=self.file_name, style=wx.SAVE)
         if config.isPortable():
             dialog.SetDirectory(config.getDataDir())
