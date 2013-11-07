@@ -31,6 +31,7 @@ import hashlib
 import config
 import version
 import re
+import json
 from functools import partial
 
 TORCHAT_PORT = 11009 #do NOT change this.
@@ -562,26 +563,12 @@ class BuddyList(object):
 
         self.startPortableTor()
 
-        filename = os.path.join(config.getDataDir(), "buddy-list.txt")
-
-        #create empty buddy list file if it does not already exist
-        f = open(filename, "a")
-        f.close()
-
-        f = open(filename, "r")
-        l = f.read().replace("\r", "\n").replace("\n\n", "\n").split("\n")
-        f.close()
         self.list = []
-        for line in l:
-            line = line.rstrip().decode("UTF-8")
-            if len(line) > 15:
-                address = line[0:16]
-                if len(line) > 17:
-                    name = line[17:]
-                else:
-                    name = u""
-                buddy = Buddy(address, self, name)
-                self.list.append(buddy)
+
+        for buddy_dict in json.loads(config.get('client', 'buddy-list')):
+            buddy = Buddy(buddy_dict['address'], self, buddy_dict['name'])
+            buddy.profile_name = buddy_dict['profile_name']
+            self.list.append(buddy)
 
         found = False
         for buddy in self.list:
@@ -610,11 +597,12 @@ class BuddyList(object):
         print "(1) BuddList initialized"
 
     def save(self):
-        f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
+        buddy_list = []
         for buddy in self.list:
-            line = ("%s %s\r\n" % (buddy.address, buddy.name.rstrip())).encode("UTF-8")
-            f.write(line)
-        f.close()
+            buddy_list.append({'address': buddy.address,
+                'name': buddy.name.encode("UTF-8"),
+                'profile_name': buddy.profile_name.encode("UTF-8")})
+        config.set('client', 'buddy-list', json.dumps(buddy_list))
         print "(2) buddy list saved"
 
         # this is the optimal spot to notify the GUI to redraw the list
