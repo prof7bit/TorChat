@@ -570,7 +570,7 @@ class BuddyList(object):
 
         f = open(filename, "r")
         l = f.read().replace("\r", "\n").replace("\n\n", "\n").split("\n")
-        f.close
+        f.close()
         self.list = []
         for line in l:
             line = line.rstrip().decode("UTF-8")
