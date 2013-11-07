@@ -157,7 +157,7 @@ def load(torchat):
         if int(get("prefer_nicks")) == 1 \
                 and buddy.profile_name \
                 and not torchat.tc_client.isValidAddress(buddy.profile_name):
-            nick = buddy.profile_name
+            nick = buddy.getSaneProfileName()
         if moder or int(get('list_role')) == 1:
             buddy_role = role_of(buddy.address)
             if buddy_role in ('admin', 'owner'):
