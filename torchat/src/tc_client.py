@@ -504,11 +504,14 @@ class Buddy(object):
         else:
             print "(2) not connected, not sending version to %s" % self.address
 
+    def getSaneProfileName(self):
+        return self.profile_name.replace('\n', ' ').replace('\r', ' ')[:100]
+
     def getShortDisplayName(self):
         if self.name:
             return self.name
-        elif self.profile_name:
-            return self.profile_name
+        elif self.getSaneProfileName():
+            return self.getSaneProfileName()
         else:
             return self.address
 
