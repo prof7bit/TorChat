@@ -20,7 +20,7 @@ these folders and use the one that is first found:
       %ProgramFiles%\Tor\
       %ProgramFiles%\Vidalia Bundle\Tor\
 
-  Tor only needs to be installed on your computer, it doesn not need to
+  Tor only needs to be installed on your computer, it does not need to
 be running or configured in any special way to use TorChat. TorChat will
 take care of all that automatically and without interfering with your
 other usage of Tor.
