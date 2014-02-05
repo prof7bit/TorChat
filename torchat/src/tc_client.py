@@ -519,8 +519,9 @@ class Buddy(object):
             print "(2) not connected, not sending version to %s" % self.address
 
     def getDisplayName(self):
-        if self.name != "":
-            line = "%s (%s)" % (self.address, self.name)
+        if self.name != "" and self.name != self.address:
+            display_format = ((self.address, self.name), (self.name, self.address))[config.getint("gui", "buddies_display_format")]
+            line = "%s (%s)" % display_format
         else:
             line = self.address
         return line
