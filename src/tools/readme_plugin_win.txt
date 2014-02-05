@@ -13,14 +13,14 @@ rights for this):
       %ProgramFiles%\Pidgin\plugins\
 
   You also must have Tor installed in the usual location, this must
-be one of the following folders (this is where the offical Tor
-installer will install Tor.exe), TorChat will automtically search
+be one of the following folders (this is where the official Tor
+installer will install Tor.exe), TorChat will automatically search
 these folders and use the one that is first found:
 
       %ProgramFiles%\Tor\
       %ProgramFiles%\Vidalia Bundle\Tor\
 
-  Tor only needs to be installed on your computer, it doesn not need to
+  Tor only needs to be installed on your computer, it does not need to
 be running or configured in any special way to use TorChat. TorChat will
 take care of all that automatically and without interfering with your
 other usage of Tor.
@@ -34,12 +34,12 @@ for a username just enter your name (or anything else), this is NOT the
 TorChat ID, its just an account name to tell different TorChat profiles
 apart with a human readable name. It will create a config folder
 %APPDATA%\torchat2_accountname\ for each account (profile). You can create
-as many accounts (profiles) as you want and use them all simultanously.
+as many accounts (profiles) as you want and use them all simultaneously.
 
 If you need a log file for debugging purposes create the folder
 %APPDATA%\torchatlogs before you start it, TorChat will detect this and
 enable logging for the plugin and for tor, if you want to disable logging
-smply remove this folder.
+simply remove this folder.
 
 The TorChat plugin will recognize the following environment variables
 on all platforms: PURPLEHOME, APPDATA, TOR_EXE to override the defaults
