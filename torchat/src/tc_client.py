@@ -30,9 +30,12 @@ import tempfile
 import hashlib
 import config
 import version
+import re
+import json
+from functools import partial
 
 TORCHAT_PORT = 11009 #do NOT change this.
-TOR_CONFIG = "tor" #the name of the active section in the .ini file
+
 STATUS_OFFLINE = 0
 STATUS_HANDSHAKE = 1
 STATUS_ONLINE = 2
@@ -50,9 +53,6 @@ CB_TYPE_REMOVE = 8
 
 tb = config.tb # the traceback function has moved to config
 tb1 = config.tb1
-tor_pid = None
-tor_proc = None
-tor_timer = None
 
 
 def splitLine(text):
@@ -282,9 +282,7 @@ class Buddy(object):
     def onProfileName(self, name):
         print "(2) %s.onProfile" % self.address
         self.profile_name = name
-        if self.name == "" and name <> "":
-            self.name = name
-            self.bl.save()
+        self.bl.save()
         self.bl.gui(CB_TYPE_PROFILE, self)
 
     def onProfileText(self, text):
@@ -352,18 +350,6 @@ class Buddy(object):
             else:
                 print "(2) could not send offline messages, not fully connected."
                 pass
-
-    def getDisplayNameOrAddress(self):
-        if self.name == "":
-            return self.address
-        else:
-            return self.name
-
-    def getAddressAndDisplayName(self):
-        if self.name == "":
-            return self.address
-        else:
-            return self.address + " (" + self.name + ")"
 
     def sendFile(self, filename, gui_callback):
         sender = FileSender(self, filename, gui_callback)
@@ -518,13 +504,23 @@ class Buddy(object):
         else:
             print "(2) not connected, not sending version to %s" % self.address
 
-    def getDisplayName(self):
-        if self.name != "":
-            line = "%s (%s)" % (self.address, self.name)
-        else:
-            line = self.address
-        return line
+    def getSaneProfileName(self):
+        return self.profile_name.replace('\n', ' ').replace('\r', ' ')[:100]
 
+    def getShortDisplayName(self):
+        if self.name:
+            return self.name
+        elif self.getSaneProfileName():
+            return self.getSaneProfileName()
+        else:
+            return self.address
+
+    def getDisplayName(self):
+        short_name = self.getShortDisplayName()
+        if short_name != self.address:
+            return "%s (%s)" % (self.address, short_name)
+        else:
+            return self.address
 
 class BuddyList(object):
     """the BuddyList object is the central API of the client.
@@ -541,8 +537,17 @@ class BuddyList(object):
     def __init__(self, callback, socket=None):
         print "(1) initializing buddy list"
         self.gui = callback
-
-        startPortableTor()
+        self.tor_pid = None
+        self.tor_proc = None
+        self.tor_timer = None
+        self.tor_config = config.get('client', 'tor_config')
+        self.tor_server_socks_port = config.getint(self.tor_config, "tor_server_socks_port")
+        tor_interface = config.get("client", "listen_interface")
+        if self.tor_server_socks_port == 0:
+            self.tor_server_socks_port = getFreePort(tor_interface)
+        if self.tor_config == 'tor_portable' and \
+                not isPortFree(tor_interface, self.tor_server_socks_port):
+            self.tor_server_socks_port = getFreePort(tor_interface)
 
         self.file_sender = {}
         self.file_receiver = {}
@@ -555,26 +560,15 @@ class BuddyList(object):
         self.listener = Listener(self, socket)
         self.own_status = STATUS_ONLINE
 
-        filename = os.path.join(config.getDataDir(), "buddy-list.txt")
+        if self.tor_config == 'tor_portable':
+            self.startPortableTor()
 
-        #create empty buddy list file if it does not already exist
-        f = open(filename, "a")
-        f.close()
-
-        f = open(filename, "r")
-        l = f.read().replace("\r", "\n").replace("\n\n", "\n").split("\n")
-        f.close
         self.list = []
-        for line in l:
-            line = line.rstrip().decode("UTF-8")
-            if len(line) > 15:
-                address = line[0:16]
-                if len(line) > 17:
-                    name = line[17:]
-                else:
-                    name = u""
-                buddy = Buddy(address, self, name)
-                self.list.append(buddy)
+
+        for buddy_dict in json.loads(config.get('client', 'buddy-list')):
+            buddy = Buddy(buddy_dict['address'], self, buddy_dict['name'])
+            buddy.profile_name = buddy_dict['profile_name']
+            self.list.append(buddy)
 
         found = False
         for buddy in self.list:
@@ -603,11 +597,12 @@ class BuddyList(object):
         print "(1) BuddList initialized"
 
     def save(self):
-        f = open(os.path.join(config.getDataDir(), "buddy-list.txt"), "w")
+        buddy_list = []
         for buddy in self.list:
-            line = ("%s %s\r\n" % (buddy.address, buddy.name.rstrip())).encode("UTF-8")
-            f.write(line)
-        f.close()
+            buddy_list.append({'address': buddy.address,
+                'name': buddy.name.encode("UTF-8"),
+                'profile_name': buddy.profile_name.encode("UTF-8")})
+        config.set('client', 'buddy-list', json.dumps(buddy_list))
         print "(2) buddy list saved"
 
         # this is the optimal spot to notify the GUI to redraw the list
@@ -739,11 +734,124 @@ class BuddyList(object):
         connection.buddy.onOutConnectionSuccess()
 
     def stopClient(self):
-        stopPortableTor()
+        self.stopPortableTor()
         for buddy in self.list + self.incoming_buddies:
             buddy.disconnect()
         self.listener.close() #FIXME: does this really work?
 
+    def startPortableTor(self):
+        print "(1) entering function startPortableTor()"
+        old_dir = os.getcwd()
+        print "(1) current working directory is %s" % os.getcwd()
+        try:
+            print "(1) changing working directory"
+            os.chdir(config.getDataDir())
+            os.chdir("Tor")
+            print "(1) current working directory is %s" % os.getcwd()
+            torrc = open('torrc.txt').read()
+            torrc = re.sub(r'SocksPort \d+', 'SocksPort %i' %
+                    self.tor_server_socks_port, torrc)
+            torrc = re.sub(r'HiddenServicePort %i 127.0.0.1:\d+' % TORCHAT_PORT,
+                    'HiddenServicePort %i 127.0.0.1:%i' %
+                    (TORCHAT_PORT, self.listener.port), torrc)
+            temp_torrc = open('torrc.temp.txt', 'w')
+            temp_torrc.write(torrc)
+            temp_torrc.close()
+            # completely remove all cache files from the previous run
+            #for root, dirs, files in os.walk("tor_data", topdown=False):
+            #    for name in files:
+            #        os.remove(os.path.join(root, name))
+            #    for name in dirs:
+            #        os.rmdir(os.path.join(root, name))
+
+            # now start tor with the supplied config file
+            print "(1) trying to start Tor"
+
+            if config.isWindows():
+                if os.path.exists("tor.exe"):
+                    #start the process without opening a console window
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= 1 #STARTF_USESHOWWINDOW
+                    self.tor_proc = subprocess.Popen("tor.exe -f torrc.temp.txt".split(), startupinfo=startupinfo)
+                    self.tor_pid = self.tor_proc.pid
+                else:
+                    print "(1) there is no portable tor.exe"
+                    self.tor_pid = False
+            else:
+                if os.path.exists("tor.sh"):
+                    #let our shell script start a tor instance
+                    os.system("chmod 0700 tor.sh")
+                    self.tor_proc = subprocess.Popen("./tor.sh".split())
+                    self.tor_pid = self.tor_proc.pid
+                    print "(1) tor pid is %i" % self.tor_pid
+                else:
+                    print "(1) there is no Tor starter script (tor.sh)"
+                    self.tor_pid = False
+
+            if self.tor_pid:
+                #tor = subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
+                print "(1) successfully started Tor (pid=%i)" % self.tor_pid
+
+                # we now assume the existence of our hostname file
+                # it WILL be created after the first start
+                # if not, something must be totally wrong.
+                cnt = 0
+                found = False
+                while cnt <= 20:
+                    try:
+                        print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
+                        f = open(os.path.join("hidden_service", "hostname"), "r")
+                        hostname = f.read().rstrip()[:-6]
+                        print "(1) found hostname: %s" % hostname
+                        print "(1) writing own_hostname to torchat.ini"
+                        config.set("client", "own_hostname", hostname)
+                        found = True
+                        f.close()
+                        break
+                    except:
+                        # we wait 20 seconds for the file to appear
+                        time.sleep(1)
+                        cnt += 1
+
+                if not found:
+                    print "(0) very strange: portable tor started but hostname could not be read"
+                    print "(0) will use section [tor] and not [tor_portable]"
+                else:
+                    #in portable mode we run Tor on some non-standard ports:
+                    #so we switch to the other set of config-options
+                    print "(1) switching active config section from [tor] to [tor_portable]"
+                    self.tor_config = "tor_portable"
+                    #start the timer that will periodically check that tor is still running
+                    self.startPortableTorTimer()
+            else:
+                print "(1) no own Tor instance. Settings in [tor] will be used"
+
+        except:
+            print "(1) an error occured while starting tor, see traceback:"
+            tb(1)
+
+        print "(1) changing working directory back to %s" % old_dir
+        os.chdir(old_dir)
+        print "(1) current working directory is %s" % os.getcwd()
+
+    def stopPortableTor(self):
+        if not self.tor_pid:
+            return
+        else:
+            print "(1) tor has pid %i, terminating." % self.tor_pid
+            config.killProcess(self.tor_pid)
+
+    def startPortableTorTimer(self):
+        self.tor_timer = threading.Timer(10,
+                partial(BuddyList.onPortableTorTimer, self))
+        self.tor_timer.start()
+
+    def onPortableTorTimer(self):
+        if self.tor_proc.poll() != None:
+            print "(1) Tor stopped running. Will restart it now"
+            self.startPortableTor()
+        else:
+            self.startPortableTorTimer()
 
 class FileSender(threading.Thread):
     def __init__(self, buddy, file_name, callback):
@@ -1241,6 +1349,13 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
         if self.buddy:
             print "(2) %s says it can't handle '%s'" % (self.buddy.address, self.offending_command)
 
+def isValidAddress(address):
+    if len(address) <> 16:
+        return False
+    for c in address:
+        if not c in "234567abcdefghijklmnopqrstuvwxyz":  # base32
+            return False
+    return True
 
 class ProtocolMsg_ping(ProtocolMsg):
     """a ping message consists of sender address and a random string (cookie). 
@@ -1250,12 +1365,7 @@ class ProtocolMsg_ping(ProtocolMsg):
         self.address, self.answer = splitLine(self.blob)
 
     def isValidAddress(self):
-        if len(self.address) <> 16:
-            return False
-        for c in self.address:
-            if not c in "234567abcdefghijklmnopqrstuvwxyz":  # base32
-                return False
-        return True
+        return isValidAddress(self.address)
 
     def execute(self):
         print "(2) <<< PING %s" % self.address
@@ -1357,16 +1467,15 @@ class ProtocolMsg_ping(ProtocolMsg):
                 self.buddy.count_unanswered_pings = 0
                 self.buddy.sendPing()
 
+        #now we can finally put our answer into the send queue
+        print "(2) PONG >>> %s" % self.address
+        answer = ProtocolMsg_pong(self.buddy, self.answer)
+        answer.send()
         if self.buddy.isAlreadyPonged():
             #but we don't need to send more than one pong on the same conn_out
             #only if this is also a new conn_out because the last one failed
             print "(2) not sending another pong over same connection"
             return
-
-        #now we can finally put our answer into the send queue
-        print "(2) PONG >>> %s" % self.address
-        answer = ProtocolMsg_pong(self.buddy, self.answer)
-        answer.send()
         self.buddy.conn_out.pong_sent = True
 
         self.buddy.sendVersion()
@@ -1426,7 +1535,7 @@ class ProtocolMsg_pong(ProtocolMsg):
 class ProtocolMsg_client(ProtocolMsg):
     """transmits the name of the client software. Usually sent after the pong"""
     def parse(self):
-        self.client = self.blob
+        self.client = self.blob.decode('UTF-8')
 
     def execute(self):
         if self.buddy:
@@ -1437,7 +1546,7 @@ class ProtocolMsg_client(ProtocolMsg):
 class ProtocolMsg_version(ProtocolMsg):
     """transmits the version number of the client software. Usually sent after the 'client' message"""
     def parse(self):
-        self.version = self.blob
+        self.version = self.blob.decode('UTF-8')
 
     def execute(self):
         if self.buddy:
@@ -1554,7 +1663,6 @@ class ProtocolMsg_add_me(ProtocolMsg):
             print "(2) add me from %s" % self.buddy.address
             if not self.buddy in self.bl.list:
                 print "(2) received add_me from new buddy %s" % self.buddy.address
-                self.buddy.name = self.buddy.profile_name
                 self.bl.addBuddy(self.buddy)
                 msg = "<- has added you"
                 self.buddy.onChatMessage(msg)
@@ -1896,9 +2004,10 @@ class OutConnection(threading.Thread):
         self.running = True
         try:
             self.socket = socks.socksocket()
-            self.socket.setproxy(socks.PROXY_TYPE_SOCKS4,
-                                 config.get(TOR_CONFIG, "tor_server"),
-                                 config.getint(TOR_CONFIG, "tor_server_socks_port"))
+            socks_ip = config.get(self.bl.tor_config, "tor_server")
+            socks_port = self.bl.tor_server_socks_port
+            print "(2) using socks5 proxy '%s:%i'" % (socks_ip, socks_port)
+            self.socket.setproxy(socks.PROXY_TYPE_SOCKS5, socks_ip, socks_port)
             print "(2) trying to connect '%s'" % self.address
             self.socket.connect((str(self.address), TORCHAT_PORT))
             print "(2) connected to %s" % self.address
@@ -1955,16 +2064,19 @@ class Listener(threading.Thread):
         self.buddy_list = buddy_list
         self.conns = []
         self.socket = socket
+        self.port = config.getint("client", "listen_port")
+        if not self.socket:
+            interface = config.get("client", "listen_interface")
+            self.socket = tryBindPort(interface, self.port)
+            if not self.socket:
+                self.socket = tryBindPort(interface, 0)
+        self.port = self.socket.getsockname()[1]
+        self.socket.listen(5)
         self.start()
         self.startTimer()
 
     def run(self):
         self.running = True
-        if not self.socket:
-            interface = config.get("client", "listen_interface")
-            port = config.getint("client", "listen_port")
-            self.socket = tryBindPort(interface, port)
-        self.socket.listen(5)
         while self.running:
             try:
                 conn, address = self.socket.accept()
@@ -1982,7 +2094,7 @@ class Listener(threading.Thread):
         try:
             print "(2) closing listening socket %s:%s" \
               % (config.get("client", "listen_interface"),
-                 config.get("client", "listen_port"))
+                 self.port)
             self.socket.close()
             print "(2) success"
         except:
@@ -2019,111 +2131,27 @@ def tryBindPort(interface, port):
         tb()
         return False
 
-def startPortableTor():
-    print "(1) entering function startPortableTor()"
-    global tor_in, tor_out
-    global TOR_CONFIG
-    global tor_pid
-    global tor_proc
-    old_dir = os.getcwd()
-    print "(1) current working directory is %s" % os.getcwd()
+def isPortFree(interface, port):
     try:
-        print "(1) changing working directory"
-        os.chdir(config.getDataDir())
-        os.chdir("Tor")
-        print "(1) current working directory is %s" % os.getcwd()
-        # completely remove all cache files from the previous run
-        #for root, dirs, files in os.walk("tor_data", topdown=False):
-        #    for name in files:
-        #        os.remove(os.path.join(root, name))
-        #    for name in dirs:
-        #        os.rmdir(os.path.join(root, name))
-
-        # now start tor with the supplied config file
-        print "(1) trying to start Tor"
-
-        if config.isWindows():
-            if os.path.exists("tor.exe"):
-                #start the process without opening a console window
-                startupinfo = subprocess.STARTUPINFO()
-                startupinfo.dwFlags |= 1 #STARTF_USESHOWWINDOW
-                tor_proc = subprocess.Popen("tor.exe -f torrc.txt".split(), startupinfo=startupinfo)
-                tor_pid = tor_proc.pid
-            else:
-                print "(1) there is no portable tor.exe"
-                tor_pid = False
-        else:
-            if os.path.exists("tor.sh"):
-                #let our shell script start a tor instance
-                os.system("chmod 0700 tor.sh")
-                tor_proc = subprocess.Popen("./tor.sh".split())
-                tor_pid = tor_proc.pid
-                print "(1) tor pid is %i" % tor_pid
-            else:
-                print "(1) there is no Tor starter script (tor.sh)"
-                tor_pid = False
-
-        if tor_pid:
-            #tor = subprocess.Popen("tor.exe -f torrc.txt".split(), creationflags=0x08000000)
-            print "(1) successfully started Tor (pid=%i)" % tor_pid
-
-            # we now assume the existence of our hostname file
-            # it WILL be created after the first start
-            # if not, something must be totally wrong.
-            cnt = 0
-            found = False
-            while cnt <= 20:
-                try:
-                    print "(1) trying to read hostname file (try %i of 20)" % (cnt + 1)
-                    f = open(os.path.join("hidden_service", "hostname"), "r")
-                    hostname = f.read().rstrip()[:-6]
-                    print "(1) found hostname: %s" % hostname
-                    print "(1) writing own_hostname to torchat.ini"
-                    config.set("client", "own_hostname", hostname)
-                    found = True
-                    f.close()
-                    break
-                except:
-                    # we wait 20 seconds for the file to appear
-                    time.sleep(1)
-                    cnt += 1
-
-            if not found:
-                print "(0) very strange: portable tor started but hostname could not be read"
-                print "(0) will use section [tor] and not [tor_portable]"
-            else:
-                #in portable mode we run Tor on some non-standard ports:
-                #so we switch to the other set of config-options
-                print "(1) switching active config section from [tor] to [tor_portable]"
-                TOR_CONFIG = "tor_portable"
-                #start the timer that will periodically check that tor is still running
-                startPortableTorTimer()
-        else:
-            print "(1) no own Tor instance. Settings in [tor] will be used"
-
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((interface, port))
+        s.listen(5)
+        s.close()
+        return True
     except:
-        print "(1) an error occured while starting tor, see traceback:"
-        tb(1)
+        return False
 
-    print "(1) changing working directory back to %s" % old_dir
-    os.chdir(old_dir)
-    print "(1) current working directory is %s" % os.getcwd()
+def getFreePort(interface):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((interface, 0))
+        s.listen(5)
+        port = s.getsockname()[1]
+        s.close()
+        return port
+    except:
+        tb()
+        return False
 
-def stopPortableTor():
-    if not tor_pid:
-        return
-    else:
-        print "(1) tor has pid %i, terminating." % tor_pid
-        config.killProcess(tor_pid)
-
-def startPortableTorTimer():
-    global tor_timer
-    tor_timer = threading.Timer(10, onPortableTorTimer)
-    tor_timer.start()
-
-def onPortableTorTimer():
-    if tor_proc.poll() != None:
-        print "(1) Tor stopped running. Will restart it now"
-        startPortableTor()
-    else:
-        startPortableTorTimer()

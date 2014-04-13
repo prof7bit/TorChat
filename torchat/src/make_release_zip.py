@@ -95,6 +95,8 @@ def zipSrc(zipfile_name):
         "src\\translations\\insert_missing.py",
         "src\\translations\\__init__.py",
 
+        "src\\plugins\\*",
+
         "src\\SocksiPy\\*.py",
         "src\\SocksiPy\\BUGS",
         "src\\SocksiPy\\LICENSE",
@@ -130,6 +132,7 @@ def clean(folder):
 def cleanSrc():
     clean(".")
     clean("translations")
+    clean("plugins")
     clean("SocksiPy")
 
 # ------------------

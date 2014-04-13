@@ -86,11 +86,13 @@ dirs = ["DEBIAN",
         "usr/lib/torchat",
         "usr/lib/torchat/SocksiPy",
         "usr/lib/torchat/translations",
+        "usr/lib/torchat/plugins",
         "usr/lib/torchat/Tor",
         ]
 
 files = [("translations/*.py", "usr/lib/torchat/translations"),
          ("translations/*.txt", "usr/lib/torchat/translations"),
+         ("plugins/*", "usr/lib/torchat/plugins"),
          ("icons/*", "usr/share/pixmaps/torchat"),
          ("SocksiPy/__init__.py", "usr/lib/torchat/SocksiPy"),
          ("SocksiPy/socks.py", "usr/lib/torchat/SocksiPy"),

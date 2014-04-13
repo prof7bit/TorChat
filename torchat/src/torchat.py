@@ -39,11 +39,58 @@ else:
         print "(2) wxversion screwed up, this is harmless, ignoring it."
 
 import wx
+import re
 import os
+import sys
+
 import tc_client
 import tc_gui
-        
+import dlg
+import dlg_settings
+import translations
+import version
+
+# xx to module
+TRANSLATIONS = {}
+translations_dir = os.path.join(os.path.dirname(__file__), 'translations')
+for translation_file in os.listdir(translations_dir):
+    if re.match(r'^lang_..\.py$', translation_file):
+        translation_name = translation_file[:-3]
+        xx = translation_name[-2:]
+        translation_path = os.path.join(translations_dir, translation_file)
+        TRANSLATIONS[xx] = getattr(translations, translation_name)
+
+PLUGINS = {} # shortname to python modules
+# plugin module must have NAME_en member (string, long name)
+# plugin module must have load(torchat) member, torchat is this module
+# plugin module should have NAME_<LANG> with translation of name
+# plugins are searched in app's plugins/ dir and in getDataDir()/plugins
+# plugins with same name in getDataDir()/plugins win over app's plugins/ dir
+plugins_parent_dirs = [config.getDataDir(), os.path.dirname(__file__)]
+for plugins_parent_dir in plugins_parent_dirs:
+    plugins_dir = os.path.join(plugins_parent_dir, 'plugins')
+    if os.path.exists(plugins_dir):
+        sys.path.append(plugins_dir)
+        for plugin_file in os.listdir(plugins_dir):
+            if plugin_file.endswith('.py'):
+                plugin_name = plugin_file[:-3]
+                PLUGINS[plugin_name] = __import__(plugin_name)
+                for xx in TRANSLATIONS:
+                    if hasattr(PLUGINS[plugin_name], 'NAME_' + xx):
+                        dscr = getattr(PLUGINS[plugin_name], 'NAME_' + xx)
+                        var_name = 'DSET_PLUGIN_' + plugin_name.upper()
+                        setattr(TRANSLATIONS[xx], var_name, dscr)
+                config.importLanguage()
+
+def load_plugins():
+    enabled_plugins = config.get('plugin', 'enabled_plugins').split(',')
+    for plugin_name in enabled_plugins:
+        if plugin_name in PLUGINS:
+            PLUGINS[plugin_name].load(sys.modules[__name__])
+
 def main():
+    load_plugins()
+    global app
     print "(2) wxPython version %s" % wx.version()
     #create the mandatory wx application object
     if config.isMac():
@@ -57,6 +104,9 @@ def main():
     port = config.getint("client", "listen_port")
     print "(1) opening TorChat listener on %s:%s" % (interface, port)
     listen_socket = tc_client.tryBindPort(interface, port)
+    if not listen_socket:
+        print "(1) opening TorChat listener on %s, any port" % interface
+        listen_socket = tc_client.tryBindPort(interface, 0)
     if not listen_socket:
         print "(1) %s:%s is already in use" % (interface, port)
         wx.MessageBox(tc_gui.lang.D_WARN_USED_PORT_MESSAGE % (interface, port),
@@ -77,4 +127,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        tc_client.stopPortableTor()
+        app.mw.buddy_list.stopPortableTor()

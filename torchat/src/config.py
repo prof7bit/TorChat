@@ -21,6 +21,7 @@ import traceback
 import inspect
 import translations
 import shutil
+import json
 
 def isWindows():
     return sys.platform.startswith("win")
@@ -29,15 +30,17 @@ if isWindows():
     import ctypes
 
 config_defaults = {
+    ("client", "tor_config") : "tor_portable",
     ("tor", "tor_server") : "127.0.0.1",
     ("tor", "tor_server_socks_port") : 9050,
     ("tor", "tor_server_control_port") : 9051,
     ("tor_portable", "tor_server") : "127.0.0.1",
-    ("tor_portable", "tor_server_socks_port") : 11109,
+    ("tor_portable", "tor_server_socks_port") : 0,
     ("tor_portable", "tor_server_control_port") : 11119,
     ("client", "own_hostname") : "0000000000000000",
     ("client", "listen_interface") : "127.0.0.1",
-    ("client", "listen_port") : 11009,
+    ("client", "listen_port") : 0,
+    ("client", "buddy-list") : '[]',
     ("logging", "log_file") : "",
     ("logging", "log_level") : 0,
     ("files", "temp_files_in_data_dir") : 1,
@@ -66,6 +69,7 @@ config_defaults = {
     ("branding", "support_name") : "Bernd, author of TorChat",
     ("profile", "name") : "",
     ("profile", "text") : "",
+    ("plugin", "enabled_plugins") : '',
 }
 
 LOCALE_ENC = locale.getpreferredencoding()
@@ -492,5 +496,27 @@ def main():
 
     #now switch to the configured translation
     importLanguage()
+
+    if not json.loads(get('client', 'buddy-list')):
+        # backward compatibility with buddy-list.txt
+        filename = os.path.join(getDataDir(), "buddy-list.txt")
+
+        if os.path.exists(filename):
+            f = open(filename)
+            buddy_list = []
+            for line in f:
+                line = line.rstrip().decode("UTF-8")
+                if len(line) > 15:
+                    address = line[0:16]
+                    if len(line) > 17:
+                        name = line[17:]
+                    else:
+                        name = u""
+                    buddy = {'address': address,
+                             'name': name.encode("UTF-8"),
+                             'profile_name': ''}
+                    buddy_list.append(buddy)
+            f.close()
+            set('client', 'buddy-list', json.dumps(buddy_list))
 
 main()

@@ -308,7 +308,7 @@ class PopupMenu(wx.Menu):
         self.Bind(wx.EVT_MENU, self.onQuit, item)
 
     def onSendFile(self, evt):
-        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getDisplayName()
         dialog = wx.FileDialog(self.mw, title, style=wx.OPEN)
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
@@ -320,7 +320,8 @@ class PopupMenu(wx.Menu):
         dialog.ShowModal()
 
     def onDelete(self, evt):
-        answer = wx.MessageBox(lang.D_CONFIRM_DELETE_MESSAGE % (self.buddy.address, self.buddy.name),
+        answer = wx.MessageBox(lang.D_CONFIRM_DELETE_MESSAGE %
+                (self.buddy.getDisplayName(), ''),
                                lang.D_CONFIRM_DELETE_TITLE,
                                wx.YES_NO|wx.NO_DEFAULT)
         if answer == wx.YES:
@@ -913,12 +914,16 @@ class BuddyList(wx.ListCtrl):
     def onBuddyAvatarChanged(self, buddy):
         print "(2) converting %s avatar data into wx.Bitmap" % buddy.address
         try:
-            image = wx.ImageFromData(64, 64, buddy.profile_avatar_data)
-            if buddy.profile_avatar_data_alpha:
-                print "(2) %s avatar has alpha channel" % buddy.address
-                image.SetAlphaData(buddy.profile_avatar_data_alpha)
-            buddy.profile_avatar_object = wx.BitmapFromImage(image)
-
+            if buddy.profile_avatar_data:
+                image = wx.ImageFromData(64, 64, buddy.profile_avatar_data)
+                if buddy.profile_avatar_data_alpha:
+                    print "(2) %s avatar has alpha channel" % buddy.address
+                    image.SetAlphaData(buddy.profile_avatar_data_alpha)
+                buddy.profile_avatar_object = wx.BitmapFromImage(image)
+            else:
+                torchat_png = os.path.join(config.ICON_DIR, "torchat.png")
+                bitmap = wx.Bitmap(torchat_png, wx.BITMAP_TYPE_PNG)
+                buddy.profile_avatar_object = bitmap
         except:
             print "(2)  could not convert %s avatar data to wx.Bitmap" % buddy.address
             tb()
@@ -1005,11 +1010,11 @@ class BuddyToolTip(wx.PopupWindow):
         self.avatar = wx.StaticBitmap(self.panel, -1, bitmap)
         sizer.Add(self.avatar, 0, wx.ALL, 5)
 
-        name = self.buddy.name
-        if self.buddy.profile_name <> u"":
-            name = self.buddy.profile_name
-
-        text =  "%s\n%s" % (self.buddy.address, name)
+        text = self.buddy.address
+        if self.buddy.getSaneProfileName():
+            text += "\n" + self.buddy.getSaneProfileName()
+        if self.buddy.name:
+            text += "\n" + self.buddy.name
 
         if self.buddy.profile_text <> u"":
             text = "%s\n\n%s" % (text, textwrap.fill(self.buddy.profile_text, 30))
@@ -1257,9 +1262,7 @@ class ChatWindow(wx.Frame):
         else:
             title = ""
 
-        title += self.buddy.address
-        if self.buddy.name != "":
-            title += " (%s)" % self.buddy.name
+        title += self.buddy.getDisplayName()
 
         self.SetTitle(title + " %s" % config.getProfileLongName())
 
@@ -1325,10 +1328,7 @@ class ChatWindow(wx.Frame):
 
     def process(self, message):
         #message must be unicode
-        if self.buddy.name != "":
-            name = self.buddy.name
-        else:
-            name = self.buddy.address
+        name = self.buddy.getShortDisplayName()
         self.writeColored(config.get("gui", "color_nick_buddy"), name, message)
         self.notify(name, message)
 
@@ -1453,7 +1453,7 @@ class ChatWindow(wx.Frame):
         wx.TheClipboard.Close()
 
     def onSendFile(self, evt):
-        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_OPEN_TITLE % self.buddy.getDisplayName()
         dialog = wx.FileDialog(self, title, style=wx.OPEN)
         dialog.SetDirectory(config.getHomeDir())
         if dialog.ShowModal() == wx.ID_OK:
@@ -1677,9 +1677,7 @@ class FileTransferWindow(wx.Frame):
             self.bytes_complete = 0
 
         percent = 100.0 * self.bytes_complete / self.bytes_total
-        peer_name = self.buddy.address
-        if self.buddy.name != "":
-            peer_name += " (%s)" % self.buddy.name
+        peer_name = self.buddy.getDisplayName()
         title = "%04.1f%% - %s" % (percent, os.path.basename(self.file_name))
         self.SetTitle(title)
         self.progress_bar.SetValue(percent)
@@ -1754,7 +1752,7 @@ class FileTransferWindow(wx.Frame):
         self.Close()
 
     def onSave(self, evt):
-        title = lang.DFT_FILE_SAVE_TITLE % self.buddy.getAddressAndDisplayName()
+        title = lang.DFT_FILE_SAVE_TITLE % self.buddy.getDisplayName()
         dialog = wx.FileDialog(self, title, defaultFile=self.file_name, style=wx.SAVE)
         if config.isPortable():
             dialog.SetDirectory(config.getDataDir())

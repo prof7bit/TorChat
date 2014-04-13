@@ -17,7 +17,6 @@
 import wx
 import dlg
 import config
-import tc_client
 import translations
 lang = translations.lang_en
 
@@ -29,16 +28,16 @@ class Dialog(wx.Dialog):
         
         #1 outer panel and vertical sizer
         self.outer_panel = wx.Panel(self)
-        outer_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.outer_panel.SetSizer(outer_sizer)
+        self.outer_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.outer_panel.SetSizer(self.outer_sizer)
 
         #1.1 the notebook on the top
         self.notebook = wx.Notebook(self.outer_panel)
-        outer_sizer.Add(self.notebook, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.RIGHT, border=5)
+        self.outer_sizer.Add(self.notebook, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.RIGHT, border=5)
         
         #1.2 the button_sizer at the bottom
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        outer_sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, border=5)
+        self.outer_sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, border=5)
         
         #1.2.1 cancel button
         btn_cancel = wx.Button(self.outer_panel, wx.ID_CANCEL, lang.BTN_CANCEL)
@@ -57,6 +56,9 @@ class Dialog(wx.Dialog):
         self.p1 = dlg.Panel(self.notebook)
         self.notebook.AddPage(self.p1, lang.DSET_NET_TITLE)
 
+        portable = (self.mw.buddy_list.tor_config == "tor_portable")
+        self.tor_portable = dlg.Check(self.p1, lang.DSET_GUI_TOR_PORTABLE, int(portable))
+
         self.s_tor_portable = dlg.Separator(self.p1, "Tor portable")
         dlg.Text(self.p1, lang.DSET_NET_TOR_ADDRESS, ("tor_portable", "tor_server"), True)
         dlg.Text(self.p1, lang.DSET_NET_TOR_SOCKS, ("tor_portable", "tor_server_socks_port"))
@@ -69,9 +71,7 @@ class Dialog(wx.Dialog):
         dlg.Separator(self.p1, "Client")
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_INTERFACE, ("client", "listen_interface"), True)
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_PORT, ("client", "listen_port"))
-        self.p1.fit()
         
-        portable = (tc_client.TOR_CONFIG == "tor_portable")
         if portable:
             self.s_tor.setEnabled(False)
         else:
@@ -96,13 +96,34 @@ class Dialog(wx.Dialog):
         self.dir_tmp = dlg.Dir(self.p3, lang.DSET_MISC_TEMP_CUSTOM_DIR, ("files", "temp_files_custom_dir"))
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
         self.chk_tmp.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onChkTmp)
-        
+
+        #3.4 plugins
+        self.p4 = dlg.Panel(self.notebook)
+        self.notebook.AddPage(self.p4, lang.DSET_PLUGINS_TITLE)
+        self.plugins = {}
+        enabled_plugins = set(config.get('plugin', 'enabled_plugins').split(','))
+        import torchat
+        for plugin_name in sorted(torchat.PLUGINS.keys()):
+            plugin_dscr = getattr(lang, 'DSET_PLUGIN_' + plugin_name.upper(), plugin_name)
+            enabled = int(bool(plugin_name in enabled_plugins))
+            self.plugins[plugin_name] = dlg.Check(self.p4, plugin_dscr, enabled)
+
+        # add plugins' settings
+        self.addPluginSettings(main_window)
+
         #4 fit the sizers
-        outer_sizer.Fit(self)
-        
+        self.p1.fit()
+        self.p2.fit()
+        self.p3.fit()
+        self.p4.fit()
+        self.outer_sizer.Fit(self)
+
+    def addPluginSettings(self, main_window):
+        pass
+
     def onChkTmp(self, evt):
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
-        
+
     def onCancel(self, evt):
         evt.Skip() #let the frame now process the Cancel event
         
@@ -110,6 +131,17 @@ class Dialog(wx.Dialog):
         self.p1.saveAllData()
         self.p2.saveAllData()
         self.p3.saveAllData()
+        #enabled_plugins = set(config.get('plugin', 'enabled_plugins').split(','))
+        import torchat
+        if self.tor_portable.getValue() == 1:
+            config.set('client', 'tor_config', 'tor_portable')
+        else:
+            config.set('client', 'tor_config', 'tor')
+        enabled_plugins = []
+        for plugin_name in torchat.PLUGINS:
+            if self.plugins[plugin_name].getValue():
+                enabled_plugins.append(plugin_name)
+        config.set('plugin', 'enabled_plugins', ','.join(enabled_plugins))
         if self.lang.getValue() != self.lang_old:
             config.importLanguage()
         evt.Skip() #let the frame now process the Ok event
