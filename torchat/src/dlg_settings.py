@@ -56,6 +56,9 @@ class Dialog(wx.Dialog):
         self.p1 = dlg.Panel(self.notebook)
         self.notebook.AddPage(self.p1, lang.DSET_NET_TITLE)
 
+        portable = (self.mw.buddy_list.tor_config == "tor_portable")
+        self.tor_portable = dlg.Check(self.p1, lang.DSET_GUI_TOR_PORTABLE, int(portable))
+
         self.s_tor_portable = dlg.Separator(self.p1, "Tor portable")
         dlg.Text(self.p1, lang.DSET_NET_TOR_ADDRESS, ("tor_portable", "tor_server"), True)
         dlg.Text(self.p1, lang.DSET_NET_TOR_SOCKS, ("tor_portable", "tor_server_socks_port"))
@@ -69,7 +72,6 @@ class Dialog(wx.Dialog):
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_INTERFACE, ("client", "listen_interface"), True)
         dlg.Text(self.p1, lang.DSET_NET_LISTEN_PORT, ("client", "listen_port"))
         
-        portable = (self.mw.buddy_list.tor_config == "tor_portable")
         if portable:
             self.s_tor.setEnabled(False)
         else:
@@ -131,6 +133,10 @@ class Dialog(wx.Dialog):
         self.p3.saveAllData()
         #enabled_plugins = set(config.get('plugin', 'enabled_plugins').split(','))
         import torchat
+        if self.tor_portable.getValue() == 1:
+            config.set('client', 'tor_config', 'tor_portable')
+        else:
+            config.set('client', 'tor_config', 'tor')
         enabled_plugins = []
         for plugin_name in torchat.PLUGINS:
             if self.plugins[plugin_name].getValue():
