@@ -30,6 +30,7 @@ if isWindows():
     import ctypes
 
 config_defaults = {
+    ("client", "tor_config") : "tor_portable",
     ("tor", "tor_server") : "127.0.0.1",
     ("tor", "tor_server_socks_port") : 9050,
     ("tor", "tor_server_control_port") : 9051,

@@ -540,10 +540,12 @@ class BuddyList(object):
         self.tor_pid = None
         self.tor_proc = None
         self.tor_timer = None
-        self.tor_config = 'tor_portable'
+        self.tor_config = config.get('client', 'tor_config')
         self.tor_server_socks_port = config.getint(self.tor_config, "tor_server_socks_port")
         tor_interface = config.get("client", "listen_interface")
-        if self.tor_server_socks_port == 0 or \
+        if self.tor_server_socks_port == 0:
+            self.tor_server_socks_port = getFreePort(tor_interface)
+        if self.tor_config == 'tor_portable' and \
                 not isPortFree(tor_interface, self.tor_server_socks_port):
             self.tor_server_socks_port = getFreePort(tor_interface)
 
@@ -558,7 +560,8 @@ class BuddyList(object):
         self.listener = Listener(self, socket)
         self.own_status = STATUS_ONLINE
 
-        self.startPortableTor()
+        if self.tor_config == 'tor_portable':
+            self.startPortableTor()
 
         self.list = []
 
