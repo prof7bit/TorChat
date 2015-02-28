@@ -29,7 +29,7 @@ SocksPort 11109
 HiddenServiceDir hidden_service
 HiddenServicePort 11009 127.0.0.1:11009
 
-## where should tor store it's cache files
+## where should tor store its cache files
 DataDirectory tor_data
 
 ## some tuning

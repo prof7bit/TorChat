@@ -80,7 +80,7 @@ def encodeLF(blob):
     # 
     # Please do not rant in the source code comments of your
     # own protocol implementations about how "suboptimal" my
-    # decision was, actally I spent quite some time thinking
+    # decision was, actually I spent quite some time thinking
     # about it in the early design phase and this solution is 
     # pragmatic, easy to implement and rock solid.
     #
@@ -88,7 +88,7 @@ def encodeLF(blob):
     # bandwidth wasting base64, there is NO NEED for it,
     # TorChat is NOT a text based protocol in the common
     # sense, we are transmitting binary data over 8-bit-clean
-    # sockets. We don't have to fit them into RFC confoming 
+    # sockets. We don't have to fit them into RFC-conforming 
     # message bodies of SMTP or NNTP messages, print them
     # line by line on a terminal or a printer or anything
     # else that would interpret control characters. The
@@ -107,7 +107,7 @@ def decodeLF(line):
     """takes the line as it comes from the socket and decodes it to
     the original binary data contained in a string of bytes"""
     return line.replace("\\n", "\n").replace("\\/", "\\")
-    
+
 
 def createTemporaryFile(file_name):
     if config.getint("files", "temp_files_in_data_dir"):
@@ -167,14 +167,14 @@ class WipeFileThread(threading.Thread):
 def wipeFile(file_name):
     """Wipe a file by first overwriting it with random data,
     synching it to disk and finally unlinking it. For this
-    purpose it will start a separat thread to do this in the
+    purpose it will start a separate thread to do this in the
     background and return immediately."""
     WipeFileThread(file_name)
 
 #--- ### Client API
 
 class Buddy(object):
-    """Represets a buddy. Every buddy on the buddy list will have sich 
+    """Represents a buddy. Every buddy on the buddy list will have
     an instance created directly after program start and also every new 
     connection from unknown addresses will result in the instantiation 
     of a new buddy object when a valid ping message has been processed. 
@@ -295,7 +295,7 @@ class Buddy(object):
     def onAvatarDataAlpha(self, data):
         print "(2) %s.onAvatarDataAplha()" % self.address
         # just store it, no gui callback because this is always sent first.
-        # The next message will be the acual image data which will finally notify the GUI
+        # The next message will be the actual image data which will finally notify the GUI
         self.profile_avatar_data_alpha = data
 
     def onAvatarData(self, data):
@@ -306,7 +306,7 @@ class Buddy(object):
 
     def onChatMessage(self, message):
         self.bl.gui(CB_TYPE_CHAT, (self, message))
-    
+
     def sendChatMessage(self, text):
         #text must be unicode, will be encoded to UTF-8
         if self.isFullyConnected():
@@ -337,7 +337,7 @@ class Buddy(object):
 
     def sendOfflineMessages(self):
         #this will be called in the incoming status message
-        #FIXME: call this from onStatus() instead, this would be the ntural place for it
+        #FIXME: call this from onStatus() instead, this would be the natural place for it
         text = self.getOfflineMessages()
         if text:
             if self.isFullyConnected():
@@ -360,6 +360,7 @@ class Buddy(object):
             return self.name
 
     def getAddressAndDisplayName(self):
+		# TODO: This is just the same as getDisplayName(), right?
         if self.name == "":
             return self.address
         else:
@@ -391,13 +392,12 @@ class Buddy(object):
             #otherwise we would create a unique pattern of activity
             #over time that could be identified at the other side
             if self.status == STATUS_HANDSHAKE:
-                # ping more agressively during handshake
+                # ping more aggressively during handshake
                 # to trigger more connect back attempts there
                 t = config.KEEPALIVE_INTERVAL / 4
             else:
                 # when fully connected we can slow down to normal 
                 t = config.KEEPALIVE_INTERVAL
-                
 
         if self.timer:
             self.timer.cancel()
@@ -822,7 +822,7 @@ class FileSender(threading.Thread):
                 while not self.buddy.isFullyConnected() and not self.restart_flag:
                     time.sleep(0.1)
                     self.testTimeout()
-                
+
                 # the message is sent over conn_in
                 msg = ProtocolMsg_filedata(self.buddy.conn_in, (self.id, start, hash, data))
                 msg.send()
@@ -834,12 +834,12 @@ class FileSender(threading.Thread):
 
                 if self.restart_flag:
                     #the outer loop in run() will start us again
-                    print "(2) FileSender restart_flag, breaking innner loop"
+                    print "(2) FileSender restart_flag, breaking inner loop"
                     break
 
                 if not self.running:
                     #the outer loop in run() will also end
-                    print "(2) FileSender not running, breaking innner loop"
+                    print "(2) FileSender not running, breaking inner loop"
                     break
 
         print "(2) FileSender inner loop ended, last sent block: #%i, last block in file #%i" % (i, blocks-1)
@@ -920,7 +920,7 @@ class FileSender(threading.Thread):
             self.completed = True
 
     def restart(self, start):
-        #trigger the reatart flag
+        #trigger the restart flag
         self.timeout_count = 0
         self.restart_at = start
         self.restart_flag = True
@@ -943,7 +943,7 @@ class FileSender(threading.Thread):
 
 
 class FileReceiver(object):
-    # ths will be instantiated automatically on an incoming file transfer.
+    # this will be instantiated automatically on an incoming file transfer.
     # it will then notify the GUI which will open a window and give us a callback to interact
     def __init__(self, buddy, id, block_size, file_size, file_name):
         self.buddy = buddy
@@ -1061,7 +1061,7 @@ class FileReceiver(object):
         # therefore this FileReceiver object cannot work without
         # a GUI attached to it (or some other piece of code) that
         # properly provides and reacts to the callback function
-        # and closes this obect after it is done
+        # and closes this object after it is done
         # (user clicked save or whatever this GUI or GUI-replacement does)
 
         if self.closed:
@@ -1119,7 +1119,7 @@ class ProtocolMsg(object):
     
     def __init__(self, *args):
         """ this is actually a few overloaded constructors, 
-        depending on the types of argumments
+        depending on the types of arguments
         
         when receiving a message we instantiate it like this:
         __init__(self, bl, connection, command, encoded)
@@ -1154,8 +1154,8 @@ class ProtocolMsg(object):
             # the incoming message is now properly initialized and somebody
             # could now call its execute() method to trigger its action
             return
-            
-        
+
+
         #
         # outgoing
         #
@@ -1200,11 +1200,11 @@ class ProtocolMsg(object):
             self.connection.close()
 
     def getLine(self):
-        """return the entire message readily encoded as a string of charactrs 
+        """return the entire message readily encoded as a string of characters 
         that we can transmit over the socket, terminated by a 0x0a character"""
         # This is important: 
         # The data that is transmitted over the socket (the entire contents 
-        # of one protocol message will be put into one string of bytes that
+        # of one protocol message) will be put into one string of bytes that
         # is terminated by exactly one newline character 0x0a at the end.
         # 
         # This string of bytes is what I refer to as the "line"
@@ -1244,7 +1244,7 @@ class ProtocolMsg_not_implemented(ProtocolMsg):
 
 class ProtocolMsg_ping(ProtocolMsg):
     """a ping message consists of sender address and a random string (cookie). 
-    It must be answered with a pong message containing the same cookie to so that 
+    It must be answered with a pong message containing the same cookie so that 
     the other side can undoubtedly identify the connection"""
     def parse(self):
         self.address, self.answer = splitLine(self.blob)
@@ -1405,7 +1405,7 @@ class ProtocolMsg_pong(ProtocolMsg):
                 #MITM protection:
                 #this pong is an answer to a ping we have sent to a different address.
                 #we will simply ignore this pong to make any mitm attacks that
-                #simply try to forward original pings to other clients impossilbe
+                #simply try to forward original pings to other clients impossible
                 print "(2) ignoring pong from %s which should have come from %s" % (self.connection.last_ping_address, buddy.address)
                 return
                 
@@ -1447,12 +1447,12 @@ class ProtocolMsg_version(ProtocolMsg):
 
 class ProtocolMsg_status(ProtocolMsg):
     """transmit the status, this MUST be sent every 120 seconds 
-    or the client may trigger a timeout and close the conection.
+    or the client may trigger a timeout and close the connection.
     When receiving this message the client will update the status
     icon of the buddy, it will be transmitted after the pong upon
     connection, immediately on every status change or at least 
     once every 120 seconds. Allowed values for the data are
-    "avalable", "away", "xa", other values are not defined yet"""
+    "available", "away", "xa", other values are not defined yet"""
     def parse(self):
         self.status = self.blob
         
@@ -1479,7 +1479,7 @@ class ProtocolMsg_status(ProtocolMsg):
 
 
 class ProtocolMsg_profile_name(ProtocolMsg):
-    """transmit the name that is set in the pofile (this message is optional)"""
+    """transmit the name that is set in the profile (this message is optional)"""
     def parse(self):
         self.name = self.blob.decode("UTF-8")
         
@@ -1490,7 +1490,7 @@ class ProtocolMsg_profile_name(ProtocolMsg):
 
 
 class ProtocolMsg_profile_text(ProtocolMsg):
-    """transmit the text that is set in the pofile (this message is optional)"""
+    """transmit the text that is set in the profile (this message is optional)"""
     def parse(self):
         self.text = self.blob.decode("UTF-8")
         
@@ -1517,14 +1517,14 @@ class ProtocolMsg_profile_avatar_alpha(ProtocolMsg):
         if self.buddy:
             print "(2) received avatar alpha channel from %s (%i bytes)" % (self.buddy.address, len(self.bitmap))
             if self.bitmap:
-                # the buddy obect stores the raw binary data
+                # the buddy object stores the raw binary data
                 self.buddy.onAvatarDataAlpha(self.bitmap)
             else:
                 print("(1) %s sent invalid avatar alpha data (wrong size)" % self.buddy.address)
                 self.buddy.onAvatarDataAlpha("")
 
 class ProtocolMsg_profile_avatar(ProtocolMsg):
-    """the uncompesseed 64*64*24bit image. Avatar messages can 
+    """the uncompressed 64*64*24bit image. Avatar messages can 
     be completely omitted but IF they are sent then the correct 
     order is first the alpha and then this one"""
     def parse(self):
@@ -1537,7 +1537,7 @@ class ProtocolMsg_profile_avatar(ProtocolMsg):
         if self.buddy:
             print "(2) received avatar from %s (%i bytes)" % (self.buddy.address, len(self.bitmap))
             if self.bitmap:
-                # the buddy obect stores the raw binary data
+                # the buddy object stores the raw binary data
                 self.buddy.onAvatarData(self.bitmap)
             else:
                 print("(1) %s sent invalid avatar image data (wrong size)" % self.buddy.address)
@@ -1618,7 +1618,7 @@ class ProtocolMsg_filename(ProtocolMsg):
         self.file_size = int(file_size)
         self.block_size = int(block_size)
 
-        # the filename is tansmitted in UTF-8 encoding
+        # the filename is transmitted in UTF-8 encoding
         # so we decode the name to unicode (widestring)
         name = self.file_name.decode("utf-8")
         # remove all occurences 0x0000
@@ -1642,7 +1642,7 @@ class ProtocolMsg_filename(ProtocolMsg):
             return
 
         #we create a file receiver instance which can deal with the
-        #file data we expect to receive now. This obect will then
+        #file data we expect to receive now. This object will then
         #also notify the GUI and interact with it
         FileReceiver(self.buddy,
                      self.id,
@@ -1652,11 +1652,11 @@ class ProtocolMsg_filename(ProtocolMsg):
 
 
 class ProtocolMsg_filedata(ProtocolMsg):
-    """After a filename message has initiated the transfer several
-    filedata messagess transport the actual data in blocks of fixed
+    """After a filename message has initiated the transfer, several
+    filedata messages transport the actual data in blocks of fixed
     size. start is the byte offset of the block in the file and hash
     is an md5 hash of the block used as a checksum. Each message must
-    be answered with filedata_ok after sucessfully verifying the hash.
+    be answered with filedata_ok after successfully verifying the hash.
     The sender should send only a limited number of blocks ahead of
     incoming ok messages (for example send the 5th block only after
     the 1st is confirmed, the 6th only after the 2nd confirmed, etc.,
@@ -1715,10 +1715,10 @@ class ProtocolMsg_filedata_ok(ProtocolMsg):
 
 class ProtocolMsg_filedata_error(ProtocolMsg):
     """This is sent instead of filedata_ok when the hash was wrong or the block start
-    was later than what we would have expected (entire blocks have been skipped/lost 
+    was later than what we expected (entire blocks have been skipped/lost 
     due to temporary disconnect). A file sender must react to this message by 
     restarting the file transmission at the offset given in start. A file receiver will
-    send this message whenever it wants the the transfer restart at a certain position."""
+    send this message whenever it wants the transfer to restart at a certain position."""
     def parse(self):
         self.id, start = splitLine(self.blob)
         self.start = int(start) # block start position in bytes
@@ -1839,7 +1839,7 @@ class InConnection(object):
         self.buddy = None
         self.bl = buddy_list
         self.socket = socket
-        self.last_ping_address = "" #used to detect mass pings with fake adresses
+        self.last_ping_address = "" #used to detect mass pings with fake addresses
         self.last_ping_cookie = "" #used to detect pings with fake cookies
         self.last_active = time.time()
         self.started = True
@@ -2102,7 +2102,7 @@ def startPortableTor():
             print "(1) no own Tor instance. Settings in [tor] will be used"
 
     except:
-        print "(1) an error occured while starting tor, see traceback:"
+        print "(1) an error occurred while starting tor, see traceback:"
         tb(1)
 
     print "(1) changing working directory back to %s" % old_dir
@@ -2127,3 +2127,4 @@ def onPortableTorTimer():
         startPortableTor()
     else:
         startPortableTorTimer()
+
