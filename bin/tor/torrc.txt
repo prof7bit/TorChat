@@ -8,33 +8,33 @@
 ## and the second (ONLY THE SECOND) port in HiddenServicePort below
 ## to something like (for example) this:
 ##
-##   SocksPort 22209
-##   HiddenServicePort 11009 127.0.0.1:22009
+##   SocksPort 17447
+##   HiddenServicePort 17447 127.0.0.1:17447
 ##
 ## Remember to change these same numbers in torchat.ini in the sections 
 ## [tor_portable] and [client] also. There also exists a more detailed HowTo.
-## IMPORTANT: NEVER change the FIRST 11009 in HiddenServicePort, this is the
+## IMPORTANT: NEVER change the FIRST 17447 in HiddenServicePort, this is the
 ## port INSIDE the tunnel. This number is hardcoded, but since it is inside
 ## the tunnel it cannot collide, no matter how many instances you run. You
 ## must change only the second number, the forwarding target, as shown above.
 #############################################################################
 
-SocksPort 11109
+SocksPort 17447
 
 ## we don't use the control port currently, so leave this alone
-# ControlPort 11119 
+# ControlPort 17447
 
-## INCOMING connections for the hidden service arrive at 11009 
+## INCOMING connections for the hidden service arrive at 17447
 ## and will be forwarded to TorChat at 127.0.0.1:11009
 HiddenServiceDir hidden_service
-HiddenServicePort 11009 127.0.0.1:11009
+HiddenServicePort 17447 127.0.0.1:17447 
 
 ## where should tor store it's cache files
 DataDirectory tor_data
 
 ## some tuning
 AvoidDiskWrites 1
-LongLivedPorts 11009
+LongLivedPorts 17447
 FetchDirInfoEarly 1
 CircuitBuildTimeout 30
 NumEntryGuards 6
