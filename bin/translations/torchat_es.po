@@ -3,123 +3,123 @@ msgstr "Content-Type: text/plain; charset=UTF-8"
 
 #: language.about_title
 msgctxt "language.about_title"
-msgid "About TorChat"
+msgid "Acerca de TorChat"
 msgstr ""
 
 #: language.bpop_buddy_is_offline
-msgid "Buddy is offline"
+msgid "Su colega está desconectado"
 msgstr ""
 
 #: language.bpop_client_software
-msgid "Client: %s %s"
+msgid "Cliente: %s %s"
 msgstr ""
 
 #: language.bpop_connected_awaiting_return_conn
-msgid "Connected, awaiting return connection..."
+msgid "Conectado, esperando conexión de retorno..."
 msgstr ""
 
 #: language.btn_cancel
-msgid "Cancel"
+msgid "Cancelar"
 msgstr ""
 
 #: language.btn_close
-msgid "Close"
+msgid "Cerrar"
 msgstr ""
 
 #: language.btn_ok
-msgid "Ok"
+msgid "Aceptar"
 msgstr ""
 
 #: language.btn_save_as
-msgid "Save as..."
+msgid "Guardar como..."
 msgstr ""
 
 #: language.cpop_copy
-msgid "Copy"
+msgid "Copiar"
 msgstr ""
 
 #: language.dec_display_name
-msgid "Display name"
+msgid "Nombre a mostrar"
 msgstr ""
 
 #: language.dec_introduction
-msgid "Introduction"
+msgid "Presentación"
 msgstr ""
 
 #: language.dec_msg_16_characters
-msgid "The address must be 16 characters long, not %d."
+msgid "La dirección debe tener 16 caracteres de largo, no %d."
 msgstr ""
 
 #: language.dec_msg_already_on_list
-msgid "%s is already on your list"
+msgid "%s ya está en su lista"
 msgstr ""
 
 #: language.dec_msg_only_alpanum
-msgid "The address must only contain numbers and lowercase letters"
+msgid "La dirección sólo debe contener números y letras en minúscula"
 msgstr ""
 
 #: language.dec_title_add
-msgid "Add new contact"
+msgid "Añadir nuevo contacto"
 msgstr ""
 
 #: language.dec_title_edit
-msgid "Edit contact"
+msgid "Editar contacto"
 msgstr ""
 
 #: language.dec_torchat_id
-msgid "TorChat ID"
+msgid "Identificación (ID) en TorChat"
 msgstr ""
 
 #: language.dep_all_files
-msgid "All files"
+msgid "Todos los ficheros"
 msgstr ""
 
 #: language.dep_avatar_select_png
-msgid "Select .PNG file to use as your avatar (will be scaled to 64*64, may contain transparency)"
+msgid "Seleccione un fichero .PNG a usar como su avatar (será escalado a 64*64, puede contener transparencias)"
 msgstr ""
 
 #: language.dep_name
-msgid "Name"
+msgid "Nombre"
 msgstr ""
 
 #: language.dep_png_files
-msgid "PNG files"
+msgid "Ficheros PNG"
 msgstr ""
 
 #: language.dep_remove_avatar
-msgid "Remove Avatar"
+msgid "Eliminar avatar"
 msgstr ""
 
 #: language.dep_set_avatar
-msgid "Set Avatar"
+msgid "Establecer avatar"
 msgstr ""
 
 #: language.dep_text
-msgid "Text"
+msgid "Texto"
 msgstr ""
 
 #: language.dep_title
-msgid "Edit my profile"
+msgid "Editar mi perfil"
 msgstr ""
 
 #: language.dep_warn_is_already
-msgid "This is already the current avatar"
+msgid "Este ya es su avatar actualmente"
 msgstr ""
 
 #: language.dep_warn_must_be_png
-msgid "The avatar must be a .png file"
+msgid "El avatar debe ser un fichero .png"
 msgstr ""
 
 #: language.dep_warn_title
-msgid "Avatar selection not possible"
+msgid "No es posible seleccionar avatar"
 msgstr ""
 
 #: language.dft_aborted
-msgid "transfer aborted"
+msgid "la transferencia se canceló"
 msgstr ""
 
 #: language.dft_complete
-msgid "transfer complete"
+msgid "la transferencia se completó"
 msgstr ""
 
 #: language.dft_error
@@ -127,346 +127,346 @@ msgid "error"
 msgstr ""
 
 #: language.dft_file_open_title
-msgid "Send file to %s"
+msgid "Enviar fichero a %s"
 msgstr ""
 
 #: language.dft_file_save_title
-msgid "Save file from %s"
+msgid "Guardar fichero de %s"
 msgstr ""
 
 #: language.dft_receive
 msgid ""
-"Receiving %s\n"
-"from %s\n"
-"%04.1f%% (%d of %d bytes)\n"
+"Recibiendo %s\n"
+"de %s\n"
+"%04.1f%% (%d de %d bytes)\n"
 msgstr ""
 
 #: language.dft_send
 msgid ""
-"Sending %s\n"
-"to %s\n"
-"%04.1f%% (%d of %d bytes)\n"
+"Enviando %s\n"
+"a %s\n"
+"%04.1f%% (%d de %d bytes)\n"
 msgstr ""
 
 #: language.dft_starting
-msgid "starting transfer"
+msgid "iniciando transferencia"
 msgstr ""
 
 #: language.dft_waiting
-msgid "waiting for connection"
+msgid "esperando conexión"
 msgstr ""
 
 #: language.dset_gui_flash_window
-msgid "Flash window title on new message"
+msgid "Mostrar ráfaga con el título de la ventana en nuevos mensajes"
 msgstr ""
 
 #: language.dset_gui_language
-msgid "Language"
+msgid "Idioma"
 msgstr ""
 
 #: language.dset_gui_notification_method
-msgid "Notification method"
+msgid "Método de notificación"
 msgstr ""
 
 #: language.dset_gui_notification_popup
-msgid "Notification pop-up"
+msgid "Notificación emergente"
 msgstr ""
 
 #: language.dset_gui_open_chat_hidden
-msgid "Don't automatically open new windows"
+msgid "No abrir nuevas ventanas automáticamente"
 msgstr ""
 
 #: language.dset_gui_open_main_hidden
-msgid "Start with minimized main window"
+msgid "Iniciar con la ventana principal minimizada"
 msgstr ""
 
 #: language.dset_gui_title
-msgid "User interface"
+msgid "Interfaz de usuario"
 msgstr ""
 
 #: language.dset_misc_temp_custom_dir
-msgid "Temporary directory (leave empty for OS-default)"
+msgid "Directorio temporal (vacío para usar el predeterminado del SO)"
 msgstr ""
 
 #: language.dset_misc_temp_in_data
-msgid "Store temporary files inside data directory"
+msgid "Almacenar temporalmente ficheros dentro del directorio de datos"
 msgstr ""
 
 #: language.dset_misc_title
-msgid "Misc"
+msgid "Varias"
 msgstr ""
 
 #: language.dset_net_active
-msgid "active"
+msgid "activa"
 msgstr ""
 
 #: language.dset_net_inactive
-msgid "inactive"
+msgid "inactiva"
 msgstr ""
 
 #: language.dset_net_listen_interface
-msgid "Listen interface"
+msgid "Interfaz de escucha"
 msgstr ""
 
 #: language.dset_net_listen_port
-msgid "Listen port"
+msgid "Puerto de escucha"
 msgstr ""
 
 #: language.dset_net_own_hostname
-msgid "Own TorChat-ID"
+msgid "Identificación (ID) propia en TorChat"
 msgstr ""
 
 #: language.dset_net_title
-msgid "Network"
+msgid "Red"
 msgstr ""
 
 #: language.dset_net_tor_address
-msgid "Tor proxy address"
+msgid "Dirección del proxy Tor"
 msgstr ""
 
 #: language.dset_net_tor_control
-msgid "Control port"
+msgid "Puerto de control"
 msgstr ""
 
 #: language.dset_net_tor_socks
-msgid "Socks port"
+msgid "Puerto socks"
 msgstr ""
 
 #: language.dset_title
-msgid "TorChat configuration"
+msgid "Configuración de TorChat"
 msgstr ""
 
 #: language.d_confirm_delete_message
 msgid ""
-"Really delete this contact?\n"
+"¿Está seguro de borrar este contacto?\n"
 "(%s %s)\n"
 msgstr ""
 
 #: language.d_confirm_delete_title
-msgid "Confirm deletion"
+msgid "Confirmar borrado"
 msgstr ""
 
 #: language.d_log_warning_message
 msgid ""
-"Logging to file is activated!\n"
+"¡El registro a fichero está activado!\n"
 "\n"
-"Log File: %s\n"
+"Fichero de registro: %s\n"
 "\n"
-"Remember to delete the log file if you have finished debugging because the log file may contain sensitive information.\n"
+"Recuerde borrar el fichero de registro si ha acabado de depurar porque este fichero puede contener información sensible.\n"
 msgstr ""
 
 #: language.d_log_warning_title
-msgid "TorChat: Logging is active"
+msgid "TorChat: El registro está activo"
 msgstr ""
 
 #: language.d_warn_buddy_offline_message
-msgid "This operation is not possible with offline buddies"
+msgid "Esta operación no es posible sobre sus colegas no conectados"
 msgstr ""
 
 #: language.d_warn_buddy_offline_title
-msgid "TorChat: Buddy is offline"
+msgid "TorChat: Su colega está desconectado"
 msgstr ""
 
 #: language.d_warn_file_already_exists_message
 msgid ""
-"The file ''%s'' already exists.\n"
-"Overwrite it?\n"
+"El fichero ''%s'' ya existe.\n"
+"¿Sobrescribirlo?\n"
 msgstr ""
 
 #: language.d_warn_file_already_exists_title
-msgid "TorChat: File exists"
+msgid "TorChat: El fichero ya existe"
 msgstr ""
 
 #: language.d_warn_file_only_one_message
-msgid "You may not start multiple file transfers with one operation. Start the transfers individually or send a zip-file instead"
+msgid "No puede iniciar transferencias de múltiples ficheros con una sola operación. Inicie las transferencias individualmente o envíe un fichero zip en su lugar"
 msgstr ""
 
 #: language.d_warn_file_only_one_title
-msgid "TorChat: Multiple files"
+msgid "TorChat: Múltiples ficheros"
 msgstr ""
 
 #: language.d_warn_file_save_error_message
 msgid ""
-"The file ''%s'' could not be created.\n"
+"No se pudo crear el fichero ''%s''.\n"
 "\n"
 "%s\n"
 msgstr ""
 
 #: language.d_warn_file_save_error_title
-msgid "TorChat: Error saving file"
+msgid "TorChat: Error al guardar fichero"
 msgstr ""
 
 #: language.d_warn_unread_message
 msgid ""
-"There are unread messages.\n"
-"They will be lost forever!\n"
+"Hay mensajes no leídos.\n"
+"¡Se perderán para siempre!\n"
 "\n"
-"Do you really want to exit TorChat now?\n"
+"¿Está seguro de que quiere salir de TorChat ahora?\n"
 msgstr ""
 
 #: language.d_warn_unread_title
-msgid "TorChat: Unread messages"
+msgid "TorChat: Mensajes no leídos"
 msgstr ""
 
 #: language.d_warn_used_port_message
-msgid "Something, probably another TorChat instance, is already listening at %s:%s. You must create another profile using different ports to be able to start TorChat a second time."
+msgid "Algo, probablemente otra instancia de TorChat, ya está escuchando en %s:%s. Tiene que crear otro perfil usando puertos diferentes para poder iniciar TorChat una segunda vez."
 msgstr ""
 
 #: language.d_warn_used_port_title
-msgid "TorChat: Port already in use"
+msgid "TorChat: Puerto ya en uso"
 msgstr ""
 
 #: language.language_code
-msgid "en"
+msgid "es"
 msgstr ""
 
 #: language.language_name
 msgctxt "language.language_name"
-msgid "English"
+msgid "Español"
 msgstr ""
 
 #: language.language_name_english
 msgctxt "language.language_name_english"
-msgid "English"
+msgid "Inglés"
 msgstr ""
 
 #: language.log_deleted
-msgid "Log files have been deleted"
+msgid "Los ficheros de registro han sido borrados"
 msgstr ""
 
 #: language.log_header
-msgid "This log file is not signed and has no cogency of proof"
+msgid "Este fichero de registro no está firmado y carece de evidencia convincente"
 msgstr ""
 
 #: language.log_is_activated
 msgid ""
-"Logging to file is activated:\n"
+"El registro a fichero está activado:\n"
 "%s\n"
 msgstr ""
 
 #: language.log_is_stopped_old_log_found
 msgid ""
-"Logging is stopped but old log file still exists:\n"
+"El registro se detuvo pero el fichero de registro antiguo todavía existe:\n"
 "%s\n"
 msgstr ""
 
 #: language.log_started
-msgid "Logging started"
+msgid "El registro se inició"
 msgstr ""
 
 #: language.log_stopped
-msgid "Logging stopped"
+msgid "El registro se detuvo"
 msgstr ""
 
 #: language.mpop_about
 msgctxt "language.mpop_about"
-msgid "About TorChat"
+msgid "Acerca de TorChat"
 msgstr ""
 
 #: language.mpop_activate_log
-msgid "Activate logging to file"
+msgid "Activar registro a fichero"
 msgstr ""
 
 #: language.mpop_add_contact
-msgid "Add contact..."
+msgid "Añadir contacto..."
 msgstr ""
 
 #: language.mpop_ask_author
-msgid "Ask %s..."
+msgid "Preguntar a %s..."
 msgstr ""
 
 #: language.mpop_chat
-msgid "Chat..."
+msgid "Chatear..."
 msgstr ""
 
 #: language.mpop_clear_offline_messages
-msgid "Clear queued offline messages"
+msgid "Borrar mensajes en cola sin conexión"
 msgstr ""
 
 #: language.mpop_delete_and_stop_log
-msgid "Delete log and stop logging"
+msgid "Borrar registro y dejar de registrar"
 msgstr ""
 
 #: language.mpop_delete_contact
-msgid "Delete contact..."
+msgid "Borrar contacto..."
 msgstr ""
 
 #: language.mpop_delete_existing_log
-msgid "Delete existing log file"
+msgid "Borrar fichero de registro existente"
 msgstr ""
 
 #: language.mpop_edit_contact
-msgid "Edit contact..."
+msgid "Editar contacto..."
 msgstr ""
 
 #: language.mpop_edit_my_profile
-msgid "Edit my profile..."
+msgid "Editar mi perfil..."
 msgstr ""
 
 #: language.mpop_send_file
-msgid "Send file..."
+msgid "Enviar fichero..."
 msgstr ""
 
 #: language.mpop_settings
-msgid "Settings..."
+msgid "Configuración..."
 msgstr ""
 
 #: language.mpop_show_offline_messages
-msgid "Show queued offline messages"
+msgid "Mostrar mensajes en cola sin conexión"
 msgstr ""
 
 #: language.mpop_stop_log
-msgid "Stop logging"
+msgid "Detener registro"
 msgstr ""
 
 #: language.msg_offline_empty
-msgid "there are no (more) queued messages for %s"
+msgid "no hay ningún mensaje (más) en cola para %s"
 msgstr ""
 
 #: language.msg_offline_queued
 msgid ""
-"queued offline messages for %s:\n"
+"mensajes en cola sin conexión para %s:\n"
 "\n"
 "%s\n"
 msgstr ""
 
 #: language.msg_offline_title
-msgid "TorChat: queued messages"
+msgid "TorChat: Mensajes en cola"
 msgstr ""
 
 #: language.mtb_quit
-msgid "Quit"
+msgid "Salir"
 msgstr ""
 
 #: language.mtb_show_hide_torchat
-msgid "Show/Hide TorChat"
+msgid "Mostrar/Ocultar TorChat"
 msgstr ""
 
 #: language.notice_delayed
-msgid "delayed"
+msgid "atrasado"
 msgstr ""
 
 #: language.notice_delayed_msg_sent
-msgid "delayed messages have been sent"
+msgid "se han enviado los mensajes atrasados"
 msgstr ""
 
 #: language.notice_delayed_msg_waiting
-msgid "delayed messages waiting to be sent"
+msgid "mensajes atrasados a la espera de ser enviados"
 msgstr ""
 
 #: language.st_available
-msgid "Available"
+msgid "Disponible"
 msgstr ""
 
 #: language.st_away
-msgid "Away"
+msgid "Ausente"
 msgstr ""
 
 #: language.st_extended_away
-msgid "Extended away"
+msgid "Ausente de forma prolongada"
 msgstr ""
 
 #: language.st_offline
-msgid "Offline"
+msgid "Desconectado"
 msgstr ""
 
