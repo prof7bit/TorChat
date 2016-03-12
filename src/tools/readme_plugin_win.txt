@@ -14,13 +14,13 @@ rights for this):
 
   You also must have Tor installed in the usual location, this must
 be one of the following folders (this is where the offical Tor
-installer will install Tor.exe), TorChat will automtically search
+installer will install Tor.exe), TorChat will automatically search
 these folders and use the one that is first found:
 
       %ProgramFiles%\Tor\
       %ProgramFiles%\Vidalia Bundle\Tor\
 
-  Tor only needs to be installed on your computer, it doesn not need to
+  Tor only needs to be installed on your computer, it doesn't not need to
 be running or configured in any special way to use TorChat. TorChat will
 take care of all that automatically and without interfering with your
 other usage of Tor.
@@ -39,9 +39,9 @@ as many accounts (profiles) as you want and use them all simultanously.
 If you need a log file for debugging purposes create the folder
 %APPDATA%\torchatlogs before you start it, TorChat will detect this and
 enable logging for the plugin and for tor, if you want to disable logging
-smply remove this folder.
+simply remove this folder.
 
 The TorChat plugin will recognize the following environment variables
 on all platforms: PURPLEHOME, APPDATA, TOR_EXE to override the defaults
-for the data directory (if you want to include it with portable Pidgn),
+for the data directory (if you want to include it with portable Pidgin),
 TOR_EXE is the path and name of the tor binary (not just the folder).
