@@ -11,18 +11,18 @@
 LANGUAGE_CODE = u"pt"
 LANGUAGE_NAME = u"Português"
 LANGUAGE_NAME_ENGLISH = u"Portuguese"
-TRANSLATOR_NAMES = [u"Marc Young mycbx@lavabit.com"]
+TRANSLATOR_NAMES = [u"Marc Young mycbx@lavabit.com", u"Vitor Rozsas vcatao@bol.com.br"]
 
 #buttons
 BTN_CANCEL = u"Cancelar"
-BTN_OK = u"Ok"
+BTN_OK = u"OK"
 BTN_SAVE_AS = u"Salvar como..."
 BTN_CLOSE = u"Fechar"
 
 #status
 ST_AVAILABLE = u"Disponível"
-ST_AWAY = u"Longe"
-ST_EXTENDED_AWAY = u"Longe por mais tempo"
+ST_AWAY = u"Ocupado"
+ST_EXTENDED_AWAY = u"Muito ocupado"
 ST_OFFLINE = u"Desligado"
 
 #TaskbarMenu
@@ -36,15 +36,15 @@ MPOP_EDIT_CONTACT = u"Editar contato..."
 MPOP_DELETE_CONTACT = u"Deletar contato..."
 MPOP_SHOW_OFFLINE_MESSAGES = u"Mostrar mensagens offline enfileiradas"
 MPOP_CLEAR_OFFLINE_MESSAGES = u"Limpar mensagens offline enfileiradas"
-# MPOP_ACTIVATE_LOG = u"Activate logging to file"
-# MPOP_STOP_LOG = u"Stop logging"
-# MPOP_DELETE_EXISTING_LOG = u"Delete existing log file"
-# MPOP_DELETE_AND_STOP_LOG = u"Delete log and stop logging"
+MPOP_ACTIVATE_LOG = u"Registrar (log) para arquivo"
+MPOP_STOP_LOG = u"Parar os registros"
+MPOP_DELETE_EXISTING_LOG = u"Deletar registros existentes"
+MPOP_DELETE_AND_STOP_LOG = u"Deletar registros e parar de registrar"
 MPOP_ADD_CONTACT = u"Adicionar contato..."
 MPOP_ABOUT = u"Sobre o TorChat"
 MPOP_ASK_AUTHOR = u"Perguntar ao %s..."
 MPOP_SETTINGS = u"Configurações..."
-# MPOP_EDIT_MY_PROFILE = u"Edit my profile..."
+MPOP_EDIT_MY_PROFILE = u"Editar meu perfil..."
 
 #chat window popup menu
 CPOP_COPY = u"Copiar"
@@ -91,29 +91,29 @@ DEC_MSG_16_CHARACTERS = u"O endereço deve ter 16 caracteres, não %i."
 DEC_MSG_ONLY_ALPANUM = u"O endereço deve conter apenas números e letras minúsculas"
 DEC_MSG_ALREADY_ON_LIST = u"%s já está na sua lista"
 
-# #dialog: edit my profile
-# DEP_TITLE = u"Edit my profile"
-# DEP_NAME = u"Name"
-# DEP_TEXT = u"Text"
-# DEP_SET_AVATAR = u"Set Avatar"
-# DEP_REMOVE_AVATAR = u"Remove Avatar"
-# DEP_AVATAR_SELECT_PNG = u"Select .PNG file to use as your avatar (will be scaled to 64*64, may contain transparency)"
-# DEP_PNG_FILES = u"PNG files"
-# DEP_ALL_FILES = u"All files"
-# DEP_WARN_TITLE = u"Avatar selection not possible"
-# DEP_WARN_IS_ALREADY = u"This is already the current avatar"
-# DEP_WARN_MUST_BE_PNG = u"The avatar must be a .png file"
+#dialog: edit my profile
+DEP_TITLE = u"Editar meu perfil"
+DEP_NAME = u"Nome"
+DEP_TEXT = u"Texto"
+DEP_SET_AVATAR = u"Trocar Avatar"
+DEP_REMOVE_AVATAR = u"Remover Avatar"
+DEP_AVATAR_SELECT_PNG = u"Selecione um arquivo .PNG para usar como avatar (será redimensionado para 64x64 píxeis, pode ficar um pouco transparente)"
+DEP_PNG_FILES = u"Arquivos PNG"
+DEP_ALL_FILES = u"Todos os arquivos"
+DEP_WARN_TITLE = u"Seleção de avatar não foi possível"
+DEP_WARN_IS_ALREADY = u"Este já é o seu avatar"
+DEP_WARN_MUST_BE_PNG = u"O avatar deve ser um arquivo .png"
 
 #file transfer window
 DFT_FILE_OPEN_TITLE = u"Enviar arquivo para %s"
 DFT_FILE_SAVE_TITLE = u"Salvar arquivo de %s"
 DFT_SEND = u"Enviando %s\npara %s\n%04.1f%% (%i de %i bytes)"
 DFT_RECEIVE = u"Recebendo %s\nde %s\n%04.1f%% (%i de %i bytes)"
-# DFT_WAITING = u"waiting for connection"
-# DFT_STARTING = u"starting transfer"
-# DFT_ABORTED = u"transfer aborted"
-# DFT_COMPLETE = u"transfer complete"
-# DFT_ERROR = u"error"
+DFT_WAITING = u"aguardando conexão"
+DFT_STARTING = u"iniciando transferência"
+DFT_ABORTED = u"transferência interrompida"
+DFT_COMPLETE = u"transferência completa"
+DFT_ERROR = u"erro"
 
 #settings dialaog
 DSET_TITLE = u"Configuração do TorChat"
@@ -127,20 +127,20 @@ DSET_NET_OWN_HOSTNAME = u"Meu próprio TorChat-ID"
 DSET_NET_LISTEN_INTERFACE = u"Interface de escuta"
 DSET_NET_LISTEN_PORT = u"Porta de Escuta"
 DSET_GUI_TITLE = u"Interface do usuário"
-DSET_GUI_LANGUAGE = u"Língua"
+DSET_GUI_LANGUAGE = u"Idioma"
 DSET_GUI_OPEN_MAIN_HIDDEN = u"Iniciar com a janela principal minimizada"
 DSET_GUI_OPEN_CHAT_HIDDEN = u"Não abrir novas janelas automáticamente"
 DSET_GUI_NOTIFICATION_POPUP = u"Pop-up de notificação"
-# DSET_GUI_NOTIFICATION_METHOD = u"Notification method"
+DSET_GUI_NOTIFICATION_METHOD = u"Método de notificação"
 DSET_GUI_FLASH_WINDOW = u"Janela rápida quando chegar uma nova mensagem"
 DSET_MISC_TITLE = u"Variado"
 DSET_MISC_TEMP_IN_DATA = u"Armazenar arquivos temporários no diretório de dados"
 DSET_MISC_TEMP_CUSTOM_DIR = u"Diretório temporário (deixar vazio para OS-padrão)"
 
 #notices in the chat window (those in square brackets)
-NOTICE_DELAYED_MSG_WAITING = u"mensagens atrazadas estão esperando para serem enviadas"
-NOTICE_DELAYED_MSG_SENT = u"as mensagens atrazadas foram enviadas"
-NOTICE_DELAYED = u"atrazada"
+NOTICE_DELAYED_MSG_WAITING = u"mensagens atrasadas estão esperando para serem enviadas"
+NOTICE_DELAYED_MSG_SENT = u"as mensagens atrasadas foram enviadas"
+NOTICE_DELAYED = u"atrasada"
 
 #messagebox for offline messages
 MSG_OFFLINE_TITLE = u"TorChat: mensagens não lidas"
@@ -148,17 +148,17 @@ MSG_OFFLINE_EMPTY = u"essas não são (mais) mensagens enfileiradas para %s"
 MSG_OFFLINE_QUEUED = u"mensagens enfileiradas offline para %s:\n\n%s"
 
 # #buddy list mouse hover popup
-# BPOP_BUDDY_IS_OFFLINE = u"Buddy is offline"
-# BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Connected, awaiting return connection..."
-# BPOP_CLIENT_SOFTWARE = u"Client: %s %s"
+BPOP_BUDDY_IS_OFFLINE = u"Contato está desligado"
+BPOP_CONNECTED_AWAITING_RETURN_CONN = u"Conectado, aguardando conexão de retorno..."
+BPOP_CLIENT_SOFTWARE = u"Cliente: %s %s"
 
-# #logging of conversations to file
-# LOG_HEADER = u"This log file is not signed and has no cogency of proof"
-# LOG_STARTED = u"Logging started"
-# LOG_STOPPED = u"Logging stopped"
-# LOG_DELETED = u"Log files have been deleted"
-# LOG_IS_ACTIVATED = u"Logging to file is activated:\n%s"
-# LOG_IS_STOPPED_OLD_LOG_FOUND = u"Logging is stopped but old log file still exists:\n%s"
+#logging of conversations to file
+LOG_HEADER = u"Este arquivo de registro não está assinado e não possui confirmação alguma de legitimidade"
+LOG_STARTED = u"O registro começou"
+LOG_STOPPED = u"O registro foi interrompido"
+LOG_DELETED = u"Os arquivos de registro foram apagados"
+LOG_IS_ACTIVATED = u"O registro para arquivo foi ativado:\n%s"
+LOG_IS_STOPPED_OLD_LOG_FOUND = u"O registro foi interrompido, mas os arquivos ainda existem:\n%s"
 
 #about box
 ABOUT_TITLE = u"Sobre o TorChat"
