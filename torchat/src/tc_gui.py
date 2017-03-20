@@ -29,6 +29,8 @@ import version
 import dlg_settings
 import translations
 import tc_notification
+import string
+import random
 lang = translations.lang_en
 tb = config.tb
 tb1 = config.tb1
@@ -1618,6 +1620,7 @@ class FileTransferWindow(wx.Frame):
         self.completed = False
         self.error = False
         self.error_msg = ""
+        self.autosave_downloaded_files = config.getint("files","autosave_downloaded_files")
 
         if not receiver:
             self.is_receiver = False
@@ -1629,6 +1632,16 @@ class FileTransferWindow(wx.Frame):
             self.transfer_object = receiver
             self.bytes_total = receiver.file_size
             self.file_name = file_name
+
+            if self.autosave_downloaded_files:
+                    download_dir = config.get("files", "autosave_downloaded_files_dir")
+                    self.file_name_save = os.path.join(download_dir, self.file_name)
+                    if os.path.exists(self.file_name_save):
+                        print "(2) file %s already exists, let's use a random suffix" % self.file_name_save
+                        file_name, file_ext = os.path.splitext(self.file_name)
+                        randsuffix = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(5))
+                        self.file_name_save = os.path.join(download_dir,file_name + "_" + randsuffix + file_ext)
+                    self.transfer_object.setFileNameSave(self.file_name_save)
 
         self.panel = wx.Panel(self)
         self.outer_sizer = wx.BoxSizer()
@@ -1644,18 +1657,22 @@ class FileTransferWindow(wx.Frame):
         grid_sizer.Add(self.progress_bar, (1, 0), (1, 4), wx.EXPAND)
 
         if self.is_receiver:
-            # the first button that is created will have the focus, so
-            # we create the save button first. 
-            # SetDefault() does not seem to work in a wx.Frame.
-            self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, lang.BTN_SAVE_AS)
-            self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
-            
+            if not self.autosave_downloaded_files:
+                # the first button that is created will have the focus, so
+                # we create the save button first. 
+                # SetDefault() does not seem to work in a wx.Frame.
+                self.btn_save = wx.Button(self.panel, wx.ID_SAVEAS, lang.BTN_SAVE_AS)
+                self.btn_save.Bind(wx.EVT_BUTTON, self.onSave)
+                
         self.btn_cancel = wx.Button(self.panel, wx.ID_CANCEL, lang.BTN_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.onCancel)
 
         if self.is_receiver:
-            grid_sizer.Add(self.btn_cancel, (2, 2))
-            grid_sizer.Add(self.btn_save, (2, 3))
+            if self.autosave_downloaded_files:
+                grid_sizer.Add(self.btn_cancel, (2, 3))
+            else:
+                grid_sizer.Add(self.btn_cancel, (2, 2))
+                grid_sizer.Add(self.btn_save, (2, 3))
         else:
             grid_sizer.Add(self.btn_cancel, (2, 3))
                 
@@ -1726,8 +1743,15 @@ class FileTransferWindow(wx.Frame):
                 if self.file_name_save != "":
                     self.btn_cancel.SetLabel(lang.BTN_CLOSE)
                     self.transfer_object.close() #this will actually save the file
+                    if self.autosave_downloaded_files:
+                        for window in self.mw.chat_windows:
+                            if window.buddy == self.buddy:
+                                window.writeHintLine(os.linesep + "*** " + lang.NFT_INCOMING_FILE_COMPLETE % self.file_name_save)
+                        self.Destroy()
             else:
                 self.btn_cancel.SetLabel(lang.BTN_CLOSE)
+                if self.autosave_downloaded_files:
+                    self.Destroy()
 
     def onDataChange(self, total, complete, error_msg=""):
         #will be called from the FileSender/FileReceiver-object in the

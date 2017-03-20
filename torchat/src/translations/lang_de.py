@@ -137,11 +137,16 @@ DSET_GUI_FLASH_WINDOW = u"Blinkender Fenstertitel bei neuer Nachricht"
 DSET_MISC_TITLE = u"Verschiedenes"
 DSET_MISC_TEMP_IN_DATA = u"Temporäre Dateien im Datenverzeichnis"
 DSET_MISC_TEMP_CUSTOM_DIR = u"Verzeichnis für temporäre Dateien (leer lassen für OS-Default)"
+DSET_MISC_AUTOSAVE_FILES = u"Eingehende Dateien automatisch speichern"
+DSET_MISC_AUTOSAVE_DOWNLOAD_DIR = u"Verzeichnis für eingehende Dateien"
 
 #notices in the chat window (those in square brackets)
 NOTICE_DELAYED_MSG_WAITING = u"Verzögerte Nachrichten in der Sendewarteschlange"
 NOTICE_DELAYED_MSG_SENT = u"Verzögerte Nachrichten wurden gesendet"
 NOTICE_DELAYED = u"Verzögert"
+
+#notices about file transfer status in the chat window
+NFT_INCOMING_FILE_COMPLETE = u"Transfer vollständig. Datei gespeichert in %s"
 
 #messagebox for offline messages
 MSG_OFFLINE_TITLE = u"TorChat: Ungesendete Nachrichten"

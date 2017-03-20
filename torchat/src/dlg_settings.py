@@ -96,12 +96,19 @@ class Dialog(wx.Dialog):
         self.dir_tmp = dlg.Dir(self.p3, lang.DSET_MISC_TEMP_CUSTOM_DIR, ("files", "temp_files_custom_dir"))
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
         self.chk_tmp.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onChkTmp)
+        self.chk_download = dlg.Check(self.p3, lang.DSET_MISC_AUTOSAVE_FILES, ("files", "autosave_downloaded_files"))
+        self.dir_download = dlg.Dir(self.p3, lang.DSET_MISC_AUTOSAVE_DOWNLOAD_DIR, ("files", "autosave_downloaded_files_dir"))
+        self.dir_download.setEnabled(self.chk_download.getValue())
+        self.chk_download.wx_ctrl.Bind(wx.EVT_CHECKBOX, self.onChkDownload)
         
         #4 fit the sizers
         outer_sizer.Fit(self)
         
     def onChkTmp(self, evt):
         self.dir_tmp.setEnabled(not self.chk_tmp.getValue())
+
+    def onChkDownload(self, evt):
+        self.dir_download.setEnabled(self.chk_download.getValue())
         
     def onCancel(self, evt):
         evt.Skip() #let the frame now process the Cancel event
