@@ -524,6 +524,9 @@ class DlgEditContact(wx.Dialog):
     def onCancel(self,evt):
         self.Close()
 
+        #in some cases, self.Close will not work. This should fix that
+        evt.Skip()
+
 
 class DlgEditProfile(wx.Dialog):
     def __init__(self, parent, main_window):
@@ -671,6 +674,9 @@ class DlgEditProfile(wx.Dialog):
             tc_client.wipeFile(avatar_new)
 
         self.Close()
+
+        #in some cases, self.Close will not work. This should fix that
+        evt.Skip()
 
     def onOk(self, evt):
         config.set("profile", "name", self.txt_name.GetValue())
